@@ -1,3 +1,63 @@
+/**
+ * @openapi
+ * tags:
+ *   - name: Raffles
+ *     description: Ruletas y sorteos
+ *
+ * /api/raffles/events/{eventId}/raffles:
+ *   get:
+ *     tags: [Raffles]
+ *     summary: Listar sorteos del evento
+ *     security: [{ BearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: Lista de sorteos }
+ *   post:
+ *     tags: [Raffles]
+ *     summary: Crear sorteo
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       201: { description: Sorteo creado }
+ *
+ * /api/raffles/{id}:
+ *   get:
+ *     tags: [Raffles]
+ *     summary: Obtener sorteo
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       200: { description: Datos del sorteo }
+ *   put:
+ *     tags: [Raffles]
+ *     summary: Actualizar sorteo
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       200: { description: Sorteo actualizado }
+ *   delete:
+ *     tags: [Raffles]
+ *     summary: Eliminar sorteo
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       200: { description: Sorteo eliminado }
+ *
+ * /api/raffles/{id}/draw:
+ *   post:
+ *     tags: [Raffles]
+ *     summary: Realizar sorteo
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       200: { description: Ganadores seleccionados }
+ *
+ * /api/raffles/{id}/public:
+ *   get:
+ *     tags: [Raffles]
+ *     summary: Obtener datos públicos del sorteo
+ *     responses:
+ *       200: { description: Datos para la ruleta pública }
+ */
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { db, getEventConnection, eventDatabaseExists } = require('../../database');

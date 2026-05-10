@@ -1,5 +1,49 @@
 /**
  * Rutas de eventos
+ *
+ * @openapi
+ * tags:
+ *   - name: Events
+ *     description: CRUD de eventos y configuración
+ *
+ * /api/events:
+ *   get:
+ *     tags: [Events]
+ *     summary: Listar eventos del usuario
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       200: { description: Lista de eventos }
+ *   post:
+ *     tags: [Events]
+ *     summary: Crear nuevo evento
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       201: { description: Evento creado }
+ *
+ * /api/events/{id}:
+ *   get:
+ *     tags: [Events]
+ *     summary: Obtener evento por ID
+ *     security: [{ BearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: Datos del evento }
+ *   put:
+ *     tags: [Events]
+ *     summary: Actualizar evento
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       200: { description: Evento actualizado }
+ *   delete:
+ *     tags: [Events]
+ *     summary: Eliminar evento
+ *     security: [{ BearerAuth: ['ADMIN'] }]
+ *     responses:
+ *       200: { description: Evento eliminado }
  */
 
 const express = require('express');

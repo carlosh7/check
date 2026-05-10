@@ -1,8 +1,3 @@
-/**
- * Configuración Swagger/OpenAPI
- * Documentación de la API Check Pro
- */
-
 const swaggerJsdoc = require('swagger-jsdoc');
 
 const options = {
@@ -10,47 +5,49 @@ const options = {
         openapi: '3.0.0',
         info: {
             title: 'Check Pro API',
-            version: '12.2.2',
+            version: '12.44.672',
             description: 'API REST para el sistema de gestión de invitados y eventos Check Pro',
-            contact: {
-                name: 'Check Pro Support'
-            }
+            contact: { name: 'Check Pro Support' }
         },
         servers: [
-            { url: 'http://localhost:3000', description: 'Servidor local' },
-            { url: 'http://localhost:8080', description: 'Docker container' }
+            { url: 'http://localhost:3000', description: 'Local' },
+            { url: 'http://192.168.2.17:3000', description: 'Producción' }
         ],
         tags: [
-            { name: 'Auth', description: 'Autenticación y usuarios' },
-            { name: 'Events', description: 'Gestión de eventos' },
-            { name: 'Guests', description: 'Invitados y check-in' },
-            { name: 'Email', description: 'Configuración y envío de emails' },
-            { name: 'Groups', description: 'Grupos de trabajo' },
+            { name: 'Auth', description: 'Autenticación, registro y recuperación de contraseña' },
+            { name: 'Events', description: 'CRUD de eventos y configuración' },
+            { name: 'Guests', description: 'Invitados, check-in, categorías, badges' },
+            { name: 'Public', description: 'Rutas públicas (registro, captcha, version)' },
+            { name: 'Email', description: 'Cuentas SMTP/IMAP, mailing, campañas' },
+            { name: 'Groups', description: 'Grupos/empresas' },
             { name: 'Surveys', description: 'Encuestas y sugerencias' },
-            { name: 'Settings', description: 'Configuración general' },
-            { name: 'Public', description: 'Rutas públicas' }
+            { name: 'Settings', description: 'Configuración global del sistema' },
+            { name: 'Sessions', description: 'Sesiones y asientos' },
+            { name: 'Webhooks', description: 'Webhooks para integraciones externas' },
+            { name: 'Raffles', description: 'Ruletas y sorteos' },
+            { name: 'Payments', description: 'Pagos Stripe/PayPal' },
+            { name: 'Venues', description: 'Espacios físicos' },
+            { name: 'Google', description: 'Integración Google Sheets' },
+            { name: 'ImportExport', description: 'Importación y exportación de datos' },
+            { name: 'Security', description: 'Seguridad IA, compliance, auditoría' }
         ],
         components: {
             securitySchemes: {
                 BearerAuth: {
-                    type: 'apiKey',
-                    in: 'header',
-                    name: 'x-user-id',
-                    description: 'User ID para autenticación'
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                    description: 'Token JWT obtenido de /api/login'
                 }
             },
             schemas: {
                 Error: {
                     type: 'object',
-                    properties: {
-                        error: { type: 'string', example: 'Mensaje de error' }
-                    }
+                    properties: { error: { type: 'string', example: 'Mensaje de error' } }
                 },
                 Success: {
                     type: 'object',
-                    properties: {
-                        success: { type: 'boolean', example: true }
-                    }
+                    properties: { success: { type: 'boolean', example: true } }
                 },
                 PaginatedResponse: {
                     type: 'object',
@@ -66,12 +63,47 @@ const options = {
                             }
                         }
                     }
+                },
+                Event: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        name: { type: 'string' },
+                        date: { type: 'string' },
+                        location: { type: 'string' },
+                        status: { type: 'string', enum: ['ACTIVE', 'DRAFT', 'COMPLETED'] }
+                    }
+                },
+                Guest: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        event_id: { type: 'string' },
+                        name: { type: 'string' },
+                        email: { type: 'string' },
+                        phone: { type: 'string' },
+                        checked_in: { type: 'boolean' },
+                        qr_token: { type: 'string' }
+                    }
+                },
+                Webhook: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        name: { type: 'string' },
+                        url: { type: 'string' },
+                        events: { type: 'array', items: { type: 'string' } },
+                        status: { type: 'string', enum: ['ACTIVE', 'INACTIVE'] }
+                    }
                 }
             }
         },
         security: [{ BearerAuth: [] }]
     },
-    apis: ['./src/docs/api/*.yaml', './server.js']
+    apis: [
+        './src/routes/*.routes.js',
+        './src/docs/swagger.js'
+    ]
 };
 
 const swaggerSpec = swaggerJsdoc(options);

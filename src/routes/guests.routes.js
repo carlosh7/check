@@ -1,5 +1,60 @@
 /**
  * Rutas de Invitados e Importación/Exportación
+ *
+ * @openapi
+ * tags:
+ *   - name: Guests
+ *     description: Invitados, check-in, categorías, badges
+ *
+ * /api/guests/{eventId}:
+ *   get:
+ *     tags: [Guests]
+ *     summary: Listar invitados de un evento
+ *     security: [{ BearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: Lista de invitados }
+ *
+ * /api/guests/{eventId}/checkin:
+ *   post:
+ *     tags: [Guests]
+ *     summary: Realizar check-in de un invitado
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       200: { description: Check-in exitoso }
+ *
+ * /api/guests/{eventId}/categories:
+ *   get:
+ *     tags: [Guests]
+ *     summary: Listar categorías del evento
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       200: { description: Lista de categorías }
+ *   post:
+ *     tags: [Guests]
+ *     summary: Crear categoría
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       201: { description: Categoría creada }
+ *
+ * /api/guests/{eventId}/badges:
+ *   get:
+ *     tags: [Guests]
+ *     summary: Generar PDF de gafetes
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       200: { description: PDF de gafetes }
+ *
+ * /api/guests/by-id/{guestId}:
+ *   get:
+ *     tags: [Guests]
+ *     summary: Obtener invitado por ID (público)
+ *     responses:
+ *       200: { description: Datos del invitado }
  */
 
 const express = require('express');

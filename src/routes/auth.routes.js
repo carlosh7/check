@@ -1,5 +1,24 @@
 /**
- * Rutas de autenticación (con JWT y Zod)
+ * Rutas de autenticación
+ *
+ * @openapi
+ * tags:
+ *   - name: Auth
+ *     description: Autenticación, registro y recuperación de contraseña
+ *
+ * components:
+ *   schemas:
+ *     LoginRequest:
+ *       type: object
+ *       properties:
+ *         username: { type: string, example: admin }
+ *         password: { type: string, example: "123456" }
+ *     AuthResponse:
+ *       type: object
+ *       properties:
+ *         success: { type: boolean }
+ *         token: { type: string }
+ *         user: { type: object }
  */
 
 const express = require('express');
@@ -14,6 +33,27 @@ const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
+/**
+ * @openapi
+ * /api/login:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Iniciar sesión
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username: { type: string }
+ *               password: { type: string }
+ *     responses:
+ *       200:
+ *         description: Login exitoso, devuelve token JWT
+ *       400:
+ *         description: Credenciales inválidas
+ */
 router.post('/login', (req, res) => {
     try {
         const v = validate(schemas.login, req.body);
@@ -68,6 +108,26 @@ router.post('/login', (req, res) => {
     }
 });
 
+/**
+ * @openapi
+ * /api/signup:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Registrar nuevo usuario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username: { type: string }
+ *               password: { type: string }
+ *               display_name: { type: string }
+ *     responses:
+ *       201: { description: Usuario creado }
+ *       400: { description: Error de validación }
+ */
 router.post('/signup', (req, res) => {
     const v = validate(schemas.signup, req.body);
     if (!v.valid) return res.status(400).json({ errors: v.errors });
@@ -173,6 +233,17 @@ router.post('/reset-password', (req, res) => {
     res.json({ success: true, message: 'Contraseña actualizada exitosamente' });
 });
 
+/**
+ * @openapi
+ * /api/me:
+ *   get:
+ *     tags: [Auth]
+ *     summary: Obtener perfil del usuario actual
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       200: { description: Datos del usuario }
+ *       401: { description: No autenticado }
+ */
 router.get('/me', authMiddleware(), (req, res) => {
     try {
         const user = db.prepare("SELECT id, username, display_name, phone, role, status, group_id FROM users WHERE id = ?").get(req.userId);

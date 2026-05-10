@@ -1,5 +1,68 @@
 /**
  * Rutas de webhooks para integraciones externas
+ *
+ * @openapi
+ * tags:
+ *   - name: Webhooks
+ *     description: Webhooks para integraciones externas
+ *
+ * /api/webhooks:
+ *   get:
+ *     tags: [Webhooks]
+ *     summary: Listar webhooks
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       200: { description: Lista de webhooks }
+ *   post:
+ *     tags: [Webhooks]
+ *     summary: Crear webhook
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       201: { description: Webhook creado }
+ *
+ * /api/webhooks/{id}:
+ *   get:
+ *     tags: [Webhooks]
+ *     summary: Obtener webhook
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       200: { description: Datos del webhook }
+ *   put:
+ *     tags: [Webhooks]
+ *     summary: Actualizar webhook
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       200: { description: Webhook actualizado }
+ *   delete:
+ *     tags: [Webhooks]
+ *     summary: Eliminar webhook
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       204: { description: Webhook eliminado }
+ *
+ * /api/webhooks/{id}/test:
+ *   post:
+ *     tags: [Webhooks]
+ *     summary: Probar envío de webhook
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       200: { description: Resultado del envío }
+ *
+ * /api/webhooks/{id}/logs:
+ *   get:
+ *     tags: [Webhooks]
+ *     summary: Obtener logs de entregas
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       200: { description: Lista de logs }
+ *
+ * /api/webhooks/events/available:
+ *   get:
+ *     tags: [Webhooks]
+ *     summary: Tipos de eventos disponibles
+ *     security: [{ BearerAuth: ['ADMIN','PRODUCTOR'] }]
+ *     responses:
+ *       200: { description: Eventos disponibles }
  */
 
 const express = require('express');

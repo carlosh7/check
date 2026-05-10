@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.671",
+  "version": "12.44.672",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "script.js",
   "scripts": {
@@ -50,6 +50,7 @@
     "sharp": "^0.33.5",
     "socket.io": "^4.7.5",
     "stripe": "^22.1.1",
+    "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "uuid": "^10.0.0",
     "web-push": "^3.6.7",

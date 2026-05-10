@@ -1,5 +1,55 @@
 /**
  * Rutas públicas de Check Pro
+ *
+ * @openapi
+ * tags:
+ *   - name: Public
+ *     description: Rutas públicas (registro, captcha, versión)
+ *
+ * /api/event/{id}:
+ *   get:
+ *     tags: [Public]
+ *     summary: Obtener detalles públicos de un evento
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: Datos públicos del evento }
+ *
+ * /api/public-register:
+ *   post:
+ *     tags: [Public]
+ *     summary: Registro público de invitado
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               event_id: { type: string }
+ *               name: { type: string }
+ *               email: { type: string }
+ *               phone: { type: string }
+ *     responses:
+ *       200: { description: Registro exitoso }
+ *       400: { description: Error de validación }
+ *
+ * /api/captcha:
+ *   get:
+ *     tags: [Public]
+ *     summary: Generar captcha
+ *     responses:
+ *       200: { description: SVG del captcha }
+ *
+ * /api/app-version:
+ *   get:
+ *     tags: [Public]
+ *     summary: Obtener versión de la app
+ *     responses:
+ *       200: { description: Versión actual }
  */
 
 const express = require('express');
