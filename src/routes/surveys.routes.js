@@ -34,7 +34,7 @@ router.get('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZ
     try {
         var templates = db.prepare("SELECT * FROM survey_templates WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         res.json(templates);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
@@ -46,7 +46,7 @@ router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
             id, req.params.eventId, title.trim(), description || '', new Date().toISOString(), new Date().toISOString()
         );
         res.json({ success: true, id: id });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 router.get('/templates/:id', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
@@ -54,7 +54,7 @@ router.get('/templates/:id', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER'])
         var template = db.prepare("SELECT * FROM survey_templates WHERE id = ?").get(req.params.id);
         if (!template) return res.status(404).json({ error: 'Encuesta no encontrada' });
         res.json(template);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 router.put('/templates/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
@@ -64,7 +64,7 @@ router.put('/templates/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) 
             title || null, description || null, status || null, new Date().toISOString(), req.params.id
         );
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 router.delete('/templates/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
@@ -72,7 +72,7 @@ router.delete('/templates/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
         db.prepare("DELETE FROM survey_questions WHERE template_id = ?").run(req.params.id);
         db.prepare("DELETE FROM survey_templates WHERE id = ?").run(req.params.id);
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 // ── CRUD Survey Questions ──
@@ -81,7 +81,7 @@ router.get('/templates/:templateId/questions', authMiddleware(['ADMIN', 'PRODUCT
     try {
         var questions = getQuestionsWithType(req.params.templateId);
         res.json(questions);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 router.post('/templates/:templateId/questions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
@@ -96,7 +96,7 @@ router.post('/templates/:templateId/questions', authMiddleware(['ADMIN', 'PRODUC
             section || null, image_url || null, has_other ? 1 : 0, conditional ? JSON.stringify(conditional) : null, new Date().toISOString()
         );
         res.json({ success: true, id: id });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 router.put('/questions/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
@@ -109,14 +109,14 @@ router.put('/questions/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) 
             conditional ? JSON.stringify(conditional) : null, req.params.id
         );
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 router.delete('/questions/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         db.prepare("DELETE FROM survey_questions WHERE id = ?").run(req.params.id);
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 router.put('/questions/reorder', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
@@ -127,7 +127,7 @@ router.put('/questions/reorder', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, r
             db.prepare("UPDATE survey_questions SET order_index = ? WHERE id = ? AND template_id = ?").run(idx, qId, template_id);
         });
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 // ── Página pública: datos de la encuesta ──
@@ -138,7 +138,7 @@ router.get('/public/:templateId', (req, res) => {
         if (!template) return res.status(404).json({ error: 'Encuesta no encontrada' });
         var questions = getQuestionsWithType(req.params.templateId);
         res.json({ template: template, questions: questions });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 // ── Enviar respuesta ──
@@ -156,7 +156,7 @@ router.post('/public/:templateId/response', (req, res) => {
         );
         db.prepare("UPDATE survey_templates SET total_responses = total_responses + 1, updated_at = ? WHERE id = ?").run(new Date().toISOString(), req.params.templateId);
         res.json({ success: true, id: id });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 // ── Dashboard / Stats ──
@@ -230,7 +230,7 @@ router.get('/templates/:templateId/stats', authMiddleware(['ADMIN', 'PRODUCTOR',
             heatmap: heatmap,
             questionStats: questionStats
         });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 // ── Export CSV ──
@@ -251,7 +251,7 @@ router.get('/templates/:templateId/export/csv', authMiddleware(['ADMIN', 'PRODUC
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.setHeader('Content-Disposition', 'attachment; filename=encuesta_' + req.params.templateId.slice(0, 8) + '.csv');
         res.send(csv);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 // ── Sugerencias + Agenda (legacy, mantener compatibilidad) ──

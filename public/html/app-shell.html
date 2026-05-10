@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.682</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.683</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -1037,7 +1037,7 @@
                             
                             <!-- Información del Evento -->
                             <div>
-                                <h3 class="text-sm font-bold text- mb-4 flex items-center gap-2>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2>
                                     <span class="material-symbols-outlined text-sm">info</span> Información del Evento
                                 </h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1072,7 +1072,7 @@
                             
                             <!-- Configuración de Registro -->
                             <div>
-                                <h3 class="text-sm font-bold text- mb-4 flex items-center gap-2>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2>
                                     <span class="material-symbols-outlined text-sm">how_to_reg</span> Configuración de Registro
                                 </h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1128,7 +1128,7 @@
                             
                             <!-- Personalización Visual -->
                             <div>
-                                <h3 class="text-sm font-bold text- mb-4 flex items-center gap-2>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2>
                                     <span class="material-symbols-outlined text-sm">palette</span> Personalización Visual
                                 </h3>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1157,7 +1157,7 @@
 
                             <!-- Restricciones de Email -->
                             <div>
-                                <h3 class="text-sm font-bold text- mb-4 flex items-center gap-2>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2>
                                     <span class="material-symbols-outlined text-sm">email</span> Restricciones de Registro
                                 </h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1174,7 +1174,7 @@
 
                             <!-- PAGOS (F3-07) -->
                             <div>
-                                <h3 class="text-sm font-bold text- mb-4 flex items-center gap-2>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2>
                                     <span class="material-symbols-outlined text-sm">payments</span> Pasarela de Pagos
                                 </h3>
                                 <div class="space-y-4">
@@ -1630,7 +1630,7 @@
                         <div class="flex justify-between items-center">
                             <div>
                                 <h2 class="text-2xl font-semibold tracking-tight">Cuentas de <span class="text-">Email</span></h2>
-                                <p class="text- text-sm">Configura tus cuentas SMTP/IMAP para enviar y recibir emails.</p>
+                                <p class="text-[var(--text-main)] text-sm">Configura tus cuentas SMTP/IMAP para enviar y recibir emails.</p>
                             </div>
                             <button onclick="App.openEmailAccountModal()" class="btn-primary btn-lg">+ Nueva Cuenta</button>
                         </div>
@@ -1649,7 +1649,7 @@
                         <div class="flex justify-between items-center">
                             <div>
                                 <h2 class="text-2xl font-semibold tracking-tight">Mail<span class="text-">box</span></h2>
-                                <p class="text- text-sm">Gestiona tus emails recibidos y enviados.</p>
+                                <p class="text-[var(--text-main)] text-sm">Gestiona tus emails recibidos y enviados.</p>
                             </div>
                             <div class="flex items-center gap-2">
                                 <select id="mailbox-account-select" onchange="App.loadMailboxFolders()" class="input-field btn-py2 btn-px4 text-sm">
@@ -1724,7 +1724,7 @@
                         <div class="flex justify-between items-center">
                             <div>
                                 <h2 class="text-2xl font-semibold tracking-tight">Campañas de <span class="text-">Email</span></h2>
-                                <p class="text- text-sm">Crea y gestiona campañas de email marketing.</p>
+                                <p class="text-[var(--text-main)] text-sm">Crea y gestiona campañas de email marketing.</p>
                             </div>
                             <button onclick="App.openCampaignWizard()" class="btn-primary btn-lg">+ Nueva Campaña</button>
                         </div>
@@ -2391,7 +2391,7 @@
     <div class="card w-full max-w-md max-h-[85vh] rounded-xl mx-4 my-8 flex flex-col scale-in">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl">event</span>
+                <span class="material-symbols-outlined text-[var(--text-main)] text-xl">event</span>
                 <h3 id="modal-event-title" class="text-sm font-bold uppercase tracking-wider">Nuevo Evento</h3>
             </div>
             <button id="btn-close-event-modal" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
@@ -2402,41 +2402,41 @@
             <input type="hidden" id="ev-id-hidden" value="">
             
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Nombre del Evento</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Evento</label>
                 <input type="text" id="ev-name" required placeholder="Nombre del evento" class="input-field w-full">
             </div>
 
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Ubicaci&oacute;n</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ubicaci&oacute;n</label>
                 <input type="text" id="ev-location" placeholder="Ubicaci&oacute;n" class="input-field w-full">
             </div>
 
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Espacio</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Espacio</label>
                 <select id="ev-venue" class="input-field w-full">
                     <option value="">-- Sin espacio --</option>
                 </select>
             </div>
 
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Cliente / Cuenta</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Cliente / Cuenta</label>
                 <select id="ev-client" class="input-field w-full">
                     <option value="">Seleccionar cliente</option>
                 </select>
             </div>
 
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Fecha Inicio</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Inicio</label>
                 <input type="datetime-local" id="ev-date" required class="input-field w-full">
             </div>
 
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Fecha Fin</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Fin</label>
                 <input type="datetime-local" id="ev-end-date" class="input-field w-full">
             </div>
 
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Descripción</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
                 <textarea id="ev-desc" rows="3" placeholder="Descripción del evento" class="input-field w-full"></textarea>
             </div>
 
@@ -2464,7 +2464,7 @@
     <div class="card w-full max-w-md max-h-[85vh] rounded-xl mx-4 my-8 flex flex-col scale-in">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl">corporate_fare</span>
+                <span class="material-symbols-outlined text-[var(--text-main)] text-xl">corporate_fare</span>
                 <h3 id="modal-company-title" class="text-sm font-bold uppercase tracking-wider">Nueva Organización</h3>
             </div>
             <button id="btn-close-company" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
@@ -2474,19 +2474,19 @@
         <form id="company-form" class="p-5 overflow-y-auto flex-1 space-y-4">
             <input type="hidden" id="company-id-hidden" value="">
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Nombre de la Organización</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre de la Organización</label>
                 <input type="text" id="company-name" required placeholder="Ej: Tech Solutions Inc" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Email de Contacto</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Email de Contacto</label>
                 <input type="email" id="company-email" placeholder="contacto@empresa.com" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Teléfono</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Teléfono</label>
                 <input type="text" id="company-phone" placeholder="+57 300 123 4567" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Estado</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Estado</label>
                 <select id="company-status" class="input-field w-full">
                     <option value="ACTIVE">Activo</option>
                     <option value="INACTIVE">Inactivo</option>
@@ -2494,7 +2494,7 @@
                 </select>
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Descripción</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
                 <textarea id="company-description" rows="3" placeholder="Breve descripción de la empresa o grupo..." class="input-field w-full"></textarea>
             </div>
             <div class="flex justify-end gap-3 pt-3">
@@ -2519,19 +2519,19 @@
         </div>
         <form id="create-client-form" class="p-5 overflow-y-auto flex-1 space-y-4">
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Nombre del Cliente</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Cliente</label>
                 <input type="text" id="create-client-name" required placeholder="Ej: Juan Pérez" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Email</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Email</label>
                 <input type="email" id="create-client-email" placeholder="cliente@ejemplo.com" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Teléfono</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Teléfono</label>
                 <input type="text" id="create-client-phone" placeholder="+57 300 123 4567" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Empresa</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Empresa</label>
                 <select id="create-client-company" class="input-field w-full">
                     <option value="">Sin empresa</option>
                 </select>
@@ -2557,19 +2557,19 @@
         </div>
         <form id="create-staff-form" class="p-5 overflow-y-auto flex-1 space-y-4">
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Nombre Completo</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre Completo</label>
                 <input type="text" id="create-staff-name" required placeholder="Nombre completo" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Email</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Email</label>
                 <input type="email" id="create-staff-email" required placeholder="staff@ejemplo.com" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Contraseña</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Contraseña</label>
                 <input type="password" id="create-staff-password" required placeholder="Mínimo 6 caracteres" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Rol</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Rol</label>
                 <select id="create-staff-role" class="input-field w-full">
                     <option value="STAFF">STAFF</option>
                     <option value="LOGISTICO">LOGÍSTICO</option>
@@ -2579,7 +2579,7 @@
                 </select>
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Empresa</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Empresa</label>
                 <select id="create-staff-company" class="input-field w-full">
                     <option value="">Sin empresa</option>
                 </select>
@@ -2623,7 +2623,7 @@
     <div class="card w-full max-w-sm max-h-[85vh] rounded-xl mx-4 my-8 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl">person_add</span>
+                <span class="material-symbols-outlined text-[var(--text-main)] text-xl">person_add</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Añadir Colaborador</h3>
             </div>
             <button id="btn-close-invite" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center>
@@ -2633,11 +2633,11 @@
         <form id="invite-user-form" class="p-5 space-y-4">
             <div>
                 <input type="text" id="invite-display-name" required placeholder="Nombre completo" class="input-field w-full">
-                <p class="text-xs text- mt-1 ml-1">Nombre que verá el usuario en el sistema</p>
+                <p class="text-xs text-[var(--text-main)] mt-1 ml-1">Nombre que verá el usuario en el sistema</p>
             </div>
             <div>
                 <input type="email" id="invite-username" required placeholder="email@empresa.com" class="input-field w-full">
-                <p class="text-xs text- mt-1 ml-1">Debe ser un email válido (ej: usuario@empresa.com)</p>
+                <p class="text-xs text-[var(--text-main)] mt-1 ml-1">Debe ser un email válido (ej: usuario@empresa.com)</p>
             </div>
             <div class="relative">
                 <input type="password" id="invite-password" required placeholder="Contraseña" class="input-field w-full pr-10">
@@ -2645,7 +2645,7 @@
                     <span class="material-symbols-outlined text-lg">visibility</span>
                 </button>
             </div>
-            <p class="text-xs text- -mt-2 ml-1">Mínimo 6 caracteres</p>
+            <p class="text-xs text-[var(--text-main)] -mt-2 ml-1">Mínimo 6 caracteres</p>
             <div>
                 <select id="invite-role" class="input-field w-full">
                     <option value="ADMIN">Administrador</option>
@@ -2655,7 +2655,7 @@
                     <option value="CLIENTE">Cliente</option>
                     <option value="LOGISTICO">Logístico</option>
                 </select>
-                <p class="text-xs text- mt-1 ml-1">Selecciona el rol según el acceso necesario</p>
+                <p class="text-xs text-[var(--text-main)] mt-1 ml-1">Selecciona el rol según el acceso necesario</p>
             </div>
             <div class="flex justify-end gap-3 pt-3">
                 <button type="button" id="btn-cancel-invite" class="px-4 py-2 rounded-lg bg-">Cancelar</button>
@@ -2670,7 +2670,7 @@
     <div class="card w-full max-w-lg max-h-[85vh] rounded-xl mx-4 my-8 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl">quiz</span>
+                <span class="material-symbols-outlined text-[var(--text-main)] text-xl">quiz</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Nueva Pregunta</h3>
             </div>
             <button id="btn-close-survey-editor" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center>
@@ -3113,7 +3113,7 @@
         </div>
         <!-- Footer -->
         <div class="p-4 border-t border- shrink-0 flex justify-end>
-            <button id="btn-close-legal-footer" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text- text-sm font-medium hover:bg-white-10 transition-colors">Cerrar</button>
+            <button id="btn-close-legal-footer" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text-[var(--text-main)] text-sm font-medium hover:bg-white-10 transition-colors">Cerrar</button>
         </div>
     </div>
 </div>
@@ -3123,7 +3123,7 @@
     <div class="card w-full max-w-2xl max-h-[90vh] rounded-xl mx-4 my-8 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl">upload</span>
+                <span class="material-symbols-outlined text-[var(--text-main)] text-xl">upload</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Importar Datos</h3>
             </div>
             <button id="btn-close-import" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
@@ -3195,7 +3195,7 @@
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1 min-h-0">
-            <p class="text-sm text- mb-4">Selecciona el formato de exportación:</p>
+            <p class="text-sm text-[var(--text-main)] mb-4">Selecciona el formato de exportación:</p>
             <div class="space-y-3">
                 <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border- cursor-pointer transition-colors export-format-option data-format="excel">
                     <input type="radio" name="export-format" value="excel" checked class="w-5 h-5 accent->
@@ -3218,7 +3218,7 @@
                 <div class="w-full bg- rounded-full h-2 overflow-hidden>
                     <div id="export-progress-fill" class="h-full bg-#0ba5ec rounded-full animate-pulse style="width: 100%"></div>
                 </div>
-                <p class="text-xs text- mt-2 text-center">Generando archivo...</p>
+                <p class="text-xs text-[var(--text-main)] mt-2 text-center">Generando archivo...</p>
             </div>
         </div>
         <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
@@ -3249,7 +3249,7 @@
                     <span class="material-symbols-outlined text-sm">description</span> Descargar Plantilla
                 </h4>
                 <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border->
-                    <p class="text-xs text- mb-3">Descarga la plantilla Excel con los campos a completar:</p>
+                    <p class="text-xs text-[var(--text-main)] mb-3">Descarga la plantilla Excel con los campos a completar:</p>
                     <div class="space-y-2">
                         <div class="flex items-center gap-2 text-sm">
                             <span class="material-symbols-outlined text-blue-400 text-lg">person</span>
@@ -3293,11 +3293,11 @@
 
             <!-- CONTENEDOR DE MAPEO DE COLUMNAS (NUEVO V12.44.298) -->
             <div id="import-attendance-mapping-container" class="hidden mb-6 animate-fade-in">
-                <h4 class="text-xs font-bold uppercase tracking-wider text- mb-3 flex items-center gap-2>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)] mb-3 flex items-center gap-2>
                     <span class="material-symbols-outlined text-sm">Alt_Route</span> Mapeo de Columnas
                 </h4>
                 <div class="bg-[var(--bg-hover)] rounded-xl p-5 border border-/30>
-                    <p class="text-xs text- mb-4">Asocia las columnas de tu archivo con los campos del sistema:</p>
+                    <p class="text-xs text-[var(--text-main)] mb-4">Asocia las columnas de tu archivo con los campos del sistema:</p>
                     <div id="mapping-fields-list" class="space-y-4">
                         <!-- Se poblará dinámicamente desde JS -->
                     </div>
@@ -3306,7 +3306,7 @@
             
             <!-- Progreso de validación -->
             <div id="import-attendance-progress-container" class="hidden">
-                <h4 class="text-xs font-bold uppercase tracking-wider text- mb-3 flex items-center gap-2>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)] mb-3 flex items-center gap-2>
                     <span class="material-symbols-outlined text-sm">fact_check</span> Validación de Datos
                 </h4>
                 <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border-[var(--border)]">
@@ -3357,8 +3357,8 @@
                     
                     <!-- Detalles de errores -->
                     <div id="import-attendance-details" class="hidden mt-4 pt-4 border-t border->
-                        <p class="text-xs font-bold uppercase tracking-wider text- mb-2">Errores encontrados:</p>
-                        <div class="text-xs text- max-h-24 overflow-y-auto"></div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)] mb-2">Errores encontrados:</p>
+                        <div class="text-xs text-[var(--text-main)] max-h-24 overflow-y-auto"></div>
                     </div>
                 </div>
             </div>
@@ -3377,7 +3377,7 @@
     <div class="card w-full max-w-md max-h-[90vh] rounded-xl mx-4 my-8 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl">download</span>
+                <span class="material-symbols-outlined text-[var(--text-main)] text-xl">download</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Exportar Asistentes</h3>
             </div>
             <button onclick="document.getElementById('modal-export-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
@@ -3385,7 +3385,7 @@
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1 min-h-0">
-            <p class="text-sm text- mb-4">Selecciona el formato de exportación:</p>
+            <p class="text-sm text-[var(--text-main)] mb-4">Selecciona el formato de exportación:</p>
             <div class="space-y-3">
                 <label class="flex items-center gap-3 p-3 bg-white-5 rounded-xl cursor-pointer hover:bg-white-10 transition-colors">
                     <input type="radio" name="export-attendance-format" value="excel" checked class="accent-#0ba5ec w-4 h-4">
@@ -3498,7 +3498,7 @@
     <div class="card w-full max-w-md max-h-[90vh] rounded-xl mx-4 my-8 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl">settings</span>
+                <span class="material-symbols-outlined text-[var(--text-main)] text-xl">settings</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Gestionar Asistente</h3>
             </div>
             <button onclick="document.getElementById('modal-manage-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
@@ -3509,7 +3509,7 @@
             <input type="hidden" id="manage-attendance-client-id">
             <!-- Cambiar Estado -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-3 block">Cambiar Estado</label>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)] mb-3 block">Cambiar Estado</label>
                 <div class="space-y-2">
                     <label class="flex items-center gap-3 p-3 rounded-xl border border- hover:border-amber-500 cursor-pointer transition-colors manage-status-option data-status="PENDIENTE">
                         <input type="radio" name="manage-attendance-status" value="PENDIENTE" class="w-5 h-5 accent-amber-500">
@@ -3531,7 +3531,7 @@
             
             <!-- Información del asistente -->
             <div id="manage-attendance-info" class="bg-[var(--bg-hover)] rounded-xl p-4 border border->
-                <p class="text-xs font-bold uppercase tracking-wider text- mb-2">Asistente</p>
+                <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)] mb-2">Asistente</p>
                 <p id="manage-attendance-name" class="text-sm font-medium text-white">-</p>
                 <p id="manage-attendance-email" class="text-xs text-">-</p>
             </div>
@@ -3557,7 +3557,7 @@
     <div class="card w-full max-w-md max-h-[85vh] rounded-xl mx-4 my-8 flex flex-col scale-in">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl">person_add</span>
+                <span class="material-symbols-outlined text-[var(--text-main)] text-xl">person_add</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Asistente</h3>
             </div>
             <button onclick="document.getElementById('modal-add-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
@@ -3566,38 +3566,38 @@
         </div>
         <div class="p-5 overflow-y-auto flex-1 space-y-4">
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Nombre</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre</label>
                 <input type="text" id="add-attendance-name" placeholder="Nombre completo" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Email</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Email</label>
                 <input type="email" id="add-attendance-email" placeholder="correo@ejemplo.com" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Teléfono</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Teléfono</label>
                 <input type="text" id="add-attendance-phone" placeholder="+52 123 456 7890" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Organización</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Organización</label>
                 <input type="text" id="add-attendance-organization" placeholder="Empresa u organización" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Cargo</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Cargo</label>
                 <input type="text" id="add-attendance-cargo" placeholder="Puesto o cargo" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Vegano</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Vegano</label>
                 <select id="add-attendance-vegano" class="input-field w-full">
                     <option value="NO">No</option>
                     <option value="SI">Sí</option>
                 </select>
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Restricciones Alimentarias</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Restricciones Alimentarias</label>
                 <textarea id="add-attendance-restricciones" placeholder="Alergias o restricciones" class="input-field w-full" rows="2"></textarea>
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider">Categor&iacute;a</label>
+                <label class="text-10 font-medium text-[var(--text-secondary)] uppercase tracking-wider">Categor&iacute;a</label>
                 <select id="add-attendance-category" class="input-field w-full">
                     <option value="">Sin categor&iacute;a</option>
                 </select>
