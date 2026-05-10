@@ -61,4 +61,40 @@ router.delete('/events/:eventId/proposals/:id', authMiddleware(['ADMIN', 'PRODUC
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── AI Moderation (C4-10) ───
+
+// Auto-moderate a proposal: suggest status based on content analysis
+router.post('/events/:eventId/proposals/:id/moderate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        var proposal = db.prepare("SELECT * FROM proposals WHERE id = ? AND event_id = ?").get(req.params.id, req.params.eventId);
+        if (!proposal) return res.status(404).json({ error: 'Propuesta no encontrada' });
+
+        var title = (proposal.title || '').toLowerCase();
+        var desc = (proposal.description || '').toLowerCase();
+        var combined = title + ' ' + desc;
+
+        // Simple content analysis keywords
+        var positiveKeywords = ['taller', 'workshop', 'charla', 'conferencia', 'presentación', 'innovación', 'tecnología', 'experiencia', 'caso de éxito', 'demostración', 'práctica'];
+        var negativeKeywords = ['publicidad', 'venta', 'spam', 'comercial', 'promoción', 'irrelevante'];
+        var questionWords = ['¿', 'qué', 'cómo', 'cuándo', 'dónde', 'por qué', 'quién', 'cuál'];
+
+        var score = 0;
+        positiveKeywords.forEach(function(kw) { if (combined.includes(kw)) score += 15; });
+        negativeKeywords.forEach(function(kw) { if (combined.includes(kw)) score -= 25; });
+        questionWords.forEach(function(kw) { if (title.startsWith(kw)) score -= 10; });
+
+        var suggestion, confidence;
+        if (score >= 15) { suggestion = 'approved'; confidence = 'alta'; }
+        else if (score <= -10) { suggestion = 'rejected'; confidence = 'alta'; }
+        else { suggestion = 'pending'; confidence = 'baja'; }
+
+        res.json({
+            suggestion: suggestion,
+            confidence: confidence,
+            score: score,
+            message: score >= 15 ? '✅ Parece una propuesta valiosa' : score <= -10 ? '❌ Podría no ser relevante' : '⚠️ No se pudo determinar automáticamente'
+        });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

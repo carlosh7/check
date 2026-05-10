@@ -42,6 +42,7 @@ const speakersRoutes = require('./speakers.routes');
 const proposalsRoutes = require('./proposals.routes');
 const automationRoutes = require('./automation.routes');
 const tenantsRoutes = require('./tenants.routes');
+const chatbotRoutes = require('./chatbot.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
 const upload = multer({
@@ -184,6 +185,8 @@ app.use('/api/compliance', complianceRoutes);
     app.use('/api', automationRoutes);
     // Tenants / Multi-tenant (C3-07)
     app.use('/', tenantsRoutes);
+    // Chatbot (C4-08)
+    app.use('/', chatbotRoutes);
 
     // Google Sheets Integration (F3-09)
     app.use('/api/google', googleRoutes.router);

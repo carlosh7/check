@@ -77,8 +77,13 @@ function setLang(lang) {
     if (lang === currentLang) return;
     currentLang = lang;
     localStorage.setItem(STORAGE_KEY, lang);
+    // Also save to server if user is logged in
+    try {
+        if (window.App && window.App.state && window.App.state.user) {
+            window.App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ language: lang }) }).catch(function() {});
+        }
+    } catch(e) {}
     loadLang(lang);
-    // Dispatch event for reactive components
     window.dispatchEvent(new CustomEvent('langchange', { detail: { lang: lang } }));
 }
 
