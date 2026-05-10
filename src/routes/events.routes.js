@@ -99,55 +99,52 @@ function getEventDbForAttendance(eventId) {
 const router = express.Router();
 
 router.get('/', authMiddleware(), async (req, res) => {
-    const cacheKey = req.userRole === 'ADMIN' 
-        ? CACHE_KEYS.EVENT_LIST 
-        : `events:list:user:${req.userId}`;
-    
-    const rows = await cacheOrFetch(cacheKey, () => {
-        let events;
-        if (req.userRole === 'ADMIN') {
-            events = db.prepare("SELECT * FROM events ORDER BY created_at DESC").all();
-        } else if (req.userRole === 'ORGANIZER') {
-            events = db.prepare("SELECT e.* FROM events e INNER JOIN user_events ue ON e.id = ue.event_id WHERE ue.user_id = ? ORDER BY e.created_at DESC").all(req.userId);
-        } else {
-            events = db.prepare("SELECT * FROM events WHERE group_id IN (SELECT group_id FROM group_users WHERE user_id = ?) ORDER BY created_at DESC").all(req.userId);
-        }
+    try {
+        const cacheKey = req.userRole === 'ADMIN' 
+            ? CACHE_KEYS.EVENT_LIST 
+            : `events:list:user:${req.userId}`;
         
-        // Agregar conteo de guests desde DBs independientes
-        for (const e of events) {
-            if (e.has_own_db === 1 && eventDatabaseExists(e.id)) {
-                const eventDb = getEventConnection(e.id);
-                if (eventDb) {
-                    const guestCount = eventDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ?").get(e.id);
-                    e.total_guests = guestCount.c;
-                    const checkedCount = eventDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1").get(e.id);
-                    e.attended_guests = checkedCount.c;
-                } else {
-                    e.total_guests = 0;
-                    e.attended_guests = 0;
-                }
+        const rows = await cacheOrFetch(cacheKey, () => {
+            let events;
+            if (req.userRole === 'ADMIN') {
+                events = db.prepare("SELECT * FROM events ORDER BY created_at DESC").all();
+            } else if (req.userRole === 'ORGANIZER') {
+                events = db.prepare("SELECT e.* FROM events e INNER JOIN user_events ue ON e.id = ue.event_id WHERE ue.user_id = ? ORDER BY e.created_at DESC").all(req.userId);
             } else {
-                const guestCount = db.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ?").get(e.id);
-                e.total_guests = guestCount.c;
-                const checkedCount = db.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1").get(e.id);
-                e.attended_guests = checkedCount.c;
+                events = db.prepare("SELECT * FROM events WHERE group_id IN (SELECT group_id FROM group_users WHERE user_id = ?) ORDER BY created_at DESC").all(req.userId);
             }
-        }
-        
-        return events;
-    }, 60); // TTL 60 seconds
-    
-    res.json(rows);
+            
+            for (const e of events) {
+                if (e.has_own_db === 1 && eventDatabaseExists(e.id)) {
+                    const eventDb = getEventConnection(e.id);
+                    if (eventDb) {
+                        const guestCount = eventDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ?").get(e.id);
+                        e.total_guests = guestCount.c;
+                        const checkedCount = eventDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1").get(e.id);
+                        e.attended_guests = checkedCount.c;
+                    } else { e.total_guests = 0; e.attended_guests = 0; }
+                } else {
+                    const guestCount = db.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ?").get(e.id);
+                    e.total_guests = guestCount.c;
+                    const checkedCount = db.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1").get(e.id);
+                    e.attended_guests = checkedCount.c;
+                }
+            }
+            return events;
+        }, 60);
+        res.json(rows);
+    } catch(err) { console.error('[EVENTS] Error listing:', err.message); res.status(500).json({ error: 'Error al listar eventos' }); }
 });
 
 router.get('/:id', authMiddleware(), async (req, res) => {
-    const eventId = castId('events', req.params.id);
-    const row = await cacheOrFetch(CACHE_KEYS.EVENT(eventId), () => {
-        return db.prepare("SELECT * FROM events WHERE id = ?").get(eventId);
-    }, 300); // TTL 5 minutes
-    
-    if (!row) return res.status(404).json({ error: 'Evento no encontrado' });
-    res.json(row);
+    try {
+        const eventId = castId('events', req.params.id);
+        const row = await cacheOrFetch(CACHE_KEYS.EVENT(eventId), () => {
+            return db.prepare("SELECT * FROM events WHERE id = ?").get(eventId);
+        }, 300);
+        if (!row) return res.status(404).json({ error: 'Evento no encontrado' });
+        res.json(row);
+    } catch(err) { console.error('[EVENTS] Error getting event:', err.message); res.status(500).json({ error: 'Error al obtener evento' }); }
 });
 
 router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
@@ -357,32 +354,35 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
 
 // Obtener invitados de evento (con paginación)
 router.get('/:id/guests', authMiddleware(), (req, res) => {
-    const eId = castId('events', req.params.id);
-    const limit = Math.min(parseInt(req.query.limit) || 100, 500); // Máximo 500 por página
-    const offset = parseInt(req.query.offset) || 0;
-    
-    // Total para paginación
-    const { total } = db.prepare("SELECT COUNT(*) as total FROM guests WHERE event_id = ?").get(eId);
-    
-    // Datos paginados
-    const rows = db.prepare("SELECT id, name, email, phone, organization, position, gender, checked_in, checkin_time, qr_token, dietary_notes, created_at FROM guests WHERE event_id = ? ORDER BY name ASC LIMIT ? OFFSET ?").all(eId, limit, offset);
-    
-    res.json({ guests: rows, total, limit, offset });
+    try {
+        const eId = castId('events', req.params.id);
+        if (!eId) return res.status(400).json({ error: 'ID inválido' });
+        const limit = Math.min(parseInt(req.query.limit) || 100, 500);
+        const offset = parseInt(req.query.offset) || 0;
+        const { total } = db.prepare("SELECT COUNT(*) as total FROM guests WHERE event_id = ?").get(eId);
+        const rows = db.prepare("SELECT id, name, email, phone, organization, position, gender, checked_in, checkin_time, qr_token, dietary_notes, created_at FROM guests WHERE event_id = ? ORDER BY name ASC LIMIT ? OFFSET ?").all(eId, limit, offset);
+        res.json({ guests: rows, total, limit, offset });
+    } catch(err) { console.error('[EVENTS] Error listing guests:', err.message); res.status(500).json({ error: 'Error al listar invitados' }); }
 });
 
 // Obtener pre-registros de evento
 router.get('/:id/pre-registrations', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const eId = castId('events', req.params.id);
-    const rows = db.prepare("SELECT id, name, email, phone, organization, position, gender, status, registered_at FROM pre_registrations WHERE event_id = ? AND status = 'PENDING' ORDER BY registered_at DESC").all(eId);
-    res.json(rows);
+    try {
+        const eId = castId('events', req.params.id);
+        const rows = db.prepare("SELECT id, name, email, phone, organization, position, gender, status, registered_at FROM pre_registrations WHERE event_id = ? AND status = 'PENDING' ORDER BY registered_at DESC").all(eId);
+        res.json(rows);
+    } catch(err) { console.error('[EVENTS] Error listing pre-regs:', err.message); res.status(500).json({ error: 'Error al listar pre-registros' }); }
 });
 
 // Aprobar o rechazar pre-registro
 router.put('/pre-registrations/:id/status', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const { status } = req.body;
-    const id = castId('pre_registrations', req.params.id);
-    
-    if (status === 'APPROVED') {
+    try {
+        const preId = req.params.id;
+        const { status } = req.body;
+        if (!['APPROVED', 'REJECTED'].includes(status)) return res.status(400).json({ error: 'Estado inválido' });
+        const pre = db.prepare("SELECT * FROM pre_registrations WHERE id = ?").get(preId);
+        if (!pre) return res.status(404).json({ error: 'Pre-registro no encontrado' });
+        if (status === 'APPROVED') {
         const pre = db.prepare("SELECT * FROM pre_registrations WHERE id = ?").get(id);
         if (pre) {
             const guestId = getValidId('guests');
@@ -423,6 +423,7 @@ router.put('/pre-registrations/:id/status', authMiddleware(['ADMIN', 'PRODUCTOR'
     
     db.prepare("UPDATE pre_registrations SET status = ? WHERE id = ?").run(status, id);
     res.json({ success: true });
+    } catch(err) { console.error('[EVENTS] Error updating pre-reg:', err.message); res.status(500).json({ error: 'Error al actualizar pre-registro' }); }
 });
 
 // Obtener usuarios asignados a un evento

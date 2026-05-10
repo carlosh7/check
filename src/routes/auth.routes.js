@@ -150,46 +150,37 @@ router.post('/signup', (req, res) => {
 });
 
 router.post('/password-reset-request', (req, res) => {
-    const v = validate(schemas.passwordResetRequest, req.body);
-    if (!v.valid) return res.status(400).json({ errors: v.errors });
-
-    const { username } = v.data;
-    const user = db.prepare("SELECT * FROM users WHERE username = ?").get(username.toLowerCase());
-    if (!user) {
-        return res.json({ success: true, message: 'Si el email existe, recibirás un código de recuperación' });
-    }
-
-    // Generar codigo de 6 digitos
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-
-    db.prepare("INSERT INTO password_resets (id, user_id, code, expires_at, created_at) VALUES (?, ?, ?, ?, ?)")
-      .run(getValidId('password_resets'), user.id, code, expires, new Date().toISOString());
-
-    // Enviar email si hay servicio configurado
-    let emailSent = false;
     try {
-        const emailService = global.emailService;
-        if (emailService && typeof emailService.sendEmail === 'function') {
-            const html = '<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:20px;background:linear-gradient(135deg,#7c3aed,#3b82f6);border-radius:12px;color:#fff;text-align:center">' +
-                '<h2 style="margin:0 0 10px;font-size:20px">Recuperación de Contraseña</h2>' +
-                '<p style="font-size:14px;opacity:0.9;margin:0 0 20px">Tu código de verificación es:</p>' +
-                '<div style="font-size:36px;font-weight:bold;letter-spacing:8px;background:rgba(255,255,255,0.2);padding:15px;border-radius:8px;margin:0 auto 20px;display:inline-block">' + code + '</div>' +
-                '<p style="font-size:12px;opacity:0.7;margin:0">Válido por 30 minutos</p>' +
-                '<div style="margin-top:20px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.2);font-size:10px;opacity:0.5">Check Pro - Smart Eventos</div></div>';
-            emailService.sendEmail({
-                to: user.username,
-                subject: 'Código de recuperación - Check Pro',
-                html: html,
-                eventId: null
-            }).then(() => { emailSent = true; }).catch(err => console.error('[PASSWORD_RESET] Error email:', err.message));
-            emailSent = true; // optimistic
-        }
-    } catch(e) {
-        console.error('[PASSWORD_RESET] Error sending email:', e.message);
-    }
+        const v = validate(schemas.passwordResetRequest, req.body);
+        if (!v.valid) return res.status(400).json({ errors: v.errors });
 
-    res.json({ success: true, message: emailSent ? 'Código enviado por email' : 'Código generado (configura SMTP para envio automatico)', code: code });
+        const { username } = v.data;
+        const user = db.prepare("SELECT * FROM users WHERE username = ?").get(username.toLowerCase());
+        if (!user) return res.json({ success: true, message: 'Si el email existe, recibirás un código de recuperación' });
+
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+        db.prepare("INSERT INTO password_resets (id, user_id, code, expires_at, created_at) VALUES (?, ?, ?, ?, ?)")
+          .run(getValidId('password_resets'), user.id, code, expires, new Date().toISOString());
+
+        let emailSent = false;
+        try {
+            const emailService = global.emailService;
+            if (emailService && typeof emailService.sendEmail === 'function') {
+                const html = '<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:20px;background:linear-gradient(135deg,#7c3aed,#3b82f6);border-radius:12px;color:#fff;text-align:center">' +
+                    '<h2 style="margin:0 0 10px;font-size:20px">Recuperación de Contraseña</h2>' +
+                    '<p style="font-size:14px;opacity:0.9;margin:0 0 20px">Tu código de verificación es:</p>' +
+                    '<div style="font-size:36px;font-weight:bold;letter-spacing:8px;background:rgba(255,255,255,0.2);padding:15px;border-radius:8px;margin:0 auto 20px;display:inline-block">' + code + '</div>' +
+                    '<p style="font-size:12px;opacity:0.7;margin:0">Válido por 30 minutos</p>' +
+                    '<div style="margin-top:20px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.2);font-size:10px;opacity:0.5">Check Pro - Smart Eventos</div></div>';
+                emailService.sendEmail({ to: user.username, subject: 'Código de recuperación - Check Pro', html: html, eventId: null })
+                    .then(function() { emailSent = true; }).catch(function(err) { console.error('[PASSWORD_RESET] Error email:', err.message); });
+                emailSent = true;
+            }
+        } catch(e) { console.error('[PASSWORD_RESET] Error sending email:', e.message); }
+
+        res.json({ success: true, message: emailSent ? 'Código enviado por email' : 'Código generado (configura SMTP para envio automatico)', code: code });
+    } catch(err) { console.error('[PASSWORD_RESET] Error:', err.message); res.status(500).json({ error: 'Error al procesar solicitud' }); }
 });
 
 router.post('/verify-reset-code', (req, res) => {
