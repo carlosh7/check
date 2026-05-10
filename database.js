@@ -156,6 +156,21 @@ db.exec(`CREATE TABLE IF NOT EXISTS automation_rules (
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 )`);
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_automation_rules_event ON automation_rules(event_id)"); } catch (_) {}
+// Tenants table (C3-07)
+db.exec(`CREATE TABLE IF NOT EXISTS tenants (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    domain TEXT,
+    logo_url TEXT,
+    primary_color TEXT DEFAULT '#7c3aed',
+    welcome_text TEXT,
+    is_active INTEGER DEFAULT 1,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_tenants_slug ON tenants(slug)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_tenants_domain ON tenants(domain)"); } catch (_) {}
+try { db.exec("ALTER TABLE groups ADD COLUMN tenant_id TEXT"); } catch (_) {}
 // Video conference (C3-03)
 try { db.exec("ALTER TABLE events ADD COLUMN video_conference_url TEXT"); } catch (_) {}
 // Public proposals table (BL-20)

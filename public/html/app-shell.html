@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.706</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.707</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -1710,6 +1710,9 @@
                         <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="whatsapp" onclick="App.switchSystemTab('whatsapp')">
                             <span class="material-symbols-outlined text-base">chat</span> WhatsApp
                         </button>
+                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="tenants" onclick="App.switchSystemTab('tenants')">
+                            <span class="material-symbols-outlined text-base">business</span> Tenants
+                        </button>
                     </div>
                     </div>
 
@@ -2541,6 +2544,25 @@
                                 <input type="text" id="wa-test-number" class="input-field flex-1" placeholder="521234567890">
                                 <button class="btn-primary" onclick="App.sendTestWa()">Enviar</button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: TENANTS (C3-07) -->
+                <div id="sys-content-tenants" class="hidden space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Multi-tenant <span class="text-[var(--primary)]">White Label</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm">Gestiona clientes con marca propia y subdominio.</p>
+                        </div>
+                        <button class="btn-primary" onclick="App.openTenantModal()">➕ Nuevo tenant</button>
+                    </div>
+                    <div class="card overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="data-table w-full">
+                                <thead><tr class="table-header-row"><th class="table-th">Nombre</th><th class="table-th">Slug</th><th class="table-th">Dominio</th><th class="table-th">Estado</th><th class="table-th">Acción</th></tr></thead>
+                                <tbody id="tenants-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Sin tenants configurados</td></tr></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -4250,6 +4272,54 @@
             <div id="otp-result" class="hidden text-center p-3 rounded-lg"></div>
             <button class="btn-primary w-full" onclick="App.verifyOtpCheckin()">✅ Verificar</button>
         </div>
+    </div>
+</div>
+
+<!-- ═══ Tenant Modal (C3-07) ═══ -->
+<div id="modal-tenant" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-60 backdrop-blur-sm">
+    <div class="bg-[var(--bg-primary)] border border-[var(--border)] rounded-xl shadow-2xl w-full max-w-md mt-[10vh] mx-4">
+        <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white">Tenant</h3>
+            <button onclick="App.closeTenantModal()" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-slate-400">close</span>
+            </button>
+        </div>
+        <form onsubmit="event.preventDefault(); App.saveTenant()" class="p-5 space-y-4">
+            <input type="hidden" id="tenant-id">
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Nombre *</label>
+                <input id="tenant-name" class="input-field w-full" placeholder="Nombre de la empresa" required>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Slug *</label>
+                <input id="tenant-slug" class="input-field w-full" placeholder="mi-empresa" required>
+                <p class="text-[10px] text-slate-500">Identificador único. Ej: /mi-empresa/landing</p>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Dominio personalizado</label>
+                <input id="tenant-domain" class="input-field w-full" placeholder="miempresa.com (opcional)">
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Logo URL</label>
+                <input id="tenant-logo" class="input-field w-full" placeholder="https://...logo.png">
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Color primario</label>
+                <input id="tenant-color" type="color" class="w-full h-10 rounded-lg cursor-pointer" value="#7c3aed">
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Texto de bienvenida</label>
+                <textarea id="tenant-welcome" class="input-field w-full text-xs" rows="2" placeholder="Bienvenido a [empresa]..."></textarea>
+            </div>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" id="tenant-active" class="w-4 h-4 accent-[var(--primary)]" checked>
+                <span>Activo</span>
+            </label>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="App.closeTenantModal()" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
     </div>
 </div>
 

@@ -10915,7 +10915,7 @@ navigate(viewName, params = {}, push = true) {
         }
         
         // Obtener todos los tabs
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google', 'sys-content-ai-security', 'sys-content-webhooks', 'sys-content-sms', 'sys-content-whatsapp'];
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google', 'sys-content-ai-security', 'sys-content-webhooks', 'sys-content-sms', 'sys-content-whatsapp', 'sys-content-tenants'];
         
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
@@ -10957,6 +10957,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'webhooks') this.loadWebhooks();
         if (tabName === 'sms') this.loadSmsSettings();
         if (tabName === 'whatsapp') this.loadWaSettings();
+        if (tabName === 'tenants') this.loadTenants();
         if (tabName === 'ai-security') this.loadAiSecurity();
         if (tabName === 'compliance') this.loadCompliance();
         if (tabName === 'google') this.loadGoogleTab();
@@ -17792,6 +17793,61 @@ navigate(viewName, params = {}, push = true) {
         var to = document.getElementById('wa-test-number')?.value.trim();
         if (!to) { this._notifyAction('Error', 'Número requerido', 'error'); return; }
         try { var res = await this.fetchAPI('/api/whatsapp/send', { method: 'POST', body: JSON.stringify({ to: to, message: 'Test WhatsApp desde Check Pro' }) }); if (res.success) this._notifyAction('Enviado', 'WhatsApp enviado', 'success'); else this._notifyAction('Error', res.error, 'error'); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    // ═══ Tenants / Multi-tenant (C3-07) ═══
+
+    loadTenants: async function() {
+        try {
+            var tenants = await this.fetchAPI('/api/tenants');
+            var tbody = document.getElementById('tenants-tbody');
+            if (!tbody) return;
+            if (!tenants || !tenants.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin tenants configurados</td></tr>'; return; }
+            tbody.innerHTML = tenants.map(function(t) {
+                return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-medium text-white">' + (t.name || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + (t.slug || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + (t.domain || '-') + '</td>' +
+                    '<td class="table-td"><span class="text-xs font-bold ' + (t.is_active ? 'text-green-500' : 'text-slate-500') + '">' + (t.is_active ? 'Activo' : 'Inactivo') + '</span></td>' +
+                    '<td class="table-td"><button class="btn-icon" onclick="App.editTenant(\'' + t.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                    '<button class="btn-icon text-red-400" onclick="App.deleteTenant(\'' + t.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+            }).join('');
+        } catch(e) { console.error('[TENANTS] Error:', e.message); }
+    },
+
+    openTenantModal: function() {
+        document.getElementById('tenant-id').value = ''; document.getElementById('tenant-name').value = ''; document.getElementById('tenant-slug').value = '';
+        document.getElementById('tenant-domain').value = ''; document.getElementById('tenant-logo').value = ''; document.getElementById('tenant-color').value = '#7c3aed';
+        document.getElementById('tenant-welcome').value = ''; document.getElementById('tenant-active').checked = true;
+        document.getElementById('modal-tenant').classList.remove('hidden');
+    },
+    closeTenantModal: function() { document.getElementById('modal-tenant').classList.add('hidden'); },
+
+    editTenant: async function(id) {
+        try {
+            var tenants = await this.fetchAPI('/api/tenants');
+            var t = tenants.find(function(x) { return x.id === id; });
+            if (!t) return;
+            document.getElementById('tenant-id').value = t.id; document.getElementById('tenant-name').value = t.name || '';
+            document.getElementById('tenant-slug').value = t.slug || ''; document.getElementById('tenant-domain').value = t.domain || '';
+            document.getElementById('tenant-logo').value = t.logo_url || ''; document.getElementById('tenant-color').value = t.primary_color || '#7c3aed';
+            document.getElementById('tenant-welcome').value = t.welcome_text || ''; document.getElementById('tenant-active').checked = t.is_active !== 0;
+            document.getElementById('modal-tenant').classList.remove('hidden');
+        } catch(e) { console.error(e); }
+    },
+
+    saveTenant: async function() {
+        var id = document.getElementById('tenant-id')?.value;
+        var name = document.getElementById('tenant-name')?.value.trim();
+        var slug = document.getElementById('tenant-slug')?.value.trim();
+        if (!name || !slug) { this._notifyAction('Error', 'Nombre y slug requeridos', 'error'); return; }
+        var body = { name: name, slug: slug, domain: document.getElementById('tenant-domain')?.value || '', logo_url: document.getElementById('tenant-logo')?.value || '', primary_color: document.getElementById('tenant-color')?.value || '#7c3aed', welcome_text: document.getElementById('tenant-welcome')?.value || '', is_active: document.getElementById('tenant-active')?.checked };
+        try { await this.fetchAPI('/api/tenants' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) }); this.closeTenantModal(); this.loadTenants(); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    deleteTenant: async function(id) {
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar tenant?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try { await this.fetchAPI('/api/tenants/' + id, { method: 'DELETE' }); this.loadTenants(); } catch(e) { console.error(e); }
     }
 };
 

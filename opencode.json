@@ -1,0 +1,11 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "blender": {
+      "type": "local",
+      "command": ["/home/carlosh/blender-mcp/.venv/bin/python3", "/home/carlosh/blender-mcp/server.py", "--mode", "check", "--check-path", "/home/carlosh/check-3d-planner/public/models"],
+      "enabled": true,
+      "timeout": 60000
+    }
+  }
+}
