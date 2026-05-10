@@ -1538,10 +1538,10 @@ FASE 23: Seguridad v2
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.724 |
-| **Ultimo feature completado** | C6-14 + C6-17 + C6-06 |
+| **Version** | v12.44.725 |
+| **Ultimo feature completado** | C6-14 + C6-17 + C6-06 + C6-05 |
 | **Feature en curso** | **Ciclo 7 — Consolidación + Features Diferidas** |
-| **Proximo feature** | C6-05 Edición multi-usuario en vivo |
+| **Proximo feature** | C6-10 SDK JavaScript / Node.js |
 
 ---
 
@@ -1590,7 +1590,7 @@ FASE 25: Consolidación y Pulido
 | C6-14 | Auto-deploy con webhooks | ✅ | v12.44.722 | 2026-05-10 |
 | C6-17 | Cifrado de datos sensibles | ✅ | v12.44.723 | 2026-05-10 |
 | C6-06 | Historial de cambios (undo) | ✅ | v12.44.724 | 2026-05-10 |
-| C6-05 | Edición multi-usuario en vivo | ⏳ | — | — |
+| C6-05 | Edición multi-usuario en vivo | ✅ | v12.44.725 | 2026-05-10 |
 | C6-10 | SDK JavaScript / Node.js | ⏳ | — | — |
 | C7-01 | Optimización de rendimiento | ⏳ | — | — |
 | C7-02 | Tests de integración | ⏳ | — | — |

@@ -9922,8 +9922,8 @@ navigate(viewName, params = {}, push = true) {
                         <div class="w-7 h-7 rounded-lg ${isValidated ? 'bg-emerald-500/20' : 'bg-[var(--bg-hover)]'} flex items-center justify-center">
                             <span class="material-symbols-outlined text-sm ${isValidated ? 'text-emerald-500' : 'text-slate-500'}">${isValidated ? 'check_circle' : 'person'}</span>
                         </div>
-                        <div>
-                            <p class="text-sm font-bold text-[var(--text-main)]">${g.client_name || 'Sin nombre'}</p>
+                        <div class="cursor-pointer" onclick="App.editGuestFromList('${g.id}', '${g.event_id}', '${(g.client_name || '').replace(/'/g, "\\'")}')">
+                            <p class="text-sm font-bold text-[var(--text-main)] hover:text-[var(--primary)] transition-colors">${g.client_name || 'Sin nombre'}</p>
                             <p class="text-[11px] text-[var(--text-secondary)] font-mono">${g.client_email || 'S/E'}</p>
                             <p class="text-[10px] text-slate-500">${g.client_phone || 'S/T'}</p>
                         </div>
@@ -9971,7 +9971,20 @@ navigate(viewName, params = {}, push = true) {
             </tr>`;
         }).join('');
     },
-    
+
+    editGuestFromList: function(guestId, eventId, guestName) {
+        if (this.state.socket) {
+            this.state.socket.emit('editing_guest', {
+                eventId: eventId,
+                guestId: guestId,
+                guestName: guestName,
+                userId: this.state.user?.id,
+                userName: this.state.user?.display_name || this.state.user?.username
+            });
+        }
+        this.showToast('Editando a ' + guestName + '...', 'info');
+    },
+
     // Toggle asistencia (validar)
     async toggleAttendance(eventId, clientId, validated) {
         try {
@@ -10020,6 +10033,40 @@ navigate(viewName, params = {}, push = true) {
         if (count) count.textContent = parseInt(count.textContent) + 1 + ' hoy';
         var feed = document.getElementById('live-feed');
         if (feed) feed.style.borderLeftColor = '#22c55e';
+    },
+
+    showToast: function(msg, type) {
+        var container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px';
+            document.body.appendChild(container);
+        }
+        var toast = document.createElement('div');
+        var bg = type === 'error' ? '#ef4444' : type === 'info' ? '#3b82f6' : '#22c55e';
+        toast.style.cssText = 'background:' + bg + ';color:#fff;padding:10px 18px;border-radius:8px;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2);animation:fadeIn 0.3s';
+        toast.textContent = msg;
+        container.appendChild(toast);
+        setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(function() { toast.remove(); }, 500); }, 4000);
+    },
+
+    updatePresence: function(editors) {
+        var container = document.getElementById('presence-editors');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'presence-editors';
+            container.className = 'flex flex-wrap gap-2 mb-2';
+            var headerEl = document.querySelector('.flex.items-center.gap-2.mb-4') || document.querySelector('.page-header');
+            if (headerEl) headerEl.parentNode.insertBefore(container, headerEl.nextSibling);
+        }
+        if (!editors || editors.length === 0) { container.style.display = 'none'; return; }
+        container.style.display = 'flex';
+        container.innerHTML = editors.map(function(e) {
+            var name = e.userName || 'Alguien';
+            var editing = e.guestName ? ' editando ' + e.guestName : '';
+            return '<span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-green-500/10 text-green-400 border border-green-500/20"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>' + name + editing + '</span>';
+        }).join('');
     },
 
     async updateStats() {
@@ -18228,6 +18275,24 @@ async function initApp() {
         window.App.state.socket.on('checkin_update', () => App.loadGuests());
         window.App.state.socket.on('live_checkin', function(data) { App.addLiveEvent(data); });
         window.App.state.socket.on('live_checkin', function(data) { App.filterAttendance(); });
+        // Colaboracion en vivo (C6-05)
+        window.App.state.socket.on('guest_updated', function(data) {
+            if (App.state.event?.id && document.getElementById('page-guests')?.classList.contains('hidden') === false) {
+                App.loadGuests();
+                App.showToast('👤 ' + (data.guestName || 'Invitado') + ' actualizado por ' + (data.updatedBy || 'otro usuario'), 'info');
+            }
+        });
+        window.App.state.socket.on('presence_update', function(data) {
+            App.updatePresence(data.editors || []);
+        });
+        // Heartbeat de presencia cada 25 segundos
+        setInterval(function() {
+            var eventId = App.state.event?.id;
+            var userId = App.state.user?.id;
+            if (eventId && userId && App.state.socket) {
+                App.state.socket.emit('presence_heartbeat', { eventId: eventId, userId: userId, userName: App.state.user?.display_name || App.state.user?.username });
+            }
+        }, 25000);
     }
 
     // Listeners System (Se maneja en attachAppListeners para evitar duplicación)

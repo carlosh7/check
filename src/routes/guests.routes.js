@@ -861,5 +861,13 @@ router.post('/:eventId/presence', authMiddleware(), (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+// GET /:eventId/editors — Obtener editores activos (C6-05)
+router.get('/:eventId/editors', authMiddleware(), (req, res) => {
+    try {
+        const { getActiveEditors } = require('../socket');
+        res.json({ editors: getActiveEditors(req.params.eventId) || [] });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;
 module.exports.tempImport = tempImport;
