@@ -13143,6 +13143,7 @@ navigate(viewName, params = {}, push = true) {
         setVal('evs-qr-logo', ev.qr_logo_url);
         setVal('evs-ticket-bg', ev.ticket_bg_url);
         setVal('evs-ticket-accent', ev.ticket_accent_color || '#7c3aed');
+        setVal('evs-music-url', ev.music_url || '');
         
         setVal('evs-reg-whitelist', ev.reg_email_whitelist);
         setVal('evs-reg-blacklist', ev.reg_email_blacklist);
@@ -13193,6 +13194,7 @@ navigate(viewName, params = {}, push = true) {
             qr_logo_url: getVal('evs-qr-logo'),
             ticket_bg_url: getVal('evs-ticket-bg'),
             ticket_accent_color: getVal('evs-ticket-accent'),
+            music_url: getVal('evs-music-url'),
             reg_email_whitelist: getVal('evs-reg-whitelist'),
             reg_email_blacklist: getVal('evs-reg-blacklist'),
             venue_id: getVal('evs-venue'),

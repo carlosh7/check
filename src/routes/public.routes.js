@@ -73,7 +73,7 @@ router.get('/event/:id', (req, res) => {
                                      reg_show_gender, reg_require_agreement, reg_policy, reg_logo_url,
                                      reg_email_whitelist, reg_email_blacklist,
                                      payment_required, currency,
-                                     latitude, longitude, map_zoom
+                                     latitude, longitude, map_zoom, music_url
                               FROM events WHERE id = ?`).get(id);
 
     if (!event) return res.status(404).json({ success: false, error: 'Evento no encontrado' });

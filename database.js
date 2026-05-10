@@ -138,6 +138,8 @@ try { db.exec("ALTER TABLE events ADD COLUMN brand_logo_url TEXT"); } catch (_) 
 try { db.exec("ALTER TABLE events ADD COLUMN latitude REAL"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN longitude REAL"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN map_zoom INTEGER DEFAULT 14"); } catch (_) {}
+// Music URL (BL-24)
+try { db.exec("ALTER TABLE events ADD COLUMN music_url TEXT"); } catch (_) {}
 // Budget table (BL-18)
 db.exec(`CREATE TABLE IF NOT EXISTS budgets (
     id TEXT PRIMARY KEY,

@@ -71,6 +71,11 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
     <div id="map-container" style="display:none;margin-bottom:20px;border-radius:12px;overflow:hidden;height:200px">
       <div id="event-map" style="width:100%;height:100%"></div>
     </div>
+    <div id="music-container" style="display:none;margin-bottom:20px;padding:12px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(255,255,255,0.06)">
+      <audio id="event-music" controls loop style="width:100%" preload="metadata">
+        Tu navegador no soporta audio.
+      </audio>
+    </div>
 
     <div>
       <a class="btn" id="btn-register" href="#" target="_blank">📝 Confirmar asistencia</a>
@@ -141,6 +146,10 @@ async function load(){
       if(qrRes.ok){var blob=await qrRes.blob();document.getElementById('qr-img').src=URL.createObjectURL(blob)}
     }catch(e){}
     // Show map if coordinates exist
+    if(eventData.music_url){
+      document.getElementById('music-container').style.display='block';
+      document.getElementById('event-music').src=eventData.music_url;
+    }
     if(eventData.latitude&&eventData.longitude){
       document.getElementById('map-container').style.display='block';
       try{
