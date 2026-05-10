@@ -1681,10 +1681,10 @@ FASE 30: DevOps & Calidad
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.731 |
-| **Ultimo ciclo completado** | Ciclo 8 — Expansión y Ecosistema ✅ |
-| **Feature en curso** | **Ciclo 9 — Por definir** |
-| **Proximo feature** | C9-13 Tema oscuro/claro global |
+| **Version** | v12.44.732 |
+| **Ultimo feature completado** | C9-13 Tema + C9-14 Atajos |
+| **Feature en curso** | **Ciclo 9 — Fase 31** |
+| **Proximo feature** | C9-12 Dashboard personalizable |
 
 ---
 
@@ -1739,8 +1739,8 @@ FASE 35: Escalabilidad y Calidad (M-XL)
 
 | ID | Feature | Estado | Esfuerzo | Fase |
 |----|---------|--------|----------|------|
-| C9-13 | Tema oscuro/claro global | ⏳ | S | F31 |
-| C9-14 | Atajos de teclado | ⏳ | S | F31 |
+| C9-13 | Tema oscuro/claro global | ✅ | v12.44.732 | 2026-05-10 |
+| C9-14 | Atajos de teclado | ✅ | v12.44.732 | 2026-05-10 |
 | C9-12 | Dashboard personalizable | ⏳ | M | F31 |
 | C9-04 | Smart tagging de invitados | ⏳ | M | F32 |
 | C9-08 | Webhook de acciones | ⏳ | M | F32 |

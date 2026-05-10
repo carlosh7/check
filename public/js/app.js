@@ -10051,6 +10051,26 @@ navigate(viewName, params = {}, push = true) {
         setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(function() { toast.remove(); }, 500); }, 4000);
     },
 
+    showKeyboardShortcuts: function() {
+        var html = '<div class="p-6 space-y-3"><h2 class="text-lg font-bold mb-4">⌨️ Atajos de Teclado</h2>' +
+            '<div class="grid grid-cols-2 gap-3 text-sm">' +
+            '<div><kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">g</kbd> + <kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">g</kbd> <span class="text-slate-400 ml-2">Invitados</span></div>' +
+            '<div><kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">g</kbd> + <kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">e</kbd> <span class="text-slate-400 ml-2">Eventos</span></div>' +
+            '<div><kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">g</kbd> + <kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">d</kbd> <span class="text-slate-400 ml-2">Dashboard</span></div>' +
+            '<div><kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">g</kbd> + <kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">s</kbd> <span class="text-slate-400 ml-2">Configuración</span></div>' +
+            '<div><kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">g</kbd> + <kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">t</kbd> <span class="text-slate-400 ml-2">Estadísticas</span></div>' +
+            '<div><kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">t</kbd> <span class="text-slate-400 ml-2">Cambiar tema</span></div>' +
+            '<div><kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">/</kbd> <span class="text-slate-400 ml-2">Buscar</span></div>' +
+            '<div><kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">Esc</kbd> <span class="text-slate-400 ml-2">Cerrar modal</span></div>' +
+            '<div><kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">?</kbd> <span class="text-slate-400 ml-2">Mostrar esta ayuda</span></div>' +
+            '</div></div>';
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({ html: html, background: 'var(--bg-modal)', color: 'var(--text-main)', confirmButtonColor: 'var(--primary)', showCloseButton: true, width: 480 });
+        } else {
+            App.showToast('Presiona g+e → Eventos, g+g → Invitados, t → Tema', 'info');
+        }
+    },
+
     updatePresence: function(editors) {
         var container = document.getElementById('presence-editors');
         if (!container) {
@@ -18284,11 +18304,66 @@ async function initApp() {
     // Handler de Escape para cerrar modales
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            // Cerrar todos los modales visibles
             document.querySelectorAll('[id^="modal-"]:not(.hidden)').forEach(modal => {
                 modal.classList.add('hidden');
                 modal.setAttribute('aria-hidden', 'true');
             });
+            return;
+        }
+        
+        if (e.ctrlKey || e.metaKey) return;
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+        
+        // ─── Keyboard shortcuts (C9-14) ───
+        if (!App._keyBuffer) App._keyBuffer = '';
+        App._keyBuffer += e.key.toLowerCase();
+        if (App._keyBuffer.length > 3) App._keyBuffer = App._keyBuffer.slice(-3);
+        
+        var buffer = App._keyBuffer;
+        
+        if (buffer === 'gg') {
+            App._keyBuffer = '';
+            var guestsTab = document.querySelector('[data-tab="guests"]');
+            if (guestsTab) guestsTab.click();
+            App.showToast('📋 Invitados', 'info');
+        }
+        else if (buffer === 'ge') {
+            App._keyBuffer = '';
+            var evTab = document.querySelector('[data-tab="events"], [data-view="events"]');
+            if (evTab) evTab.click();
+            App.showToast('📅 Eventos', 'info');
+        }
+        else if (buffer === 'gd') {
+            App._keyBuffer = '';
+            var dashTab = document.querySelector('[data-tab="dashboard"], [data-view="dashboard"]');
+            if (dashTab) dashTab.click();
+            App.showToast('📊 Dashboard', 'info');
+        }
+        else if (buffer === 'gs') {
+            App._keyBuffer = '';
+            var settingsTab = document.querySelector('[data-tab="settings"], [data-view="settings"]');
+            if (settingsTab) settingsTab.click();
+            App.showToast('⚙️ Configuración', 'info');
+        }
+        else if (buffer === 'gt') {
+            App._keyBuffer = '';
+            var statsTab = document.querySelector('[data-tab="stats"]');
+            if (statsTab) statsTab.click();
+            App.showToast('📈 Estadísticas', 'info');
+        }
+        else if (buffer.endsWith('?')) {
+            App._keyBuffer = '';
+            App.showKeyboardShortcuts();
+        }
+        
+        if (e.key === 't' && !buffer.includes('t')) {
+            App.toggleTheme();
+            App.showToast('🎨 Tema cambiado', 'info');
+        }
+        else if (e.key === '/' && buffer === '/') {
+            App._keyBuffer = '';
+            var search = document.getElementById('guest-search') || document.querySelector('[type="search"], input[placeholder*="buscar"], input[placeholder*="search"]');
+            if (search) search.focus();
         }
     });
 
