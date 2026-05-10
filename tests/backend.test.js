@@ -525,3 +525,131 @@ describe('Raffles Routes', () => {
         expect(res.status).toBe(404);
     });
 });
+
+// ─── CLIENTS ROUTES ───
+
+describe('Clients Routes', () => {
+    const clientsRoutes = require('../src/routes/clients.routes');
+    const app = createTestApp(clientsRoutes, '/api/clients');
+
+    test('GET /api/clients returns 401 without auth', async () => {
+        const res = await request(app).get('/api/clients');
+        expect(res.status).toBe(401);
+    });
+});
+
+// ─── USERS ROUTES (more tests) ───
+
+describe('Users Routes Extended', () => {
+    const usersRoutes = require('../src/routes/users.routes');
+    const app = createTestApp(usersRoutes, '/api/users');
+
+    test('GET /api/users returns 401 without auth', async () => {
+        const res = await request(app).get('/api/users');
+        expect(res.status).toBe(401);
+    });
+});
+
+// ─── GROUPS ROUTES ───
+
+describe('Groups Routes', () => {
+    const groupsRoutes = require('../src/routes/groups.routes');
+    const app = createTestApp(groupsRoutes, '/api/groups');
+
+    test('GET /api/groups returns 401 without auth', async () => {
+        const res = await request(app).get('/api/groups');
+        expect(res.status).toBe(401);
+    });
+});
+
+// ─── TENANTS ROUTES ───
+
+describe('Tenants Routes', () => {
+    const tenantsRoutes = require('../src/routes/tenants.routes');
+    const app = createTestApp(tenantsRoutes);
+
+    test('GET /api/tenant/:slug returns 404 for nonexistent', async () => {
+        const res = await request(app).get('/api/tenant/nonexistent-slug-xyz');
+        expect(res.status).toBe(404);
+    });
+});
+
+// ─── AUTOMATION ROUTES ───
+
+describe('Automation Routes', () => {
+    const automationRoutes = require('../src/routes/automation.routes');
+    const app = createTestApp(automationRoutes, '/api');
+
+    test('GET /api/events/:eventId/automation returns 401 without auth', async () => {
+        const res = await request(app).get('/api/events/any-event/automation');
+        expect(res.status).toBe(401);
+    });
+
+    test('GET /api/automation/options returns available triggers', async () => {
+        const adminId = getAdminToken();
+        if (!adminId) return;
+        const res = await request(app).get('/api/automation/options').set('x-user-id', adminId);
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty('triggers');
+        expect(res.body).toHaveProperty('actions');
+    });
+});
+
+// ─── PROPOSALS ROUTES ───
+
+describe('Proposals Routes', () => {
+    const proposalsRoutes = require('../src/routes/proposals.routes');
+    const app = createTestApp(proposalsRoutes, '/api');
+
+    test('GET /api/events/:id/proposals returns array', async () => {
+        const res = await request(app).get('/api/events/any-event/proposals');
+        expect(res.status).toBe(200);
+        expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    test('POST /api/events/:id/proposals rejects empty body', async () => {
+        const res = await request(app).post('/api/events/any-event/proposals').send({});
+        expect(res.status).toBe(400);
+    });
+});
+
+// ─── DATABASE TABLES SCHEMA ───
+
+describe('Database Schema - Recent Tables', () => {
+    test('tenants table exists', () => {
+        const t = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='tenants'").get();
+        expect(t).toBeDefined();
+    });
+
+    test('automation_rules table exists', () => {
+        const t = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='automation_rules'").get();
+        expect(t).toBeDefined();
+    });
+
+    test('proposals table exists', () => {
+        const t = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='proposals'").get();
+        expect(t).toBeDefined();
+    });
+
+    test('budgets table exists', () => {
+        const t = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='budgets'").get();
+        expect(t).toBeDefined();
+    });
+
+    test('speakers table exists', () => {
+        const t = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='speakers'").get();
+        expect(t).toBeDefined();
+    });
+
+    test('guests has otp_code column', () => {
+        const cols = db.prepare("PRAGMA table_info(guests)").all();
+        const names = cols.map(c => c.name);
+        expect(names).toContain('otp_code');
+    });
+
+    test('events has video_conference_url column', () => {
+        const cols = db.prepare("PRAGMA table_info(events)").all();
+        const names = cols.map(c => c.name);
+        expect(names).toContain('video_conference_url');
+    });
+});
