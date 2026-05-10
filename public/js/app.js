@@ -283,6 +283,36 @@ const App = window.App = {
 
     // Reemplazo de la función antigua de notificación - usar ToastManager
     // UX Helpers (C2-02)
+    initPullToRefresh: function(containerId, callback) {
+        var el = document.getElementById(containerId);
+        if (!el || !('ontouchstart' in window)) return;
+        var startY = 0, pulling = false;
+        el.addEventListener('touchstart', function(e) { startY = e.touches[0].clientY; pulling = startY <= 5; });
+        el.addEventListener('touchmove', function(e) {
+            if (!pulling) return;
+            var dy = e.touches[0].clientY - startY;
+            if (dy > 80) {
+                pulling = false;
+                var indicator = document.createElement('div');
+                indicator.className = 'ptr-indicator';
+                indicator.innerHTML = '<div class="spinner"></div><p>Actualizando...</p>';
+                el.prepend(indicator);
+                callback().then(function() { setTimeout(function() { indicator.remove(); }, 500); }).catch(function() { indicator.remove(); });
+            }
+        });
+    },
+
+    renderSkeletonV2: function(type, count) {
+        count = count || 3;
+        var html = '<div class="skeleton-table">';
+        for (var i = 0; i < count; i++) {
+            if (type === 'card') html += '<div class="skeleton-card"></div>';
+            else if (type === 'row') html += '<div class="skeleton-row"></div>';
+            else html += '<div class="skeleton-row"></div>';
+        }
+        return html + '</div>';
+    },
+
     showLoading: function(msg) {
         var existing = document.getElementById('global-loading');
         if (!existing) {

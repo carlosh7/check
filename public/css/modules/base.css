@@ -17,6 +17,10 @@
 .loading-overlay .spinner { width: 40px; height: 40px; border-width: 3px; }
 .loading-overlay p { margin-top: 12px; font-size: 14px; color: var(--text-secondary); animation: pulse 2s ease-in-out infinite; }
 
+/* Pull-to-refresh indicator (C6-03) */
+.ptr-indicator { display: none; text-align: center; padding: 12px; font-size: 13px; color: var(--text-secondary); animation: fadeIn 0.3s ease-out; }
+.ptr-indicator .spinner { width: 20px; height: 20px; margin: 0 auto 6px; border-width: 2px; }
+
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeInDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
@@ -35,6 +39,10 @@
 .skeleton-text { height: 14px; width: 80%; margin-bottom: 8px; }
 .skeleton-text-sm { height: 10px; width: 60%; }
 .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
+.skeleton-card { height: 80px; width: 100%; margin-bottom: 12px; }
+.skeleton-row { height: 48px; width: 100%; margin-bottom: 4px; }
+.skeleton-table { display: block; }
+.skeleton-table .skeleton-row:last-child { margin-bottom: 0; }
 
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px; text-align: center; animation: fadeIn 0.4s ease-out; }
 .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.3; }
