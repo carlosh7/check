@@ -134,6 +134,18 @@ try { db.exec("ALTER TABLE events ADD COLUMN brand_header_html TEXT"); } catch (
 try { db.exec("ALTER TABLE events ADD COLUMN brand_footer_html TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN brand_primary_color TEXT DEFAULT '#7c3aed'"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN brand_logo_url TEXT"); } catch (_) {}
+// Budget table (BL-18)
+db.exec(`CREATE TABLE IF NOT EXISTS budgets (
+    id TEXT PRIMARY KEY,
+    event_id TEXT NOT NULL,
+    concept TEXT NOT NULL,
+    amount REAL NOT NULL DEFAULT 0,
+    category TEXT DEFAULT 'general',
+    notes TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_budgets_event ON budgets(event_id)"); } catch (_) {}
 
 // 3. Invitados
 db.exec(`CREATE TABLE IF NOT EXISTS guests (

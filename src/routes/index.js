@@ -37,6 +37,7 @@ const googleRoutes = require('./google.routes');
 const rafflesRoutes = require('./raffles.routes');
 const paymentsRoutes = require('./payments.routes').router;
 const smsRoutes = require('./sms.routes');
+const budgetRoutes = require('./budget.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
 const upload = multer({
@@ -169,6 +170,8 @@ app.use('/api/compliance', complianceRoutes);
 
     // SMS (BL-13)
     app.use('/', smsRoutes);
+    // Budget (BL-18)
+    app.use('/api', budgetRoutes);
 
     // Google Sheets Integration (F3-09)
     app.use('/api/google', googleRoutes.router);

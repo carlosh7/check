@@ -11764,6 +11764,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'seatmaps') this.loadSeatLayouts();
         if (tabName === 'google') this.loadGoogleEventConfigData();
         if (tabName === 'branding') this.loadBranding();
+        if (tabName === 'budget') this.loadBudget();
         
         // Mostrar action-bar solo en tab Personal
         const actionBar = document.getElementById('config-action-bar');
@@ -13250,6 +13251,72 @@ navigate(viewName, params = {}, push = true) {
             await this.fetchAPI('/events/' + eId + '/branding', { method: 'PUT', body: JSON.stringify(data) });
             this._notifyAction('Guardado', 'Branding actualizado', 'success');
         } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    // ═══ Presupuesto (BL-18) ═══
+
+    loadBudget: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var data = await this.fetchAPI('/events/' + eId + '/budget');
+            var tbody = document.getElementById('budget-tbody');
+            if (!tbody) return;
+            if (!data || !data.items || !data.items.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin gastos registrados</td></tr>';
+                document.getElementById('budget-total').textContent = '$0.00';
+                return;
+            }
+            tbody.innerHTML = data.items.map(function(i) {
+                return '<tr class="hover:bg-white/[0.02]">' +
+                    '<td class="table-td font-medium text-white">' + (i.concept || '') + '</td>' +
+                    '<td class="table-td text-xs"><span class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 text-[10px]">' + (i.category || 'general') + '</span></td>' +
+                    '<td class="table-td font-bold text-green-400">$' + parseFloat(i.amount).toFixed(2) + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + (i.notes || '') + '</td>' +
+                    '<td class="table-td"><button class="btn-icon text-red-400" onclick="App.deleteBudgetItem(\'' + i.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+            }).join('');
+            document.getElementById('budget-total').textContent = '$' + (data.total || 0).toFixed(2);
+        } catch(e) { console.error('[BUDGET] Error:', e.message); }
+    },
+
+    openBudgetModal: function() {
+        document.getElementById('budget-item-id').value = '';
+        document.getElementById('budget-concept').value = '';
+        document.getElementById('budget-amount').value = '';
+        document.getElementById('budget-category').value = 'general';
+        document.getElementById('budget-notes').value = '';
+        document.getElementById('modal-budget')?.classList.remove('hidden');
+    },
+
+    closeBudgetModal: function() {
+        document.getElementById('modal-budget')?.classList.add('hidden');
+    },
+
+    saveBudgetItem: async function() {
+        var eId = this.state.event?.id;
+        var id = document.getElementById('budget-item-id')?.value;
+        var concept = document.getElementById('budget-concept')?.value.trim();
+        var amount = document.getElementById('budget-amount')?.value;
+        var category = document.getElementById('budget-category')?.value || 'general';
+        var notes = document.getElementById('budget-notes')?.value || '';
+        if (!concept || !amount) { this._notifyAction('Error', 'Concepto y monto requeridos', 'error'); return; }
+        var body = { concept: concept, amount: parseFloat(amount), category: category, notes: notes };
+        try {
+            await this.fetchAPI('/events/' + eId + '/budget' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) });
+            this.closeBudgetModal();
+            this.loadBudget();
+            this._notifyAction('Guardado', 'Gasto registrado', 'success');
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    deleteBudgetItem: async function(id) {
+        var eId = this.state.event?.id;
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar gasto?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI('/events/' + eId + '/budget/' + id, { method: 'DELETE' });
+            this.loadBudget();
+        } catch(e) { console.error(e); }
     },
 
     currentWheel: null,
