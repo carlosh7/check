@@ -54,17 +54,52 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 ---
 
-## 🗺️ Mapa de Dependencias entre Features — Ciclo 2
+## 🗺️ Mapa de Dependencias entre Features (Ciclo 1 — Completado)
 
 ```
-FASE S: Security & AI         ← ✅ COMPLETADA (FS-01 a FS-04)
-FASE 0-4: Core Features       ← ✅ COMPLETADAS (F0-01 a F4-12)
-BACKLOG (BL-15 a BL-28)       ← ✅ COMPLETADO
+FASE S: Security & AI (postura de seguridad IA)
+  FS-01 Shadow AI Detection & Governance ← sin dependencias
+  FS-02 AI Compliance & Data Governance ← sin dependencias
+  FS-03 AI Detection & Response ← sin dependencias
+  FS-04 AI Red Teaming ← sin dependencias
 
-══════════════════════════════════════════════
-         CICLO 2 — Nuevas Features
-══════════════════════════════════════════════
+FASE 0: Foundation (saldar deuda tecnica previa)
+  F0-01 Completar Form.js + Dropdown.js + tests frontend ← sin dependencias
+  F0-02 Modulo Mailing por evento ← sin dependencias
 
+FASE 1: Features nuevas
+  F1-01 Dashboard Analytics ← sin dependencias
+  F1-02 Pipeline Invitados ← sin dependencias
+  F1-03 Clone Events ← sin dependencias
+
+FASE 2: Core+
+  F2-04 PDF Export ← depende de: pipeline (usa datos de invitados)
+  F2-05 Guest Categories ← depende de: pipeline (usa sistema de estados)
+  F2-06 Activity Logs ← sin dependencias (ya existe audit.js)
+
+FASE 3: Monetizacion
+  F3-07 Stripe/PayPal ← depende de: categories (boletos por tipo)
+  F3-08 Waitlist ← depende de: categories (cupos por categoria)
+  F3-09 Export Google Sheets ← sin dependencias
+
+FASE 4: Colaboracion
+  F4-10 Rol Organizer ← sin dependencias
+  F4-11 Sesiones + Seat maps ← depende de: venues
+  F4-12 Venues / espacios ← sin dependencias
+
+BACKLOG (Ciclo 1)
+  BL-13 SMS, BL-14 Facial/OTP, BL-15 Password recovery, BL-16 Branding,
+  BL-17 Landing, BL-18 Presupuesto, BL-19 Ponentes, BL-20 Propuestas,
+  BL-21 Mapa LeafletJS, BL-22 Tests, BL-23 Migraciones, BL-24 Musica,
+  BL-25 Webhooks, BL-26 Swagger, BL-27 Carga Inteligente, BL-28 Portal PWA
+```
+✅ **Ciclo 1 completado al 100%** (Fases S, 0-4, Backlog priorizado)
+
+---
+
+## 🗺️ Mapa de Dependencias — Ciclo 2
+
+```
 FASE 5: Refinamiento y Legado (bugs + UX + tests + documentacion)
   C2-01 Bug fixes & rendimiento ← sin dependencias
   C2-02 UX polish & animaciones ← sin dependencias
@@ -72,7 +107,7 @@ FASE 5: Refinamiento y Legado (bugs + UX + tests + documentacion)
   C2-04 Deuda técnica / refactor ← sin dependencias
   C2-05 Documentación expandida  ← sin dependencias
 
-FASE 6: Features del Backlog Original
+FASE 6: Features del Backlog Original pendientes
   BL-13 Integración SMS          ← sin dependencias (Twilio)
   BL-16 Site branding por cliente ← sin dependencias
   BL-18 Presupuesto por evento    ← sin dependencias
@@ -80,7 +115,7 @@ FASE 6: Features del Backlog Original
   BL-21 Mapa interactivo LeafletJS← sin dependencias
   BL-23 Migraciones de BD         ← sin dependencias
   BL-24 Música en landing         ← sin dependencias
-  BL-14 Reconocimiento facial/OTP ← esfuerzo XL
+  BL-14 Reconocimiento facial/OTP ← esfuerzo XL (aplazable)
 
 FASE 7: Post-Lanzamiento (features nuevas)
   C2-06 i18n Multi-idioma         ← sin dependencias
@@ -88,6 +123,45 @@ FASE 7: Post-Lanzamiento (features nuevas)
   C2-08 Dashboard mejorado        ← sin dependencias (expandir F1-01)
   C2-09 Performance & caché       ← sin dependencias
 ```
+
+---
+
+## 🎯 Matriz de Prioridad Real (Ciclo 1 — Completado)
+
+| Feature | Impacto | Esfuerzo | Dependencias | Tier |
+|---------|---------|----------|-------------|------|
+| **F0-02** Modulo Mailing | Alto | XL | Ninguna | **Tier 1** ✅ |
+| **F1-01** Dashboard Analytics | Alto | M | Ninguna | **Tier 1** ✅ |
+| **F1-03** Clone Events | Alto | S | Ninguna | **Tier 1** ✅ |
+| **F2-06** Activity Logs | Alto | S | Ninguna | **Tier 1** ✅ |
+| **F4-12** Venues / Espacios | Medio | S | Ninguna | **Tier 1** ✅ |
+| **FS-01** Shadow AI Detection | Alto | M | Ninguna | **Tier S** ✅ |
+| **FS-02** AI Compliance | Medio | M | Ninguna | **Tier S** ✅ |
+| **F1-02** Pipeline Estados | Alto | M | Ninguna | **Tier 2** ✅ |
+| **F2-04** PDF Export | Alto | M | Pipeline | **Tier 2** ✅ |
+| **F2-05** Guest Categories | Medio | M | Pipeline | **Tier 2** ✅ |
+| **FS-03** AI Detection & Response | Alto | XL | FS-01 | **Tier S** ✅ |
+| **F3-07** Stripe / PayPal | Medio | XL | Categories | **Tier 3** ✅ |
+| **F3-08** Waitlist | Medio | M | Categories | **Tier 3** ✅ |
+| **F3-09** Export Google Sheets | Medio | M | Ninguna | **Tier 3** ✅ |
+| **F4-10** Rol Organizer | Medio | M | Ninguna | **Tier 3** ✅ |
+| **FS-04** AI Red Teaming | Medio | M | FS-01, FS-03 | **Tier S** ✅ |
+| **F4-11** Sesiones + Seat Maps | Medio | XL | Venues | **Tier 4** ✅ |
+| BL-15 Password Recovery | Alto | S | Ninguna | **Backlog** ✅ |
+| BL-22 Tests Automatizados | Alto | L | Ninguna | **Backlog** ✅ |
+| BL-25 Webhooks | Alto | M | Ninguna | **Backlog** ✅ |
+| BL-26 API Publica Swagger | Alto | M | Ninguna | **Backlog** ✅ |
+| BL-27 Carga Masiva Inteligente | Alto | M | Ninguna | **Backlog** ✅ |
+| BL-28 Portal Asistente PWA | Alto | XL | Ninguna | **Backlog** ✅ |
+| BL-17 Landing Invitacion Digital | Medio | M | Ninguna | **Backlog** ✅ |
+
+**Criterios de priorizacion (Ciclo 1):**
+- **Tier 1:** Alta prioridad, sin dependencias, ejecutar primero.
+- **Tier 2:** Alta/media prioridad, requieren Pipeline de estados (F1-02).
+- **Tier 3:** Media prioridad, requieren Categories o sin dependencias pero menor urgencia.
+- **Tier 4:** Media prioridad, requieren Venues (F4-12).
+- **Tier S (paralelo):** Seguridad IA — corre en paralelo.
+- **Backlog Priorizado:** Items del backlog con mayor impacto.
 
 ---
 
@@ -100,27 +174,76 @@ FASE 7: Post-Lanzamiento (features nuevas)
 | **C2-03** Cobertura de tests | Alto | L | Ninguna | **F5 — Inmediato** |
 | **C2-04** Deuda técnica / refactor | Alto | L | Ninguna | **F5 — Inmediato** |
 | **C2-05** Documentación expandida | Alto | M | Ninguna | **F5 — Inmediato** |
-| **BL-13** Integración SMS | Alto | M | Ninguna | **F6 — Siguiente** |
-| **BL-16** Site branding por cliente | Medio | M | Ninguna | **F6 — Siguiente** |
+| **BL-13** Integración SMS | Alto | M | Ninguna | **F6** |
+| **BL-16** Site branding por cliente | Medio | M | Ninguna | **F6** |
 | **BL-18** Presupuesto por evento | Medio | M | Ninguna | **F6** |
 | **BL-19** Gestión de Ponentes | Medio | M | Ninguna | **F6** |
 | **BL-21** Mapa interactivo (LeafletJS) | Bajo | S | Ninguna | **F6** |
 | **BL-23** Migraciones de BD | Medio | M | Ninguna | **F6** |
 | **BL-24** Música en landing | Bajo | S | Ninguna | **F6** |
 | **BL-14** Reconocimiento facial / OTP | Bajo | XL | Ninguna | **F6 (aplazable)** |
-| **C2-06** i18n Multi-idioma | Alto | XL | Ninguna | **F7 — Post-lanzamiento** |
+| **C2-06** i18n Multi-idioma | Alto | XL | Ninguna | **F7** |
 | **C2-07** Exportar a calendario | Medio | S | Ninguna | **F7** |
 | **C2-08** Dashboard mejorado | Alto | M | F1-01 | **F7** |
 | **C2-09** Performance & caché | Alto | M | Ninguna | **F7** |
 
-**Criterios de priorizacion:**
-- **Tier 1:** Alta prioridad, sin dependencias, ejecutar primero.
-- **Tier 2:** Alta/media prioridad, requieren Pipeline de estados (F1-02).
-- **Tier 3:** Media prioridad, requieren Categories o sin dependencias pero menor urgencia.
-- **Tier 4:** Media prioridad, requieren Venues (F4-12).
-- **Tier S (paralelo):** Seguridad IA — corre en paralelo, no bloquea ni es bloqueado por otras fases.
-- **Backlog Priorizado:** Items del backlog con mayor impacto, ordenados por prioridad.
-- **Backlog:** Items de menor impacto, ejecutar cuando los Tiers superiores esten completos.
+**Criterios de priorizacion (Ciclo 2):**
+- **F5 (Refinamiento):** Alta prioridad, sin dependencias, ejecutar primero. Sienta base estable.
+- **F6 (Backlog Original):** Features del backlog del Ciclo 1 que quedaron pendientes.
+- **F7 (Post-lanzamiento):** Features nuevas, ejecutar despues de F5 y F6.
+
+---
+
+## 🚀 Orden de Ejecucion Sugerido — Ciclo 1 (Completado)
+
+### Tier 1
+| Orden | Feature | Estado |
+|-------|---------|--------|
+| 1 | F0-02 Modulo Mailing | ✅ v12.44.541 |
+| 2 | F1-03 Clone Events | ✅ v12.44.541 |
+| 3 | F2-06 Activity Logs | ✅ v12.44.557 |
+| 4 | F1-01 Dashboard Analytics | ✅ v12.44.592 |
+| 5 | F4-12 Venues / Espacios | ✅ v12.44.584 |
+
+### Tier S (paralelo) — Seguridad IA
+| Orden | Feature | Estado |
+|-------|---------|--------|
+| S1 | FS-01 Shadow AI Detection | ✅ v12.44.623 |
+| S2 | FS-02 AI Compliance | ✅ v12.44.628 |
+| S3 | FS-03 AI Detection & Response | ✅ v12.44.629 |
+| S4 | FS-04 AI Red Teaming | ✅ v12.44.638 |
+
+### Tier 2
+| Orden | Feature | Estado |
+|-------|---------|--------|
+| 1 | F1-02 Pipeline Estados | ✅ v12.44.594 |
+| 2 | F2-04 PDF Export | ✅ v12.44.596 |
+| 3 | F2-05 Guest Categories | ✅ v12.44.597 |
+
+### Tier 3
+| Orden | Feature | Estado |
+|-------|---------|--------|
+| 1 | F3-09 Export Google Sheets | ✅ v12.44.631 |
+| 2 | F4-10 Rol Organizer | ✅ v12.44.614 |
+| 3 | F3-07 Stripe / PayPal | ✅ v12.44.669-674 |
+| 4 | F3-08 Waitlist | ✅ v12.44.615 |
+
+### Tier 4
+| Orden | Feature | Estado |
+|-------|---------|--------|
+| 1 | F4-11 Sesiones + Seat Maps | ✅ v12.44.619 |
+
+### Backlog Priorizado (Ciclo 1)
+| Orden | Feature | Estado |
+|-------|---------|--------|
+| 1 | BL-15 Password Recovery | ✅ v12.44.616 |
+| 2 | BL-25 Webhooks | ✅ v12.44.670 |
+| 3 | BL-27 Carga Masiva Inteligente | ✅ v12.44.671 |
+| 4 | BL-26 API Publica Swagger | ✅ v12.44.672 |
+| 5 | BL-22 Tests Automatizados | ✅ v12.44.676 |
+| 6 | BL-17 Landing Invitacion Digital | ✅ v12.44.677 |
+| 7 | BL-23 Migraciones de BD | ⏳ Pendiente (Ciclo 2) |
+| 8 | BL-28 Portal Asistente PWA | ✅ v12.44.678 |
 
 ---
 
@@ -152,7 +275,7 @@ FASE 7: Post-Lanzamiento (features nuevas)
 |-------|---------|----------|-------------|
 | 1 | **C2-06** i18n Multi-idioma | XL | Ninguna |
 | 2 | **C2-07** Exportar a calendario | S | Ninguna |
-| 3 | **C2-08** Dashboard mejorado | M | F1-01 (ya completado) |
+| 3 | **C2-08** Dashboard mejorado | M | F1-01 |
 | 4 | **C2-09** Performance & caché | M | Ninguna |
 
 ---
