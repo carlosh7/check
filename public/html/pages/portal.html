@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Portal | Check Pro</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#7c3aed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;z-index:9999}
+#loading.hidden{display:none}
+#loading .sp{width:36px;height:36px;border:3px solid rgba(255,255,255,0.06);border-top-color:#7c3aed;border-radius:50%;animation:s .7s linear infinite;margin:0 auto 10px}
+@keyframes s{to{transform:rotate(360deg)}}
+#loading p{font-size:13px;color:rgba(255,255,255,0.3)}
+.header{background:linear-gradient(135deg,#7c3aed,#a78bfa);padding:24px 16px 48px;text-align:center;position:relative}
+.header h1{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px}
+.header p{font-size:13px;color:rgba(255,255,255,0.7)}
+.install-bar{background:rgba(0,0,0,0.3);padding:10px 16px;display:none;align-items:center;gap:10px;color:#fff;font-size:13px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+.install-bar.show{display:flex}
+.install-bar button{padding:6px 16px;border:none;border-radius:8px;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.install-bar .close{margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:18px;padding:4px}
+.card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;margin:12px 16px}
+.card-title{font-size:13px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px}
+.ticket{text-align:center;margin:-40px 16px 12px;position:relative;z-index:10;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(168,85,247,0.05));border:1px solid rgba(124,58,237,0.15);border-radius:20px;padding:24px 20px}
+.ticket .guest-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:2px}
+.ticket .guest-email{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:16px}
+.ticket .qr-wrap{background:#fff;border-radius:12px;padding:12px;display:inline-block;margin-bottom:8px}
+.ticket .qr-wrap img{width:180px;height:180px;display:block}
+.ticket .status{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;display:inline-block;margin-top:8px}
+.ticket .status.ok{background:rgba(16,185,129,0.15);color:#34d399}
+.ticket .status.pending{background:rgba(251,191,36,0.15);color:#fbbf24}
+.event-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 16px}
+.event-info-item{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;text-align:center}
+.event-info-item .num{font-size:24px;font-weight:800;color:#a78bfa;display:block}
+.event-info-item .lbl{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-top:2px}
+.section{padding:0 16px;margin-bottom:16px}
+.section h3{font-size:15px;font-weight:700;margin-bottom:8px;color:#e2e8f0}
+.session-item{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:6px;display:flex;gap:12px;align-items:flex-start}
+.session-item .time{font-size:12px;font-weight:700;color:#a78bfa;min-width:48px}
+.session-item .info{flex:1}
+.session-item .info .title{font-size:13px;font-weight:600;color:#e2e8f0}
+.session-item .info .detail{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px}
+.notif-card{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15);border-radius:12px;padding:16px;margin:12px 16px;text-align:center}
+.notif-card p{font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:10px}
+.notif-card button{padding:10px 24px;border:none;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+.notif-card button:disabled{opacity:.4;cursor:not-allowed}
+.notif-card .granted{color:#34d399;font-weight:600;font-size:14px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(15,23,42,0.95);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,0.06);display:flex;z-index:100}
+.bottom-nav a{flex:1;text-align:center;padding:10px 4px;text-decoration:none;color:rgba(255,255,255,0.3);font-size:10px;font-weight:600;transition:color .2s}
+.bottom-nav a.active{color:#a78bfa}
+.bottom-nav a .icon{font-size:20px;display:block;margin-bottom:2px}
+</style>
+</head>
+<body>
+<div id="loading"><div><div class="sp"></div><p>Abriendo tu portal...</p></div></div>
+
+<div id="install-bar" class="install-bar">
+  <span>📱 Instala esta app para acceso rápido</span>
+  <button id="btn-install">Instalar</button>
+  <button class="close" onclick="this.parentElement.classList.remove('show')">✕</button>
+</div>
+
+<div id="main" style="display:none">
+  <div class="header">
+    <h1 id="event-name-header"></h1>
+    <p id="event-date-header"></p>
+  </div>
+
+  <!-- Ticket -->
+  <div class="ticket" id="ticket-section">
+    <div class="guest-name" id="guest-name"></div>
+    <div class="guest-email" id="guest-email"></div>
+    <div class="qr-wrap"><img id="qr-img" alt="QR"></div>
+    <div><span class="status pending" id="checkin-status">⏳ Pendiente</span></div>
+  </div>
+
+  <!-- Event info -->
+  <div class="event-info" id="event-stats">
+    <div class="event-info-item"><span class="num" id="stat-date"></span><span class="lbl">Fecha</span></div>
+    <div class="event-info-item"><span class="num" id="stat-location">📍</span><span class="lbl">Ubicación</span></div>
+  </div>
+
+  <!-- Agenda -->
+  <div class="section" id="agenda-section" style="display:none">
+    <h3>📋 Agenda</h3>
+    <div id="agenda-list"></div>
+  </div>
+
+  <!-- Notificaciones -->
+  <div class="notif-card" id="notif-card">
+    <p>🔔 Recibe notificaciones cuando haya cambios en el evento</p>
+    <button id="btn-notif" onclick="requestNotif()">Activar notificaciones</button>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav" id="bottom-nav">
+  <a href="#" class="active" onclick="switchTab('ticket',this)"><span class="icon">🎟️</span>Ticket</a>
+  <a href="#" onclick="switchTab('agenda',this)"><span class="icon">📋</span>Agenda</a>
+  <a href="#" onclick="switchTab('event',this)"><span class="icon">ℹ️</span>Evento</a>
+</div>
+
+<script>
+var API='/api',guestData=null,deferredPrompt=null;
+var tabs=['ticket','agenda','event'];
+
+// PWA Install
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('install-bar').classList.add('show');
+});
+document.getElementById('btn-install')?.addEventListener('click',async function(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  var result=await deferredPrompt.userChoice;
+  if(result.outcome==='accepted')document.getElementById('install-bar').classList.remove('show');
+  deferredPrompt=null;
+});
+
+function switchTab(tab,el){
+  document.querySelectorAll('.bottom-nav a').forEach(function(a){a.classList.remove('active')});
+  if(el)el.classList.add('active');
+  document.getElementById('ticket-section').style.display=tab==='ticket'?'block':'none';
+  document.getElementById('agenda-section').style.display=tab==='agenda'?'block':'none';
+  document.getElementById('event-stats').style.display=tab==='event'?'grid':'none';
+  document.getElementById('notif-card').style.display=tab==='event'?'block':'none';
+}
+
+async function requestNotif(){
+  if(!('Notification' in window)){document.getElementById('notif-card').innerHTML='<p class="granted">❌ Notificaciones no soportadas</p>';return}
+  if(Notification.permission==='granted'){document.getElementById('notif-card').innerHTML='<p class="granted">✅ Notificaciones activadas</p>';return}
+  var perm=await Notification.requestPermission();
+  if(perm==='granted'){
+    document.getElementById('notif-card').innerHTML='<p class="granted">✅ Notificaciones activadas</p>';
+    // Register push subscription
+    if('serviceWorker' in navigator&&'PushManager' in window){
+      try{
+        var reg=await navigator.serviceWorker.ready;
+        var sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array('{{VAPID_PUBLIC_KEY}}')});
+        await fetch(API+'/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:sub,guestId:guestData?.guest?.id})});
+      }catch(e){console.error('Push sub error:',e)}
+    }
+  }else{
+    document.getElementById('notif-card').innerHTML='<p class="granted">❌ Notificaciones bloqueadas</p>';
+  }
+}
+function urlBase64ToUint8Array(base64String){
+  var padding='='.repeat((4-base64String.length%4)%4);
+  var base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  var rawData=window.atob(base64);
+  return Uint8Array.from(rawData.split('').map(function(c){return c.charCodeAt(0)}));
+}
+
+async function load(){
+  var p=window.location.pathname.split('/'),params=new URLSearchParams(window.location.search);
+  var guestId=params.get('g');
+  if(!guestId){document.getElementById('loading').classList.add('hidden');document.getElementById('main').innerHTML='<div style="padding:40px;text-align:center"><h2 style="color:#ef4444">Enlace inválido</h2></div>';document.getElementById('main').style.display='block';return}
+  try{
+    var r=await fetch(API+'/portal/'+guestId);if(!r.ok)throw Error('No encontrado');
+    guestData=await r.json();
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('main').style.display='block';
+
+    var g=guestData.guest||{},ev=guestData.event||{};
+    document.title='Portal | '+(ev.name||'Evento');
+    document.getElementById('event-name-header').textContent=ev.name||'Evento';
+    document.getElementById('event-date-header').textContent=ev.date?new Date(ev.date).toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'}):'';
+    document.getElementById('guest-name').textContent=g.name||'Invitado';
+    document.getElementById('guest-email').textContent=g.email||'';
+
+    // Status
+    var statusEl=document.getElementById('checkin-status');
+    if(g.checked_in){statusEl.textContent='✅ Check-in realizado';statusEl.className='status ok'}
+    else{statusEl.textContent='⏳ Pendiente';statusEl.className='status pending'}
+
+    // QR
+    var qrUrl=window.location.origin+'/api/guests/qr/'+guestId;
+    document.getElementById('qr-img').src=qrUrl;
+
+    // Event stats
+    document.getElementById('stat-date').textContent=ev.date?new Date(ev.date).toLocaleDateString('es-ES',{day:'2-digit',month:'short'}):'—';
+    document.getElementById('stat-location').textContent=ev.location||'—';
+
+    // Agenda
+    var sessions=guestData.sessions||[];
+    if(sessions.length>0){
+      document.getElementById('agenda-section').style.display='block';
+      document.getElementById('agenda-list').innerHTML=sessions.map(function(s){
+        return '<div class="session-item"><div class="time">'+(s.start_time||'')+'</div><div class="info"><div class="title">'+(s.title||'')+'</div><div class="detail">'+(s.location||'')+'</div></div></div>';
+      }).join('');
+    }
+
+    // Service worker registration
+    if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});
+  }catch(e){
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('main').innerHTML='<div style="padding:40px;text-align:center"><h2 style="color:#ef4444">Portal no disponible</h2><p style="color:rgba(255,255,255,0.4);margin-top:8px">No se pudo cargar tu información.</p></div>';
+    document.getElementById('main').style.display='block'
+  }
+}
+load();
+</script>
+</body>
+</html>

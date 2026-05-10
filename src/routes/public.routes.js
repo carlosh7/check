@@ -83,6 +83,30 @@ router.get('/captcha', (req, res) => {
     res.json({ question: captcha.question, token: captcha.token });
 });
 
+// Portal del asistente (BL-28)
+router.get('/portal/:guestId', (req, res) => {
+    try {
+        var guest = db.prepare("SELECT g.*, e.name as event_name, e.date as event_date, e.location as event_location, e.description as event_description FROM guests g JOIN events e ON g.event_id = e.id WHERE g.id = ?").get(req.params.guestId);
+        if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+
+        // Sessions from event DB
+        var sessions = [];
+        try {
+            var { getEventConnection } = require('../../database');
+            var eventDb = getEventConnection(guest.event_id);
+            if (eventDb) {
+                sessions = eventDb.prepare("SELECT id, title, date, start_time, end_time, location FROM sessions WHERE event_id = ? ORDER BY start_time ASC").all(guest.event_id);
+            }
+        } catch(_) {}
+
+        res.json({
+            guest: { id: guest.id, name: guest.name, email: guest.email, checked_in: guest.checked_in, qr_token: guest.qr_token, category_id: guest.category_id },
+            event: { id: guest.event_id, name: guest.event_name, date: guest.event_date, location: guest.event_location, description: guest.event_description },
+            sessions: sessions
+        });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 // QR del evento (BL-17)
 router.get('/event/:id/qr', (req, res) => {
     try {
@@ -93,6 +117,21 @@ router.get('/event/:id/qr', (req, res) => {
         const regUrl = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host') + '/registro.html?event=' + id;
         const QRCode = require('qrcode');
         QRCode.toBuffer(regUrl, { width: 400, margin: 2, color: { dark: '#1e293b', light: '#ffffff' } }).then(function(buf) {
+            res.setHeader('Content-Type', 'image/png');
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+            res.send(buf);
+        }).catch(function(err) { res.status(500).json({ error: err.message }); });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// QR del invitado individual (para portal/ticket)
+router.get('/guests/qr/:guestId', (req, res) => {
+    try {
+        var guest = db.prepare("SELECT id, qr_token FROM guests WHERE id = ?").get(req.params.guestId);
+        if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+        var QRCode = require('qrcode');
+        var url = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host') + '/api/guests/by-id/' + guest.id;
+        QRCode.toBuffer(url, { width: 300, margin: 1, color: { dark: '#1e293b', light: '#ffffff' } }).then(function(buf) {
             res.setHeader('Content-Type', 'image/png');
             res.setHeader('Cache-Control', 'public, max-age=3600');
             res.send(buf);

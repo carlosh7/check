@@ -190,6 +190,9 @@ app.use('/api/compliance', complianceRoutes);
     app.get('/:slug/landing', (req, res) => {
         res.sendFile(path.join(rootDir, 'public/html/pages/landing.html'));
     });
+    app.get('/:slug/portal', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/portal.html'));
+    });
 
     // SPA Catch-all: Cualquier ruta que no sea API sirve index.html
     // Esto permite que las rutas como /system/email, /event-config/123 funcionen
