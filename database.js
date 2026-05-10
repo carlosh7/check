@@ -1603,6 +1603,21 @@ db.exec(`CREATE TABLE IF NOT EXISTS webhook_logs (
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_webhook_logs_webhook ON webhook_logs(webhook_id)"); } catch (_) {}
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_webhook_logs_created ON webhook_logs(created_at)"); } catch (_) {}
 
+// 17b. Deploy logs para auto-deploy con webhooks (C6-14)
+db.exec(`CREATE TABLE IF NOT EXISTS deploy_logs (
+    id TEXT PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    repository TEXT,
+    ref TEXT,
+    commit_sha TEXT,
+    committer TEXT,
+    status TEXT NOT NULL DEFAULT 'received',
+    portainer_status TEXT,
+    error TEXT,
+    created_at TEXT
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_deploy_logs_created ON deploy_logs(created_at)"); } catch (_) {}
+
 // Importar Database Manager para bases de datos por evento
 const { 
     getEventConnection, 

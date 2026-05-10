@@ -149,6 +149,8 @@ app.use(cors({
 }));
 // Stripe webhook necesita raw body (antes de express.json)
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
+// Deploy webhook necesita raw body para verificar firma GitHub
+app.use('/api/deploy/webhook', express.raw({ type: 'application/json' }));
 
 // ⚠️ SECURITY: Limitar tamaño de request JSON para prevenir DoS
 app.use(express.json({ limit: '50mb' }));

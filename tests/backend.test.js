@@ -653,3 +653,92 @@ describe('Database Schema - Recent Tables', () => {
         expect(names).toContain('video_conference_url');
     });
 });
+
+// ─── DEPLOY WEBHOOK (C6-14) ───
+
+describe('Deploy Webhook', () => {
+    const deployRoutes = require('../src/routes/deploy.routes');
+    const crypto = require('crypto');
+
+    function createDeployApp() {
+        const app = express();
+        app.use('/api/deploy/webhook', express.raw({ type: 'application/json' }));
+        app.use('/api', deployRoutes);
+        return app;
+    }
+
+    function signPayload(payload, secret) {
+        return 'sha256=' + crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    }
+
+    test('deploy_logs table exists', () => {
+        const t = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='deploy_logs'").get();
+        expect(t).toBeDefined();
+    });
+
+    test('POST /api/deploy/webhook returns 401 without valid signature', async () => {
+        const app = createDeployApp();
+        const res = await request(app)
+            .post('/api/deploy/webhook')
+            .set('content-type', 'application/json')
+            .send(JSON.stringify({ ref: 'refs/heads/main' }));
+        expect(res.status).toBe(401);
+    });
+
+    test('POST /api/deploy/webhook logs deploy and returns ok', async () => {
+        const secret = 'test-secret-123';
+        const oldSecret = process.env.DEPLOY_WEBHOOK_SECRET;
+        process.env.DEPLOY_WEBHOOK_SECRET = secret;
+
+        const app = createDeployApp();
+        const payload = JSON.stringify({
+            ref: 'refs/heads/main',
+            repository: { full_name: 'carlosh7/check' },
+            head_commit: { id: 'abc123', committer: { name: 'Test User' } }
+        });
+        const signature = signPayload(payload, secret);
+
+        const res = await request(app)
+            .post('/api/deploy/webhook')
+            .set('content-type', 'application/json')
+            .set('x-hub-signature-256', signature)
+            .set('x-github-event', 'push')
+            .send(payload);
+
+        expect(res.status).toBe(200);
+        expect(res.body.ok).toBe(true);
+
+        // Verify log was created
+        const log = db.prepare("SELECT * FROM deploy_logs ORDER BY created_at DESC LIMIT 1").get();
+        expect(log).toBeDefined();
+        expect(log.repository).toBe('carlosh7/check');
+        expect(log.ref).toBe('refs/heads/main');
+
+        process.env.DEPLOY_WEBHOOK_SECRET = oldSecret;
+    });
+
+    test('POST /api/deploy/webhook skips non-main branch', async () => {
+        const secret = 'test-secret-456';
+        const oldSecret = process.env.DEPLOY_WEBHOOK_SECRET;
+        process.env.DEPLOY_WEBHOOK_SECRET = secret;
+
+        const app = createDeployApp();
+        const payload = JSON.stringify({
+            ref: 'refs/heads/develop',
+            repository: { full_name: 'carlosh7/check' },
+            head_commit: { id: 'def456', committer: { name: 'Dev User' } }
+        });
+        const signature = signPayload(payload, secret);
+
+        const res = await request(app)
+            .post('/api/deploy/webhook')
+            .set('content-type', 'application/json')
+            .set('x-hub-signature-256', signature)
+            .send(payload);
+
+        expect(res.status).toBe(200);
+        expect(res.body.status).toBe('skipped');
+
+        process.env.DEPLOY_WEBHOOK_SECRET = oldSecret;
+    });
+});
