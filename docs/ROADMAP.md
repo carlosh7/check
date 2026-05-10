@@ -1178,41 +1178,26 @@ FASE 10: Mejoras Profundas
 
 ---
 
-# Ciclo 4 — Estabilización, IA, E-commerce, i18n
+# Ciclo 4 — Estabilización, IA, E-commerce, i18n ✅
 
-## ⚡ Estado Actual
+## ⚡ Estado Actual — Ciclo 4
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.707 |
-| **Ultimo ciclo completado** | Ciclo 3 — Fases 8, 9, 10 al 100% |
-| **Feature en curso** | **Ciclo 4 — Fase 11: Estabilización + F12: E-commerce + F13: IA + F14: i18n completo** |
-| **Proximo feature** | C4-01 Bug fixes & rendimiento (ronda 2) |
+| **Version** | v12.44.716 |
+| **Ultimo ciclo completado** | Ciclo 4 — Fases 11, 12, 13, 14 al 100% |
+| **Feature en curso** | **Ciclo 5 — Fase 15: Analytics Avanzado + F16: Guest Experience + F17: Integraciones + F18: Sistema** |
+| **Proximo feature** | C5-01 Dashboard ejecutivo BI |
 
 ---
 
-## 🗺️ Mapa de Dependencias — Ciclo 4
+## 🗺️ Mapa de Dependencias — Ciclo 4 ✅
 
 ```
-FASE 11: Estabilización (bug fixes, performance, tests, docs, PWA+)
-  C4-01 Bug fixes & rendimiento v2     ← M (nueva ronda de optimización)
-  C4-02 Cobertura de tests v2           ← L (más rutas, integración)
-  C4-03 PWA avanzada (push offline)    ← M (notificaciones sin conexión, sync)
-  C4-04 UX polish v2                    ← M (micro-interacciones, temas, accesibilidad)
-
-FASE 12: E-commerce (venta de boletos completa)
-  C4-05 Carrito de compras              ← M (múltiples boletos por orden)
-  C4-06 Cupones y descuentos            ← M (códigos promocionales, % descuento)
-  C4-07 Facturación / Receipts          ← M (facturas PDF, emails post-compra)
-
-FASE 13: IA & Automación Inteligente
-  C4-08 Chatbot asistente               ← XL (chat en vivo para invitados)
-  C4-09 Reportes IA                     ← M (insights automáticos, predicciones)
-  C4-10 Moderación IA de propuestas     ← M (clasificación automática de propuestas)
-
-FASE 14: i18n Completo
-  C4-11 Traducción completa UI          ← XL (100% de la interfaz traducida)
-  C4-12 Selector de idioma persistente  ← S (guardar preferencia por usuario)
+FASE 11: Estabilización            ← ✅ COMPLETADA (C4-01 a C4-04)
+FASE 12: E-commerce                ← ✅ COMPLETADA (C4-05 a C4-07)
+FASE 13: IA & Automación           ← ✅ COMPLETADA (C4-08 a C4-10)
+FASE 14: i18n Completo             ← ✅ COMPLETADA (C4-11, C4-12)
 ```
 
 ---
@@ -1272,19 +1257,127 @@ FASE 14: i18n Completo
 
 | ID | Feature | Estado | Version | Fecha |
 |----|---------|--------|---------|-------|
-| — | **Ciclo 4 iniciado** | ⏳ | v12.44.707 | — |
-| C4-01 | Bug fixes & rendimiento v2 | ⏳ | — | — |
-| C4-02 | Cobertura de tests v2 | ⏳ | — | — |
-| C4-03 | PWA avanzada (push offline) | ⏳ | — | — |
-| C4-04 | UX polish v2 | ⏳ | — | — |
-| C4-05 | Carrito de compras | ⏳ | — | — |
-| C4-06 | Cupones y descuentos | ⏳ | — | — |
-| C4-07 | Facturación / Receipts | ⏳ | — | — |
-| C4-08 | Chatbot asistente | ⏳ | — | — |
-| C4-09 | Reportes IA | ⏳ | — | — |
-| C4-10 | Moderación IA de propuestas | ⏳ | — | — |
-| C4-11 | Traducción completa UI | ⏳ | — | — |
-| C4-12 | Selector de idioma persistente | ⏳ | — | — |
+| C4-01 | Bug fixes & rendimiento v2 | ✅ | v12.44.708 | 2026-05-09 |
+| C4-04 | UX polish v2 | ✅ | v12.44.709 | 2026-05-09 |
+| C4-02 | Cobertura de tests v2 | ✅ | v12.44.710 | 2026-05-09 |
+| C4-03 | PWA avanzada (push offline) | ✅ | v12.44.711 | 2026-05-09 |
+| C4-05 | Carrito de compras | ✅ | v12.44.712 | 2026-05-09 |
+| C4-06 | Cupones y descuentos | ✅ | v12.44.713 | 2026-05-09 |
+| C4-07 | Facturación / Receipts | ✅ | v12.44.714 | 2026-05-09 |
+| C4-09 | Reportes IA | ✅ | v12.44.715 | 2026-05-09 |
+| C4-10 | Moderación IA de propuestas | ✅ | v12.44.716 | 2026-05-09 |
+| C4-08 | Chatbot asistente | ✅ | v12.44.716 | 2026-05-09 |
+| C4-12 | Selector de idioma persistente | ✅ | v12.44.716 | 2026-05-09 |
+
+---
+
+# Ciclo 5 — Analytics, Guest Experience, Integraciones, Sistema
+
+## ⚡ Estado Actual
+
+| Item | Valor |
+|------|-------|
+| **Version** | v12.44.716 |
+| **Ultimo ciclo completado** | Ciclo 4 — Fases 11-14 al 100% |
+| **Feature en curso** | **Ciclo 5 — F15: Analytics + F16: Guest + F17: Integraciones + F18: Sistema** |
+| **Proximo feature** | C5-01 Dashboard ejecutivo BI |
+
+---
+
+## 🗺️ Mapa de Dependencias — Ciclo 5
+
+```
+FASE 15: Analytics Avanzado
+  C5-01 Dashboard ejecutivo BI        ← M (gráficos avanzados, exportación, filtros)
+  C5-02 Exportación a BI externo      ← M (CSV/JSON para PowerBI, Tableau, Looker)
+  C5-03 Tendencias y comparativas     ← M (comparar eventos, evolución temporal)
+
+FASE 16: Guest Experience
+  C5-04 Encuesta post-evento          ← M (feedback automatizado post-evento)
+  C5-05 Networking entre asistentes   ← L (chat, perfiles, matchmaking)
+  C5-06 Gamificación                  ← M (logros, badges, ranking entre invitados)
+
+FASE 17: Nuevas Integraciones
+  C5-07 Zapier / Make (webhooks)      ← M (conectores low-code con 5000+ apps)
+  C5-08 Social Media auto-publish     ← S (publicar en redes sociales)
+  C5-09 Slack/Discord notifs mejoradas← M (payloads enriquecidos, embeds)
+
+FASE 18: Sistema & Operaciones
+  C5-10 Health dashboard              ← M (monitoreo en vivo del servidor)
+  C5-11 Backup automático             ← M (respaldos programados BD + archivos)
+  C5-12 Performance logs              ← M (tracking de consultas lentas, caché hits)
+```
+
+---
+
+## 🎯 Matriz de Prioridad Real — Ciclo 5
+
+| Feature | Impacto | Esfuerzo | Dependencias | Fase |
+|---------|---------|----------|-------------|------|
+| **C5-01** Dashboard ejecutivo BI | Alto | M | Stats | **F15** |
+| **C5-02** Exportación a BI externo | Alto | M | C5-01 | **F15** |
+| **C5-03** Tendencias y comparativas | Medio | M | C5-01 | **F15** |
+| **C5-04** Encuesta post-evento | Alto | M | Surveys | **F16** |
+| **C5-05** Networking entre asistentes | Alto | L | Portal (BL-28) | **F16** |
+| **C5-06** Gamificación | Medio | M | C5-05 | **F16** |
+| **C5-07** Zapier / Make (webhooks) | Alto | M | Webhooks | **F17** |
+| **C5-08** Social Media auto-publish | Medio | S | Ninguna | **F17** |
+| **C5-09** Slack/Discord notifs mejoradas | Medio | M | Webhooks | **F17** |
+| **C5-10** Health dashboard | Alto | M | Ninguna | **F18** |
+| **C5-11** Backup automático | Alto | M | Ninguna | **F18** |
+| **C5-12** Performance logs | Medio | M | C5-10 | **F18** |
+
+---
+
+## 🚀 Orden de Ejecucion Sugerido — Ciclo 5
+
+### Fase 15: Analytics Avanzado
+| Orden | Feature | Esfuerzo |
+|-------|---------|----------|
+| 1 | **C5-01** Dashboard ejecutivo BI | M |
+| 2 | **C5-03** Tendencias y comparativas | M |
+| 3 | **C5-02** Exportación a BI externo | M |
+
+### Fase 16: Guest Experience
+| Orden | Feature | Esfuerzo |
+|-------|---------|----------|
+| 1 | **C5-04** Encuesta post-evento | M |
+| 2 | **C5-05** Networking entre asistentes | L |
+| 3 | **C5-06** Gamificación | M |
+
+### Fase 17: Nuevas Integraciones
+| Orden | Feature | Esfuerzo |
+|-------|---------|----------|
+| 1 | **C5-07** Zapier / Make (webhooks) | M |
+| 2 | **C5-09** Slack/Discord notifs mejoradas | M |
+| 3 | **C5-08** Social Media auto-publish | S |
+
+### Fase 18: Sistema & Operaciones
+| Orden | Feature | Esfuerzo |
+|-------|---------|----------|
+| 1 | **C5-10** Health dashboard | M |
+| 2 | **C5-11** Backup automático | M |
+| 3 | **C5-12** Performance logs | M |
+
+---
+
+## 📊 Tablero de Progreso — Ciclo 5
+
+| ID | Feature | Estado | Version | Fecha |
+|----|---------|--------|---------|-------|
+| — | **Ciclo 5 iniciado** | ⏳ | v12.44.716 | — |
+| C5-01 | Dashboard ejecutivo BI | ⏳ | — | — |
+| C5-02 | Exportación a BI externo | ⏳ | — | — |
+| C5-03 | Tendencias y comparativas | ⏳ | — | — |
+| C5-04 | Encuesta post-evento | ⏳ | — | — |
+| C5-05 | Networking entre asistentes | ⏳ | — | — |
+| C5-06 | Gamificación | ⏳ | — | — |
+| C5-07 | Zapier / Make (webhooks) | ⏳ | — | — |
+| C5-08 | Social Media auto-publish | ⏳ | — | — |
+| C5-09 | Slack/Discord notifs mejoradas | ⏳ | — | — |
+| C5-10 | Health dashboard | ⏳ | — | — |
+| C5-11 | Backup automático | ⏳ | — | — |
+| C5-12 | Performance logs | ⏳ | — | — |
 
 ---
 
