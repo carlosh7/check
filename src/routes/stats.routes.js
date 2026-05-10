@@ -297,4 +297,99 @@ router.get('/bi/dashboard', authMiddleware(['ADMIN']), (req, res) => {
     } catch(err) { console.error('[BI] Error:', err.message); res.status(500).json({ error: err.message }); }
 });
 
+// ─── Export BI (C5-02) ───
+router.get('/bi/export/:format', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        var format = req.params.format || 'json';
+        var period = parseInt(req.query.period) || 30;
+        var since = new Date(Date.now() - period * 24 * 60 * 60 * 1000).toISOString();
+
+        var data = {
+            generatedAt: new Date().toISOString(),
+            period: period + 'd',
+            system: {
+                events: db.prepare("SELECT COUNT(*) as c FROM events").get().c,
+                guests: db.prepare("SELECT COUNT(*) as c FROM guests").get().c,
+                checkedIn: db.prepare("SELECT COUNT(*) as c FROM guests WHERE checked_in = 1").get().c,
+                users: db.prepare("SELECT COUNT(*) as c FROM users WHERE status = 'APPROVED'").get().c
+            },
+            trends: db.prepare("SELECT date(created_at) as date, COUNT(*) as count FROM guests WHERE created_at >= ? GROUP BY date ORDER BY date").all(since),
+            topEvents: db.prepare("SELECT e.name, COUNT(g.id) as guests FROM events e LEFT JOIN guests g ON g.event_id = e.id GROUP BY e.id ORDER BY guests DESC LIMIT 10").all(),
+            monthly: db.prepare("SELECT strftime('%Y-%m') as month, COUNT(*) as count FROM guests GROUP BY month ORDER BY month LIMIT 12").all()
+        };
+
+        if (format === 'csv') {
+            var csv = 'Metrica,Valor\n';
+            csv += 'Eventos,' + data.system.events + '\nInvitados,' + data.system.guests + '\nCheck-in,' + data.system.checkedIn + '\nUsuarios,' + data.system.users + '\n\nFecha,Registros\n';
+            data.trends.forEach(function(t) { csv += t.date + ',' + t.count + '\n'; });
+            res.setHeader('Content-Type', 'text/csv');
+            res.setHeader('Content-Disposition', 'attachment; filename=bi_export.csv');
+            res.send(csv);
+        } else {
+            res.json(data);
+        }
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Trends comparison (C5-03) ───
+router.get('/bi/trends', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        var compare = req.query.compare ? parseInt(req.query.compare) : 30;
+        var current = req.query.period ? parseInt(req.query.period) : 30;
+        var now = Date.now();
+
+        var currentPeriod = new Date(now - current * 86400000).toISOString();
+        var prevPeriod = new Date(now - (current + compare) * 86400000).toISOString();
+
+        var currentGuests = db.prepare("SELECT COUNT(*) as c FROM guests WHERE created_at >= ?").get(currentPeriod).c;
+        var prevGuests = db.prepare("SELECT COUNT(*) as c FROM guests WHERE created_at >= ? AND created_at < ?").get(prevPeriod, currentPeriod).c;
+        var currentChecked = db.prepare("SELECT COUNT(*) as c FROM guests WHERE checked_in = 1 AND checkin_time >= ?").get(currentPeriod).c;
+        var prevChecked = db.prepare("SELECT COUNT(*) as c FROM guests WHERE checked_in = 1 AND checkin_time >= ? AND checkin_time < ?").get(prevPeriod, currentPeriod).c;
+
+        var calcGrowth = function(curr, prev) { return prev > 0 ? Math.round(((curr - prev) / prev) * 100) : curr > 0 ? 100 : 0; };
+
+        res.json({
+            current: { guests: currentGuests, checkedIn: currentChecked },
+            previous: { guests: prevGuests, checkedIn: prevChecked },
+            growth: { guests: calcGrowth(currentGuests, prevGuests), checkedIn: calcGrowth(currentChecked, prevChecked) },
+            currentPeriod: current + 'd',
+            comparePeriod: compare + 'd'
+        });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Health dashboard (C5-10) ───
+router.get('/health/system', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        var dbSize = 0;
+        try { var size = db.prepare("PRAGMA page_count").get(); var page = db.prepare("PRAGMA page_size").get(); dbSize = (size?.page_count || 0) * (page?.page_size || 0); } catch(e) {}
+        var uptime = process.uptime();
+        var mem = process.memoryUsage();
+        var eventCount = db.prepare("SELECT COUNT(*) as c FROM events").get().c;
+        var guestCount = db.prepare("SELECT COUNT(*) as c FROM guests").get().c;
+        var userCount = db.prepare("SELECT COUNT(*) as c FROM users").get().c;
+
+        res.json({
+            status: 'ok',
+            uptime: Math.floor(uptime / 3600) + 'h ' + Math.floor((uptime % 3600) / 60) + 'm',
+            uptimeSeconds: uptime,
+            database: { sizeBytes: dbSize, sizeMB: Math.round(dbSize / (1024 * 1024) * 100) / 100, events: eventCount, guests: guestCount, users: userCount },
+            memory: { rss: Math.round(mem.rss / 1024 / 1024) + 'MB', heap: Math.round(mem.heapUsed / 1024 / 1024) + 'MB' },
+            node: process.version,
+            platform: process.platform,
+            timestamp: new Date().toISOString()
+        });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Backup (C5-11) ───
+router.post('/system/backup', authMiddleware(['ADMIN']), async (req, res) => {
+    try {
+        var { createBackup } = require('../utils/webhooks');
+        var result = await createBackup();
+        if (result.success) res.json({ success: true, file: result.file, size: result.size });
+        else res.status(500).json({ error: result.error });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

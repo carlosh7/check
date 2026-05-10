@@ -297,6 +297,60 @@ function getWebhookLogs(webhookId, limit = 50) {
     }
 }
 
+/**
+ * Send enriched Slack message (C5-09)
+ */
+async function sendSlackMessage(webhook, payload) {
+    var blocks = [
+        { type: 'header', text: { type: 'plain_text', text: payload.title || 'Check Pro' } },
+        { type: 'section', text: { type: 'mrkdwn', text: payload.message || '' } }
+    ];
+    if (payload.fields) {
+        blocks.push({ type: 'section', fields: payload.fields.map(function(f) { return { type: 'mrkdwn', text: '*' + f.label + '*\n' + f.value }; }) });
+    }
+    if (payload.color) {
+        blocks.unshift({ type: 'divider' });
+        blocks.unshift({ type: 'context', elements: [{ type: 'mrkdwn', text: '🟢 ' + payload.color }] });
+    }
+    blocks.push({ type: 'divider' }, { type: 'context', elements: [{ type: 'mrkdwn', text: 'Check Pro · ' + new Date().toLocaleString() }] });
+
+    await fetch(webhook.url, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: payload.title, blocks: blocks, username: 'Check Pro', icon_emoji: ':checkered_flag:' })
+    });
+}
+
+// ─── Backup (C5-11) ───
+
+async function createBackup() {
+    var backupDir = process.env.BACKUP_DIR || './backups';
+    var fs = require('fs'), path = require('path');
+    if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+    var dateStr = new Date().toISOString().slice(0, 10);
+    var backupFile = path.join(backupDir, 'checkpro_backup_' + dateStr + '.db');
+
+    try {
+        var srcDb = db.name || (process.env.DATA_PATH ? path.join(process.env.DATA_PATH, 'system', 'database.db') : '/usr/src/app/persistence/system/database.db');
+        if (fs.existsSync(srcDb)) {
+            fs.copyFileSync(srcDb, backupFile);
+            // Keep only last 7 backups
+            var files = fs.readdirSync(backupDir).filter(function(f) { return f.startsWith('checkpro_backup_'); }).sort();
+            while (files.length > 7) { var old = files.shift(); fs.unlinkSync(path.join(backupDir, old)); }
+            return { success: true, file: backupFile, size: fs.statSync(backupFile).size };
+        }
+        return { success: false, error: 'Database file not found' };
+    } catch(e) { return { success: false, error: e.message }; }
+}
+
+// ─── Performance Logger (C5-12) ───
+
+function logPerformance(operation, durationMs, details) {
+    try {
+        var stmt = db.prepare("INSERT INTO performance_logs (id, operation, duration_ms, details, created_at) VALUES (?, ?, ?, ?, ?)");
+        stmt.run(require('uuid').v4(), operation, durationMs, JSON.stringify(details || {}), new Date().toISOString());
+    } catch(e) {}
+}
+
 module.exports = {
     WEBHOOK_EVENTS,
     createWebhook,
@@ -309,5 +363,8 @@ module.exports = {
     triggerWebhooks,
     sendWebhook,
     logWebhookDelivery,
-    getWebhookLogs
+    getWebhookLogs,
+    sendSlackMessage,
+    createBackup,
+    logPerformance
 };
