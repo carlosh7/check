@@ -3197,21 +3197,6 @@ const App = window.App = {
         if (modal) modal.classList.remove('hidden');
     },
 
-    // Abrir modal para crear evento (diseño igual al de empresa)
-    openCreateEventModal: function() {
-        // If coming from user carousel, save context
-        if (this._lastUserCarouselContext) {
-            this._savedSelectedUsers = [...(this.state.selectedUsers || [])];
-        }
-        this._lastCarouselContext = 'event';
-        document.getElementById('create-event-name').value = '';
-        document.getElementById('create-event-date').value = '';
-        document.getElementById('create-event-location').value = '';
-        document.getElementById('create-event-description').value = '';
-        const modal = document.getElementById('modal-create-event');
-        if (modal) modal.classList.remove('hidden');
-    },
-
     // Cerrar modales de creación y restaurar carrusel
     closeCreateClientModal: function() {
         document.getElementById('modal-create-client')?.classList.add('hidden');
@@ -6020,22 +6005,6 @@ const App = window.App = {
         } catch { alert('Error de conexión'); }
     },
 
-    async updateEvent(id, data) {
-        try {
-            const res = await this.fetchAPI(`/events/${id}`, { 
-                method: 'PUT', 
-                body: JSON.stringify(data)
-            });
-            if (res.success) {
-                alert("✓ Evento actualizado.");
-                hideModal('modal-event');
-                this.loadEvents();
-            } else {
-                alert("Error: " + res.error);
-            }
-        } catch (e) { alert("Error al actualizar evento."); }
-    },
-    
     // --- COMPANY CRUD V10.6 ---
     openCompanyModal: function(groupId = null) {
         const modal = document.getElementById('modal-company');
@@ -9026,45 +8995,6 @@ navigate(viewName, params = {}, push = true) {
     },
 
 
-    exportEvents: async function() {
-        try {
-            const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
-            if (events.length === 0) {
-                this._notifyAction('⚠️ Sin datos', 'No hay eventos para exportar', 'warning');
-                return;
-            }
-            
-            const clientsMap = {};
-            (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
-            
-            const csvContent = [
-                ['ID', 'Nombre', 'Fecha', 'Ubicación', 'Cliente', 'Total Registrados', 'Asistentes', 'Estado'].join(','),
-                ...events.map(ev => [
-                    ev.id,
-                    `"${(ev.name || '').replace(/"/g, '""')}"`,
-                    new Date(ev.date).toLocaleDateString('es-ES'),
-                    `"${(ev.location || '').replace(/"/g, '""')}"`,
-                    `"${(ev.client_names || '').replace(/"/g, '""')}"`,
-                    ev.total_guests || 0,
-                    ev.attended_guests || 0,
-                    this._getEventStatus(ev)
-                ].join(','))
-            ].join('\n');
-            
-            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `eventos_${new Date().toISOString().slice(0, 10)}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            this._notifyAction('✓ Exportado', `${events.length} eventos exportados a CSV`, 'success');
-        } catch (e) {
-            this._notifyAction('Error', 'No se pudo exportar: ' + e.message, 'error');
-        }
-    },
-
     renderEventsTable() {
         const tbody = document.getElementById('events-tbody');
         const emptyState = document.getElementById('events-empty-state');
@@ -10419,69 +10349,6 @@ navigate(viewName, params = {}, push = true) {
         doc.save(`Certificado_${g.name.replace(/\s+/g, '_')}.pdf`);
     },
 
-    async generateEventReport() {
-        if (!this.state.event) return;
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const event = this.state.event;
-        const stats = await this.fetchAPI(`/stats/${event.id}`);
-        
-        // Cabecera Reporte
-        doc.setFillColor(124, 58, 237);
-        doc.rect(0, 0, 210, 40, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(22);
-        doc.setFont('helvetica', 'bold');
-        doc.text('REPORTE EJECUTIVO DE ASISTENCIA', 15, 20);
-        doc.setFontSize(10);
-        doc.text(`CHECK APP v12.2 - ${new Date().toLocaleString()}`, 15, 30);
-        
-        // KPIs
-        doc.setTextColor(15, 23, 42);
-        doc.setFontSize(14);
-        doc.text('RESUMEN DE MÉTRICAS', 15, 55);
-        
-        const kpis = [
-            ['Total Invitados', stats.total.toString()],
-            ['Acreditados', stats.checkedIn.toString()],
-            ['Ausentes', (stats.total - stats.checkedIn).toString()],
-            ['% de Asistencia', (stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) : 0) + '%'],
-            ['Acreditaciones On-site', (stats.onsite || 0).toString()]
-        ];
-        
-        doc.autoTable({
-            startY: 60,
-            head: [['Indicador', 'Valor']],
-            body: kpis,
-            theme: 'striped',
-            headStyles: { fillColor: [124, 58, 237] }
-        });
-        
-        // Tabla de Invitados
-        doc.text('LISTADO DETALLADO DE ASISTENCIA', 15, doc.lastAutoTable.finalY + 15);
-        
-        const guestsData = this.state.guests.map(g => [
-            g.name,
-            g.email || '---',
-            g.organization || '---',
-            g.checked_in ? 'SÍ' : 'NO',
-            g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
-        ]);
-        
-        doc.autoTable({
-            startY: doc.lastAutoTable.finalY + 20,
-            head: [['Nombre', 'Email', 'Empresa', 'Acreditado', 'Hora']],
-            body: guestsData,
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [51, 65, 85] }
-        });
-        
-        doc.save(`Reporte_Check_${event.name.replace(/\s+/g, '_')}.pdf`);
-    },
-
-
-
-    
     // Asegurar que las librerías PDF estén cargadas
     async ensurePDFLibsLoaded() {
         if (typeof window.jspdf === 'undefined') {
