@@ -41,12 +41,16 @@ function getOAuthWithToken(refreshToken) {
 function getAuthScope() {
     return [
         'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive.file'
+        'https://www.googleapis.com/auth/drive.file',
+        'https://www.googleapis.com/auth/calendar.events'
     ];
 }
 
 function findBestAccount(event, userId) {
-    if (event.google_account_id) return event.google_account_id;
+    if (event.google_account_id) {
+        var groupAcc = db.prepare("SELECT id, refresh_token FROM group_google_accounts WHERE id = ?").get(event.google_account_id);
+        if (groupAcc && groupAcc.refresh_token) return { type: 'group', id: groupAcc.id, refreshToken: groupAcc.refresh_token };
+    }
     var userAcc = db.prepare("SELECT id, refresh_token FROM user_google_accounts WHERE user_id = ?").get(userId);
     if (userAcc && userAcc.refresh_token) return { type: 'user', id: userAcc.id, refreshToken: userAcc.refresh_token };
     return null;
@@ -739,8 +743,10 @@ router.post('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTO
         var eventId = require('../utils/helpers').castId('events', req.params.eventId);
         var event = db.prepare("SELECT id, name, date, end_date, location, description FROM events WHERE id = ?").get(eventId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
-        var oauth2 = getAuthClient(req.userId);
-        if (!oauth2) return res.status(400).json({ error: 'Google no conectado. Ve a Sistema > Perfil y conecta tu cuenta Google.' });
+        var acc = findBestAccount(event, req.userId);
+        if (!acc || !acc.refreshToken) return res.status(400).json({ error: 'Google no conectado. Ve a Sistema > Perfil y conecta tu cuenta Google.' });
+        var oauth2 = getOAuthWithToken(acc.refreshToken);
+        if (!oauth2) return res.status(400).json({ error: 'Error al conectar con Google.' });
         var calendar = google.calendar({ version: 'v3', auth: oauth2 });
         var eventData = { summary: event.name, description: event.description || '', location: event.location || '', start: { dateTime: event.date || new Date().toISOString(), timeZone: 'America/Mexico_City' }, end: { dateTime: event.end_date || event.date || new Date().toISOString(), timeZone: 'America/Mexico_City' } };
         var existingEventId = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'gcal_event_" + eventId + "'").get();
@@ -758,9 +764,13 @@ router.post('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTO
 router.delete('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
         var eventId = require('../utils/helpers').castId('events', req.params.eventId);
+        var event = db.prepare("SELECT id, google_account_id FROM events WHERE id = ?").get(eventId);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         var existingEventId = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'gcal_event_" + eventId + "'").get();
         if (!existingEventId) return res.json({ success: true, message: 'No estaba sincronizado' });
-        var oauth2 = getAuthClient(req.userId);
+        var acc = findBestAccount(event, req.userId);
+        if (!acc || !acc.refreshToken) return res.json({ success: true, message: 'Google no conectado' });
+        var oauth2 = getOAuthWithToken(acc.refreshToken);
         if (!oauth2) return res.json({ success: true, message: 'Google no conectado' });
         var calendar = google.calendar({ version: 'v3', auth: oauth2 });
         await calendar.events.delete({ calendarId: 'primary', eventId: existingEventId.setting_value }).catch(function() {});

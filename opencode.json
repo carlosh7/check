@@ -3,7 +3,7 @@
   "mcp": {
     "blender": {
       "type": "local",
-      "command": ["/home/carlosh/blender-mcp/.venv/bin/python3", "/home/carlosh/blender-mcp/server.py", "--mode", "check", "--check-path", "/home/carlosh/check-3d-planner/public/models"],
+      "command": ["/home/carlosh/blender-mcp/.venv/bin/python3", "/home/carlosh/blender-mcp/server.py", "--mode", "all", "--check-path", "/home/carlosh/check-3d-planner/public/models"],
       "enabled": true,
       "timeout": 60000
     }
