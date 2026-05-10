@@ -876,7 +876,9 @@ router.get('/:id/badge-config', authMiddleware(), (req, res) => {
     try {
         const event = db.prepare("SELECT badge_config FROM events WHERE id = ?").get(req.params.id);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
-        res.json({ badgeConfig: event.badge_config ? JSON.parse(event.badge_config) : null });
+        var badgeCfg = null;
+        if (event.badge_config) { try { badgeCfg = JSON.parse(event.badge_config); } catch(e) { badgeCfg = {}; } }
+        res.json({ badgeConfig: badgeCfg });
     } catch (err) {
         console.error('[BADGE_CONFIG] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener config' });
@@ -910,10 +912,14 @@ router.delete('/:id/badge-logo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, r
     try {
         const event = db.prepare("SELECT badge_config FROM events WHERE id = ?").get(req.params.id);
         if (event && event.badge_config) {
-            const config = JSON.parse(event.badge_config);
+            var config = {};
+            try { config = JSON.parse(event.badge_config); } catch(e) { config = {}; }
             if (config.logo) {
-                const filePath = path.join(__dirname, '../..', config.logo);
-                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                try {
+                    var fs = require('fs'), path = require('path');
+                    var logoPath = path.join(__dirname, '../../public', config.logo);
+                    if (fs.existsSync(logoPath)) fs.unlinkSync(logoPath);
+                } catch(e) {}
             }
             delete config.logo;
             db.prepare("UPDATE events SET badge_config = ? WHERE id = ?").run(JSON.stringify(config), req.params.id);

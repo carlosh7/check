@@ -105,12 +105,7 @@ const App = window.App = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
-    navigate(viewId) {
 
-        this.navigate(viewId, {}, true);
-    },
-
-    
 
     getDefaultViewByRole(role) {
         // Todos los usuarios van a "Mis Eventos" después de login
@@ -287,15 +282,6 @@ const App = window.App = {
     },
 
     // Reemplazo de la función antigua de notificación - usar ToastManager
-    _notifyAction(title, message, type = 'success', duration = 4000) {
-        if (typeof ToastManager !== 'undefined') {
-            ToastManager.show(title, message, type, duration);
-        } else {
-            // Fallback
-            this.showPremiumToast(title, message, type, duration);
-        }
-    },
-
     navigateToCreateEvent: function(type = 'short') {
         
         // No navegar si ya estamos en una vista permitida (my-events, dashboard)
@@ -13032,25 +13018,25 @@ navigate(viewName, params = {}, push = true) {
             if (!result.isConfirmed || !result.value) return;
             name = result.value.trim();
         }
-        var type = document.getElementById('seat-layout-type').value;
+        var type = document.getElementById('seat-layout-type')?.value || '';
         var config = {
             layoutType: type,
-            roomWidth: parseFloat(document.getElementById('seat-room-width').value),
-            roomLength: parseFloat(document.getElementById('seat-room-length').value)
+            roomWidth: parseFloat(document.getElementById('seat-room-width')?.value),
+            roomLength: parseFloat(document.getElementById('seat-room-length')?.value)
         };
         if (type === 'auditorium' || type === 'herringbone') {
-            config.rows = parseInt(document.getElementById('seat-rows').value);
-            config.cols = parseInt(document.getElementById('seat-cols').value);
-            config.seatSize = parseFloat(document.getElementById('seat-size').value);
+            config.rows = parseInt(document.getElementById('seat-rows')?.value);
+            config.cols = parseInt(document.getElementById('seat-cols')?.value);
+            config.seatSize = parseFloat(document.getElementById('seat-size')?.value);
         }
         if (type === 'auditorium') {
-            config.aislePos = parseInt(document.getElementById('seat-aisle').value);
-            config.stagePos = document.getElementById('seat-stage').value;
+            config.aislePos = parseInt(document.getElementById('seat-aisle')?.value);
+            config.stagePos = document.getElementById('seat-stage')?.value;
         }
         if (type === 'banquet') {
-            config.tableDiameter = parseFloat(document.getElementById('seat-table-diam').value);
-            config.chairsPerTable = parseInt(document.getElementById('seat-chairs-per-table').value);
-            config.tableGap = parseFloat(document.getElementById('seat-table-gap').value);
+            config.tableDiameter = parseFloat(document.getElementById('seat-table-diam')?.value);
+            config.chairsPerTable = parseInt(document.getElementById('seat-chairs-per-table')?.value);
+            config.tableGap = parseFloat(document.getElementById('seat-table-gap')?.value);
         }
         try {
             if (this._editingSeatLayoutId) {
@@ -15094,16 +15080,17 @@ navigate(viewName, params = {}, push = true) {
 
     // Utilidad para notificaciones Premium (V12.7.0)
     async _notifyAction(title, text, icon = 'info', timer = 3000) {
-        return Swal.fire({
-            title,
-            text,
-            icon,
-            background: '#292a2d',
-            color: '#e8eaed',
-            confirmButtonColor: '#1a73e8',
-            timer,
-            showConfirmButton: timer === 0
-        });
+        try {
+            if (typeof Swal !== 'undefined') {
+                return Swal.fire({
+                    title, text, icon,
+                    background: '#292a2d', color: '#e8eaed',
+                    confirmButtonColor: '#1a73e8', timer,
+                    showConfirmButton: timer === 0
+                });
+            }
+        } catch(e) {}
+        alert(title + ': ' + text);
     },
 
     // --- MODALES DE SELECCIÓN PREMIUM "FORMULARIO OK" (V12.16.0) ---
