@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.688</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.689</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -434,6 +434,9 @@
                         </button>
                         <button class="btn-secondary sub-nav-btn" data-tab="google" onclick="App.switchConfigTab('google')">
                             <span class="material-symbols-outlined">table_chart</span> Google Sheets
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="branding" onclick="App.switchConfigTab('branding')">
+                            <span class="material-symbols-outlined">palette</span> Branding
                         </button>
                     </div>
 
@@ -1491,6 +1494,39 @@
                             <div id="evs-google-status" class="text-xs text-slate-500">
                                 <p>Selecciona una cuenta y guarda la configuraci&oacute;n.</p>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- BRANDING (BL-16) -->
+                    <div id="config-content-branding" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Branding <span class="text-[var(--primary)]">del Evento</span></h2>
+                            <button class="btn-primary" onclick="App.saveBranding()">💾 Guardar Branding</button>
+                        </div>
+                        <div class="card p-6 space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)]">Color primario</label>
+                                    <input type="color" id="brand-primary-color" class="w-full h-10 rounded-lg cursor-pointer" value="#7c3aed">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)]">Logo URL</label>
+                                    <input type="text" id="brand-logo-url" class="input-field w-full" placeholder="https://...">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)]">CSS Personalizado</label>
+                                <textarea id="brand-custom-css" class="input-field w-full font-mono text-xs" rows="6" placeholder="/* Estilos personalizados para este evento */&#10;.registro-title { font-size: 32px; }&#10;.registro-submit { background: #yourcolor; }"></textarea>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)]">Header Personalizado (HTML)</label>
+                                <textarea id="brand-header-html" class="input-field w-full text-xs" rows="3" placeholder="&lt;div style=&quot;text-align:center&quot;&gt;Mi Header&lt;/div&gt;"></textarea>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)]">Footer Personalizado (HTML)</label>
+                                <textarea id="brand-footer-html" class="input-field w-full text-xs" rows="3" placeholder="&lt;div style=&quot;text-align:center;font-size:12px&quot;&gt;© Mi Evento&lt;/div&gt;"></textarea>
+                            </div>
+                            <p class="text-xs text-slate-500 italic">Estos valores sobrescriben la configuraci&oacute;n visual general para este evento espec&iacute;fico.</p>
                         </div>
                     </div>
             </section>

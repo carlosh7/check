@@ -932,4 +932,25 @@ router.delete('/:id/badge-logo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, r
     }
 });
 
+// ─── Branding (BL-16) ───
+
+router.get('/:id/branding', authMiddleware(), (req, res) => {
+    try {
+        var event = db.prepare("SELECT custom_css, brand_header_html, brand_footer_html, brand_primary_color, brand_logo_url, logo_url, reg_logo_url, ticket_bg_url, ticket_accent_color, qr_color_dark, qr_color_light FROM events WHERE id = ?").get(req.params.id);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+        res.json(event);
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+router.put('/:id/branding', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        var d = req.body;
+        db.prepare("UPDATE events SET custom_css = COALESCE(?, custom_css), brand_header_html = COALESCE(?, brand_header_html), brand_footer_html = COALESCE(?, brand_footer_html), brand_primary_color = COALESCE(?, brand_primary_color), brand_logo_url = COALESCE(?, brand_logo_url) WHERE id = ?").run(
+            d.custom_css || null, d.brand_header_html || null, d.brand_footer_html || null,
+            d.brand_primary_color || null, d.brand_logo_url || null, req.params.id
+        );
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

@@ -11763,6 +11763,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'sessions') this.loadSessions();
         if (tabName === 'seatmaps') this.loadSeatLayouts();
         if (tabName === 'google') this.loadGoogleEventConfigData();
+        if (tabName === 'branding') this.loadBranding();
         
         // Mostrar action-bar solo en tab Personal
         const actionBar = document.getElementById('config-action-bar');
@@ -13218,6 +13219,38 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
+
+    // ═══ Branding (BL-16) ═══
+
+    loadBranding: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var data = await this.fetchAPI('/events/' + eId + '/branding');
+            if (!data) return;
+            if (document.getElementById('brand-primary-color')) document.getElementById('brand-primary-color').value = data.brand_primary_color || '#7c3aed';
+            if (document.getElementById('brand-logo-url')) document.getElementById('brand-logo-url').value = data.brand_logo_url || data.logo_url || data.reg_logo_url || '';
+            if (document.getElementById('brand-custom-css')) document.getElementById('brand-custom-css').value = data.custom_css || '';
+            if (document.getElementById('brand-header-html')) document.getElementById('brand-header-html').value = data.brand_header_html || '';
+            if (document.getElementById('brand-footer-html')) document.getElementById('brand-footer-html').value = data.brand_footer_html || '';
+        } catch(e) { console.error('[BRANDING] Error:', e.message); }
+    },
+
+    saveBranding: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) { this._notifyAction('Error', 'No hay evento seleccionado', 'error'); return; }
+        var data = {
+            brand_primary_color: document.getElementById('brand-primary-color')?.value || '#7c3aed',
+            brand_logo_url: document.getElementById('brand-logo-url')?.value || '',
+            custom_css: document.getElementById('brand-custom-css')?.value || '',
+            brand_header_html: document.getElementById('brand-header-html')?.value || '',
+            brand_footer_html: document.getElementById('brand-footer-html')?.value || ''
+        };
+        try {
+            await this.fetchAPI('/events/' + eId + '/branding', { method: 'PUT', body: JSON.stringify(data) });
+            this._notifyAction('Guardado', 'Branding actualizado', 'success');
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
 
     currentWheel: null,
     wheelParticipants: [],

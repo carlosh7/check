@@ -128,6 +128,12 @@ try { db.exec("ALTER TABLE events ADD COLUMN payment_required INTEGER DEFAULT 0"
 try { db.exec("ALTER TABLE events ADD COLUMN currency TEXT DEFAULT 'USD'"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN stripe_account TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN paypal_email TEXT"); } catch (_) {}
+// Branding columns (BL-16)
+try { db.exec("ALTER TABLE events ADD COLUMN custom_css TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN brand_header_html TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN brand_footer_html TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN brand_primary_color TEXT DEFAULT '#7c3aed'"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN brand_logo_url TEXT"); } catch (_) {}
 
 // 3. Invitados
 db.exec(`CREATE TABLE IF NOT EXISTS guests (
