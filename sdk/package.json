@@ -1,0 +1,11 @@
+{
+    "name": "check-pro-sdk",
+    "version": "1.0.0",
+    "description": "SDK oficial de Check Pro para integración externa con eventos e invitados",
+    "main": "index.js",
+    "types": "index.d.ts",
+    "license": "MIT",
+    "keywords": ["check", "eventos", "invitados", "sdk", "api"],
+    "repository": { "type": "git", "url": "https://github.com/carlosh7/check" },
+    "engines": { "node": ">=16" }
+}
