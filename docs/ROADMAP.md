@@ -133,7 +133,7 @@ Cruza todas las features del proyecto evaluando impacto, esfuerzo y dependencias
 | **F4-11** Sesiones + Seat Maps | Medio | XL | Venues (F4-12) | **Tier 4** |
 | BL-15 Password Recovery | Alto | S | Ninguna | **Backlog Priorizado** |
 | BL-22 Tests Automatizados | Alto | L | Ninguna | **Backlog Priorizado** |
-| BL-25 Webhooks | Alto | M | Ninguna | **Backlog Priorizado** |
+| BL-25 Webhooks (UI, logs, presets) | Alto | M | Ninguna | ✅ v12.44.670 |
 | BL-26 API Publica Swagger | Alto | M | Ninguna | **Backlog Priorizado** |
 | BL-27 Carga Masiva Inteligente | Alto | M | Ninguna | **Backlog Priorizado** |
 | BL-28 Portal Asistente PWA | Alto | XL | Ninguna | **Backlog Priorizado** |
@@ -919,7 +919,7 @@ Registro de espacios fisicos para eventos:
 | BL-22 | **Tests automatizados (Jest)** | `Pedrosandoval2/Event-Register-System` | L |
 | BL-23 | **Migraciones de BD** | `Neriiiii/ems-event-management-system` | M |
 | BL-24 | **Musica de fondo en landing** | `Hans-developer/tarjeta-boda` | S |
-| BL-25 | **Webhooks para integraciones externas** | `docs/RECOMENDACIONES.md` | M |
+| BL-25 | **Webhooks (UI admin, logs, triggers, presets)** | ✅ | v12.44.670 | 2026-05-09 |
 | BL-26 | **API REST publica documentada (Swagger)** | `docs/RECOMENDACIONES.md` | M |
 | BL-27 | **Carga masiva inteligente** | `docs/RECOMENDACIONES.md` | M |
 | BL-28 | **Portal asistente PWA** | `docs/RECOMENDACIONES.md` | XL |
