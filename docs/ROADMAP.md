@@ -8,11 +8,11 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.628 |
-| **Ultima feature completada** | FS-04: AI Red Teaming - 39 tests de inyeccion, DLP, hardening, auditoria + pre-commit hook Husky |
-| **Feature en curso** | Ninguna |
-| **Proximo feature** | FS-03: AI Detection & Response |
-| **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
+| **Version** | v12.44.678 |
+| **Ultima feature completada** | BL-28: Portal Asistente PWA (ticket QR, agenda, notificaciones push) |
+| **Todas las fases 0-4, S, backlog** | ✅ Completadas al 100% |
+| **Feature en curso** | **Ciclo 2 — Fase 5: Refinamiento y Legado** |
+| **Proximo feature** | BL-13: Integración SMS |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
 
@@ -54,99 +54,64 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 ---
 
-## 🗺️ Mapa de Dependencias entre Features
+## 🗺️ Mapa de Dependencias entre Features — Ciclo 2
 
 ```
-FASE S: Security & AI (postura de seguridad IA)
-  FS-01 Shadow AI Detection & Governance ← sin dependencias
-  FS-02 AI Compliance & Data Governance ← sin dependencias
-  FS-03 AI Detection & Response ← sin dependencias
-  FS-04 AI Red Teaming ← sin dependencias
+FASE S: Security & AI         ← ✅ COMPLETADA (FS-01 a FS-04)
+FASE 0-4: Core Features       ← ✅ COMPLETADAS (F0-01 a F4-12)
+BACKLOG (BL-15 a BL-28)       ← ✅ COMPLETADO
 
-FASE 0: Foundation (saldar deuda tecnica previa)
-  F0-01 Completar Form.js + Dropdown.js + tests frontend ← sin dependencias
-  F0-02 Modulo Mailing por evento ← sin dependencias
+══════════════════════════════════════════════
+         CICLO 2 — Nuevas Features
+══════════════════════════════════════════════
 
-FASE 1: Features nuevas
-  F1-01 Dashboard Analytics ← sin dependencias
-  F1-02 Pipeline Invitados ← sin dependencias
-  F1-03 Clone Events ← sin dependencias
+FASE 5: Refinamiento y Legado (bugs + UX + tests + documentacion)
+  C2-01 Bug fixes & rendimiento ← sin dependencias
+  C2-02 UX polish & animaciones ← sin dependencias
+  C2-03 Cobertura de tests       ← sin dependencias
+  C2-04 Deuda técnica / refactor ← sin dependencias
+  C2-05 Documentación expandida  ← sin dependencias
 
-FASE 2: Core+
-  F2-04 PDF Export ← depende de: pipeline (usa datos de invitados)
-  F2-05 Guest Categories ← depende de: pipeline (usa sistema de estados)
-  F2-06 Activity Logs ← sin dependencias (ya existe audit.js, hay que expandir)
+FASE 6: Features del Backlog Original
+  BL-13 Integración SMS          ← sin dependencias (Twilio)
+  BL-16 Site branding por cliente ← sin dependencias
+  BL-18 Presupuesto por evento    ← sin dependencias
+  BL-19 Gestión de Ponentes       ← sin dependencias
+  BL-21 Mapa interactivo LeafletJS← sin dependencias
+  BL-23 Migraciones de BD         ← sin dependencias
+  BL-24 Música en landing         ← sin dependencias
+  BL-14 Reconocimiento facial/OTP ← esfuerzo XL
 
-FASE 3: Monetizacion
-  F3-07 Stripe/PayPal ← depende de: categories (boletos por tipo)
-  F3-08 Waitlist ← depende de: categories (cupos por categoria)
-  F3-09 Export Google Sheets ← sin dependencias
-
-FASE 4: Colaboracion
-  F4-10 Rol Organizer ← sin dependencias
-  F4-11 Sesiones + Seat maps ← depende de: venues
-  F4-12 Venues / espacios ← sin dependencias
-
-BACKLOG
-  BL-13 SMS integration
-  BL-14 Reconocimiento facial / OTP
-  BL-15 Password recovery
-  BL-16 Site branding por cliente
-  BL-17 Landing invitacion digital
-  BL-18 Presupuesto por evento
-  BL-19 Speaker management
-  BL-20 Propuestas publicas
-  BL-21 Mapa interactivo (LeafletJS)
-  BL-22 Tests automatizados (Jest)
-  BL-23 Migraciones de BD
-  BL-24 Musica de fondo en landing
-  BL-25 Webhooks para integraciones externas
-  BL-26 API REST publica documentada (Swagger)
-  BL-27 Carga masiva inteligente (dup detect, field mapping)
-  BL-28 Portal asistente PWA (boleto, agenda, networking)
+FASE 7: Post-Lanzamiento (features nuevas)
+  C2-06 i18n Multi-idioma         ← sin dependencias
+  C2-07 Exportar a calendario     ← sin dependencias
+  C2-08 Dashboard mejorado        ← sin dependencias (expandir F1-01)
+  C2-09 Performance & caché       ← sin dependencias
 ```
 
 ---
 
-## 🎯 Matriz de Prioridad Real
+## 🎯 Matriz de Prioridad Real — Ciclo 2
 
-Cruza todas las features del proyecto evaluando impacto, esfuerzo y dependencias para determinar el orden de ejecucion optimo. Los Tiers indican la prioridad: **Tier 1 primero, Tier 5 al final**. FASE S corre en paralelo.
-
-| Feature | Impacto | Esfuerzo | Dependencias | Tier |
+| Feature | Impacto | Esfuerzo | Dependencias | Fase |
 |---------|---------|----------|-------------|------|
-| **F0-02** Modulo Mailing | Alto | XL | Ninguna | **Tier 1** |
-| **F1-01** Dashboard Analytics | Alto | M | Ninguna | **Tier 1** |
-| **F1-03** Clone Events | Alto | S | Ninguna | **Tier 1** |
-| **F2-06** Activity Logs | Alto | S | Ninguna | **Tier 1** |
-| **F4-12** Venues / Espacios | Medio | S | Ninguna | **Tier 1** |
-| **FS-01** Shadow AI Detection | Alto | M | Ninguna | **Tier S (paralelo)** |
-| **FS-02** AI Compliance & Data Governance | Medio | M | Ninguna | **Tier S (paralelo)** |
-| **F1-02** Pipeline Estados Invitado | Alto | M | Ninguna | **Tier 2** |
-| **F2-04** PDF Export | Alto | M | Pipeline (F1-02) | **Tier 2** |
-| **F2-05** Guest Categories | Medio | M | Pipeline (F1-02) | **Tier 2** |
-| **FS-03** AI Detection & Response | Alto | XL | FS-01 | **Tier S (paralelo)** |
-| **F3-07** Stripe / PayPal | Medio | XL | Categories (F2-05) | **Tier 3** |
-| **F3-08** Waitlist | Medio | M | Categories (F2-05) | **Tier 3** |
-| **F3-09** Export Google Sheets | Medio | M | Ninguna | **Tier 3** |
-| **F4-10** Rol Organizer | Medio | M | Ninguna | **Tier 3** |
-| **FS-04** AI Red Teaming | Medio | M | FS-01, FS-03 | **Tier S (paralelo)** |
-| **F4-11** Sesiones + Seat Maps | Medio | XL | Venues (F4-12) | **Tier 4** |
-| BL-15 Password Recovery | Alto | S | Ninguna | **Backlog Priorizado** |
-| BL-22 Tests Automatizados | Alto | L | Ninguna | **Backlog Priorizado** |
-| BL-25 Webhooks (UI, logs, presets) | Alto | M | Ninguna | ✅ v12.44.670 |
-| BL-26 API Publica Swagger | Alto | M | Ninguna | **Backlog Priorizado** |
-| BL-27 Carga Masiva Inteligente | Alto | M | Ninguna | **Backlog Priorizado** |
-| BL-28 Portal Asistente PWA | Alto | XL | Ninguna | **Backlog Priorizado** |
-| BL-17 Landing Invitacion Digital | Medio | M | Ninguna | **Backlog Priorizado** |
-| BL-23 Migraciones de BD | Medio | M | Ninguna | **Backlog Priorizado** |
-| BL-13 SMS Integration | Medio | M | Ninguna | **Backlog** |
-| BL-16 Site Branding | Medio | M | Ninguna | **Backlog** |
-| BL-18 Presupuesto por Evento | Medio | M | Ninguna | **Backlog** |
-| BL-19 Speaker Management | Medio | M | Ninguna | **Backlog** |
-| BL-20 Propuestas Publicas | Bajo | S | Ninguna | **Backlog** |
-| BL-21 Mapa Interactivo | Bajo | S | Ninguna | **Backlog** |
-| BL-24 Musica de fondo | Bajo | S | Ninguna | **Backlog** |
-| BL-14 Reconocimiento facial / OTP | Bajo | XL | Ninguna | **Backlog** |
+| **C2-01** Bug fixes & rendimiento | Alto | M | Ninguna | **F5 — Inmediato** |
+| **C2-02** UX polish & animaciones | Alto | M | Ninguna | **F5 — Inmediato** |
+| **C2-03** Cobertura de tests | Alto | L | Ninguna | **F5 — Inmediato** |
+| **C2-04** Deuda técnica / refactor | Alto | L | Ninguna | **F5 — Inmediato** |
+| **C2-05** Documentación expandida | Alto | M | Ninguna | **F5 — Inmediato** |
+| **BL-13** Integración SMS | Alto | M | Ninguna | **F6 — Siguiente** |
+| **BL-16** Site branding por cliente | Medio | M | Ninguna | **F6 — Siguiente** |
+| **BL-18** Presupuesto por evento | Medio | M | Ninguna | **F6** |
+| **BL-19** Gestión de Ponentes | Medio | M | Ninguna | **F6** |
+| **BL-21** Mapa interactivo (LeafletJS) | Bajo | S | Ninguna | **F6** |
+| **BL-23** Migraciones de BD | Medio | M | Ninguna | **F6** |
+| **BL-24** Música en landing | Bajo | S | Ninguna | **F6** |
+| **BL-14** Reconocimiento facial / OTP | Bajo | XL | Ninguna | **F6 (aplazable)** |
+| **C2-06** i18n Multi-idioma | Alto | XL | Ninguna | **F7 — Post-lanzamiento** |
+| **C2-07** Exportar a calendario | Medio | S | Ninguna | **F7** |
+| **C2-08** Dashboard mejorado | Alto | M | F1-01 | **F7** |
+| **C2-09** Performance & caché | Alto | M | Ninguna | **F7** |
 
 **Criterios de priorizacion:**
 - **Tier 1:** Alta prioridad, sin dependencias, ejecutar primero.
@@ -159,56 +124,36 @@ Cruza todas las features del proyecto evaluando impacto, esfuerzo y dependencias
 
 ---
 
-## 🚀 Orden de Ejecucion Sugerido
+## 🚀 Orden de Ejecucion Sugerido — Ciclo 2
 
-### Tier 1 — Ahora mismo (sin dependencias, alto impacto)
-| Orden | Feature | Descripcion | Por que primero |
-|-------|---------|-------------|----------------|
-| 1 | **F0-02** Modulo Mailing | Sistema completo de email marketing por evento: cuentas SMTP, mailbox, compositor con 12 plantillas, campanas masivas, robot automatico | Es el proximo feature planificado, complejidad XL pero sin dependencias. Desbloquea comunicacion con invitados |
-| 2 | **F1-03** Clone Events | Duplicar eventos como plantilla con opciones de que copiar | Esfuerzo S, alta demanda, permite reutilizar configuraciones |
-| 3 | **F2-06** Activity Logs | Expandir auditoria existente con timeline visible en panel | Esfuerzo S, ya existe `audit.js`, solo hay que expandir y crear UI |
-| 4 | **F1-01** Dashboard Analytics | Panel de KPIs y graficos en dashboard admin con Chart.js | ✅ Completado v12.44.592 — graficas visuales integradas en panel existente |
-| 5 | **F4-12** Venues / Espacios | Registro de espacios fisicos con capacidad y recursos | Desbloquea F4-11 (Sesiones) |
+### Fase 5: Refinamiento y Legado (primero, alto impacto, sin dependencias)
+| Orden | Feature | Esfuerzo | Descripcion |
+|-------|---------|----------|-------------|
+| 1 | **C2-01** Bug fixes & rendimiento | M | Revisar errores de consola, issues abiertos, optimizar consultas SQL |
+| 2 | **C2-02** UX polish & animaciones | M | Transiciones, estados vacios, micro-interacciones, consistencia visual |
+| 3 | **C2-03** Cobertura de tests | L | Tests para rutas faltantes (email, sessions, venues, google, import) |
+| 4 | **C2-04** Deuda técnica / refactor | L | Unificar estilos CSS, eliminar codigo muerto, estandarizar patrones |
+| 5 | **C2-05** Documentación expandida | M | Mas guias de usuario, ejemplos, casos de uso |
 
-### Tier S (paralelo) — Seguridad IA, corre simultaneo con otros Tiers
-| Orden | Feature | Descripcion |
-|-------|---------|-------------|
-| S1 | **FS-01** Shadow AI Detection | Inventario de sistemas IA, deteccion de Shadow AI, politicas de uso |
-| S2 | **FS-02** AI Compliance & Data Governance | Clasificacion de datos, derecho al olvido, portabilidad, auditoria de lecturas |
-| S3 | **FS-03** AI Detection & Response | Monitoreo de prompts, deteccion de inyeccion, alertas, DLP |
-| S4 | **FS-04** AI Red Teaming | Tests adversariales, dependency scanning, hardening |
+### Fase 6: Features del Backlog Original
+| Orden | Feature | Esfuerzo | Dependencias |
+|-------|---------|----------|-------------|
+| 1 | **BL-13** Integración SMS (Twilio) | M | Ninguna |
+| 2 | **BL-16** Site branding por cliente | M | Ninguna |
+| 3 | **BL-18** Presupuesto por evento | M | Ninguna |
+| 4 | **BL-19** Gestión de Ponentes | M | Ninguna |
+| 5 | **BL-21** Mapa interactivo (LeafletJS) | S | Ninguna |
+| 6 | **BL-23** Migraciones de BD | M | Ninguna |
+| 7 | **BL-24** Música en landing | S | Ninguna |
+| 8 | **BL-14** Reconocimiento facial / OTP | XL | Ninguna (aplazable) |
 
-### Tier 2 — Despues de Tier 1 (requieren Pipeline)
-| Orden | Feature | Dependencia | Descripcion |
-|-------|---------|-------------|-------------|
-| 1 | **F1-02** Pipeline Estados | Ninguna directa (sienta base para F2-04, F2-05) | ✅ Completado v12.44.594 — status en BD, log, dropdown en tabla |
-| 2 | **F2-04** PDF Export | Pipeline (F1-02) | ✅ Completado v12.44.596 — gafetes QR + reporte con botones en toolbar |
-| 3 | **F2-05** Guest Categories | Pipeline (F1-02) | ✅ Completado v12.44.597 — CRUD, columna, filtro, selector en modal |
-
-### Tier 3 — Pronto (categorias o independientes)
-| Orden | Feature | Dependencia | Descripcion |
-|-------|---------|-------------|-------------|
-| 1 | **F3-09** Export Google Sheets | Ninguna | Sincronizar invitados con Google Sheets via OAuth |
-| 2 | **F4-10** Rol Organizer | Ninguna | ✅ Completado v12.44.614 — ORGANIZER en backend + frontend completo |
-| 3 | **F3-07** Stripe / PayPal | Categories (F2-05) | Venta de boletos con planes y precios |
-| 4 | **F3-08** Waitlist | Categories (F2-05) | Lista de espera con auto-promocion al cancelar |
-
-### Tier 4 — Despues de Venues
-| Orden | Feature | Dependencia | Descripcion |
-|-------|---------|-------------|-------------|
-| 1 | **F4-11** Sesiones + Seat Maps | Venues (F4-12) | Multiples sesiones por evento con mapa de asientos |
-
-### Backlog Priorizado — Pendientes de planificar
-| Orden | Feature | Complejidad | Descripcion |
-|-------|---------|-------------|-------------|
-| 1 | **BL-15** Password Recovery | S | Recuperacion de contrasena por email |
-| 2 | **BL-25** Webhooks | M | Integraciones externas via webhooks |
-| 3 | **BL-27** Carga Masiva Inteligente | M | Importacion con deteccion de duplicados |
-| 4 | **BL-26** API Publica Swagger | M | Documentacion de API con Swagger |
-| 5 | **BL-22** Tests Automatizados | L | Suite de tests con Jest |
-| 6 | **BL-17** Landing Invitacion Digital | M | Landing page para invitacion |
-| 7 | **BL-23** Migraciones de BD | M | Sistema de migraciones estructuradas |
-| 8 | **BL-28** Portal Asistente PWA | XL | App progresiva para asistentes |
+### Fase 7: Post-Lanzamiento
+| Orden | Feature | Esfuerzo | Dependencia |
+|-------|---------|----------|-------------|
+| 1 | **C2-06** i18n Multi-idioma | XL | Ninguna |
+| 2 | **C2-07** Exportar a calendario | S | Ninguna |
+| 3 | **C2-08** Dashboard mejorado | M | F1-01 (ya completado) |
+| 4 | **C2-09** Performance & caché | M | Ninguna |
 
 ---
 
@@ -952,14 +897,21 @@ Registro de espacios fisicos para eventos:
 | F2-05 | Guest Categories (CRUD, columna, filtro, modal) | ✅ | v12.44.598 | 2026-05-07 |
 | F2-06 | Activity Logs | ✅ | v12.44.557 | 2026-05-07 |
 | F3-07 | Stripe/PayPal (BD, backend, config admin, webhooks) | ✅ | v12.44.669 | 2026-05-08 |
+| F3-07b | Checkout Stripe en registro público | ✅ | v12.44.674 | 2026-05-09 |
 | F3-08 | Waitlist (cupo por categoria, promocion, auditoria) | ✅ | v12.44.615 | 2026-05-08 |
 | F3-09 | Export Google Sheets | ✅ | v12.44.631 | 2026-05-08 |
 | F4-10 | Rol Organizer (permisos, eventos, frontend) | ✅ | v12.44.614 | 2026-05-08 |
 | F4-11 | Sesiones (CRUD, registro invitados, modal editar) | ✅ | v12.44.619 | 2026-05-08 |
 | F4-12 | Venues | ✅ | v12.44.584 | 2026-05-07 |
-| — | Badge Designer (editor drag-drop, QR real, print-on-checkin) | ✅ | v12.44.612 | 2026-05-08 |
-| — | Password Recovery (codigo 6 digitos, email, modal login) | ✅ | v12.44.616 | 2026-05-08 |
-| BL-13..28 | Backlog | ⏳ Pendiente | — | — |
+| — | Badge Designer, Password Recovery | ✅ | v12.44.612-616 | 2026-05-08 |
+| BL-25 | Webhooks (UI admin, logs, presets Slack/Discord) | ✅ | v12.44.670 | 2026-05-09 |
+| BL-27 | Carga Masiva Inteligente (fuzzy, CSV, smart mapping) | ✅ | v12.44.671 | 2026-05-09 |
+| BL-26 | API Swagger/OpenAPI (JSDoc, fix security, swagger-jsdoc) | ✅ | v12.44.672 | 2026-05-09 |
+| BL-22 | Tests automatizados (38 backend + 190 total) | ✅ | v12.44.676 | 2026-05-09 |
+| BL-17 | Landing invitación digital + QR evento | ✅ | v12.44.677 | 2026-05-09 |
+| BL-28 | Portal Asistente PWA (ticket, agenda, notificaciones) | ✅ | v12.44.678 | 2026-05-09 |
+| — | Guía de usuario docs/user/ (21 guías) | ✅ | v12.44.675 | 2026-05-09 |
+| **Ciclo 2** | **F5: Refinamiento + F6: Backlog + F7: Post-lanzamiento** | ⏳ | — | — |
 
 ---
 
