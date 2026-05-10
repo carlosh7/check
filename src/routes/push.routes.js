@@ -342,7 +342,6 @@ async function sendPushToUser(userId, notification) {
  */
 async function sendPushToEventUsers(eventId, notification) {
     try {
-        // Obtener usuarios asociados al evento (organizadores, productores, staff)
         const users = db.prepare(`
             SELECT DISTINCT u.id 
             FROM users u
@@ -371,6 +370,132 @@ async function sendPushToEventUsers(eventId, notification) {
         return { success: false, error: error.message };
     }
 }
+
+// ─── NOTIFICATION TEMPLATES (C8-01) ───
+router.get('/templates', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        const templates = db.prepare("SELECT * FROM notification_templates ORDER BY created_at DESC").all();
+        res.json(templates);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/templates', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        const { name, title, body, icon, url, segment } = req.body;
+        if (!name || !title || !body) return res.status(400).json({ error: 'name, title y body son requeridos' });
+        const id = uuidv4();
+        const now = new Date().toISOString();
+        db.prepare("INSERT INTO notification_templates (id, name, title, body, icon, url, segment, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            .run(id, name, title, body, icon || '/icon-192.png', url || null, segment || 'all', req.userId, now, now);
+        res.json({ success: true, id });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.put('/templates/:id', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        const { name, title, body, icon, url, segment } = req.body;
+        const now = new Date().toISOString();
+        db.prepare("UPDATE notification_templates SET name=COALESCE(?,name), title=COALESCE(?,title), body=COALESCE(?,body), icon=COALESCE(?,icon), url=COALESCE(?,url), segment=COALESCE(?,segment), updated_at=? WHERE id=?")
+            .run(name, title, body, icon, url, segment, now, req.params.id);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete('/templates/:id', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        db.prepare("DELETE FROM notification_templates WHERE id=?").run(req.params.id);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── SCHEDULED NOTIFICATIONS (C8-01) ───
+router.get('/scheduled', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        const list = db.prepare("SELECT sn.*, nt.name as template_name FROM scheduled_notifications sn LEFT JOIN notification_templates nt ON nt.id = sn.template_id ORDER BY sn.scheduled_at ASC").all();
+        res.json(list);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/scheduled', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        const { template_id, event_id, title, body, icon, url, segment, scheduled_at } = req.body;
+        if (!title || !body || !scheduled_at) return res.status(400).json({ error: 'title, body y scheduled_at son requeridos' });
+        const id = uuidv4();
+        const now = new Date().toISOString();
+        db.prepare("INSERT INTO scheduled_notifications (id, template_id, event_id, title, body, icon, url, segment, status, scheduled_at, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'scheduled', ?, ?, ?)")
+            .run(id, template_id || null, event_id || null, title, body, icon || '/icon-192.png', url || null, segment || 'all', scheduled_at, req.userId, now);
+        res.json({ success: true, id });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete('/scheduled/:id', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        db.prepare("DELETE FROM scheduled_notifications WHERE id=?").run(req.params.id);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── SEND SEGMENTED NOTIFICATION (C8-01) ───
+router.post('/send-segmented', authMiddleware(['ADMIN']), async (req, res) => {
+    try {
+        const { title, body, icon, url, segment, event_id } = req.body;
+        if (!title || !body) return res.status(400).json({ error: 'title y body son requeridos' });
+        
+        let users = [];
+        if (segment === 'admins') {
+            users = db.prepare("SELECT id FROM users WHERE role = 'ADMIN' AND status = 'APPROVED'").all();
+        } else if (segment === 'producers') {
+            users = db.prepare("SELECT id FROM users WHERE role IN ('ADMIN', 'PRODUCTOR') AND status = 'APPROVED'").all();
+        } else if (segment === 'event_users' && event_id) {
+            const event = db.prepare("SELECT group_id FROM events WHERE id = ?").get(event_id);
+            if (event) {
+                users = db.prepare("SELECT id FROM users WHERE group_id = ? AND status = 'APPROVED'").all(event.group_id);
+            }
+        } else {
+            users = db.prepare("SELECT id FROM users WHERE status = 'APPROVED'").all();
+        }
+        
+        const notification = { title, body, icon: icon || '/icon-192.png', url: url || '/', tag: 'segmented' };
+        const results = await Promise.allSettled(users.map(u => sendPushToUser(u.id, notification)));
+        const successful = results.filter(r => r.value && r.value.success).length;
+        
+        logAction(req, AUDIT_ACTIONS.PUSH_SEND_TEST, { segment, total: users.length, successful });
+        res.json({ success: true, total: users.length, successful, failed: users.length - successful });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── SCHEDULER (C8-01) ───
+function startPushScheduler() {
+    setInterval(() => {
+        try {
+            const now = new Date().toISOString();
+            const pending = db.prepare("SELECT * FROM scheduled_notifications WHERE status = 'scheduled' AND scheduled_at <= ?").all(now);
+            for (const notif of pending) {
+                db.prepare("UPDATE scheduled_notifications SET status = 'sending' WHERE id = ?").run(notif.id);
+                let users = [];
+                if (notif.segment === 'admins') {
+                    users = db.prepare("SELECT id FROM users WHERE role = 'ADMIN' AND status = 'APPROVED'").all();
+                } else if (notif.segment === 'producers') {
+                    users = db.prepare("SELECT id FROM users WHERE role IN ('ADMIN', 'PRODUCTOR') AND status = 'APPROVED'").all();
+                } else if (notif.segment === 'event_users' && notif.event_id) {
+                    const event = db.prepare("SELECT group_id FROM events WHERE id = ?").get(notif.event_id);
+                    if (event) users = db.prepare("SELECT id FROM users WHERE group_id = ? AND status = 'APPROVED'").all(event.group_id);
+                } else {
+                    users = db.prepare("SELECT id FROM users WHERE status = 'APPROVED'").all();
+                }
+                const notification = { title: notif.title, body: notif.body, icon: notif.icon, url: notif.url || '/', tag: 'scheduled' };
+                Promise.allSettled(users.map(u => sendPushToUser(u.id, notification))).then(results => {
+                    const successful = results.filter(r => r.value && r.value.success).length;
+                    db.prepare("UPDATE scheduled_notifications SET status = 'sent', sent_at = ?, sent_count = ? WHERE id = ?").run(new Date().toISOString(), successful, notif.id);
+                }).catch(err => {
+                    db.prepare("UPDATE scheduled_notifications SET status = 'error', error = ? WHERE id = ?").run(err.message, notif.id);
+                });
+            }
+        } catch (e) { console.error('[PushScheduler] Error:', e.message); }
+    }, 30000);
+}
+
+startPushScheduler();
 
 module.exports = {
     router,

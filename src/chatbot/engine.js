@@ -1,11 +1,68 @@
-/**
- * Simple chatbot engine for guest support (C4-08)
- * Responds to common guest inquiries about the event.
- */
-
 const { db } = require('../../database');
+const https = require('https');
 
-function getResponse(message, eventId) {
+function getEventContext(eventId) {
+    if (!eventId) return null;
+    const event = db.prepare("SELECT id, name, date, end_date, location, description, status FROM events WHERE id = ?").get(eventId);
+    if (!event) return null;
+    const guestCount = db.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ?").get(eventId);
+    const checkedCount = db.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1").get(eventId);
+    let sessions = [];
+    try {
+        const conn = require('../../database').getEventConnection(eventId);
+        if (conn) sessions = conn.prepare("SELECT title, start_time, location FROM sessions WHERE event_id = ? ORDER BY start_time ASC LIMIT 10").all(eventId);
+    } catch(e) {}
+    return { event, guestCount: guestCount?.c || 0, checkedCount: checkedCount?.c || 0, sessions };
+}
+
+async function getAiResponse(message, eventId) {
+    const apiKey = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_openrouter_key'").pluck().get() || '';
+    const model = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_model'").pluck().get() || 'google/gemini-2.0-flash-lite-preview-02-05:free';
+
+    let contextInfo = '';
+    const ctx = getEventContext(eventId);
+    if (ctx) {
+        contextInfo = `Contexto del evento:\nNombre: ${ctx.event.name}\nFecha: ${ctx.event.date}\nUbicación: ${ctx.event.location || 'No especificada'}\nDescripción: ${ctx.event.description || 'No disponible'}\nInvitados totales: ${ctx.guestCount}\nCheck-ins: ${ctx.checkedCount}\n`;
+        if (ctx.sessions.length > 0) {
+            contextInfo += 'Actividades:\n' + ctx.sessions.map(s => `- ${s.start_time || ''} ${s.title}${s.location ? ' (' + s.location + ')' : ''}`).join('\n');
+        }
+    }
+
+    const systemPrompt = `Eres un asistente virtual de Check Pro, una plataforma de gestión de eventos. Responde de forma amable y concisa en español.${contextInfo ? '\n\n' + contextInfo : ''}`;
+
+    return new Promise((resolve) => {
+        if (!apiKey) return resolve(null);
+        const postData = JSON.stringify({
+            model, max_tokens: 500,
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: message }
+            ]
+        });
+        const req = https.request({
+            hostname: 'openrouter.ai', path: '/api/v1/chat/completions', method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey,
+                'HTTP-Referer': 'https://check.app', 'X-Title': 'Check Pro'
+            }
+        }, (res) => {
+            let data = '';
+            res.on('data', c => data += c);
+            res.on('end', () => {
+                try {
+                    const parsed = JSON.parse(data);
+                    resolve(parsed.choices?.[0]?.message?.content || null);
+                } catch(e) { resolve(null); }
+            });
+        });
+        req.on('error', () => resolve(null));
+        req.write(postData);
+        req.end();
+    });
+}
+
+function getRuleResponse(message, eventId) {
     var msg = (message || '').toLowerCase().trim();
     var event = null;
     if (eventId) {
@@ -50,6 +107,16 @@ function getResponse(message, eventId) {
         }
         return { text: 'Consulta la agenda del evento en el portal del asistente.' };
     }
+    return null;
+}
+
+async function getResponse(message, eventId) {
+    const ruleResponse = getRuleResponse(message, eventId);
+    if (ruleResponse) return ruleResponse;
+
+    const aiResponse = await getAiResponse(message, eventId);
+    if (aiResponse) return { text: aiResponse };
+
     return { text: 'No entendí tu consulta. Intenta preguntar sobre: fecha, ubicación, registro o actividades.', quickReplies: ['¿Cuándo es?', '¿Dónde es?', '¿Cómo me registro?'] };
 }
 

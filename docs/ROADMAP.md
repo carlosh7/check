@@ -1602,10 +1602,10 @@ FASE 25: Consolidación y Pulido
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.729 |
-| **Ultimo feature completado** | C8-14 Rate limiting granular |
+| **Version** | v12.44.730 |
+| **Ultimo feature completado** | C8-01 + C8-02 + C8-03 + C8-05 + C8-12 |
 | **Feature en curso** | **Ciclo 8 — Expansión y Ecosistema** |
-| **Proximo feature** | C8-01 Notificaciones push avanzadas |
+| **Proximo feature** | C8-04 Shopify/WooCommerce sync |
 
 ---
 
@@ -1659,18 +1659,18 @@ FASE 30: DevOps & Calidad
 
 | ID | Feature | Estado | Version | Fecha |
 |----|---------|--------|---------|-------|
-| C8-01 | Notificaciones push avanzadas | ⏳ | — | — |
-| C8-02 | Vista calendario eventos | ⏳ | — | — |
-| C8-03 | Asistente IA conversacional v2 | ⏳ | — | — |
+| C8-01 | Notificaciones push avanzadas | ✅ | v12.44.730 | 2026-05-10 |
+| C8-02 | Vista calendario eventos | ✅ | v12.44.730 | 2026-05-10 |
+| C8-03 | Asistente IA conversacional v2 | ✅ | v12.44.730 | 2026-05-10 |
 | C8-04 | Shopify/WooCommerce sync | ⏳ | — | — |
-| C8-05 | Zoom/Meet embebido en app | ⏳ | — | — |
+| C8-05 | Zoom/Meet embebido en app | ✅ | v12.44.730 | 2026-05-10 |
 | C8-06 | HubSpot/Zoho CRM sync | ⏳ | — | — |
 | C8-07 | React Native app (iOS) | ⏳ | — | — |
 | C8-08 | React Native app (Android) | ⏳ | — | — |
 | C8-09 | Plugin system (sandbox JS) | ⏳ | — | — |
 | C8-10 | Marketplace de plugins | ⏳ | — | — |
 | C8-11 | Sistema de pricing/tiers | ⏳ | — | — |
-| C8-12 | Tests E2E (Playwright) | ⏳ | — | — |
+| C8-12 | Tests E2E (Playwright) | ✅ | v12.44.730 | 2026-05-10 |
 | C8-13 | Migracion a PostgreSQL | ⏳ | — | — |
 | C8-14 | Rate limiting granular | ✅ | v12.44.729 | 2026-05-10 |
 

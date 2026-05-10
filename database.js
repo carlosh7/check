@@ -1637,6 +1637,42 @@ try { db.exec("CREATE INDEX IF NOT EXISTS idx_change_log_event ON change_log(eve
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_change_log_entity ON change_log(entity_type, entity_id)"); } catch (_) {}
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_change_log_created ON change_log(created_at)"); } catch (_) {}
 
+// Tabla de plantillas de notificaciones (C8-01)
+db.exec(`CREATE TABLE IF NOT EXISTS notification_templates (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    icon TEXT DEFAULT '/icon-192.png',
+    url TEXT,
+    segment TEXT DEFAULT 'all',
+    created_by TEXT,
+    created_at TEXT,
+    updated_at TEXT
+)`);
+
+// Tabla de notificaciones programadas (C8-01)
+db.exec(`CREATE TABLE IF NOT EXISTS scheduled_notifications (
+    id TEXT PRIMARY KEY,
+    template_id TEXT,
+    event_id TEXT,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    icon TEXT DEFAULT '/icon-192.png',
+    url TEXT,
+    segment TEXT DEFAULT 'all',
+    status TEXT DEFAULT 'scheduled',
+    scheduled_at TEXT,
+    sent_at TEXT,
+    sent_count INTEGER DEFAULT 0,
+    error TEXT,
+    created_by TEXT,
+    created_at TEXT,
+    FOREIGN KEY (template_id) REFERENCES notification_templates(id)
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_sched_notif_status ON scheduled_notifications(status)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_sched_notif_scheduled ON scheduled_notifications(scheduled_at)"); } catch (_) {}
+
 // Migracion: encriptar passwords SMTP/IMAP existentes si ENCRYPTION_KEY esta configurada
 try {
     if (process.env.ENCRYPTION_KEY) {

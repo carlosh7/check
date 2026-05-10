@@ -10087,6 +10087,30 @@ navigate(viewName, params = {}, push = true) {
             ) || 0;
             sv('stat-health', dietaryRestrictions);
             
+            // Video conference (C8-05)
+            var videoUrl = this.state.event.video_conference_url;
+            var videoBtn = document.getElementById('video-conference-btn');
+            if (videoUrl) {
+                if (!videoBtn) {
+                    videoBtn = document.createElement('a');
+                    videoBtn.id = 'video-conference-btn';
+                    videoBtn.className = 'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all';
+                    videoBtn.target = '_blank';
+                    videoBtn.rel = 'noopener noreferrer';
+                    videoBtn.innerHTML = '<span class="material-symbols-outlined">videocam</span> Unirse a Videollamada';
+                    var target = document.querySelector('.flex.items-center.gap-2.mb-4') || document.getElementById('page-guests')?.querySelector('.flex');
+                    if (target && target.parentNode) target.parentNode.insertBefore(videoBtn, target.nextSibling);
+                }
+                var isMeet = videoUrl.includes('meet.google.com');
+                var isZoom = videoUrl.includes('zoom.us');
+                videoBtn.href = videoUrl;
+                videoBtn.style.background = isMeet ? '#1a73e8' : isZoom ? '#2d8cff' : '#7c3aed';
+                videoBtn.style.color = '#fff';
+                videoBtn.style.display = 'inline-flex';
+            } else if (videoBtn) {
+                videoBtn.style.display = 'none';
+            }
+            
             // Renderizar Dashboard de Analítica
             this.renderAnalyticsDashboard(s);
         } catch (e) { console.error('Error actualizando estadísticas:', e); }

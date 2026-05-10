@@ -956,4 +956,25 @@ router.put('/:id/branding', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── Calendar view (C8-02) ───
+router.get('/calendar/data', authMiddleware(), (req, res) => {
+    try {
+        const year = parseInt(req.query.year) || new Date().getFullYear();
+        const month = parseInt(req.query.month) || new Date().getMonth() + 1;
+        const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+        const endDate = new Date(year, month, 0).toISOString().split('T')[0];
+        
+        const events = db.prepare(`
+            SELECT e.id, e.name, e.date, e.end_date, e.location, e.status,
+                (SELECT COUNT(*) FROM guests g WHERE g.event_id = e.id) as guest_count,
+                (SELECT COUNT(*) FROM guests g WHERE g.event_id = e.id AND g.checked_in = 1) as checked_in_count
+            FROM events e
+            WHERE (e.date BETWEEN ? AND ?) OR (e.end_date BETWEEN ? AND ?)
+            ORDER BY e.date ASC
+        `).all(startDate, endDate, startDate, endDate);
+        
+        res.json({ year, month, events });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

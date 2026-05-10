@@ -107,6 +107,10 @@ function registerRoutes(app, rootDir) {
         res.sendFile(path.join(rootDir, 'index.html'));
     });
     
+    app.get('/calendar', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/calendar.html'));
+    });
+    
     app.get('/:eventName/registro', (req, res) => {
         res.sendFile(path.join(rootDir, 'registro.html'));
     });
