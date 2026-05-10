@@ -1380,19 +1380,35 @@ FASE 18: Sistema & Operaciones
 
 | ID | Feature | Estado | Version | Fecha |
 |----|---------|--------|---------|-------|
-| — | **Ciclo 5 iniciado** | ⏳ | v12.44.716 | — |
-| C5-01 | Dashboard ejecutivo BI | ⏳ | — | — |
-| C5-02 | Exportación a BI externo | ⏳ | — | — |
-| C5-03 | Tendencias y comparativas | ⏳ | — | — |
-| C5-04 | Encuesta post-evento | ⏳ | — | — |
-| C5-05 | Networking entre asistentes | ⏳ | — | — |
-| C5-06 | Gamificación | ⏳ | — | — |
-| C5-07 | Zapier / Make (webhooks) | ⏳ | — | — |
-| C5-08 | Social Media auto-publish | ⏳ | — | — |
-| C5-09 | Slack/Discord notifs mejoradas | ⏳ | — | — |
-| C5-10 | Health dashboard | ⏳ | — | — |
-| C5-11 | Backup automático | ⏳ | — | — |
-| C5-12 | Performance logs | ⏳ | — | — |
+| — | **Ciclo 5 iniciado** | ✅ | v12.44.716 | — |
+| C5-01 | Dashboard ejecutivo BI | ✅ | v12.44.717 | 2026-05-09 |
+| C5-02 | Exportación a BI externo | ✅ | v12.44.718 | 2026-05-09 |
+| C5-03 | Tendencias y comparativas | ✅ | v12.44.718 | 2026-05-09 |
+| C5-04 | Encuesta post-evento | ✅ | v12.44.718 | 2026-05-09 |
+| C5-05 | Networking entre asistentes | ✅ | v12.44.719 | 2026-05-09 |
+| C5-06 | Gamificación | ✅ | v12.44.719 | 2026-05-09 |
+| C5-07 | Zapier / Make (webhooks) | ✅ | v12.44.718 | 2026-05-09 |
+| C5-08 | Social Media auto-publish | ✅ | v12.44.719 | 2026-05-09 |
+| C5-09 | Slack/Discord notifs mejoradas | ✅ | v12.44.718 | 2026-05-09 |
+| C5-10 | Health dashboard | ✅ | v12.44.718 | 2026-05-09 |
+| C5-11 | Backup automático | ✅ | v12.44.718 | 2026-05-09 |
+| C5-12 | Performance logs | ✅ | v12.44.718 | 2026-05-09 |
+
+---
+
+# Ciclo 6 — Próximo Horizonte
+
+*En definición. Se agregarán features aquí cuando el usuario seleccione la dirección.*
+
+## Opciones disponibles
+
+| Dirección | Enfoque |
+|-----------|---------|
+| **Mobile PWA+** | Experiencia tipo app nativa, gestos, swipe, transiciones, Haptic Feedback |
+| **Tiempo Real Colaborativo** | Edición multi-usuario, cambios en vivo, historial de cambios |
+| **API Pública** | Endpoints públicos documentados, API keys, SDK para terceros |
+| **DevOps** | Docker compose mejorado, CI/CD, monitoreo, auto-deploy |
+| **Seguridad v2** | 2FA, auditoría avanzada, cifrado de extremo a extremo, GDPR completo |
 
 ---
 
