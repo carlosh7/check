@@ -10900,7 +10900,7 @@ navigate(viewName, params = {}, push = true) {
         }
         
         // Obtener todos los tabs
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google', 'sys-content-ai-security', 'sys-content-webhooks', 'sys-content-sms'];
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google', 'sys-content-ai-security', 'sys-content-webhooks', 'sys-content-sms', 'sys-content-whatsapp'];
         
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
@@ -10941,6 +10941,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'venues') this.loadVenues();
         if (tabName === 'webhooks') this.loadWebhooks();
         if (tabName === 'sms') this.loadSmsSettings();
+        if (tabName === 'whatsapp') this.loadWaSettings();
         if (tabName === 'ai-security') this.loadAiSecurity();
         if (tabName === 'compliance') this.loadCompliance();
         if (tabName === 'google') this.loadGoogleTab();
@@ -17616,6 +17617,28 @@ navigate(viewName, params = {}, push = true) {
             if (res.success) this._notifyAction('Enviado', 'SMS enviado correctamente (SID: ' + res.sid + ')', 'success');
             else this._notifyAction('Error', res.error, 'error');
         } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    // ═══ WhatsApp (C3-01) ═══
+    loadWaSettings: async function() {
+        try {
+            var res = await this.fetchAPI('/api/whatsapp/settings');
+            if (res.phone_number_id !== undefined) document.getElementById('wa-phone-id').value = res.phone_number_id;
+            if (res.from_phone !== undefined) document.getElementById('wa-from').value = res.from_phone;
+            if (document.getElementById('wa-enabled')) document.getElementById('wa-enabled').checked = res.enabled || false;
+            if (!res.has_token) document.getElementById('wa-token').value = '';
+            document.getElementById('wa-test-section')?.classList.add('hidden');
+        } catch(e) { console.error('[WA] Error:', e.message); }
+    },
+    saveWaSettings: async function() {
+        var data = { phone_number_id: document.getElementById('wa-phone-id')?.value || '', access_token: document.getElementById('wa-token')?.value || '', from_phone: document.getElementById('wa-from')?.value || '', enabled: document.getElementById('wa-enabled')?.checked || false };
+        try { await this.fetchAPI('/api/whatsapp/settings', { method: 'POST', body: JSON.stringify(data) }); this._notifyAction('Guardado', 'Config WhatsApp guardada', 'success'); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+    testWa: function() { document.getElementById('wa-test-section')?.classList.toggle('hidden'); },
+    sendTestWa: async function() {
+        var to = document.getElementById('wa-test-number')?.value.trim();
+        if (!to) { this._notifyAction('Error', 'Número requerido', 'error'); return; }
+        try { var res = await this.fetchAPI('/api/whatsapp/send', { method: 'POST', body: JSON.stringify({ to: to, message: 'Test WhatsApp desde Check Pro' }) }); if (res.success) this._notifyAction('Enviado', 'WhatsApp enviado', 'success'); else this._notifyAction('Error', res.error, 'error'); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     }
 };
 
