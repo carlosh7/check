@@ -1078,15 +1078,104 @@ Se mantienen los de **referencia**: `ARQUITECTURA_SISTEMA.md`, `ESTRUCTURA_UI_CH
 
 ---
 
-## 📚 Documentacion Referenciada
+---
 
-| Archivo | Contenido |
-|---------|-----------|
-| `AGENTS.md` | Reglas, workflow, comandos rapidos |
-| `WORKFLOW.md` | Guia de deploy en Portainer |
-| `docs/repos-analysis.md` | Analisis completo de los 29 repos comparados |
-| `docs/ARQUITECTURA_SISTEMA.md` | Arquitectura de BD y sistema |
-| `docs/ESTRUCTURA_UI_CHECK_PRO.md` | Vistas del frontend |
-| `docs/SECURITY_IA.md` | Postura de seguridad IA, brechas, plan de accion vs CrowdStrike |
-| `server.js` | Backend principal |
-| `src/utils/database-manager.js` | Gestion de BDs por evento |
+# Ciclo 3 — Features Pro
+
+## ⚡ Estado Actual
+
+| Item | Valor |
+|------|-------|
+| **Version** | v12.44.698 |
+| **Ultimo ciclo completado** | Ciclo 2 — Fases 5, 6, 7 al 100% |
+| **Feature en curso** | **Ciclo 3 — Fase 8: Backlog extremo + Nuevas integraciones + Mejoras profundas** |
+| **Proximo feature** | BL-14 Reconocimiento facial / OTP |
+| **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
+| **URL** | `http://192.168.2.17:3000` |
+
+---
+
+## 🗺️ Mapa de Dependencias — Ciclo 3
+
+```
+FASE 8: Backlog Extremo (lo que quedó del backlog original)
+  BL-14 Reconocimiento facial / OTP    ← esfuerzo XL (check-in biométrico)
+  BL-20 Propuestas públicas             ← esfuerzo S (invitados proponen temas)
+
+FASE 9: Nuevas Integraciones
+  C3-01 WhatsApp API                    ← M (mensajes a invitados vía WhatsApp Business)
+  C3-02 Google Calendar Sync            ← M (sincronizar eventos con Google Calendar)
+  C3-03 Zoom / Meet integration         ← M (enlaces de videoconferencia por evento)
+
+FASE 10: Mejoras Profundas
+  C3-04 Portal offline (PWA+)           ← L (portal del asistente funcional sin internet)
+  C3-05 Dashboard en tiempo real        ← M (panel en vivo durante el evento)
+  C3-06 Automatizaciones / reglas       ← L (disparadores condicionales)
+  C3-07 Multi-tenant / white label      ← XL (cada cliente con su subdominio y marca)
+```
+
+---
+
+## 🎯 Matriz de Prioridad Real — Ciclo 3
+
+| Feature | Impacto | Esfuerzo | Dependencias | Fase |
+|---------|---------|----------|-------------|------|
+| **BL-14** Reconocimiento facial / OTP | Medio | XL | Ninguna | **F8** |
+| **BL-20** Propuestas públicas | Bajo | S | Ninguna | **F8** |
+| **C3-01** WhatsApp API | Alto | M | Ninguna | **F9** |
+| **C3-02** Google Calendar Sync | Alto | M | Ninguna | **F9** |
+| **C3-03** Zoom / Meet integration | Medio | M | Ninguna | **F9** |
+| **C3-04** Portal offline (PWA+) | Alto | L | Portal PWA (BL-28) | **F10** |
+| **C3-05** Dashboard en tiempo real | Alto | M | Sessions + Guests | **F10** |
+| **C3-06** Automatizaciones / reglas | Alto | L | Webhooks + Mailing | **F10** |
+| **C3-07** Multi-tenant / white label | Alto | XL | Branding (BL-16) | **F10** |
+
+**Criterios de priorizacion (Ciclo 3):**
+- **F8 (Backlog Extremo):** Lo que quedó del backlog original del Ciclo 1.
+- **F9 (Nuevas Integraciones):** Conectar con servicios externos (WhatsApp, Google, Zoom).
+- **F10 (Mejoras Profundas):** Features complejas que requieren madurez del sistema.
+
+---
+
+## 🚀 Orden de Ejecucion Sugerido — Ciclo 3
+
+### Fase 8: Backlog Extremo
+| Orden | Feature | Esfuerzo | Dependencias |
+|-------|---------|----------|-------------|
+| 1 | **BL-20** Propuestas públicas | S | Ninguna |
+| 2 | **BL-14** Reconocimiento facial / OTP | XL | Ninguna (aplazable) |
+
+### Fase 9: Nuevas Integraciones
+| Orden | Feature | Esfuerzo | Dependencia |
+|-------|---------|----------|-------------|
+| 1 | **C3-01** WhatsApp API | M | SMS (BL-13) como referencia |
+| 2 | **C3-02** Google Calendar Sync | M | Google (F3-09) como referencia |
+| 3 | **C3-03** Zoom / Meet integration | M | Sessions (F4-11) |
+
+### Fase 10: Mejoras Profundas
+| Orden | Feature | Esfuerzo | Dependencia |
+|-------|---------|----------|-------------|
+| 1 | **C3-05** Dashboard en tiempo real | M | Stats + Sessions |
+| 2 | **C3-06** Automatizaciones / reglas | L | Webhooks + Mailing |
+| 3 | **C3-04** Portal offline (PWA+) | L | Portal PWA (BL-28) |
+| 4 | **C3-07** Multi-tenant / white label | XL | Branding (BL-16) |
+
+---
+
+## 📊 Tablero de Progreso — Ciclo 3
+
+| ID | Feature | Estado | Version | Fecha |
+|----|---------|--------|---------|-------|
+| BL-14 | Reconocimiento facial / OTP | ⏳ Pendiente | — | — |
+| BL-20 | Propuestas públicas | ⏳ Pendiente | — | — |
+| C3-01 | WhatsApp API | ⏳ Pendiente | — | — |
+| C3-02 | Google Calendar Sync | ⏳ Pendiente | — | — |
+| C3-03 | Zoom / Meet integration | ⏳ Pendiente | — | — |
+| C3-04 | Portal offline (PWA+) | ⏳ Pendiente | — | — |
+| C3-05 | Dashboard en tiempo real | ⏳ Pendiente | — | — |
+| C3-06 | Automatizaciones / reglas | ⏳ Pendiente | — | — |
+| C3-07 | Multi-tenant / white label | ⏳ Pendiente | — | — |
+
+---
+
+## 📚 Documentacion Referenciada
