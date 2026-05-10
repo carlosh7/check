@@ -1,0 +1,30 @@
+- [Inicio](README.md)
+- [Índice completo](00-indice.md)
+- **Eventos**
+  - [Crear evento](01-eventos/01-crear-evento.md)
+  - [Configurar evento](01-eventos/02-configurar-evento.md)
+  - [Clonar evento](01-eventos/03-clonar-evento.md)
+- **Invitados**
+  - [Importar](02-invitados/01-importar.md)
+  - [Check-in](02-invitados/02-checkin.md)
+  - [Categorías](02-invitados/03-categorias.md)
+  - [Exportar](02-invitados/04-exportar.md)
+- **Ruleta**
+  - [Crear sorteo](03-ruleta/01-crear-sorteo.md)
+  - [Participantes](03-ruleta/02-participantes.md)
+  - [Resultados](03-ruleta/03-resultados.md)
+- **Mailing**
+  - [Cuentas SMTP](04-mailing/01-cuentas-smtp.md)
+  - [Plantillas](04-mailing/02-plantillas.md)
+  - [Campañas](04-mailing/03-campanas.md)
+  - [Robot automático](04-mailing/04-robot-automatico.md)
+- **Pagos**
+  - [Configurar pagos](05-pagos/01-configurar-pagos.md)
+  - [Precios por categoría](05-pagos/02-categorias-precio.md)
+- **Webhooks**
+  - [Crear webhook](06-webhooks/01-crear-webhook.md)
+- **Administración**
+  - [Usuarios y roles](07-administracion/01-usuarios-roles.md)
+  - [Espacios](07-administracion/02-espacios.md)
+  - [Google Sheets](07-administracion/03-google-sheets.md)
+- [FAQ](09-faq.md)

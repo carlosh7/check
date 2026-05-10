@@ -15,6 +15,7 @@ Tomate tu tiempo para entender el proyecto y su funcionamiento. No te apresures 
 2. **Razonamiento:** Siempre explico mi pensamiento en espanol (que busco, por que, que encontre)
 3. **Versionado:** SIEMPRE incrementamos version y query strings despues de cambio significativo
 4. **Flujo de Trabajo:** SIEMPRE sigo el checklist completo al final de cada tarea
+5. **Documentación:** Todo cambio que afecte funciones visibles para el usuario debe incluir o actualizar su guía en `docs/user/`
 
 ### Comunicacion y Trabajo en Equipo (OBLIGATORIO)
 
@@ -122,6 +123,11 @@ TU explicas plan → YO explico plan y espero confirmacion
 - [ ] Entender el objetivo del cambio
 - [ ] Explicar plan al usuario en espanol
 - [ ] Esperar confirmacion explicita del usuario
+
+**Durante la implementacion:**
+- [ ] Seguir convenciones del codigo existente
+- [ ] Revisar codigo de referencia en repos analizados (si aplica)
+- [ ] Informar progreso al usuario
 
 **Durante la implementacion:**
 - [ ] Seguir convenciones del codigo existente
