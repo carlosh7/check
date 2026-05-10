@@ -6,7 +6,7 @@ const { getChanges, undoChange, redoChange } = require('../utils/change-log');
 
 router.get('/events/:eventId/changes', authMiddleware(), (req, res) => {
     try {
-        const limit = Math.min(parseInt(req.query.limit) || 100, 500);
+        const limit = Math.min(Math.max(1, parseInt(req.query.limit) || 100), 500);
         const changes = getChanges(req.params.eventId, limit);
         res.json(changes);
     } catch (err) {

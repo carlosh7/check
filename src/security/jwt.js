@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 // JWT_SECRET - CRÍTICO: Debe configurarse en variables de entorno
 // En producción, NUNCA usar valores por defecto
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 // Validación de seguridad en startup
 if (!JWT_SECRET) {
@@ -33,7 +33,7 @@ if (!JWT_SECRET) {
  * @returns {string} Token JWT firmado
  */
 function generateToken(payload) {
-    return jwt.sign(payload, JWT_SECRET || 'dev-secret-do-not-use-in-prod', { expiresIn: JWT_EXPIRES_IN });
+    return jwt.sign(payload, JWT_SECRET || 'dev-secret-do-not-use-in-prod', { expiresIn: JWT_EXPIRES_IN, algorithm: 'HS256' });
 }
 
 /**
@@ -43,7 +43,7 @@ function generateToken(payload) {
  */
 function verifyToken(token) {
     try {
-        return jwt.verify(token, JWT_SECRET || 'dev-secret-do-not-use-in-prod');
+        return jwt.verify(token, JWT_SECRET || 'dev-secret-do-not-use-in-prod', { algorithms: ['HS256'] });
     } catch (err) {
         return null;
     }

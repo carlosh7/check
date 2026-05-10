@@ -1781,10 +1781,10 @@ FASE 35: Escalabilidad y Calidad (M-XL)
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.734 |
-| **Ultimo feature completado** | Ronda 1 (CRÍTICOS) + Ronda 2 parcial |
-| **Feature en curso** | **Ciclo 10 — Ronda 2 restante + Ronda 3** |
-| **Proximo feature** | R2-05 Unificar Theme |
+| **Version** | v12.44.735 |
+| **Ultimo feature completado** | Ciclo 10 completado (23/26 items) |
+| **Feature en curso** | **—** |
+| **Proximo feature** | Pendiente de definir — Ciclo 11 |
 
 ---
 
@@ -1867,18 +1867,18 @@ FASE 38: Pulido (MEDIOS/BAJOS)
 | R2-04 | Timeouts HTTP | ✅ | v12.44.734 |
 | R2-08 | global.emailService | ✅ | v12.44.734 |
 | R2-09 | Stripe secret | ✅ | v12.44.734 |
-| R2-10 | smtp_config legacy | ⏳ | — |
+| R2-10 | smtp_config legacy | ✅ | v12.44.735 |
 | R2-11 | Orphans cleanup | ✅ | v12.44.734 |
-| R2-05 | Unificar Theme | ⏳ | — |
-| R2-06 | Unificar Push | ⏳ | — |
-| R2-07 | Purge caches | ⏳ | — |
+| R2-05 | Unificar Theme | ✅ | v12.44.735 |
+| R2-06 | Unificar Push | ✅ | v12.44.735 |
+| R2-07 | Purge caches | ✅ | v12.44.735 |
 | R3-01 | const/let sobre var | ⏳ | — |
-| R3-02 | .env.example sync | ⏳ | — |
-| R3-03 | JWT 24h + HS256 | ⏳ | — |
-| R3-04 | Comentario ruso | ⏳ | — |
+| R3-02 | .env.example sync | ✅ | v12.44.735 |
+| R3-03 | JWT 24h + HS256 | ✅ | v12.44.735 |
+| R3-04 | Comentario ruso | ✅ | v12.44.735 |
 | R3-05 | Unificar GDPR | ⏳ | — |
-| R3-06 | parseInt NaN check | ⏳ | — |
-| R3-07 | express.json limit | ⏳ | — |
+| R3-06 | parseInt NaN check | ✅ | v12.44.735 |
+| R3-07 | express.json limit | ✅ | v12.44.735 |
 
 ---
 

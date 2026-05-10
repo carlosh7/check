@@ -68,10 +68,10 @@ describe('Check Pro API - Database', () => {
         expect(Array.isArray(events)).toBe(true);
     });
     
-    test('should have smtp_config table', () => {
+    test('should have email_accounts table', () => {
         const { db } = require('../database');
-        const config = db.prepare('SELECT * FROM smtp_config WHERE id = 1').get();
-        expect(config).toBeDefined();
+        const accounts = db.prepare('SELECT COUNT(*) as c FROM email_accounts').get();
+        expect(accounts).toBeDefined();
     });
 });
 

@@ -15,8 +15,19 @@ const DATA_DIR = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH, 'ev
 const EVENTS_DIR = DATA_DIR;
 console.log('[DB-MANAGER] Directorio de eventos configurado en:', EVENTS_DIR);
 
-// Cache de conexiones activas
+// Cache de conexiones activas (max 50, purge cada 10 min)
 const connectionCache = new Map();
+const MAX_CONNECTIONS = 50;
+setInterval(() => {
+    if (connectionCache.size > MAX_CONNECTIONS) {
+        const entries = [...connectionCache.entries()];
+        const toClose = entries.slice(0, connectionCache.size - MAX_CONNECTIONS);
+        for (const [id, conn] of toClose) {
+            try { conn.close(); } catch(e) {}
+            connectionCache.delete(id);
+        }
+    }
+}, 600000).unref();
 
 /**
  * Asegurar que el directorio de eventos exista

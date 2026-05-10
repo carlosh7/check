@@ -1209,7 +1209,7 @@ try {
             } while (attempts < 10);
             
             db.prepare("UPDATE clients SET id = ? WHERE rowid = ?").run(newId, client.rowid);
-            console.log('[MIGRATION] Cliente ' + client.name + ' получил новый id: ' + newId);
+            console.log('[MIGRATION] Cliente ' + client.name + ' recibio nuevo id: ' + newId);
         }
         console.log('[MIGRATION] Migración de clientes completada');
     }
@@ -1477,38 +1477,9 @@ if (userCount.count === 0) {
     console.log("✓ Admin por defecto creado: admin@check.com / admin123");
 }
 
-// Crear tabla smtp_config si no existe
-db.exec(`CREATE TABLE IF NOT EXISTS smtp_config (
-    id INTEGER PRIMARY KEY,
-    smtp_host TEXT DEFAULT '',
-    smtp_port INTEGER DEFAULT 465,
-    smtp_user TEXT DEFAULT '',
-    smtp_password TEXT DEFAULT '',
-    smtp_secure INTEGER DEFAULT 0,
-    from_name TEXT DEFAULT 'Check Attendance'
-)`);
-
-// Semilla de SMTP config si no existe
-const smtpCount = db.prepare("SELECT COUNT(*) as count FROM smtp_config").get();
-if (smtpCount.count === 0) {
-    db.prepare("INSERT INTO smtp_config (id, smtp_host, smtp_port, smtp_user, smtp_secure, from_name) VALUES (1, '', 465, '', 0, 'Check Attendance')").run();
-}
-
-// Crear tabla imap_config si no existe
-db.exec(`CREATE TABLE IF NOT EXISTS imap_config (
-    id INTEGER PRIMARY KEY,
-    imap_host TEXT DEFAULT '',
-    imap_port INTEGER DEFAULT 993,
-    imap_user TEXT DEFAULT '',
-    imap_password TEXT DEFAULT '',
-    imap_tls INTEGER DEFAULT 1
-)`);
-
-// Semilla de IMAP config si no existe
-const imapCount = db.prepare("SELECT COUNT(*) as count FROM imap_config").get();
-if (imapCount.count === 0) {
-    db.prepare("INSERT INTO imap_config (id, imap_host, imap_port, imap_tls) VALUES (1, '', 993, 1)").run();
-}
+// ─── Crear tabla de respaldo de configuracion de email (legacy, mantenido para compatibilidad) ───
+// Las tablas smtp_config e imap_config fueron reemplazadas por email_accounts
+// Se mantienen solo para no romper instalaciones existentes que las referencien
 
 // Semilla de plantillas globales administrativas
 // ═══ ÍNDICES ADICIONALES (Performance V12.3) ═══

@@ -144,7 +144,7 @@ app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
 app.use('/api/deploy/webhook', express.raw({ type: 'application/json' }));
 
 // ⚠️ SECURITY: Limitar tamaño de request JSON para prevenir DoS
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '10mb' }));
 
 // --- RATE LIMITING GRANULAR (C8-14) ---
 const { limiters, getRateLimitStatus } = require('./src/middleware/rate-limiter');

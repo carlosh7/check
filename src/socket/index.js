@@ -99,6 +99,20 @@ function removeEditor(socket, eventId) {
     if (io) io.to(eventId).emit('presence_update', { editors });
 }
 
+// Purge stale editors every 5 minutes
+setInterval(() => {
+    const now = Date.now();
+    for (const [eventId, editors] of activeEditors.entries()) {
+        const before = editors.length;
+        const filtered = editors.filter(e => now - e.joinedAt < 300000);
+        if (filtered.length !== before) {
+            if (filtered.length === 0) activeEditors.delete(eventId);
+            else activeEditors.set(eventId, filtered);
+            if (io) io.to(eventId).emit('presence_update', { editors: filtered });
+        }
+    }
+}, 300000).unref();
+
 function getActiveEditors(eventId) {
     return activeEditors.get(eventId) || [];
 }

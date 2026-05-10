@@ -949,68 +949,32 @@ const App = window.App = {
     
     // Obtener tema del sistema
     getSystemTheme: function() {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        return ThemeManagerInstance ? ThemeManagerInstance.getSystemTheme() : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     },
     
-    // Obtener tema guardado o del sistema
     getCurrentTheme: function() {
-        if (typeof ThemeManagerInstance !== 'undefined') {
-            return ThemeManagerInstance.getCurrentTheme();
-        }
-        const saved = LS.get('theme');
-        if (saved === 'dark' || saved === 'light') {
-            return saved;
-        }
-        return this.getSystemTheme();
+        return ThemeManagerInstance ? ThemeManagerInstance.getCurrentTheme() : 'dark';
     },
     
-    // Aplicar transición suave al cambiar tema
     applyThemeTransition: function() {
-        // Agregar clase de transición
         document.documentElement.classList.add('theme-transition');
-        // Remover después de la transición
-        setTimeout(() => {
-            document.documentElement.classList.remove('theme-transition');
-        }, 300);
+        setTimeout(() => document.documentElement.classList.remove('theme-transition'), 300);
     },
     
-    // Cambiar entre temas oscuro/claro
     toggleTheme: function() {
-        let newTheme;
-        if (typeof ThemeManagerInstance !== 'undefined') {
-            newTheme = ThemeManagerInstance.toggleTheme();
-        } else {
-            const currentTheme = this.getCurrentTheme();
-            newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            this.applyThemeTransition();
-            document.documentElement.classList.remove('dark', 'light');
-            document.documentElement.classList.add(newTheme);
-            LS.set('theme', newTheme);
-        }
-        
-        document.querySelectorAll('.theme-icon').forEach(icon => {
-            icon.textContent = newTheme === 'dark' ? 'dark_mode' : 'light_mode';
-        });
-        
+        const newTheme = ThemeManagerInstance ? ThemeManagerInstance.toggleTheme() : 'dark';
+        document.querySelectorAll('.theme-icon').forEach(icon => icon.textContent = newTheme === 'dark' ? 'dark_mode' : 'light_mode');
         window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
     },
     
-    // Inicializar tema al cargar la aplicación
     initTheme: function() {
-        const theme = ThemeManagerInstance ? ThemeManagerInstance.getCurrentTheme() : this.getCurrentTheme();
-        
-        if (typeof ThemeManagerInstance !== 'undefined') {
-            ThemeManagerInstance.initTheme();
-        }
-        
+        if (ThemeManagerInstance) ThemeManagerInstance.initTheme();
+        const theme = ThemeManagerInstance ? ThemeManagerInstance.getCurrentTheme() : 'dark';
         document.documentElement.classList.remove('dark', 'light');
         document.documentElement.classList.add(theme);
-        
         const icon = document.getElementById('theme-icon');
         if (icon) icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
-        
-        document.querySelectorAll('.theme-icon').forEach(icon => {
-            icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
+        document.querySelectorAll('.theme-icon').forEach(icon => icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode');
         });
         
         if (!window._themeListenerAdded) {
