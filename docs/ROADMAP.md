@@ -1597,5 +1597,83 @@ FASE 25: Consolidación y Pulido
 | C7-03 | Documentación técnica final | ✅ | v12.44.728 | 2026-05-10 |
 
 ---
+# Ciclo 8 — Expansión y Ecosistema
+## ⚡ Estado Actual
+
+| Item | Valor |
+|------|-------|
+| **Version** | v12.44.728 |
+| **Ultimo ciclo completado** | Ciclo 7 — Consolidación + Features Diferidas ✅ |
+| **Feature en curso** | **Ciclo 8 — Por definir** |
+| **Proximo feature** | Elegir de la propuesta abajo |
+
+---
+
+## 🗺️ Propuesta de Fases — Ciclo 8
+
+```
+FASE 26: Mejoras UX/UI
+  C8-01 Notificaciones push avanzadas    ← M (programadas, segmentadas por categoria)
+  C8-02 Vista calendario eventos         ← M (grid mensual con asistentes por dia)
+  C8-03 Asistente IA conversacional v2   ← L (contexto completo del evento, acciones)
+
+FASE 27: Integraciones Profundas
+  C8-04 Shopify/WooCommerce sync         ← L (sincronizar productos como entradas)
+  C8-05 Zoom/Meet embebido en app        ← M (reuniones dentro de la plataforma)
+  C8-06 HubSpot/Zoho CRM sync            ← XL (bidireccional contactos)
+
+FASE 28: Mobile Native
+  C8-07 React Native app (iOS)           ← XL (codigo compartido)
+  C8-08 React Native app (Android)       ← XL (misma base iOS/Android)
+
+FASE 29: Marketplace & Plugins
+  C8-09 Plugin system (sandbox JS)       ← XL (ejecutar scripts del usuario)
+  C8-10 Marketplace de plugins           ← XL (tienda de plugins comunitarios)
+  C8-11 Sistema de pricing/tiers         ← L (gratis/pro/premium por features)
+
+FASE 30: DevOps & Calidad
+  C8-12 Tests E2E (Playwright)           ← M (pruebas de interfaz grafica)
+  C8-13 Migracion a PostgreSQL           ← XL (reemplazar SQLite)
+  C8-14 Rate limiting granular           ← S (por endpoint y por API key)
+```
+
+## 🚀 Orden de Ejecucion Sugerido — Ciclo 8
+
+| Orden | Feature | Esfuerzo | Por que primero |
+|-------|---------|----------|-----------------|
+| 1 | **C8-14** Rate limiting granular | S | Bajo esfuerzo, alto impacto en seguridad |
+| 2 | **C8-01** Notificaciones push avanzadas | M | Mejora experiencia inmediata |
+| 3 | **C8-02** Vista calendario eventos | M | UX muy solicitada |
+| 4 | **C8-03** Asistente IA conversacional v2 | L | Basado en chatbot existente |
+| 5 | **C8-05** Zoom/Meet embebido | M | Bajo esfuerzo, alto valor |
+| 6 | **C7-12** Tests E2E Playwright | M | Calidad y confianza |
+| 7 | **C8-04** Shopify/WooCommerce sync | L | Nuevo canal de ventas |
+| 8 | **C8-06** HubSpot/Zoho CRM sync | XL | Integracion enterprise |
+| 9 | **C8-09** Plugin system | XL | Arquitectura extensible |
+| 10 | **C8-11** Sistema de pricing/tiers | L | Monetizacion |
+| 11 | **C8-10** Marketplace plugins | XL | Ecosistema |
+| 12 | **C8-07/08** React Native app | XL | Mobile nativo |
+| 13 | **C8-13** Migracion PostgreSQL | XL | Escalabilidad |
+
+## 📊 Tablero de Progreso — Ciclo 8
+
+| ID | Feature | Estado | Version | Fecha |
+|----|---------|--------|---------|-------|
+| C8-01 | Notificaciones push avanzadas | ⏳ | — | — |
+| C8-02 | Vista calendario eventos | ⏳ | — | — |
+| C8-03 | Asistente IA conversacional v2 | ⏳ | — | — |
+| C8-04 | Shopify/WooCommerce sync | ⏳ | — | — |
+| C8-05 | Zoom/Meet embebido en app | ⏳ | — | — |
+| C8-06 | HubSpot/Zoho CRM sync | ⏳ | — | — |
+| C8-07 | React Native app (iOS) | ⏳ | — | — |
+| C8-08 | React Native app (Android) | ⏳ | — | — |
+| C8-09 | Plugin system (sandbox JS) | ⏳ | — | — |
+| C8-10 | Marketplace de plugins | ⏳ | — | — |
+| C8-11 | Sistema de pricing/tiers | ⏳ | — | — |
+| C8-12 | Tests E2E (Playwright) | ⏳ | — | — |
+| C8-13 | Migracion a PostgreSQL | ⏳ | — | — |
+| C8-14 | Rate limiting granular | ⏳ | — | — |
+
+---
 
 ## 📚 Documentacion Referenciada
