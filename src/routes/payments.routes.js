@@ -8,7 +8,70 @@ const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
 
-// ── Checkout: crear intención de pago ──
+// ── Checkout Session (Stripe Checkout redirect) ──
+
+router.post('/events/:eventId/checkout-session', (req, res) => {
+    try {
+        var event = db.prepare("SELECT * FROM events WHERE id = ?").get(req.params.eventId);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+        if (!event.payment_required) return res.status(400).json({ error: 'Este evento no requiere pago' });
+
+        var { name, email, category_id, success_url, cancel_url } = req.body;
+        if (!name || !email) return res.status(400).json({ error: 'Nombre y email requeridos' });
+
+        var category = db.prepare("SELECT * FROM guest_categories WHERE id = ? AND event_id = ?").get(category_id, req.params.eventId);
+        if (!category) return res.status(400).json({ error: 'Categoría no encontrada' });
+        if (!category.price || category.price <= 0) return res.status(400).json({ error: 'Esta categoría no tiene precio' });
+
+        var transactionId = uuidv4();
+        var amount = Math.round(category.price * 100);
+        var currency = (event.currency || 'USD').toLowerCase();
+
+        db.prepare("INSERT INTO transactions (id, event_id, category_id, amount, currency, provider, status, guest_name, guest_email, created_at) VALUES (?, ?, ?, ?, ?, 'stripe', 'pending', ?, ?, ?)").run(
+            transactionId, req.params.eventId, category_id, category.price, event.currency || 'USD', name, email, new Date().toISOString()
+        );
+
+        var baseUrl = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host');
+        var sUrl = success_url || baseUrl + '/registro.html?event=' + req.params.eventId + '&txn=' + transactionId + '&success=1';
+        var cUrl = cancel_url || baseUrl + '/registro.html?event=' + req.params.eventId + '&cancel=1';
+
+        stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [{
+                price_data: {
+                    currency: currency,
+                    product_data: { name: category.name + ' - ' + event.name },
+                    unit_amount: amount
+                },
+                quantity: 1
+            }],
+            mode: 'payment',
+            success_url: sUrl + '&session_id={CHECKOUT_SESSION_ID}',
+            cancel_url: cUrl,
+            metadata: {
+                transaction_id: transactionId,
+                event_id: req.params.eventId,
+                category_id: category_id,
+                guest_name: name,
+                guest_email: email
+            }
+        }).then(function(session) {
+            db.prepare("UPDATE transactions SET provider_txn_id = ? WHERE id = ?").run(session.id, transactionId);
+            res.json({
+                success: true,
+                provider: 'stripe',
+                url: session.url,
+                sessionId: session.id,
+                transactionId: transactionId
+            });
+        }).catch(function(err) {
+            db.prepare("UPDATE transactions SET status = 'failed', metadata_json = ? WHERE id = ?").run(JSON.stringify({ error: err.message }), transactionId);
+            res.status(500).json({ error: 'Error al crear sesión: ' + err.message });
+        });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Checkout: crear intención de pago (legacy) ──
 
 router.post('/events/:eventId/checkout', (req, res) => {
     try {
@@ -65,9 +128,32 @@ router.post('/webhooks/stripe', (req, res) => {
         return res.status(400).send('Signature verification failed');
     }
 
+    var eventData = event2.data.object;
+    var meta = eventData.metadata || {};
+
+    // Handle checkout.session.completed (Stripe Checkout)
+    if (event2.type === 'checkout.session.completed') {
+        var txnId = meta.transaction_id;
+        if (txnId) {
+            var txn = db.prepare("SELECT * FROM transactions WHERE id = ?").get(txnId);
+            if (txn && txn.status === 'pending') {
+                var now = new Date().toISOString();
+                db.prepare("UPDATE transactions SET status = 'completed', completed_at = ?, metadata_json = ? WHERE id = ?").run(now, JSON.stringify(event2), txnId);
+                var guestId = uuidv4();
+                var qrToken = uuidv4().replace(/-/g, '').slice(0, 12);
+                var eventDb = getEventDb(txn.event_id);
+                eventDb.prepare("INSERT INTO guests (id, event_id, name, email, category_id, qr_token, is_new_registration, status, registered_at, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, 'confirmed', ?, ?)").run(
+                    guestId, txn.event_id, txn.guest_name, txn.guest_email, txn.category_id, qrToken, now, now
+                );
+                db.prepare("UPDATE transactions SET guest_id = ? WHERE id = ?").run(guestId, txnId);
+                try { triggerWebhooks(txn.event_id, 'PAYMENT_COMPLETED', { transactionId: txnId, guestId: guestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }); } catch(e) {}
+                try { logAction(req, 'PAYMENT_COMPLETED', { eventId: txn.event_id, transactionId: txnId, guestId: guestId, amount: txn.amount }); } catch(e) {}
+                console.log('[PAYMENTS] Checkout completado:', txnId, '- Guest:', guestId);
+            }
+        }
+    }
+
     if (event2.type === 'payment_intent.succeeded') {
-        var paymentIntent = event2.data.object;
-        var meta = paymentIntent.metadata || {};
         var txnId = meta.transaction_id;
 
         if (txnId) {

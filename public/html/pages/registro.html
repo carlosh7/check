@@ -21,6 +21,9 @@
         #policy-text p { margin-bottom: 8px; }
         #policy-text ul, #policy-text ol { padding-left: 18px; margin-bottom: 8px; list-style: inherit; }
         #policy-text b, #policy-text strong { color: #a78bfa; font-weight: 700; }
+        .registro-payment-summary { background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(168,85,247,0.05)); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; padding: 16px; text-align: center; }
+        .registro-payment-amount { font-size: 24px; font-weight: 800; color: #a78bfa; display: block; }
+        .registro-payment-desc { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; }
     </style>
     <script>
         (function() {
@@ -113,6 +116,18 @@
                         </select>
                     </div>
                     
+                    <div id="field-category" class="hidden registro-form-group">
+                        <label class="form-label">Categor&iacute;a / Boleto</label>
+                        <select id="reg-category" class="input-field"></select>
+                    </div>
+                    
+                    <div id="payment-summary" class="hidden registro-form-group">
+                        <div class="registro-payment-summary">
+                            <span id="payment-amount" class="registro-payment-amount"></span>
+                            <span id="payment-description" class="registro-payment-desc"></span>
+                        </div>
+                    </div>
+                    
                     <div id="field-dietary" class="registro-form-group">
                         <textarea id="reg-diet" placeholder="Alergias o restricciones alimentarias" class="input-field registro-textarea"></textarea>
                     </div>
@@ -152,6 +167,23 @@
     <script>
         const API_URL = '/api';
         let eventData = null;
+        let categories = [];
+
+        // Check if returning from payment
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('success') === '1') {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                document.getElementById('event-registration-form').style.display = 'none';
+                document.getElementById('success-message').classList.remove('hidden');
+                document.getElementById('success-text').innerText = '¡Pago exitoso! Tu registro ha sido confirmado.';
+                return;
+            }
+            if (params.get('cancel') === '1') {
+                alert('El pago fue cancelado. Puedes intentar de nuevo.');
+            }
+        })();
 
         async function loadEvent() {
             const params = new URLSearchParams(window.location.search);
@@ -198,6 +230,39 @@
 
                 if (eventData.reg_success_message) {
                     document.getElementById('success-text').innerText = eventData.reg_success_message;
+                }
+
+                // Load categories and check payment
+                if (eventData.payment_required) {
+                    try {
+                        var catRes = await fetch(API_URL + '/guests/' + eventData.id + '/categories');
+                        if (catRes.ok) {
+                            categories = await catRes.json();
+                            var catSelect = document.getElementById('reg-category');
+                            var catContainer = document.getElementById('field-category');
+                            if (categories && categories.length > 0) {
+                                catContainer.classList.remove('hidden');
+                                catSelect.innerHTML = '<option value="">-- Seleccionar --</option>' +
+                                    categories.map(function(c) {
+                                        var priceStr = c.price > 0 ? ' - $' + parseFloat(c.price).toFixed(2) : ' (Gratis)';
+                                        return '<option value="' + c.id + '" data-price="' + (c.price || 0) + '">' + c.name + priceStr + '</option>';
+                                    }).join('');
+                                catSelect.onchange = function() {
+                                    var opt = catSelect.options[catSelect.selectedIndex];
+                                    var price = parseFloat(opt?.dataset?.price || 0);
+                                    if (price > 0) {
+                                        document.getElementById('payment-summary').classList.remove('hidden');
+                                        document.getElementById('payment-amount').textContent = '$' + price.toFixed(2) + ' ' + (eventData.currency || 'USD');
+                                        document.getElementById('payment-description').textContent = opt.text;
+                                        document.getElementById('submit-btn').textContent = 'Pagar con Stripe';
+                                    } else {
+                                        document.getElementById('payment-summary').classList.add('hidden');
+                                        document.getElementById('submit-btn').textContent = 'Confirmar Registro';
+                                    }
+                                };
+                            }
+                        }
+                    } catch(e) { console.error('Error loading categories:', e); }
                 }
 
                 if (eventData.reg_policy) {
@@ -259,10 +324,6 @@
             btn.innerText = "Procesando...";
             btn.disabled = true;
 
-            const vegan = document.querySelector('input[name="vegan"]:checked')?.value || 'no';
-            const dietary = document.getElementById('reg-diet').value;
-            const dietaryNotes = vegan === 'si' ? 'Vegano' + (dietary ? ', ' + dietary : '') : dietary;
-
             const body = {
                 event_id: eventData.id,
                 name: document.getElementById('reg-name').value.trim(),
@@ -271,9 +332,47 @@
                 organization: document.getElementById('reg-org').value.trim(),
                 position: document.getElementById('reg-position').value.trim(),
                 gender: document.getElementById('reg-gender').value,
-                dietary_notes: dietaryNotes
+                category_id: document.getElementById('reg-category')?.value || null
             };
 
+            const vegan = document.querySelector('input[name="vegan"]:checked')?.value || 'no';
+            const dietary = document.getElementById('reg-diet').value;
+            body.dietary_notes = vegan === 'si' ? 'Vegano' + (dietary ? ', ' + dietary : '') : dietary;
+
+            // Payment flow
+            if (eventData.payment_required && body.category_id) {
+                var cat = categories.find(function(c) { return c.id === body.category_id; });
+                if (cat && cat.price > 0) {
+                    try {
+                        var checkoutRes = await fetch(API_URL + '/events/' + eventData.id + '/checkout-session', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name: body.name,
+                                email: body.email,
+                                category_id: body.category_id
+                            })
+                        });
+                        var checkoutData = await checkoutRes.json();
+                        if (checkoutData.success && checkoutData.url) {
+                            window.location.href = checkoutData.url;
+                            return;
+                        } else {
+                            alert("Error al iniciar pago: " + (checkoutData.error || 'Error desconocido'));
+                            btn.innerText = orig;
+                            btn.disabled = false;
+                            return;
+                        }
+                    } catch(e) {
+                        alert("Error de conexión al procesar pago. Intenta de nuevo.");
+                        btn.innerText = orig;
+                        btn.disabled = false;
+                        return;
+                    }
+                }
+            }
+
+            // Free registration
             try {
                 const res = await fetch(`${API_URL}/public-register`, {
                     method: 'POST',

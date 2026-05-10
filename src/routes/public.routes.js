@@ -70,7 +70,8 @@ router.get('/event/:id', (req, res) => {
                                      reg_title, reg_welcome_text, reg_success_message, reg_show_phone, 
                                      reg_show_org, reg_show_position, reg_show_vegan, reg_show_dietary, 
                                      reg_show_gender, reg_require_agreement, reg_policy, reg_logo_url,
-                                     reg_email_whitelist, reg_email_blacklist
+                                     reg_email_whitelist, reg_email_blacklist,
+                                     payment_required, currency
                               FROM events WHERE id = ?`).get(id);
 
     if (!event) return res.status(404).json({ success: false, error: 'Evento no encontrado' });
