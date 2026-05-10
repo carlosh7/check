@@ -58,6 +58,9 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
 <body>
 <div id="loading"><div><div class="sp"></div><p>Abriendo tu portal...</p></div></div>
 
+<div id="offline-bar" class="install-bar" style="display:none;background:#dc2626">
+  <span>📡 Sin conexión — mostrando datos guardados</span>
+</div>
 <div id="install-bar" class="install-bar">
   <span>📱 Instala esta app para acceso rápido</span>
   <button id="btn-install">Instalar</button>
@@ -203,6 +206,10 @@ async function load(){
         try{ localStorage.setItem('portal_guest_' + guestId, JSON.stringify(cacheData)); }catch(e){}
       }
     }
+    // Online/offline detection
+    var offlineBar = document.getElementById('offline-bar');
+    window.addEventListener('online', function() { if(offlineBar)offlineBar.style.display='none'; });
+    window.addEventListener('offline', function() { if(offlineBar)offlineBar.style.display='flex'; });
     // Check if we're offline and have cached data
     if(!navigator.onLine){
       var cached = localStorage.getItem('portal_guest_' + guestId);
