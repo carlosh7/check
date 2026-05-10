@@ -49,6 +49,8 @@ const changesRoutes = require('./changes.routes');
 const ecommerceRoutes = require('./ecommerce.routes');
 const crmRoutes = require('./crm.routes');
 const ecosystemRoutes = require('./ecosystem.routes');
+const intelligenceRoutes = require('./intelligence.routes');
+const automationV2Routes = require('./automation-v2.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
 const upload = multer({
@@ -209,6 +211,10 @@ app.use('/api/compliance', complianceRoutes);
     app.use('/api', crmRoutes);
     // Plugin system + Marketplace + Pricing (C8-09/10/11)
     app.use('/api', ecosystemRoutes);
+    // Intelligence: tagging, prediction, recommendations (C9-03/04/05)
+    app.use('/api', intelligenceRoutes);
+    // Automation v2: business rules, workflows, sync (C9-06/07/02)
+    app.use('/api', automationV2Routes);
 
     // Google Sheets Integration (F3-09)
     app.use('/api/google', googleRoutes.router);

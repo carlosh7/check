@@ -1681,10 +1681,10 @@ FASE 30: DevOps & Calidad
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.732 |
-| **Ultimo feature completado** | C9-13 Tema + C9-14 Atajos |
-| **Feature en curso** | **Ciclo 9 — Fase 31** |
-| **Proximo feature** | C9-12 Dashboard personalizable |
+| **Version** | v12.44.733 |
+| **Ultimo feature completado** | C9-12/04/08/03/05/07/02/06/10/11 |
+| **Feature en curso** | **Ciclo 9 — Fase 34/35 pendiente** |
+| **Proximo feature** | C9-01 App React Native |
 
 ---
 
@@ -1741,7 +1741,18 @@ FASE 35: Escalabilidad y Calidad (M-XL)
 |----|---------|--------|----------|------|
 | C9-13 | Tema oscuro/claro global | ✅ | v12.44.732 | 2026-05-10 |
 | C9-14 | Atajos de teclado | ✅ | v12.44.732 | 2026-05-10 |
-| C9-12 | Dashboard personalizable | ⏳ | M | F31 |
+| C9-12 | Dashboard personalizable | ✅ | v12.44.733 | 2026-05-10 |
+| C9-04 | Smart tagging de invitados | ✅ | v12.44.733 | 2026-05-10 |
+| C9-08 | Webhook de acciones | ✅ | v12.44.733 | 2026-05-10 |
+| C9-03 | Predicción de asistencia | ✅ | v12.44.733 | 2026-05-10 |
+| C9-05 | Recomendaciones de venta | ✅ | v12.44.733 | 2026-05-10 |
+| C9-07 | Reglas de negocio personalizadas | ✅ | v12.44.733 | 2026-05-10 |
+| C9-02 | Offline-first con sync | ✅ | v12.44.733 | 2026-05-10 |
+| C9-06 | Workflows visuales | ✅ | v12.44.733 | 2026-05-10 |
+| C9-10 | Tests de carga/estrés | ✅ | v12.44.733 | 2026-05-10 |
+| C9-11 | Documentación de arquitectura | ✅ | v12.44.733 | 2026-05-10 |
+| C9-01 | App React Native funcional | ⏳ | XL | F34 |
+| C9-09 | PostgreSQL real | ⏳ | XL | F35 |
 | C9-04 | Smart tagging de invitados | ⏳ | M | F32 |
 | C9-08 | Webhook de acciones | ⏳ | M | F32 |
 | C9-03 | Predicción de asistencia | ⏳ | M | F32 |

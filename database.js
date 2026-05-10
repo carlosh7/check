@@ -1745,6 +1745,33 @@ db.exec(`CREATE TABLE IF NOT EXISTS pricing_tiers (
     is_active INTEGER DEFAULT 1, sort_order INTEGER DEFAULT 0, created_at TEXT
 )`);
 
+// Smart tagging (C9-04)
+db.exec(`CREATE TABLE IF NOT EXISTS guest_tags (
+    id TEXT PRIMARY KEY, event_id TEXT, name TEXT NOT NULL,
+    color TEXT DEFAULT '#0ba5ec', filter_criteria TEXT, created_at TEXT
+)`);
+db.exec(`CREATE TABLE IF NOT EXISTS guest_tag_assignments (
+    id TEXT PRIMARY KEY, guest_id TEXT NOT NULL, tag_id TEXT NOT NULL,
+    UNIQUE(guest_id, tag_id)
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_tag_assign_guest ON guest_tag_assignments(guest_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_tag_assign_tag ON guest_tag_assignments(tag_id)"); } catch (_) {}
+
+// Business rules (C9-07)
+db.exec(`CREATE TABLE IF NOT EXISTS business_rules (
+    id TEXT PRIMARY KEY, name TEXT NOT NULL, event_id TEXT,
+    trigger_event TEXT NOT NULL, condition_expr TEXT,
+    action_type TEXT NOT NULL, action_config TEXT,
+    is_active INTEGER DEFAULT 1, created_at TEXT
+)`);
+
+// Workflows (C9-06)
+db.exec(`CREATE TABLE IF NOT EXISTS workflows (
+    id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT,
+    steps TEXT NOT NULL, trigger_event TEXT DEFAULT 'manual',
+    is_active INTEGER DEFAULT 1, created_at TEXT
+)`);
+
 // Migracion: encriptar passwords SMTP/IMAP existentes si ENCRYPTION_KEY esta configurada
 try {
     if (process.env.ENCRYPTION_KEY) {

@@ -10138,16 +10138,66 @@ navigate(viewName, params = {}, push = true) {
 
     renderAnalyticsDashboard(data) {
         if (typeof Chart === 'undefined') return;
-        
-        // Inicializar contenedor de gráficas si no existe
         if (!this.state.charts) this.state.charts = {};
+        
+        var configBtn = document.getElementById('widget-config-btn');
+        if (!configBtn) {
+            configBtn = document.createElement('button');
+            configBtn.id = 'widget-config-btn';
+            configBtn.className = 'text-xs text-slate-400 hover:text-white transition-colors ml-auto';
+            configBtn.innerHTML = '⚙️ Personalizar';
+            configBtn.onclick = function() { App.showWidgetConfig(); };
+            var chartsSection = document.getElementById('page-guests')?.querySelector('.space-y-4') || document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2');
+            if (chartsSection) chartsSection.parentNode.insertBefore(configBtn, chartsSection);
+        }
+        
+        var widgetConfig = this.getWidgetConfig();
+        widgetConfig.forEach(function(w) {
+            if (!w.visible) return;
+            switch (w.id) {
+                case 'flow': App.renderFlowChart(data.flowData); break;
+                case 'orgs': App.renderOrgChart(data.orgDistribution); break;
+                case 'status': App.renderStatusChart(data); break;
+                case 'mailing': App.renderMailingChart(data.mailingStats); break;
+                case 'gender': App.renderGenderChart(data.genderDistribution); break;
+                case 'dietary': App.renderDietaryChart(data.dietaryDistribution); break;
+            }
+        });
+    },
 
-        this.renderFlowChart(data.flowData);
-        this.renderOrgChart(data.orgDistribution);
-        this.renderStatusChart(data);
-        this.renderMailingChart(data.mailingStats);
-        this.renderGenderChart(data.genderDistribution);
-        this.renderDietaryChart(data.dietaryDistribution);
+    getWidgetConfig: function() {
+        var saved = localStorage.getItem('widget_config');
+        if (saved) { try { return JSON.parse(saved); } catch(e) {} }
+        return [
+            { id: 'flow', label: 'Flujo de Check-in', visible: true },
+            { id: 'orgs', label: 'Organizaciones', visible: true },
+            { id: 'status', label: 'Estado', visible: true },
+            { id: 'mailing', label: 'Mailing', visible: true },
+            { id: 'gender', label: 'Género', visible: true },
+            { id: 'dietary', label: 'Dietas', visible: true }
+        ];
+    },
+
+    toggleWidget: function(widgetId) {
+        var config = this.getWidgetConfig();
+        var w = config.find(function(c) { return c.id === widgetId; });
+        if (w) w.visible = !w.visible;
+        localStorage.setItem('widget_config', JSON.stringify(config));
+        this.updateStats();
+    },
+
+    showWidgetConfig: function() {
+        var config = this.getWidgetConfig();
+        var html = '<div class="p-4"><h3 class="text-lg font-bold mb-4">📊 Personalizar Dashboard</h3><div class="space-y-2">';
+        config.forEach(function(w) {
+            html += '<label class="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white/5">' +
+                '<input type="checkbox" ' + (w.visible ? 'checked' : '') + ' onchange="App.toggleWidget(\'' + w.id + '\')" class="w-4 h-4 accent-[var(--primary)]">' +
+                '<span>' + w.label + '</span></label>';
+        });
+        html += '</div></div>';
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({ html: html, background: 'var(--bg-modal)', color: 'var(--text-main)', confirmButtonColor: 'var(--primary)', showCloseButton: true, width: 400 });
+        }
     },
 
     renderFlowChart(flow) {

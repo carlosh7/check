@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "",
+  "model": "minimax-m2.7",
   "mcp": {
     "blender": {
       "type": "local",
