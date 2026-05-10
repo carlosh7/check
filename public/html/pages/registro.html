@@ -118,7 +118,8 @@
                     
                     <div id="field-category" class="hidden registro-form-group">
                         <label class="form-label">Categor&iacute;a / Boleto</label>
-                        <select id="reg-category" class="input-field"></select>
+                        <div id="cart-items" class="space-y-2"></div>
+                        <div id="cart-total" class="hidden text-right text-sm font-bold text-[var(--primary)] mt-2"></div>
                     </div>
                     
                     <div id="payment-summary" class="hidden registro-form-group">
@@ -168,6 +169,30 @@
         const API_URL = '/api';
         let eventData = null;
         let categories = [];
+        let cart = {};
+
+        function updateCart(catId, delta) {
+            cart[catId] = Math.max(0, (cart[catId] || 0) + delta);
+            var el = document.getElementById('qty-' + catId);
+            if (el) el.textContent = cart[catId] || 0;
+            updateCartTotal();
+        }
+        function updateCartTotal() {
+            var total = 0; var hasItems = false;
+            categories.forEach(function(c) {
+                var qty = cart[c.id] || 0;
+                if (qty > 0) { total += c.price * qty; hasItems = true; }
+            });
+            var totalEl = document.getElementById('cart-total');
+            var summaryEl = document.getElementById('payment-summary');
+            var btn = document.getElementById('submit-btn');
+            if (totalEl) {
+                totalEl.classList.toggle('hidden', !hasItems);
+                totalEl.textContent = 'Total: $' + total.toFixed(2) + ' ' + (eventData?.currency || 'USD');
+            }
+            if (summaryEl) summaryEl.classList.toggle('hidden', !hasItems);
+            if (btn) btn.textContent = hasItems ? 'Pagar con Stripe' : 'Confirmar Registro';
+        }
 
         // Check if returning from payment
         (function() {
@@ -238,28 +263,19 @@
                         var catRes = await fetch(API_URL + '/guests/' + eventData.id + '/categories');
                         if (catRes.ok) {
                             categories = await catRes.json();
-                            var catSelect = document.getElementById('reg-category');
                             var catContainer = document.getElementById('field-category');
-                            if (categories && categories.length > 0) {
+                            var cartDiv = document.getElementById('cart-items');
+                            if (categories && categories.length > 0 && cartDiv) {
                                 catContainer.classList.remove('hidden');
-                                catSelect.innerHTML = '<option value="">-- Seleccionar --</option>' +
-                                    categories.map(function(c) {
-                                        var priceStr = c.price > 0 ? ' - $' + parseFloat(c.price).toFixed(2) : ' (Gratis)';
-                                        return '<option value="' + c.id + '" data-price="' + (c.price || 0) + '">' + c.name + priceStr + '</option>';
+                                cartDiv.innerHTML = categories
+                                    .filter(function(c) { return c.price > 0; })
+                                    .map(function(c) {
+                                        return '<div class="flex items-center justify-between p-2 rounded-lg bg-white/5">' +
+                                            '<span class="text-sm">' + c.name + ' — <span class="text-[var(--primary)] font-bold">$' + parseFloat(c.price).toFixed(2) + '</span></span>' +
+                                            '<div class="flex items-center gap-2"><button class="w-7 h-7 rounded-full bg-white/10 text-white font-bold text-sm" onclick="updateCart(\'' + c.id + '\',-1)">−</button>' +
+                                            '<span id="qty-' + c.id + '" class="w-6 text-center text-sm font-bold">0</span>' +
+                                            '<button class="w-7 h-7 rounded-full bg-white/10 text-white font-bold text-sm" onclick="updateCart(\'' + c.id + '\',1)">+</button></div></div>';
                                     }).join('');
-                                catSelect.onchange = function() {
-                                    var opt = catSelect.options[catSelect.selectedIndex];
-                                    var price = parseFloat(opt?.dataset?.price || 0);
-                                    if (price > 0) {
-                                        document.getElementById('payment-summary').classList.remove('hidden');
-                                        document.getElementById('payment-amount').textContent = '$' + price.toFixed(2) + ' ' + (eventData.currency || 'USD');
-                                        document.getElementById('payment-description').textContent = opt.text;
-                                        document.getElementById('submit-btn').textContent = 'Pagar con Stripe';
-                                    } else {
-                                        document.getElementById('payment-summary').classList.add('hidden');
-                                        document.getElementById('submit-btn').textContent = 'Confirmar Registro';
-                                    }
-                                };
                             }
                         }
                     } catch(e) { console.error('Error loading categories:', e); }
@@ -331,28 +347,30 @@
                 phone: document.getElementById('reg-phone').value.trim(),
                 organization: document.getElementById('reg-org').value.trim(),
                 position: document.getElementById('reg-position').value.trim(),
-                gender: document.getElementById('reg-gender').value,
-                category_id: document.getElementById('reg-category')?.value || null
+                gender: document.getElementById('reg-gender').value
             };
 
             const vegan = document.querySelector('input[name="vegan"]:checked')?.value || 'no';
             const dietary = document.getElementById('reg-diet').value;
             body.dietary_notes = vegan === 'si' ? 'Vegano' + (dietary ? ', ' + dietary : '') : dietary;
 
-            // Payment flow
-            if (eventData.payment_required && body.category_id) {
-                var cat = categories.find(function(c) { return c.id === body.category_id; });
-                if (cat && cat.price > 0) {
-                    try {
-                        var checkoutRes = await fetch(API_URL + '/events/' + eventData.id + '/checkout-session', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                name: body.name,
-                                email: body.email,
-                                category_id: body.category_id
-                            })
-                        });
+            // Payment flow (cart)
+            var cartItems = [];
+            categories.forEach(function(c) {
+                var qty = cart[c.id] || 0;
+                if (qty > 0) cartItems.push({ category_id: c.id, quantity: qty });
+            });
+            if (eventData.payment_required && cartItems.length > 0) {
+                try {
+                    var checkoutRes = await fetch(API_URL + '/events/' + eventData.id + '/checkout-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: body.name,
+                            email: body.email,
+                            items: cartItems
+                        })
+                    });
                         var checkoutData = await checkoutRes.json();
                         if (checkoutData.success && checkoutData.url) {
                             window.location.href = checkoutData.url;
