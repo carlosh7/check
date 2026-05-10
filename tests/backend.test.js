@@ -826,3 +826,55 @@ describe('Encryption Status Endpoint', () => {
         delete process.env.ENCRYPTION_KEY;
     });
 });
+
+// ─── CHANGE LOG (C6-06) ───
+
+describe('Change Log / Undo-Redo', () => {
+    const { logChange, getChanges, undoChange, redoChange } = require('../src/utils/change-log');
+    let changeId;
+
+    test('change_log table exists', () => {
+        const t = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='change_log'").get();
+        expect(t).toBeDefined();
+    });
+
+    test('logChange creates a change entry', () => {
+        const event = db.prepare("SELECT id FROM events LIMIT 1").get();
+        if (!event) return;
+        changeId = logChange(event.id, 'guest', 'test-guest-id', 'checked_in', 'checked_in', '0', '1', 'test-user');
+        expect(changeId).toBeDefined();
+        const saved = db.prepare("SELECT * FROM change_log WHERE id = ?").get(changeId);
+        expect(saved).toBeDefined();
+        expect(saved.action).toBe('checked_in');
+        expect(saved.undone).toBe(0);
+    });
+
+    test('getChanges returns changes for event', () => {
+        const event = db.prepare("SELECT id FROM events LIMIT 1").get();
+        if (!event) return;
+        const changes = getChanges(event.id);
+        expect(Array.isArray(changes)).toBe(true);
+        expect(changes.length).toBeGreaterThan(0);
+    });
+
+    test('undoChange marks as undone', () => {
+        if (!changeId) return;
+        const result = undoChange(changeId);
+        expect(result.success).toBe(true);
+        const saved = db.prepare("SELECT * FROM change_log WHERE id = ?").get(changeId);
+        expect(saved.undone).toBe(1);
+    });
+
+    test('redoChange restores undone status', () => {
+        if (!changeId) return;
+        const result = redoChange(changeId);
+        expect(result.success).toBe(true);
+        const saved = db.prepare("SELECT * FROM change_log WHERE id = ?").get(changeId);
+        expect(saved.undone).toBe(0);
+    });
+
+    test('undoChange returns error for non-existent change', () => {
+        const result = undoChange('non-existent-id');
+        expect(result.error).toBeDefined();
+    });
+});

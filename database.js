@@ -1618,6 +1618,25 @@ db.exec(`CREATE TABLE IF NOT EXISTS deploy_logs (
 )`);
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_deploy_logs_created ON deploy_logs(created_at)"); } catch (_) {}
 
+// Tabla de historial de cambios para undo/redo (C6-06)
+db.exec(`CREATE TABLE IF NOT EXISTS change_log (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    entity_type TEXT NOT NULL,
+    entity_id TEXT NOT NULL,
+    action TEXT NOT NULL,
+    field_name TEXT,
+    old_value TEXT,
+    new_value TEXT,
+    user_id TEXT,
+    undone INTEGER DEFAULT 0,
+    created_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id)
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_change_log_event ON change_log(event_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_change_log_entity ON change_log(entity_type, entity_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_change_log_created ON change_log(created_at)"); } catch (_) {}
+
 // Migracion: encriptar passwords SMTP/IMAP existentes si ENCRYPTION_KEY esta configurada
 try {
     if (process.env.ENCRYPTION_KEY) {

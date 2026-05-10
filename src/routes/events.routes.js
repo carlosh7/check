@@ -55,6 +55,7 @@ const { schemas, validate } = require('../security/validation');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { CACHE_KEYS, cacheOrFetch, del } = require('../utils/cache');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
+const { logChange } = require('../utils/change-log');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -292,6 +293,8 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
 
     logAction(req, AUDIT_ACTIONS.EVENT_UPDATED, { eventId });
     try { triggerWebhooks(WEBHOOK_EVENTS.EVENT_UPDATED, { eventId, changes: Object.keys(d) }, eventId).catch(() => {}); } catch(e) {}
+
+    logChange(eventId, 'event', eventId, 'updated', null, JSON.stringify(d), null, req.userId);
 
     res.json({ success: true });
 });

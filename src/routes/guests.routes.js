@@ -66,6 +66,7 @@ const { authMiddleware } = require('../middleware/auth');
 const { getIO: socketGetIO } = require('../socket');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 const { sendPushToEventUsers } = require('./push.routes');
+const { logChange } = require('../utils/change-log');
 const QRCode = require('qrcode');
 
 const router = express.Router();
@@ -369,6 +370,8 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
             tag: 'guest-uncheckin'
         }).catch(err => console.error(`Error sending push notification for guest ${guest.id}:`, err.message));
         
+        logChange(guest.event_id, 'guest', guest.id, 'unchecked_in', 'checked_in', '1', '0', req.userId);
+        
         return res.json({ success: true, action: 'uncheckin' });
     }
     
@@ -402,6 +405,8 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
         data: { url: `/events/${guest.event_id}/guests` },
         tag: 'guest-checkin'
     }).catch(err => console.error(`Error sending push notification for guest ${guest.id}:`, err.message));
+    
+    logChange(guest.event_id, 'guest', guest.id, 'checked_in', 'checked_in', '0', '1', req.userId);
     
     res.json({ success: true, action: 'checkin' });
 });
@@ -437,6 +442,8 @@ router.patch('/:eventId/guest-status/:guestId', authMiddleware(['ADMIN', 'PRODUC
         targetDb.prepare("INSERT INTO guest_status_log (guest_id, event_id, from_status, to_status, changed_by, notes) VALUES (?, ?, ?, ?, ?, ?)").run(
             gId, eId, fromStatus, status, req.userId, notes || null
         );
+        
+        logChange(eId, 'guest', gId, 'status_changed', 'status', fromStatus, status, req.userId);
         
         const io = socketGetIO();
         if (io) io.to(eId).emit('update_stats', eId);
@@ -552,7 +559,9 @@ router.patch('/:eventId/guest-category/:guestId', authMiddleware(['ADMIN', 'PROD
         const gId = castId('guests', req.params.guestId);
         const { category_id } = req.body;
         const targetDb = getEventDb(eId);
+        const oldGuest = targetDb.prepare("SELECT category_id FROM guests WHERE id = ? AND event_id = ?").get(gId, eId);
         targetDb.prepare("UPDATE guests SET category_id = ? WHERE id = ? AND event_id = ?").run(category_id || null, gId, eId);
+        logChange(eId, 'guest', gId, 'category_changed', 'category_id', oldGuest ? oldGuest.category_id : '', category_id, req.userId);
         res.json({ success: true });
     } catch (err) {
         console.error('[CATEGORIES] Error:', err.message);
@@ -752,9 +761,15 @@ router.get('/:eventId/network', (req, res) => {
 router.put('/:eventId/guests/:guestId/profile', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         var { bio, interests, social_linkedin, photo_url } = req.body;
+        const old = db.prepare("SELECT bio, interests, social_linkedin, photo_url FROM guests WHERE id = ?").get(req.params.guestId);
         db.prepare("UPDATE guests SET bio = COALESCE(?, bio), interests = COALESCE(?, interests), social_linkedin = COALESCE(?, social_linkedin), photo_url = COALESCE(?, photo_url) WHERE id = ?").run(
             bio || null, interests || null, social_linkedin || null, photo_url || null, req.params.guestId
         );
+        if (old && req.params.eventId) {
+            if (bio !== undefined && bio !== old.bio) logChange(req.params.eventId, 'guest', req.params.guestId, 'profile_updated', 'bio', old.bio, bio, req.userId);
+            if (interests !== undefined && interests !== old.interests) logChange(req.params.eventId, 'guest', req.params.guestId, 'profile_updated', 'interests', old.interests, interests, req.userId);
+            if (social_linkedin !== undefined && social_linkedin !== old.social_linkedin) logChange(req.params.eventId, 'guest', req.params.guestId, 'profile_updated', 'social_linkedin', old.social_linkedin, social_linkedin, req.userId);
+        }
         res.json({ success: true });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
