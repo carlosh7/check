@@ -146,7 +146,7 @@ describe('Validation - schemas', () => {
     
     describe('createEvent schema', () => {
         test('should accept valid event data', () => {
-            const data = { name: 'Mi Evento' };
+            const data = { name: 'Mi Evento', date: '2026-06-01T12:00' };
             const result = validate(schemas.createEvent, data);
             
             expect(result.valid).toBe(true);

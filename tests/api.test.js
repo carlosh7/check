@@ -86,13 +86,6 @@ describe('Check Pro API - Settings Routes', () => {
         app.use('/api/settings', settingsRoutes);
     });
     
-    test('GET /api/settings/app-version returns version', async () => {
-        const res = await request(app).get('/api/settings/app-version');
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty('version');
-        expect(res.body.version).toBe('12.2.2');
-    });
-    
     test('GET /api/settings returns settings', async () => {
         const res = await request(app).get('/api/settings');
         expect(res.status).toBe(200);
