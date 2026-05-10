@@ -27,8 +27,9 @@
 - [01. Configurar pagos (Stripe/PayPal)](05-pagos/01-configurar-pagos.md)
 - [02. Asignar precios a categorías](05-pagos/02-categorias-precio.md)
 
-## 06 — Webhooks
+## 06 — Webhooks / SMS
 - [01. Crear y gestionar webhooks](06-webhooks/01-crear-webhook.md)
+- [02. SMS (Twilio)](06-webhooks/02-sms.md)
 
 ## 07 — Administración
 - [01. Usuarios y roles](07-administracion/01-usuarios-roles.md)

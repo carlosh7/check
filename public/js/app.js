@@ -10884,7 +10884,7 @@ navigate(viewName, params = {}, push = true) {
         }
         
         // Obtener todos los tabs
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google', 'sys-content-ai-security', 'sys-content-webhooks'];
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google', 'sys-content-ai-security', 'sys-content-webhooks', 'sys-content-sms'];
         
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
@@ -10924,6 +10924,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'activity') this.loadActivityLogs();
         if (tabName === 'venues') this.loadVenues();
         if (tabName === 'webhooks') this.loadWebhooks();
+        if (tabName === 'sms') this.loadSmsSettings();
         if (tabName === 'ai-security') this.loadAiSecurity();
         if (tabName === 'compliance') this.loadCompliance();
         if (tabName === 'google') this.loadGoogleTab();
@@ -17285,6 +17286,46 @@ navigate(viewName, params = {}, push = true) {
         crypto.getRandomValues(arr);
         var hex = Array.from(arr).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
         document.getElementById('webhook-secret').value = hex;
+    },
+
+    // ═══ SMS (BL-13) ═══
+
+    loadSmsSettings: async function() {
+        try {
+            var res = await this.fetchAPI('/api/sms/settings');
+            if (res.account_sid !== undefined) document.getElementById('sms-account-sid').value = res.account_sid;
+            if (res.from_number !== undefined) document.getElementById('sms-from-number').value = res.from_number;
+            if (document.getElementById('sms-enabled')) document.getElementById('sms-enabled').checked = res.enabled || false;
+            if (!res.has_auth_token) document.getElementById('sms-auth-token').value = '';
+            document.getElementById('sms-test-section')?.classList.add('hidden');
+        } catch(e) { console.error('[SMS] Error loading settings:', e.message); }
+    },
+
+    saveSmsSettings: async function() {
+        var data = {
+            account_sid: document.getElementById('sms-account-sid')?.value || '',
+            auth_token: document.getElementById('sms-auth-token')?.value || '',
+            from_number: document.getElementById('sms-from-number')?.value || '',
+            enabled: document.getElementById('sms-enabled')?.checked || false
+        };
+        try {
+            await this.fetchAPI('/api/sms/settings', { method: 'POST', body: JSON.stringify(data) });
+            this._notifyAction('Guardado', 'Configuración SMS guardada', 'success');
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    testSms: function() {
+        document.getElementById('sms-test-section')?.classList.toggle('hidden');
+    },
+
+    sendTestSms: async function() {
+        var to = document.getElementById('sms-test-number')?.value.trim();
+        if (!to) { this._notifyAction('Error', 'Número requerido', 'error'); return; }
+        try {
+            var res = await this.fetchAPI('/api/sms/send', { method: 'POST', body: JSON.stringify({ to: to, message: 'Test SMS desde Check Pro - ' + new Date().toLocaleString() }) });
+            if (res.success) this._notifyAction('Enviado', 'SMS enviado correctamente (SID: ' + res.sid + ')', 'success');
+            else this._notifyAction('Error', res.error, 'error');
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     }
 };
 

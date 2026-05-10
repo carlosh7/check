@@ -22,8 +22,9 @@
 - **Pagos**
   - [Configurar pagos](05-pagos/01-configurar-pagos.md)
   - [Precios por categoría](05-pagos/02-categorias-precio.md)
-- **Webhooks**
+- **Webhooks / SMS**
   - [Crear webhook](06-webhooks/01-crear-webhook.md)
+  - [SMS Twilio](06-webhooks/02-sms.md)
 - **Administración**
   - [Usuarios y roles](07-administracion/01-usuarios-roles.md)
   - [Espacios](07-administracion/02-espacios.md)
