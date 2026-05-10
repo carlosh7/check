@@ -10,6 +10,7 @@ const nodemailer = require('nodemailer');
 const Imap = require('imap');
 const { simpleParser } = require('mailparser');
 const { db } = require('../../database');
+const { decryptPassword, encryptPassword } = require('../security/encryption');
 
 // ============================================================
 // HELPERS
@@ -44,7 +45,7 @@ function getSmtpConfig(account) {
         secure: account.smtp_ssl === 1,
         auth: {
             user: account.smtp_user,
-            pass: account.smtp_password || account.smtp_pass
+            pass: decryptPassword(account.smtp_password || account.smtp_pass)
         }
     };
 }
@@ -56,7 +57,7 @@ function getSmtpConfig(account) {
 function getImapConfig(account) {
     return {
         user: account.imap_user,
-        password: account.imap_password || account.imap_pass,
+        password: decryptPassword(account.imap_password || account.imap_pass),
         host: account.imap_host,
         port: account.imap_port || 993,
         tls: account.imap_ssl === 1,
@@ -159,8 +160,8 @@ router.post('/accounts', (req, res) => {
                 sender_name, sender_email, is_default, is_active, daily_limit, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
-            id, event_id, name, smtp_host || '', smtp_port, smtp_user || '', smtp_password || '', smtp_ssl ? 1 : 0,
-            imap_host || '', imap_port, imap_user || '', imap_password || '', imap_ssl ? 1 : 0, imap_folder || 'INBOX',
+            id, event_id, name, smtp_host || '', smtp_port, smtp_user || '', encryptPassword(smtp_password) || '', smtp_ssl ? 1 : 0,
+            imap_host || '', imap_port, imap_user || '', encryptPassword(imap_password) || '', imap_ssl ? 1 : 0, imap_folder || 'INBOX',
             sender_name || '', sender_email || '', is_default ? 1 : 0, is_active ? 1 : 0, daily_limit, now, now
         );
         
@@ -234,10 +235,10 @@ router.put('/accounts/:id', (req, res) => {
             WHERE id = ?
         `).run(
             name, smtp_host, smtp_port, smtp_user, 
-            smtp_password, smtp_password !== '***' ? smtp_password : null,
+            smtp_password, smtp_password !== '***' ? encryptPassword(smtp_password) : null,
             smtp_ssl ? 1 : 0,
             imap_host, imap_port, imap_user,
-            imap_password, imap_password !== '***' ? imap_password : null,
+            imap_password, imap_password !== '***' ? encryptPassword(imap_password) : null,
             imap_ssl ? 1 : 0,
             imap_folder, sender_name, sender_email,
             is_default ? 1 : 0,

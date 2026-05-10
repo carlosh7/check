@@ -742,3 +742,87 @@ describe('Deploy Webhook', () => {
         process.env.DEPLOY_WEBHOOK_SECRET = oldSecret;
     });
 });
+
+// ─── ENCRYPTION (C6-17) ───
+
+describe('Encryption', () => {
+    const { encrypt, decrypt, encryptPassword, decryptPassword, isEncrypted, getStatus } = require('../src/security/encryption');
+
+    beforeAll(() => {
+        process.env.ENCRYPTION_KEY = 'test-encryption-key-32bytes!';
+    });
+
+    afterAll(() => {
+        delete process.env.ENCRYPTION_KEY;
+    });
+
+    test('encrypt and decrypt roundtrip', () => {
+        const plaintext = 'my-smtp-password-123';
+        const encrypted = encrypt(plaintext);
+        expect(encrypted).not.toBe(plaintext);
+        expect(encrypted.startsWith('$aes-gcm$')).toBe(true);
+        const decrypted = decrypt(encrypted);
+        expect(decrypted).toBe(plaintext);
+    });
+
+    test('decrypt returns plaintext if not encrypted', () => {
+        expect(decrypt('plain-password')).toBe('plain-password');
+    });
+
+    test('decrypt returns null/undefined as-is', () => {
+        expect(decrypt(null)).toBeNull();
+        expect(decrypt(undefined)).toBeUndefined();
+    });
+
+    test('encryptPassword skips empty and ***', () => {
+        expect(encryptPassword('')).toBe('');
+        expect(encryptPassword('***')).toBe('***');
+    });
+
+    test('encryptPassword falls back to plaintext when no key', () => {
+        delete process.env.ENCRYPTION_KEY;
+        expect(encryptPassword('test')).toBe('test');
+        process.env.ENCRYPTION_KEY = 'test-encryption-key-32bytes!';
+    });
+
+    test('isEncrypted detects prefix', () => {
+        expect(isEncrypted('$aes-gcm$abc.def.ghi')).toBe(true);
+        expect(isEncrypted('plain')).toBe(false);
+        expect(isEncrypted(null)).toBe(false);
+    });
+
+    test('getStatus returns correct state', () => {
+        const status = getStatus();
+        expect(status.enabled).toBe(true);
+        expect(status.algorithm).toBe('aes-256-gcm');
+    });
+
+    test('encryptPassword integration with email routes', () => {
+        const original = 'my-real-smtp-pass';
+        const encrypted = encryptPassword(original);
+        expect(isEncrypted(encrypted)).toBe(true);
+        const decrypted = decryptPassword(encrypted);
+        expect(decrypted).toBe(original);
+    });
+});
+
+describe('Encryption Status Endpoint', () => {
+    const deployRoutes = require('../src/routes/deploy.routes');
+
+    function createApp() {
+        const app = express();
+        app.use(express.json());
+        app.use('/api', deployRoutes);
+        return app;
+    }
+
+    test('GET /api/deploy/encryption-status returns status', async () => {
+        process.env.ENCRYPTION_KEY = 'test-encryption-key-32bytes!';
+        const app = createApp();
+        const res = await request(app).get('/api/deploy/encryption-status');
+        expect(res.status).toBe(200);
+        expect(res.body.enabled).toBe(true);
+        expect(res.body.algorithm).toBe('aes-256-gcm');
+        delete process.env.ENCRYPTION_KEY;
+    });
+});

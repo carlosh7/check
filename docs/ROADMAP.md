@@ -1538,10 +1538,10 @@ FASE 23: Seguridad v2
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.722 |
-| **Ultimo feature completado** | C6-14 Auto-deploy con webhooks |
+| **Version** | v12.44.723 |
+| **Ultimo feature completado** | C6-14 Auto-deploy con webhooks, C6-17 Cifrado datos sensibles |
 | **Feature en curso** | **Ciclo 7 — Consolidación + Features Diferidas** |
-| **Proximo feature** | C6-17 Cifrado de datos sensibles |
+| **Proximo feature** | C6-06 Historial de cambios (undo) |
 
 ---
 
@@ -1588,7 +1588,7 @@ FASE 25: Consolidación y Pulido
 | ID | Feature | Estado | Version | Fecha |
 |----|---------|--------|---------|-------|
 | C6-14 | Auto-deploy con webhooks | ✅ | v12.44.722 | 2026-05-10 |
-| C6-17 | Cifrado de datos sensibles | ⏳ | — | — |
+| C6-17 | Cifrado de datos sensibles | ✅ | v12.44.723 | 2026-05-10 |
 | C6-06 | Historial de cambios (undo) | ⏳ | — | — |
 | C6-05 | Edición multi-usuario en vivo | ⏳ | — | — |
 | C6-10 | SDK JavaScript / Node.js | ⏳ | — | — |

@@ -6,6 +6,7 @@
 const nodemailer = require('nodemailer');
 const db = require('../../database');
 const { v4: uuidv4 } = require('uuid');
+const { decryptPassword } = require('../security/encryption');
 
 class EmailService {
     constructor() {
@@ -115,7 +116,7 @@ class EmailService {
                 secure: account.smtp_ssl === 1,
                 auth: {
                     user: account.smtp_user,
-                    pass: account.smtp_password
+                    pass: decryptPassword(account.smtp_password)
                 }
             });
             
@@ -171,7 +172,7 @@ class EmailService {
                 secure: account.smtp_ssl === 1,
                 auth: {
                     user: account.smtp_user,
-                    pass: account.smtp_password
+                    pass: decryptPassword(account.smtp_password)
                 }
             });
             

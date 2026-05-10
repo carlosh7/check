@@ -1618,6 +1618,23 @@ db.exec(`CREATE TABLE IF NOT EXISTS deploy_logs (
 )`);
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_deploy_logs_created ON deploy_logs(created_at)"); } catch (_) {}
 
+// Migracion: encriptar passwords SMTP/IMAP existentes si ENCRYPTION_KEY esta configurada
+try {
+    if (process.env.ENCRYPTION_KEY) {
+        const { isEncrypted, encryptPassword } = require('./src/security/encryption');
+        const accounts = db.prepare('SELECT id, smtp_password, imap_password FROM email_accounts').all();
+        for (const acc of accounts) {
+            if (acc.smtp_password && !isEncrypted(acc.smtp_password)) {
+                db.prepare('UPDATE email_accounts SET smtp_password = ? WHERE id = ?').run(encryptPassword(acc.smtp_password), acc.id);
+            }
+            if (acc.imap_password && !isEncrypted(acc.imap_password)) {
+                db.prepare('UPDATE email_accounts SET imap_password = ? WHERE id = ?').run(encryptPassword(acc.imap_password), acc.id);
+            }
+        }
+        console.log('✓ Passwords SMTP/IMAP encriptadas en reposo');
+    }
+} catch (_) {}
+
 // Importar Database Manager para bases de datos por evento
 const { 
     getEventConnection, 

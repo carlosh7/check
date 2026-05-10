@@ -3,6 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const { db } = require('../../database');
 const { v4: uuidv4 } = require('uuid');
+const { getStatus, migrateExistingPasswords } = require('../security/encryption');
 
 function verifyGitHubSignature(payload, signature) {
     const secret = process.env.DEPLOY_WEBHOOK_SECRET;
@@ -65,6 +66,19 @@ router.get('/deploy/logs', (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 200);
     const logs = db.prepare(`SELECT * FROM deploy_logs ORDER BY created_at DESC LIMIT ?`).all(limit);
     res.json(logs);
+});
+
+router.get('/deploy/encryption-status', (req, res) => {
+    res.json(getStatus());
+});
+
+router.post('/deploy/migrate-encryption', (req, res) => {
+    try {
+        const result = migrateExistingPasswords();
+        res.json({ ok: true, migrated: result });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 module.exports = router;
