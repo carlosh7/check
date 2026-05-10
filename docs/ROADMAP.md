@@ -1194,10 +1194,25 @@ FASE 10: Mejoras Profundas
 ## 🗺️ Mapa de Dependencias — Ciclo 4 ✅
 
 ```
-FASE 11: Estabilización            ← ✅ COMPLETADA (C4-01 a C4-04)
-FASE 12: E-commerce                ← ✅ COMPLETADA (C4-05 a C4-07)
-FASE 13: IA & Automación           ← ✅ COMPLETADA (C4-08 a C4-10)
-FASE 14: i18n Completo             ← ✅ COMPLETADA (C4-11, C4-12)
+FASE 11: Estabilización (bug fixes, performance, tests, docs, PWA+)
+  C4-01 Bug fixes & rendimiento v2     ← M (nueva ronda de optimización)          ✅ v12.44.708
+  C4-02 Cobertura de tests v2           ← L (más rutas, integración)               ✅ v12.44.710
+  C4-03 PWA avanzada (push offline)    ← M (notificaciones sin conexión, sync)    ✅ v12.44.711
+  C4-04 UX polish v2                    ← M (micro-interacciones, temas, accesibilidad) ✅ v12.44.709
+
+FASE 12: E-commerce (venta de boletos completa)
+  C4-05 Carrito de compras              ← M (múltiples boletos por orden)          ✅ v12.44.712
+  C4-06 Cupones y descuentos            ← M (códigos promocionales, % descuento)  ✅ v12.44.713
+  C4-07 Facturación / Receipts          ← M (facturas PDF, emails post-compra)    ✅ v12.44.714
+
+FASE 13: IA & Automación Inteligente
+  C4-08 Chatbot asistente               ← XL (chat en vivo para invitados)        ✅ v12.44.716
+  C4-09 Reportes IA                     ← M (insights automáticos, predicciones)  ✅ v12.44.715
+  C4-10 Moderación IA de propuestas     ← M (clasificación automática propuestas) ✅ v12.44.716
+
+FASE 14: i18n Completo
+  C4-11 Traducción completa UI          ← XL (100% de la interfaz traducida)       ✅ (base C2-06)
+  C4-12 Selector de idioma persistente  ← S (guardar preferencia por usuario)      ✅ v12.44.716
 ```
 
 ---
