@@ -1396,19 +1396,142 @@ FASE 18: Sistema & Operaciones
 
 ---
 
-# Ciclo 6 — Próximo Horizonte
+# Ciclo 6 — Mobile PWA+, Tiempo Real, API, DevOps, Seguridad
 
-*En definición. Se agregarán features aquí cuando el usuario seleccione la dirección.*
+## ⚡ Estado Actual
 
-## Opciones disponibles
+| Item | Valor |
+|------|-------|
+| **Version** | v12.44.719 |
+| **Ultimo ciclo completado** | Ciclo 5 — Fases 15-18 al 100% |
+| **Feature en curso** | **Ciclo 6 — F19: Mobile PWA+ / F20: Tiempo Real / F21: API Pública / F22: DevOps / F23: Seguridad v2** |
+| **Proximo feature** | C6-01 PWA nativa (gestos, swipe, transiciones) |
 
-| Dirección | Enfoque |
-|-----------|---------|
-| **Mobile PWA+** | Experiencia tipo app nativa, gestos, swipe, transiciones, Haptic Feedback |
-| **Tiempo Real Colaborativo** | Edición multi-usuario, cambios en vivo, historial de cambios |
-| **API Pública** | Endpoints públicos documentados, API keys, SDK para terceros |
-| **DevOps** | Docker compose mejorado, CI/CD, monitoreo, auto-deploy |
-| **Seguridad v2** | 2FA, auditoría avanzada, cifrado de extremo a extremo, GDPR completo |
+---
+
+## 🗺️ Mapa de Dependencias — Ciclo 6
+
+```
+FASE 19: Mobile PWA+ (experiencia tipo app nativa)
+  C6-01 PWA nativa con gestos y swipe    ← M (navegación por gestos, transiciones)
+  C6-02 Haptic Feedback y sonidos        ← S (retrofeedback táctil en móvil)
+  C6-03 Pull-to-refresh y skeleton v2   ← M (recarga por gesto, skeletons mejorados)
+  C6-04 Bottom sheet y modales nativos   ← M (paneles deslizantes desde abajo)
+
+FASE 20: Tiempo Real Colaborativo
+  C6-05 Edición multi-usuario en vivo    ← XL (cambios simultáneos en eventos/invitados)
+  C6-06 Historial de cambios (undo/redo) ← L (timeline de cambios por evento)
+  C6-07 Presencia en línea               ← M (ver quién más está editando)
+
+FASE 21: API Pública
+  C6-08 API Keys y autenticación externa ← M (generación de API keys, rate limiting)
+  C6-09 Endpoints públicos REST          ← L (CRUD público de eventos e invitados)
+  C6-10 SDK JavaScript / Node.js         ← XL (librería npm para integración externa)
+
+FASE 22: DevOps
+  C6-11 Docker compose optimizado        ← M (multi-stage builds, volumes optimizados)
+  C6-12 CI/CD pipeline (GitHub Actions)  ← M (tests automáticos, deploy automático)
+  C6-13 Monitoreo y alertas              ← M (health checks, uptime, logs centralizados)
+  C6-14 Auto-deploy con webhooks         ← S (deploy automático al hacer push)
+
+FASE 23: Seguridad v2
+  C6-15 2FA / MFA (doble factor)         ← XL (código TOTP, authenticator app)
+  C6-16 Auditoría avanzada               ← M (eventos de seguridad, login attempts)
+  C6-17 Cifrado de datos sensibles       ← M (cifrado en reposo de datos personales)
+  C6-18 GDPR completo (export/delete)    ← M (exportación y eliminación de datos)
+```
+
+---
+
+## 🎯 Matriz de Prioridad Real — Ciclo 6
+
+| Feature | Impacto | Esfuerzo | Dependencias | Fase |
+|---------|---------|----------|-------------|------|
+| **C6-01** PWA nativa gestos/swipe | Alto | M | C4-03 (PWA+) | **F19** |
+| **C6-02** Haptic Feedback | Medio | S | C6-01 | **F19** |
+| **C6-03** Pull-to-refresh / skeleton v2 | Alto | M | Ninguna | **F19** |
+| **C6-04** Bottom sheet y modales | Medio | M | Ninguna | **F19** |
+| **C6-05** Edición multi-usuario | Alto | XL | WebSockets | **F20** |
+| **C6-06** Historial de cambios (undo) | Medio | L | C6-05 | **F20** |
+| **C6-07** Presencia en línea | Bajo | M | C6-05 | **F20** |
+| **C6-08** API Keys y auth externa | Alto | M | Auth (JWT) | **F21** |
+| **C6-09** Endpoints públicos REST | Alto | L | C6-08 | **F21** |
+| **C6-10** SDK JavaScript / Node.js | Alto | XL | C6-09 | **F21** |
+| **C6-11** Docker compose optimizado | Alto | M | Ninguna | **F22** |
+| **C6-12** CI/CD pipeline | Alto | M | C6-11 | **F22** |
+| **C6-13** Monitoreo y alertas | Alto | M | Ninguna | **F22** |
+| **C6-14** Auto-deploy webhooks | Medio | S | C6-12 | **F22** |
+| **C6-15** 2FA / MFA | Alto | XL | Auth | **F23** |
+| **C6-16** Auditoría avanzada | Alto | M | Audit existente | **F23** |
+| **C6-17** Cifrado datos sensibles | Alto | M | Ninguna | **F23** |
+| **C6-18** GDPR completo | Alto | M | Guests | **F23** |
+
+---
+
+## 🚀 Orden de Ejecucion Sugerido — Ciclo 6
+
+### Fase 19: Mobile PWA+
+| Orden | Feature | Esfuerzo |
+|-------|---------|----------|
+| 1 | **C6-03** Pull-to-refresh / skeleton v2 | M |
+| 2 | **C6-01** PWA nativa con gestos y swipe | M |
+| 3 | **C6-04** Bottom sheet y modales nativos | M |
+| 4 | **C6-02** Haptic Feedback y sonidos | S |
+
+### Fase 20: Tiempo Real Colaborativo
+| Orden | Feature | Esfuerzo |
+|-------|---------|----------|
+| 1 | **C6-07** Presencia en línea | M |
+| 2 | **C6-05** Edición multi-usuario en vivo | XL |
+| 3 | **C6-06** Historial de cambios (undo/redo) | L |
+
+### Fase 21: API Pública
+| Orden | Feature | Esfuerzo |
+|-------|---------|----------|
+| 1 | **C6-08** API Keys y autenticación externa | M |
+| 2 | **C6-09** Endpoints públicos REST | L |
+| 3 | **C6-10** SDK JavaScript / Node.js | XL |
+
+### Fase 22: DevOps
+| Orden | Feature | Esfuerzo |
+|-------|---------|----------|
+| 1 | **C6-11** Docker compose optimizado | M |
+| 2 | **C6-12** CI/CD pipeline | M |
+| 3 | **C6-13** Monitoreo y alertas | M |
+| 4 | **C6-14** Auto-deploy webhooks | S |
+
+### Fase 23: Seguridad v2
+| Orden | Feature | Esfuerzo |
+|-------|---------|----------|
+| 1 | **C6-16** Auditoría avanzada | M |
+| 2 | **C6-18** GDPR completo | M |
+| 3 | **C6-17** Cifrado datos sensibles | M |
+| 4 | **C6-15** 2FA / MFA | XL |
+
+---
+
+## 📊 Tablero de Progreso — Ciclo 6
+
+| ID | Feature | Estado | Version | Fecha |
+|----|---------|--------|---------|-------|
+| C6-01 | PWA nativa con gestos y swipe | ⏳ | — | — |
+| C6-02 | Haptic Feedback y sonidos | ⏳ | — | — |
+| C6-03 | Pull-to-refresh / skeleton v2 | ⏳ | — | — |
+| C6-04 | Bottom sheet y modales nativos | ⏳ | — | — |
+| C6-05 | Edición multi-usuario en vivo | ⏳ | — | — |
+| C6-06 | Historial de cambios (undo/redo) | ⏳ | — | — |
+| C6-07 | Presencia en línea | ⏳ | — | — |
+| C6-08 | API Keys y autenticación externa | ⏳ | — | — |
+| C6-09 | Endpoints públicos REST | ⏳ | — | — |
+| C6-10 | SDK JavaScript / Node.js | ⏳ | — | — |
+| C6-11 | Docker compose optimizado | ⏳ | — | — |
+| C6-12 | CI/CD pipeline (GitHub Actions) | ⏳ | — | — |
+| C6-13 | Monitoreo y alertas | ⏳ | — | — |
+| C6-14 | Auto-deploy con webhooks | ⏳ | — | — |
+| C6-15 | 2FA / MFA | ⏳ | — | — |
+| C6-16 | Auditoría avanzada | ⏳ | — | — |
+| C6-17 | Cifrado de datos sensibles | ⏳ | — | — |
+| C6-18 | GDPR completo (export/delete) | ⏳ | — | — |
 
 ---
 
