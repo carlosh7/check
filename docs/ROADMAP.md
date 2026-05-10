@@ -911,7 +911,7 @@ Registro de espacios fisicos para eventos:
 | BL-14 | **Reconocimiento facial / OTP** | `cos301-2019-se/A-Recognition` | XL |
 | BL-15 | Password Recovery (codigo 6 digitos, email, modal login) | ✅ | v12.44.616 | 2026-05-08 |
 | BL-16 | **Site branding por cliente** | `eventuraofficials/event-registration-system` | M |
-| BL-17 | **Landing invitacion digital** | `Hans-developer/tarjeta-boda` | M |
+| BL-17 | **Landing invitación digital + QR evento** | ✅ | v12.44.677 | 2026-05-09 |
 | BL-18 | **Presupuesto por evento** | `2300032206/EVENT-MANGEMENT-SYSTEM` | M |
 | BL-19 | **Speaker management** | `Neriiiii/ems-event-management-system` | M |
 | BL-20 | **Propuestas publicas de eventos** | `Neriiiii/ems-event-management-system` | S |
