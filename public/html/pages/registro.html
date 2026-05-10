@@ -120,6 +120,11 @@
                         <label class="form-label">Categor&iacute;a / Boleto</label>
                         <div id="cart-items" class="space-y-2"></div>
                         <div id="cart-total" class="hidden text-right text-sm font-bold text-[var(--primary)] mt-2"></div>
+                        <div id="coupon-section" class="hidden flex gap-2 mt-3">
+                            <input type="text" id="coupon-input" class="input-field flex-1 uppercase" placeholder="CÓDIGO DE DESCUENTO">
+                            <button class="btn-secondary text-xs px-3" onclick="applyCoupon()">Aplicar</button>
+                        </div>
+                        <div id="coupon-result" class="hidden text-xs mt-1"></div>
                     </div>
                     
                     <div id="payment-summary" class="hidden registro-form-group">
@@ -177,21 +182,37 @@
             if (el) el.textContent = cart[catId] || 0;
             updateCartTotal();
         }
+        var _appliedCoupon = null;
         function updateCartTotal() {
             var total = 0; var hasItems = false;
             categories.forEach(function(c) {
                 var qty = cart[c.id] || 0;
                 if (qty > 0) { total += c.price * qty; hasItems = true; }
             });
+            document.getElementById('coupon-section').classList.toggle('hidden', !hasItems);
             var totalEl = document.getElementById('cart-total');
             var summaryEl = document.getElementById('payment-summary');
             var btn = document.getElementById('submit-btn');
-            if (totalEl) {
-                totalEl.classList.toggle('hidden', !hasItems);
-                totalEl.textContent = 'Total: $' + total.toFixed(2) + ' ' + (eventData?.currency || 'USD');
-            }
+            if (totalEl) { totalEl.classList.toggle('hidden', !hasItems); totalEl.textContent = 'Total: $' + total.toFixed(2) + ' ' + (eventData?.currency || 'USD'); }
             if (summaryEl) summaryEl.classList.toggle('hidden', !hasItems);
             if (btn) btn.textContent = hasItems ? 'Pagar con Stripe' : 'Confirmar Registro';
+            _appliedCoupon = null; document.getElementById('coupon-result').classList.add('hidden');
+        }
+        async function applyCoupon() {
+            var code = document.getElementById('coupon-input')?.value.trim();
+            if (!code) return;
+            var items = []; categories.forEach(function(c) { var q = cart[c.id] || 0; if (q > 0) items.push({ category_id: c.id, quantity: q }); });
+            try {
+                var r = await fetch(API_URL + '/events/' + eventData.id + '/coupons/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: code, items: items }) });
+                var d = await r.json();
+                var el = document.getElementById('coupon-result');
+                if (d.valid) {
+                    _appliedCoupon = code;
+                    el.className = 'text-xs mt-1 text-green-400';
+                    el.textContent = '✅ Cupón aplicado: -$' + d.discount.toFixed(2) + ' (Total: $' + d.finalTotal.toFixed(2) + ')';
+                } else { el.className = 'text-xs mt-1 text-red-400'; el.textContent = '❌ ' + (d.error || 'Cupón inválido'); }
+                el.classList.remove('hidden');
+            } catch(e) {}
         }
 
         // Check if returning from payment
@@ -362,14 +383,12 @@
             });
             if (eventData.payment_required && cartItems.length > 0) {
                 try {
+                    var checkoutBody = { name: body.name, email: body.email, items: cartItems };
+                    if (_appliedCoupon) checkoutBody.coupon_code = _appliedCoupon;
                     var checkoutRes = await fetch(API_URL + '/events/' + eventData.id + '/checkout-session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            name: body.name,
-                            email: body.email,
-                            items: cartItems
-                        })
+                        body: JSON.stringify(checkoutBody)
                     });
                         var checkoutData = await checkoutRes.json();
                         if (checkoutData.success && checkoutData.url) {

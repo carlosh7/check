@@ -173,6 +173,9 @@ try { db.exec("CREATE INDEX IF NOT EXISTS idx_tenants_domain ON tenants(domain)"
 try { db.exec("ALTER TABLE groups ADD COLUMN tenant_id TEXT"); } catch (_) {}
 // Video conference (C3-03)
 try { db.exec("ALTER TABLE events ADD COLUMN video_conference_url TEXT"); } catch (_) {}
+// Coupons table (C4-06)
+db.exec(`CREATE TABLE IF NOT EXISTS coupons (id TEXT PRIMARY KEY, event_id TEXT NOT NULL, code TEXT NOT NULL, discount_type TEXT NOT NULL DEFAULT 'percentage', discount_value REAL NOT NULL DEFAULT 0, max_uses INTEGER DEFAULT 0, current_uses INTEGER DEFAULT 0, expires_at TEXT, is_active INTEGER DEFAULT 1, created_at TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE, UNIQUE(event_id, code))`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_coupons_event ON coupons(event_id)"); } catch (_) {}
 // Public proposals table (BL-20)
 db.exec(`CREATE TABLE IF NOT EXISTS proposals (
     id TEXT PRIMARY KEY,

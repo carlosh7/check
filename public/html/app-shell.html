@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.712</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.713</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -475,6 +475,9 @@
                         </button>
                         <button class="btn-secondary sub-nav-btn" data-tab="automation" onclick="App.switchConfigTab('automation')">
                             <span class="material-symbols-outlined">smart_toy</span> Automatizaciones
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="coupons" onclick="App.switchConfigTab('coupons')">
+                            <span class="material-symbols-outlined">confirmation_number</span> Cupones
                         </button>
                     </div>
 
@@ -1655,6 +1658,22 @@
                                 <table class="data-table w-full">
                                     <thead><tr class="table-header-row"><th class="table-th">Nombre</th><th class="table-th">Evento</th><th class="table-th">Estado</th><th class="table-th">Acción</th></tr></thead>
                                     <tbody id="automation-tbody"><tr><td colspan="4" class="text-center py-8 text-slate-500">Sin reglas configuradas</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CUPONES (C4-06) -->
+                    <div id="config-content-coupons" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Cupones <span class="text-[var(--primary)]">de descuento</span></h2>
+                            <button class="btn-primary" onclick="App.openCouponModal()">➕ Nuevo cupón</button>
+                        </div>
+                        <div class="card overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead><tr class="table-header-row"><th class="table-th">Código</th><th class="table-th">Descuento</th><th class="table-th">Usos</th><th class="table-th">Vence</th><th class="table-th">Estado</th><th class="table-th">Acción</th></tr></thead>
+                                    <tbody id="coupons-tbody"><tr><td colspan="6" class="text-center py-8 text-slate-500">Sin cupones</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
@@ -4317,6 +4336,56 @@
             </label>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" onclick="App.closeTenantModal()" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══ Coupon Modal (C4-06) ═══ -->
+<div id="modal-coupon" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-60 backdrop-blur-sm">
+    <div class="bg-[var(--bg-primary)] border border-[var(--border)] rounded-xl shadow-2xl w-full max-w-md mt-[10vh] mx-4">
+        <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white">Cupón de descuento</h3>
+            <button onclick="App.closeCouponModal()" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-slate-400">close</span>
+            </button>
+        </div>
+        <form onsubmit="event.preventDefault(); App.saveCoupon()" class="p-5 space-y-4">
+            <input type="hidden" id="coupon-id">
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Código *</label>
+                <input id="coupon-code" class="input-field w-full uppercase" placeholder="EJ: DESCUENTO10" required>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Tipo</label>
+                    <select id="coupon-type" class="input-field w-full">
+                        <option value="percentage">Porcentaje %</option>
+                        <option value="fixed">Monto fijo</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Valor</label>
+                    <input id="coupon-value" type="number" step="0.01" class="input-field w-full" placeholder="10" required>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Usos máx</label>
+                    <input id="coupon-uses" type="number" class="input-field w-full" placeholder="0 = Ilimitado">
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Vence</label>
+                    <input id="coupon-expires" type="date" class="input-field w-full">
+                </div>
+            </div>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" id="coupon-active" class="w-4 h-4 accent-[var(--primary)]" checked>
+                <span>Activo</span>
+            </label>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="App.closeCouponModal()" class="btn-secondary">Cancelar</button>
                 <button type="submit" class="btn-primary">Guardar</button>
             </div>
         </form>

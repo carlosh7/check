@@ -11802,6 +11802,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'speakers') this.loadSpeakers();
         if (tabName === 'proposals') this.loadProposals();
         if (tabName === 'automation') this.loadAutomationRules();
+        if (tabName === 'coupons') this.loadCoupons();
         
         // Mostrar action-bar solo en tab Personal
         const actionBar = document.getElementById('config-action-bar');
@@ -13595,6 +13596,73 @@ navigate(viewName, params = {}, push = true) {
         var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar regla?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try { await this.fetchAPI('/events/' + eId + '/automation/' + ruleId, { method: 'DELETE' }); this.loadAutomationRules(); } catch(e) { console.error(e); }
+    },
+
+    // ═══ Cupones (C4-06) ═══
+
+    loadCoupons: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var coupons = await this.fetchAPI('/events/' + eId + '/coupons');
+            var tbody = document.getElementById('coupons-tbody');
+            if (!tbody) return;
+            if (!coupons || !coupons.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Sin cupones</td></tr>'; return; }
+            tbody.innerHTML = coupons.map(function(c) {
+                var label = c.discount_type === 'percentage' ? c.discount_value + '%' : '$' + parseFloat(c.discount_value).toFixed(2);
+                var exp = c.expires_at ? new Date(c.expires_at).toLocaleDateString() : '-';
+                return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-bold text-white">' + c.code + '</td>' +
+                    '<td class="table-td text-xs text-green-400">' + label + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + (c.current_uses || 0) + '/' + (c.max_uses || '∞') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + exp + '</td>' +
+                    '<td class="table-td"><span class="text-xs font-bold ' + (c.is_active ? 'text-green-500' : 'text-slate-500') + '">' + (c.is_active ? 'Activo' : 'Inactivo') + '</span></td>' +
+                    '<td class="table-td"><button class="btn-icon" onclick="App.editCoupon(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                    '<button class="btn-icon text-red-400" onclick="App.deleteCoupon(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+            }).join('');
+        } catch(e) { console.error('[COUPONS] Error:', e.message); }
+    },
+
+    openCouponModal: function() {
+        document.getElementById('coupon-id').value = ''; document.getElementById('coupon-code').value = '';
+        document.getElementById('coupon-type').value = 'percentage'; document.getElementById('coupon-value').value = '';
+        document.getElementById('coupon-uses').value = ''; document.getElementById('coupon-expires').value = '';
+        document.getElementById('coupon-active').checked = true;
+        document.getElementById('modal-coupon')?.classList.remove('hidden');
+    },
+    closeCouponModal: function() { document.getElementById('modal-coupon')?.classList.add('hidden'); },
+
+    editCoupon: async function(id) {
+        var eId = this.state.event?.id;
+        try {
+            var coupons = await this.fetchAPI('/events/' + eId + '/coupons');
+            var c = coupons.find(function(x) { return x.id === id; });
+            if (!c) return;
+            document.getElementById('coupon-id').value = c.id; document.getElementById('coupon-code').value = c.code || '';
+            document.getElementById('coupon-type').value = c.discount_type || 'percentage';
+            document.getElementById('coupon-value').value = c.discount_value || '';
+            document.getElementById('coupon-uses').value = c.max_uses || '';
+            document.getElementById('coupon-expires').value = c.expires_at ? c.expires_at.slice(0, 10) : '';
+            document.getElementById('coupon-active').checked = c.is_active !== 0;
+            document.getElementById('modal-coupon')?.classList.remove('hidden');
+        } catch(e) { console.error(e); }
+    },
+
+    saveCoupon: async function() {
+        var eId = this.state.event?.id;
+        var id = document.getElementById('coupon-id')?.value;
+        var code = document.getElementById('coupon-code')?.value.trim();
+        var type = document.getElementById('coupon-type')?.value;
+        var value = document.getElementById('coupon-value')?.value;
+        if (!code || !value) { this._notifyAction('Error', 'Código y valor requeridos', 'error'); return; }
+        var body = { code: code, discount_type: type, discount_value: parseFloat(value), max_uses: parseInt(document.getElementById('coupon-uses')?.value) || 0, expires_at: document.getElementById('coupon-expires')?.value || null, is_active: document.getElementById('coupon-active')?.checked };
+        try { await this.fetchAPI('/events/' + eId + '/coupons' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) }); this.closeCouponModal(); this.loadCoupons(); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    deleteCoupon: async function(id) {
+        var eId = this.state.event?.id;
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar cupón?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try { await this.fetchAPI('/events/' + eId + '/coupons/' + id, { method: 'DELETE' }); this.loadCoupons(); } catch(e) { console.error(e); }
     },
 
     currentWheel: null,
