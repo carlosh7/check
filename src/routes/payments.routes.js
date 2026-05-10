@@ -242,6 +242,65 @@ router.get('/transactions/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── Receipt PDF (C4-07) ───
+
+router.get('/transactions/:id/receipt', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    try {
+        var txn = db.prepare("SELECT t.*, e.name as event_name, e.date as event_date, e.location as event_location FROM transactions t JOIN events e ON t.event_id = e.id WHERE t.id = ?").get(req.params.id);
+        if (!txn) return res.status(404).json({ error: 'Transacción no encontrada' });
+
+        var { jsPDF } = require('jspdf');
+        var autoTable = require('jspdf-autotable').default;
+        var doc = new jsPDF();
+
+        // Colors
+        var primary = [124, 58, 237];
+        doc.setFillColor(primary[0], primary[1], primary[2]);
+        doc.rect(0, 0, 210, 35, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.text('RECIBO DE PAGO', 15, 20);
+        doc.setFontSize(10);
+        doc.text('Check Pro - Smart Eventos', 15, 30);
+
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(16);
+        doc.text('Comprobante de pago', 15, 50);
+
+        doc.setFontSize(10);
+        doc.text('Folio: ' + txn.id, 15, 62);
+        doc.text('Fecha: ' + new Date(txn.created_at).toLocaleString('es-MX'), 15, 70);
+        doc.text('Estado: ' + (txn.status === 'completed' ? '✅ Pagado' : txn.status), 15, 78);
+
+        // Event info
+        doc.setFontSize(12);
+        doc.text('Evento: ' + (txn.event_name || ''), 15, 92);
+        doc.setFontSize(10);
+        doc.text('Fecha evento: ' + (txn.event_date ? new Date(txn.event_date).toLocaleDateString() : '-'), 15, 100);
+        doc.text('Ubicación: ' + (txn.event_location || '-'), 15, 108);
+
+        // Guest info
+        doc.setFontSize(12);
+        doc.text('Cliente:', 15, 124);
+        doc.setFontSize(10);
+        doc.text('Nombre: ' + (txn.guest_name || '-'), 15, 132);
+        doc.text('Email: ' + (txn.guest_email || '-'), 15, 140);
+
+        // Amount
+        doc.setFontSize(16);
+        doc.setTextColor(primary[0], primary[1], primary[2]);
+        doc.text('Total pagado: $' + parseFloat(txn.amount || 0).toFixed(2) + ' ' + (txn.currency || 'USD'), 15, 160);
+
+        doc.setTextColor(100);
+        doc.setFontSize(8);
+        doc.text('Este comprobante fue generado electrónicamente por Check Pro.', 15, 280);
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=recibo_' + txn.id.slice(0, 8) + '.pdf');
+        res.send(Buffer.from(doc.output('arraybuffer')));
+    } catch(err) { console.error('[RECEIPT] Error:', err.message); res.status(500).json({ error: err.message }); }
+});
+
 // ─── Coupons (C4-06) ───
 
 router.get('/events/:eventId/coupons', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
