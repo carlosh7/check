@@ -482,7 +482,6 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                 totalRows = allRows.length;
 
                 // Smart detect fields
-                var detectedFields = {};
                 availableColumns.forEach(function(col) {
                     var field = smartDetectCol(col.name, colSample[col.index]);
                     if (field) detectedFields[col.index] = field;
