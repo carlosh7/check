@@ -109,6 +109,44 @@ router.get('/portal/:guestId', (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+// ICS Calendar (C2-07)
+router.get('/event/:id/ics', (req, res) => {
+    try {
+        var id = castId('events', req.params.id);
+        if (!id) return res.status(400).json({ error: 'ID inválido' });
+        var event = db.prepare("SELECT id, name, date, end_date, location, description FROM events WHERE id = ?").get(id);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+
+        var startDate = event.date ? new Date(event.date) : new Date();
+        var endDate = event.end_date ? new Date(event.end_date) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+
+        var fmt = function(d) {
+            return d.toISOString().replace(/-/g, '').replace(/:/g, '').split('.')[0] + 'Z';
+        };
+
+        var esc = function(t) { return (t || '').replace(/,/g, '\\,').replace(/\n/g, '\\n'); };
+
+        var ics = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//Check Pro//ES',
+            'BEGIN:VEVENT',
+            'UID:' + event.id + '@checkpro',
+            'DTSTART:' + fmt(startDate),
+            'DTEND:' + fmt(endDate),
+            'SUMMARY:' + esc(event.name),
+            'LOCATION:' + esc(event.location),
+            'DESCRIPTION:' + esc(event.description),
+            'END:VEVENT',
+            'END:VCALENDAR'
+        ].join('\r\n');
+
+        res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="' + (event.name || 'evento').replace(/\s+/g, '_') + '.ics"');
+        res.send(ics);
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 // QR del evento (BL-17)
 router.get('/event/:id/qr', (req, res) => {
     try {

@@ -77,9 +77,10 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
       </audio>
     </div>
 
-    <div>
+    <div class="flex flex-wrap gap-2 justify-center">
       <a class="btn" id="btn-register" href="#" target="_blank">📝 Confirmar asistencia</a>
-      <button class="btn btn-sec" onclick="downloadQR()">⬇ Descargar QR</button>
+      <button class="btn btn-sec" onclick="downloadQR()">⬇ QR</button>
+      <a class="btn btn-sec" id="btn-calendar" href="#" target="_blank">📅 Agregar</a>
     </div>
 
     <p class="footer">Generado por Check Pro</p>
@@ -139,6 +140,15 @@ async function load(){
     if(eventData.location&&eventData.location!=='Por definir')document.getElementById('event-location').textContent='📍 '+eventData.location;
     if(eventData.description){document.getElementById('event-desc').textContent=eventData.description;document.getElementById('event-desc').style.display='block'}
     document.getElementById('btn-register').href='/registro.html?event='+eventId;
+    // Calendar links
+    if(eventData.date){
+      var startTxt=new Date(eventData.date).toISOString().replace(/-|:|\.\d+/g,'');
+      var endTxt=eventData.end_date?new Date(eventData.end_date).toISOString().replace(/-|:|\.\d+/g,'') : new Date(new Date(eventData.date).getTime()+7200000).toISOString().replace(/-|:|\.\d+/g,'');
+      var txt=encodeURIComponent(eventData.name||'Evento');
+      var loc=encodeURIComponent(eventData.location||'');
+      var desc=encodeURIComponent(eventData.description||'');
+      document.getElementById('btn-calendar').href='/api/event/'+eventId+'/ics';
+    }
     // Generate QR for event registration link
     var regUrl=window.location.origin+'/registro.html?event='+eventId;
     try{
