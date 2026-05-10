@@ -878,3 +878,117 @@ describe('Change Log / Undo-Redo', () => {
         expect(result.error).toBeDefined();
     });
 });
+
+// ─── INTEGRATION TESTS (C7-02) ───
+
+describe('Integration: Full Event Flow', () => {
+    const eventsRoutes = require('../src/routes/events.routes');
+    const guestsRoutes = require('../src/routes/guests.routes');
+
+    function createApp(module, path) {
+        const app = express();
+        app.use(express.json());
+        app.use(path || '/api', module);
+        return app;
+    }
+
+    test('create event then add guest then check-in', async () => {
+        const adminId = getAdminToken();
+        if (!adminId) return;
+
+        // Create event
+        const evApp = createApp(eventsRoutes, '/api/events');
+        const evRes = await request(evApp)
+            .post('/api/events')
+            .set('x-user-id', adminId)
+            .send({ name: 'Integration Test Event', date: '2026-12-31', location: 'Test Location' });
+        expect([200, 201]).toContain(evRes.status);
+        const eventId = evRes.body.eventId || evRes.body.id;
+        expect(eventId).toBeDefined();
+
+        // Add guest via attendance endpoint
+        const attRes = await request(evApp)
+            .post(`/api/events/${eventId}/attendance`)
+            .set('x-user-id', adminId)
+            .send({ name: 'Integration Guest', email: 'integration@test.com' });
+        expect([200, 201]).toContain(attRes.status);
+
+        // List guests to verify
+        const listRes = await request(evApp)
+            .get(`/api/events/${eventId}/attendance`)
+            .set('x-user-id', adminId);
+        expect(listRes.status).toBe(200);
+        expect(Array.isArray(listRes.body)).toBe(true);
+
+        // Find our guest
+        const guest = listRes.body.find(g => g.client_email === 'integration@test.com');
+        expect(guest).toBeDefined();
+        expect(guest.client_name).toBe('Integration Guest');
+    });
+});
+
+describe('Integration: API Key Flow', () => {
+    const apikeysRoutes = require('../src/routes/apikeys.routes');
+
+    function createApp() {
+        const app = express();
+        app.use(express.json());
+        app.use('/', apikeysRoutes);
+        return app;
+    }
+
+    test('create API key then use it to access public API', async () => {
+        const adminId = getAdminToken();
+        if (!adminId) return;
+
+        // Create API key
+        const app = createApp();
+        const createRes = await request(app)
+            .post('/api/api-keys')
+            .set('x-user-id', adminId)
+            .send({ name: 'Integration Test Key', permissions: 'read' });
+        expect(createRes.status).toBe(200);
+        expect(createRes.body.key).toMatch(/^ck_/);
+        const apiKey = createRes.body.key;
+
+        // Use key to list events
+        const listRes = await request(app)
+            .get('/api/v1/events')
+            .set('x-api-key', apiKey);
+        expect(listRes.status).toBe(200);
+        expect(listRes.body.data).toBeDefined();
+        expect(typeof listRes.body.total).toBe('number');
+
+        // Cleanup: delete key
+        const delRes = await request(app)
+            .delete('/api/api-keys/' + createRes.body.id)
+            .set('x-user-id', adminId);
+        expect(delRes.status).toBe(200);
+    });
+});
+
+describe('Integration: Encryption Roundtrip', () => {
+    const { encryptPassword, decryptPassword, isEncrypted } = require('../src/security/encryption');
+
+    beforeAll(() => {
+        process.env.ENCRYPTION_KEY = 'test-integration-key-32bytes!!!!';
+    });
+
+    afterAll(() => {
+        delete process.env.ENCRYPTION_KEY;
+    });
+
+    test('encrypt store verify decrypt cycle', () => {
+        const passwords = ['my-smtp-pass', 'my-imap-pass', '', '***'];
+        for (const original of passwords) {
+            const encrypted = encryptPassword(original);
+            if (!original || original === '***') {
+                expect(encrypted).toBe(original);
+            } else {
+                expect(isEncrypted(encrypted)).toBe(true);
+                const decrypted = decryptPassword(encrypted);
+                expect(decrypted).toBe(original);
+            }
+        }
+    });
+});

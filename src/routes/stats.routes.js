@@ -5,8 +5,25 @@ const express = require('express');
 const { db, getEventConnection } = require('../../database');
 const { castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
+const { logPerformance } = require('../utils/webhooks');
 
 const router = express.Router();
+const statsCache = new Map();
+const CACHE_TTL = 30000; // 30 segundos
+
+function getCached(key, ttl) {
+    const entry = statsCache.get(key);
+    if (entry && Date.now() - entry.ts < (ttl || CACHE_TTL)) return entry.data;
+    return null;
+}
+
+function setCache(key, data, ttl) {
+    statsCache.set(key, { data, ts: Date.now() });
+    if (statsCache.size > 100) {
+        const oldest = [...statsCache.entries()].sort((a, b) => a[1].ts - b[1].ts)[0];
+        if (oldest) statsCache.delete(oldest[0]);
+    }
+}
 
 function getDbsForEvent(eventId) {
     const dbs = [db];
@@ -141,6 +158,7 @@ router.get('/stats/:eventId', authMiddleware(), (req, res) => {
             orgDistribution, genderDistribution, dietaryDistribution,
             restrictedGuests
         });
+        logPerformance('stats_event', 0, undefined, { eventId: eId });
     } catch (err) {
         console.error('[STATS] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener estadísticas' });
@@ -379,6 +397,15 @@ router.get('/health/system', authMiddleware(['ADMIN']), (req, res) => {
             platform: process.platform,
             timestamp: new Date().toISOString()
         });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Performance logs (C7-01) ───
+router.get('/performance/logs', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        var limit = Math.min(parseInt(req.query.limit) || 100, 500);
+        var logs = db.prepare("SELECT * FROM performance_logs ORDER BY created_at DESC LIMIT ?").all(limit);
+        res.json(logs);
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
