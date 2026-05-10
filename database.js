@@ -95,6 +95,9 @@ try { db.exec("ALTER TABLE events ADD COLUMN created_at TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN end_date TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN has_wheel INTEGER DEFAULT 0"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN has_own_db INTEGER DEFAULT 0"); } catch (_) {}
+// 2FA columns (C6-15)
+try { db.exec("ALTER TABLE users ADD COLUMN totp_secret TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE users ADD COLUMN totp_enabled INTEGER DEFAULT 0"); } catch (_) {}
 
 // Campos de personalización de registro público
 try { db.exec("ALTER TABLE events ADD COLUMN reg_title TEXT"); } catch (_) {}
@@ -179,6 +182,9 @@ try { db.exec("CREATE INDEX IF NOT EXISTS idx_coupons_event ON coupons(event_id)
 // Performance logs table (C5-12)
 db.exec("CREATE TABLE IF NOT EXISTS performance_logs (id TEXT PRIMARY KEY, operation TEXT, duration_ms INTEGER, details TEXT, created_at TEXT)");
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_perf_logs_created ON performance_logs(created_at)"); } catch (_) {}
+// API Keys (C6-08)
+db.exec(`CREATE TABLE IF NOT EXISTS api_keys (id TEXT PRIMARY KEY, name TEXT NOT NULL, key TEXT UNIQUE NOT NULL, user_id TEXT, permissions TEXT DEFAULT 'read', last_used_at TEXT, expires_at TEXT, is_active INTEGER DEFAULT 1, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_api_keys_key ON api_keys(key)"); } catch (_) {}
 // Guest achievements / gamification (C5-06)
 db.exec(`CREATE TABLE IF NOT EXISTS guest_achievements (id TEXT PRIMARY KEY, guest_id TEXT NOT NULL, event_id TEXT NOT NULL, achievement TEXT NOT NULL, awarded_at TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (guest_id) REFERENCES guests(id))`);
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_guest_achievements ON guest_achievements(guest_id)"); } catch (_) {}

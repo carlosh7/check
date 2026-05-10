@@ -17,6 +17,35 @@
 .loading-overlay .spinner { width: 40px; height: 40px; border-width: 3px; }
 .loading-overlay p { margin-top: 12px; font-size: 14px; color: var(--text-secondary); animation: pulse 2s ease-in-out infinite; }
 
+/* Swipe gestures (C6-01) */
+.swipe-container { overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
+.swipe-container > * { scroll-snap-align: start; }
+.swipe-indicator { display: flex; gap: 6px; justify-content: center; padding: 8px; }
+.swipe-indicator .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: all 0.3s; }
+.swipe-indicator .dot.active { background: var(--primary); width: 24px; border-radius: 4px; }
+
+/* Haptic feedback simulation (C6-02) */
+.haptic { transition: transform 0.1s; }
+.haptic:active { transform: scale(0.96); }
+
+/* Bottom sheet (C6-04) */
+.bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; max-height: 85vh; background: var(--bg-app); border-radius: 20px 20px 0 0; z-index: 99999; transform: translateY(100%); transition: transform 0.35s cubic-bezier(.32,.72,0,1); box-shadow: 0 -4px 30px rgba(0,0,0,0.3); overflow-y: auto; }
+.bottom-sheet.open { transform: translateY(0); }
+.bottom-sheet .handle { width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 4px; margin: 12px auto; }
+.bottom-sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99998; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.bottom-sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+
+/* Presence indicator (C6-07) */
+.presence-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+.presence-dot.online { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+.presence-dot.offline { background: #64748b; }
+
+/* Timeline / history (C6-06) */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 4px; bottom: 4px; width: 2px; background: rgba(255,255,255,0.08); }
+.timeline-item { position: relative; padding-bottom: 16px; }
+.timeline-item::before { content: ''; position: absolute; left: -20px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid var(--bg-app); }
+
 /* Pull-to-refresh indicator (C6-03) */
 .ptr-indicator { display: none; text-align: center; padding: 12px; font-size: 13px; color: var(--text-secondary); animation: fadeIn 0.3s ease-out; }
 .ptr-indicator .spinner { width: 20px; height: 20px; margin: 0 auto 6px; border-width: 2px; }

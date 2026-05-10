@@ -306,4 +306,39 @@ router.put('/me/password', authMiddleware(), (req, res) => {
     }
 });
 
+// ─── 2FA TOTP (C6-15) ───
+router.post('/me/2fa/setup', authMiddleware(), (req, res) => {
+    try {
+        var speakeasy = require('speakeasy');
+        var qrcode = require('qrcode');
+        var secret = speakeasy.generateSecret({ name: 'Check Pro:' + req.userId });
+        db.prepare("UPDATE users SET totp_secret = ? WHERE id = ?").run(secret.base32, req.userId);
+        qrcode.toDataURL(secret.otpauth_url, function(err, data) {
+            res.json({ success: true, secret: secret.base32, qrCode: data });
+        });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/me/2fa/verify', authMiddleware(), (req, res) => {
+    try {
+        var { token } = req.body;
+        var user = db.prepare("SELECT totp_secret FROM users WHERE id = ?").get(req.userId);
+        if (!user || !user.totp_secret) return res.status(400).json({ error: '2FA no configurado' });
+        var verified = require('speakeasy').totp.verify({ secret: user.totp_secret, encoding: 'base32', token: token, window: 1 });
+        if (verified) { db.prepare("UPDATE users SET totp_enabled = 1 WHERE id = ?").run(req.userId); res.json({ success: true }); }
+        else res.status(400).json({ error: 'Código inválido' });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/me/2fa/disable', authMiddleware(), (req, res) => {
+    try { db.prepare("UPDATE users SET totp_secret = NULL, totp_enabled = 0 WHERE id = ?").run(req.userId); res.json({ success: true }); } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+router.get('/me/2fa/status', authMiddleware(), (req, res) => {
+    try {
+        var user = db.prepare("SELECT totp_enabled FROM users WHERE id = ?").get(req.userId);
+        res.json({ enabled: user?.totp_enabled === 1 });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

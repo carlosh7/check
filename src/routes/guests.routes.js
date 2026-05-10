@@ -812,5 +812,39 @@ router.post('/:eventId/social-publish', authMiddleware(['ADMIN', 'PRODUCTOR']), 
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── GDPR: Export guest data (C6-18) ───
+router.get('/:eventId/guests/:guestId/export', (req, res) => {
+    try {
+        var guest = db.prepare("SELECT * FROM guests WHERE id = ? AND event_id = ?").get(req.params.guestId, req.params.eventId);
+        if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+        var achievements = db.prepare("SELECT * FROM guest_achievements WHERE guest_id = ?").all(req.params.guestId);
+        res.json({ personalData: guest, achievements: achievements, exportDate: new Date().toISOString(), generatedBy: 'Check Pro GDPR' });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete('/:eventId/guests/:guestId/erase', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        db.prepare("DELETE FROM guest_achievements WHERE guest_id = ?").run(req.params.guestId);
+        db.prepare("DELETE FROM guests WHERE id = ? AND event_id = ?").run(req.params.guestId, req.params.eventId);
+        res.json({ success: true, message: 'Datos eliminados conforme a GDPR' });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Presence (C6-07) ───
+router.post('/:eventId/presence', authMiddleware(), (req, res) => {
+    try {
+        var key = 'presence_' + req.params.eventId;
+        var now = Date.now();
+        var existing = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").get(key);
+        var users = existing ? JSON.parse(existing.setting_value) : {};
+        users[req.userId] = now;
+        // Clean stale entries (>30s)
+        Object.keys(users).forEach(function(u) { if (users[u] < now - 30000) delete users[u]; });
+        var upsert = function(k, v) { var e = db.prepare("SELECT setting_key FROM settings WHERE setting_key = ?").get(k); if (e) db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?").run(v, k); else db.prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)").run(k, v); };
+        upsert(key, JSON.stringify(users));
+        res.json({ online: Object.keys(users).length });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;
 module.exports.tempImport = tempImport;
