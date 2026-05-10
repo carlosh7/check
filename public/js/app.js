@@ -9919,6 +9919,25 @@ navigate(viewName, params = {}, push = true) {
         await this.fetchAPI(`/guests/checkin/${gId}`, { method: 'POST', body: JSON.stringify({ status: !status }) });
         this.loadGuests();
     },
+    loadAiReport: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) { this._notifyAction('Error', 'No hay evento', 'error'); return; }
+        try {
+            Swal.fire({ title: 'Generando insights...', allowOutsideClick: false, background: '#0f172a', color: '#fff', didOpen: function() { Swal.showLoading(); } });
+            var data = await this.fetchAPI('/reports/' + eId);
+            Swal.close();
+            if (!data) return;
+            var html = '<div class="text-left space-y-3" style="max-height:400px;overflow-y:auto">';
+            html += '<div class="flex justify-between"><span>Total invitados:</span><span class="font-bold">' + (data.stats?.total || 0) + '</span></div>';
+            html += '<div class="flex justify-between"><span>Asistieron:</span><span class="font-bold text-green-400">' + (data.stats?.checkedIn || 0) + '</span></div>';
+            html += '<div class="flex justify-between"><span>Asistencia:</span><span class="font-bold">' + (data.stats?.conversionRate || 0) + '%</span></div>';
+            html += '<hr class="border-slate-600"><div class="text-xs text-slate-400 uppercase font-bold">Insights</div>';
+            (data.insights || []).forEach(function(i) { html += '<div class="text-sm">' + i + '</div>'; });
+            html += '</div>';
+            Swal.fire({ title: '🤖 Reporte IA', html: html, width: '480px', confirmButtonText: 'OK', background: '#0f172a', color: '#fff' });
+        } catch(e) { Swal.close(); this._notifyAction('Error', e.message, 'error'); }
+    },
+
     addLiveEvent: function(data) {
         var list = document.getElementById('live-feed-list');
         var count = document.getElementById('live-count');

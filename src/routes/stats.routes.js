@@ -188,4 +188,64 @@ router.post('/db/maintenance', authMiddleware(['ADMIN']), (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── AI Reports / Insights (C4-09) ───
+
+router.get('/reports/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        var eId = require('../utils/helpers').castId('events', req.params.eventId);
+        if (!eId) return res.status(400).json({ error: 'ID inválido' });
+
+        var event = db.prepare("SELECT name, date, location FROM events WHERE id = ?").get(eId);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+
+        var dbs = getDbsForEvent(eId);
+        var total = querySum(dbs, "SELECT COUNT(*) as c FROM guests WHERE event_id = ?", [eId]);
+        var checked = querySum(dbs, "SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1", [eId]);
+        var pending = total - checked;
+
+        var byOrg = queryAll(dbs, "SELECT organization, COUNT(*) as c FROM guests WHERE event_id = ? AND organization IS NOT NULL AND organization != '' GROUP BY organization ORDER BY c DESC LIMIT 5", [eId]);
+        var byHour = queryAll(dbs, "SELECT strftime('%H', checkin_time) as h, COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1 AND checkin_time IS NOT NULL GROUP BY h ORDER BY c DESC LIMIT 3", [eId]);
+        var byDay = queryAll(dbs, "SELECT date(created_at) as d, COUNT(*) as c FROM guests WHERE event_id = ? GROUP BY d ORDER BY d ASC", [eId]);
+
+        var peakHour = byHour.length > 0 ? byHour[0].h + ':00' : 'N/A';
+        var topOrg = byOrg.length > 0 ? byOrg[0].organization : 'N/A';
+        var conversionRate = total > 0 ? Math.round((checked / total) * 100) : 0;
+
+        var insights = [];
+        if (conversionRate > 80) insights.push('✅ Excelente tasa de asistencia: ' + conversionRate + '%');
+        else if (conversionRate > 60) insights.push('📊 Buena tasa de asistencia: ' + conversionRate + '%');
+        else insights.push('⚠️ Baja tasa de asistencia: ' + conversionRate + '%');
+
+        if (total > 0) insights.push('👥 Total de invitados: ' + total + ' (' + checked + ' asistieron)');
+        if (peakHour !== 'N/A') insights.push('⏰ Hora pico de check-in: ' + peakHour);
+        if (topOrg !== 'N/A') insights.push('🏢 Organización con más invitados: ' + topOrg);
+
+        if (checked > 0) {
+            var attendeesPerOrg = byOrg.length;
+            insights.push('📋 ' + attendeesPerOrg + ' organizaciones representadas');
+            if (attendeesPerOrg > 10) insights.push('🌐 Alta diversidad de organizaciones: ' + attendeesPerOrg);
+        }
+
+        if (byDay.length > 0) {
+            var daysActive = byDay.length;
+            insights.push('📅 Registros durante ' + daysActive + ' días');
+            if (daysActive <= 1) insights.push('⚡ La mayoría se registró el mismo día');
+            else if (daysActive > 7) insights.push('📆 Registros distribuidos en más de una semana');
+        }
+
+        if (pending > 0 && pending > total * 0.5) {
+            insights.push('📢 ' + pending + ' invitados pendientes — considera enviar recordatorio');
+        }
+
+        res.json({
+            event: { name: event.name, date: event.date, location: event.location },
+            stats: { total: total, checkedIn: checked, pending: pending, conversionRate: conversionRate },
+            topOrganizations: byOrg,
+            peakCheckinHour: peakHour,
+            insights: insights,
+            generatedAt: new Date().toISOString()
+        });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;
