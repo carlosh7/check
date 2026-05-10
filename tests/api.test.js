@@ -86,9 +86,8 @@ describe('Check Pro API - Settings Routes', () => {
         app.use('/api/settings', settingsRoutes);
     });
     
-    test('GET /api/settings returns settings', async () => {
+    test('GET /api/settings returns 401 without auth', async () => {
         const res = await request(app).get('/api/settings');
-        expect(res.status).toBe(200);
-        expect(typeof res.body).toBe('object');
+        expect(res.status).toBe(401);
     });
 });

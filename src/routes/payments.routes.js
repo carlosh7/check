@@ -130,7 +130,8 @@ router.post('/events/:eventId/checkout', (req, res) => {
 
 router.post('/webhooks/stripe', (req, res) => {
     var sig = req.headers['stripe-signature'];
-    var endpointSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_placeholder';
+    var endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!endpointSecret) return res.status(500).json({ error: 'Stripe webhook secret no configurado' });
 
     try {
         var event2 = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);

@@ -68,6 +68,7 @@ const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 const { sendPushToEventUsers } = require('./push.routes');
 const { logChange } = require('../utils/change-log');
 const QRCode = require('qrcode');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 
@@ -123,7 +124,9 @@ router.post('/otp/generate/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR']), (r
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/otp/verify', (req, res) => {
+const otpLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { error: 'Demasiados intentos OTP. Espera 15 minutos.' } });
+
+router.post('/otp/verify', otpLimiter, (req, res) => {
     try {
         var { code } = req.body;
         if (!code) return res.status(400).json({ error: 'Código requerido' });

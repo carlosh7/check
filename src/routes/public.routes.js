@@ -88,7 +88,9 @@ router.get('/captcha', (req, res) => {
 // Portal del asistente (BL-28)
 router.get('/portal/:guestId', (req, res) => {
     try {
-        var guest = db.prepare("SELECT g.*, e.name as event_name, e.date as event_date, e.location as event_location, e.description as event_description FROM guests g JOIN events e ON g.event_id = e.id WHERE g.id = ?").get(req.params.guestId);
+        var gId = castId('guests', req.params.guestId);
+        if (!gId) return res.status(400).json({ error: 'ID de invitado no válido' });
+        var guest = db.prepare("SELECT g.*, e.name as event_name, e.date as event_date, e.location as event_location, e.description as event_description FROM guests g JOIN events e ON g.event_id = e.id WHERE g.id = ?").get(gId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
 
         // Sessions from event DB

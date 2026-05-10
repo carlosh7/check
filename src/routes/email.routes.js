@@ -11,6 +11,7 @@ const Imap = require('imap');
 const { simpleParser } = require('mailparser');
 const { db } = require('../../database');
 const { decryptPassword, encryptPassword } = require('../security/encryption');
+const { authMiddleware } = require('../middleware/auth');
 
 // ============================================================
 // HELPERS
@@ -68,6 +69,7 @@ function getImapConfig(account) {
 // ============================================================
 // CUENTAS DE EMAIL (SMTP/IMAP)
 // ============================================================
+router.use(authMiddleware(['ADMIN', 'PRODUCTOR']));
 
 // GET /api/email/accounts - Listar cuentas
 router.get('/accounts', (req, res) => {

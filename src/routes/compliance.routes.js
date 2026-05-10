@@ -1,6 +1,6 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const { db, getDatabase } = require('../../database');
+const { db, getEventConnection } = require('../../database');
 const { getValidId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 
@@ -76,7 +76,7 @@ router.delete('/classification/:id', authMiddleware(['ADMIN']), (req, res) => {
 // GET /api/events/:eventId/guests/:guestId/export — Portabilidad de datos (exportar datos del invitado en JSON)
 router.get('/events/:eventId/guests/:guestId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
-        const eventDb = getDatabase(req.params.eventId);
+        const eventDb = getEventConnection(req.params.eventId);
         if (!eventDb) return res.status(404).json({ error: 'Evento no encontrado' });
         const guestId = req.params.guestId;
         const guest = eventDb.prepare("SELECT * FROM guests WHERE id = ?").get(guestId);
@@ -111,7 +111,7 @@ router.get('/events/:eventId/guests/:guestId/export', authMiddleware(['ADMIN', '
 // DELETE /api/events/:eventId/guests/:guestId/personal-data — Derecho al olvido (anonimizar datos personales)
 router.delete('/events/:eventId/guests/:guestId/personal-data', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        const eventDb = getDatabase(req.params.eventId);
+        const eventDb = getEventConnection(req.params.eventId);
         if (!eventDb) return res.status(404).json({ error: 'Evento no encontrado' });
         const guestId = req.params.guestId;
         const guest = eventDb.prepare("SELECT * FROM guests WHERE id = ?").get(guestId);

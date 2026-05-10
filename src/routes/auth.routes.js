@@ -179,7 +179,7 @@ router.post('/password-reset-request', (req, res) => {
             }
         } catch(e) { console.error('[PASSWORD_RESET] Error sending email:', e.message); }
 
-        res.json({ success: true, message: emailSent ? 'Código enviado por email' : 'Código generado (configura SMTP para envio automatico)', code: code });
+        res.json({ success: true, message: emailSent ? 'Código enviado por email' : 'Código generado (configura SMTP para envio automatico)' });
     } catch(err) { console.error('[PASSWORD_RESET] Error:', err.message); res.status(500).json({ error: 'Error al procesar solicitud' }); }
 });
 

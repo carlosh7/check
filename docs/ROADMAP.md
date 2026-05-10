@@ -1775,4 +1775,111 @@ FASE 35: Escalabilidad y Calidad (M-XL)
 
 ---
 
+# Ciclo 10 — Operación Código Limpio
+
+## ⚡ Estado Actual
+
+| Item | Valor |
+|------|-------|
+| **Version** | v12.44.734 |
+| **Ultimo feature completado** | Ronda 1 (CRÍTICOS) + Ronda 2 parcial |
+| **Feature en curso** | **Ciclo 10 — Ronda 2 restante + Ronda 3** |
+| **Proximo feature** | R2-05 Unificar Theme |
+
+---
+
+## 🗺️ Dependencias — Ciclo 10
+
+```
+FASE 36: Cortafuegos (CRÍTICOS)
+  R1-01 Auth en email.routes.js          ← S (9 endpoints sin authMiddleware)
+  R1-02 .env a .gitignore + rotar keys   ← S (secrets commiteados)
+  R1-03 Auth en GET /api/settings         ← S (expone tokens)
+  R1-04 Eliminar code de reset-response   ← S (filtración de código)
+  R1-05 Fix compliance.routes.js import   ← S (getDatabase no existe)
+  R1-06 Fix agenda_items → event_agenda   ← S (tabla no existe)
+  R1-07 Auth en OTP verify                ← S (endpoint público)
+  R1-08 Sanitizar innerHTML app.js        ← L (291+ instancias)
+
+FASE 37: Saneamiento (ALTOS)
+  R2-01 Eliminar dead code (logger, rateLimiter, imports muertos)
+  R2-02 castId() en endpoints públicos
+  R2-03 try/catch en settings + public routes
+  R2-04 Timeouts en HTTP externos (CRM, AI, chatbot)
+  R2-05 Unificar Theme → core/Theme.js
+  R2-06 Unificar Push → modules/app-push.js
+  R2-07 Purge connectionCache + activeEditors
+  R2-08 Corregir global.emailService
+  R2-09 Stripe secret obligatorio
+  R2-10 Eliminar smtp_config/imap_config legacy
+  R2-11 Limpiar orphans (remove_*.js, temp/, backups)
+
+FASE 38: Pulido (MEDIOS/BAJOS)
+  R3-01 const/let sobre var
+  R3-02 Sincronizar .env.example
+  R3-03 JWT 24h + forzar HS256
+  R3-04 Traducir comentario ruso
+  R3-05 Unificar GDPR (compliance.routes.js)
+  R3-06 parseInt con NaN check
+  R3-07 Reducir express.json limit
+  R3-08 .env.example sincronizado
+```
+
+## 🚀 Orden de Ejecución — Ciclo 10
+
+| Orden | Item | Esfuerzo | Impacto | Fase |
+|-------|------|----------|---------|------|
+| 1 | R1-01 Auth email | S | 🔴 CRITICAL | F36 |
+| 2 | R1-03 Auth settings | S | 🔴 CRITICAL | F36 |
+| 3 | R1-05 Fix compliance import | S | 🔴 CRITICAL | F36 |
+| 4 | R1-06 Fix agenda_items | S | 🔴 CRITICAL | F36 |
+| 5 | R1-07 Auth OTP | S | 🔴 CRITICAL | F36 |
+| 6 | R1-04 Password reset code | S | 🔴 CRITICAL | F36 |
+| 7 | R2-09 Stripe secret | S | 🟠 HIGH | F37 |
+| 8 | R2-08 global.emailService | S | 🟠 HIGH | F37 |
+| 9 | R1-02 .env a .gitignore | S | 🔴 CRITICAL | F36 |
+| 10 | R2-04 Timeouts HTTP | M | 🟠 HIGH | F37 |
+| 11 | R2-03 try/catch settings+public | M | 🟠 HIGH | F37 |
+| 12 | R2-02 castId públicos | M | 🟠 HIGH | F37 |
+| 13 | R2-10 smtp_config legacy | S | 🟠 HIGH | F37 |
+| 14 | R2-11 Limpiar orphans | S | 🟠 HIGH | F37 |
+| 15 | R2-05 Unificar Theme | M | 🟠 HIGH | F37 |
+| 16 | R2-06 Unificar Push | M | 🟠 HIGH | F37 |
+| 17 | R2-07 Purge caches | M | 🟠 HIGH | F37 |
+| 18 | R1-08 Sanitizar innerHTML | L | 🔴 CRITICAL | F36 |
+| 19-26 | Resto R3 (M/B) | M | 🟡 MED | F38 |
+
+## 📊 Tablero de Progreso — Ciclo 10
+
+| ID | Item | Estado | Version |
+|----|------|--------|---------|
+| R1-01 | Auth email.routes.js | ✅ | v12.44.734 |
+| R1-02 | .env a .gitignore + rotar | ✅ | v12.44.734 |
+| R1-03 | Auth settings | ✅ | v12.44.734 |
+| R1-04 | Reset code response | ✅ | v12.44.734 |
+| R1-05 | Fix compliance import | ✅ | v12.44.734 |
+| R1-06 | Fix agenda_items | ✅ | v12.44.734 |
+| R1-07 | Auth OTP verify | ✅ | v12.44.734 |
+| R1-08 | Sanitizar innerHTML | ✅ | v12.44.734 |
+| R2-01 | Dead code cleanup | ✅ | v12.44.734 |
+| R2-02 | castId públicos | ✅ | v12.44.734 |
+| R2-03 | try/catch faltantes | ✅ | v12.44.734 |
+| R2-04 | Timeouts HTTP | ✅ | v12.44.734 |
+| R2-08 | global.emailService | ✅ | v12.44.734 |
+| R2-09 | Stripe secret | ✅ | v12.44.734 |
+| R2-10 | smtp_config legacy | ⏳ | — |
+| R2-11 | Orphans cleanup | ✅ | v12.44.734 |
+| R2-05 | Unificar Theme | ⏳ | — |
+| R2-06 | Unificar Push | ⏳ | — |
+| R2-07 | Purge caches | ⏳ | — |
+| R3-01 | const/let sobre var | ⏳ | — |
+| R3-02 | .env.example sync | ⏳ | — |
+| R3-03 | JWT 24h + HS256 | ⏳ | — |
+| R3-04 | Comentario ruso | ⏳ | — |
+| R3-05 | Unificar GDPR | ⏳ | — |
+| R3-06 | parseInt NaN check | ⏳ | — |
+| R3-07 | express.json limit | ⏳ | — |
+
+---
+
 ## 📚 Documentacion Referenciada

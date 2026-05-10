@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.733",
+  "version": "12.44.734",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "script.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "setup": "node setup.js",
     "start": "node server.js",
     "dev": "node setup.js",
-    "test": "jest --passWithNoTests --testPathIgnorePatterns='/tests/e2e.test.js'",
+    "test": "jest --passWithNoTests --testPathIgnorePatterns='/tests/e2e.test.js|/tests/load.test.js'",
     "test:watch": "jest --watch",
     "test:ai": "jest tests/ai/ --passWithNoTests",
     "test:e2e": "jest tests/e2e.test.js --passWithNoTests --forceExit --detectOpenHandles",

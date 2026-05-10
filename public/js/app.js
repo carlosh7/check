@@ -1,6 +1,11 @@
 import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
+window.escapeHtml = function(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+};
+
 
 import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.516';
 import { Config } from './modules/core/Config.js?v=12.44.516';

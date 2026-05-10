@@ -6,11 +6,8 @@ const http = require('http');
 const cors = require('cors');
 const path = require('path');
 const { db } = require('./database');
-const { v4: uuidv4 } = require('uuid');
-const nodemailer = require('nodemailer');
 const fs = require('fs');
 const helmet = require('helmet');
-const imap = require('imap');
 
 // Middleware de seguridad
 const { csrfMiddleware, securityHeaders } = require('./src/middleware/csrf');
@@ -43,14 +40,9 @@ const io = initSocket(server, { cors: { origin: ALLOWED_ORIGINS, methods: ['GET'
 const port = process.env.PORT || 3000;
 
 // --- EMAIL SERVICE (Delegado al módulo email.routes.js) ---
-// Las funciones de email ahora están en src/routes/email.routes.js
-// Esta variable global es usada por el módulo de email
 global.emailService = null;
-
-// Inicializar email service
 try {
-    const emailService = require('./src/utils/email-service');
-    global.emailService = emailService;
+    global.emailService = require('./src/utils/email-service');
     console.log('✓ Email Service inicializado');
 } catch (e) {
     console.warn('⚠ Email Service no disponible:', e.message);

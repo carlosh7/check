@@ -56,7 +56,7 @@ function fetchCrmContacts(conn) {
                 hostname: 'api.hubapi.com', path: '/crm/v3/objects/contacts?limit=100&properties=email,firstname,lastname,phone,company',
                 headers: { 'Authorization': 'Bearer ' + conn.api_key, 'Content-Type': 'application/json' }
             };
-            https.get(options, (res) => {
+            const req = https.get(options, (res) => {
                 let data = '';
                 res.on('data', c => data += c);
                 res.on('end', () => {
@@ -69,7 +69,9 @@ function fetchCrmContacts(conn) {
                         })));
                     } catch(e) { reject(e); }
                 });
-            }).on('error', reject);
+            });
+            req.on('error', reject);
+            req.setTimeout(15000, function() { req.destroy(); reject(new Error('Timeout al conectar con HubSpot')); });
         });
     }
     return Promise.resolve([]);

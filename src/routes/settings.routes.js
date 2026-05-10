@@ -13,41 +13,45 @@ const path = require('path');
 const router = express.Router();
 
 // Obtener settings
-router.get('/', (req, res) => {
-    const rows = db.prepare("SELECT * FROM settings").all();
-    const dict = {};
-    rows.forEach(r => dict[r.setting_key] = r.setting_value);
-    res.json(dict);
+router.get('/', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        const rows = db.prepare("SELECT * FROM settings").all();
+        const dict = {};
+        rows.forEach(r => dict[r.setting_key] = r.setting_value);
+        res.json(dict);
+    } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 // Actualizar settings
 router.put('/', authMiddleware(['ADMIN']), (req, res) => {
-    const { key, value } = req.body;
-
-    if (key && value !== undefined) {
-        db.prepare("INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)").run(key, value);
-    }
-
-    res.json({ success: true });
+    try {
+        const { key, value } = req.body;
+        if (key && value !== undefined) {
+            db.prepare("INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)").run(key, value);
+        }
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 // Legal texts (policy/terms)
 router.put('/legal', authMiddleware(['ADMIN']), (req, res) => {
-    const { type, content } = req.body;
-    const key = type === 'policy' ? 'legal_policy' : 'legal_terms';
-
-    if (type && content !== undefined) {
-        db.prepare("INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)").run(key, content);
-    }
-
-    res.json({ success: true });
+    try {
+        const { type, content } = req.body;
+        const key = type === 'policy' ? 'legal_policy' : 'legal_terms';
+        if (type && content !== undefined) {
+            db.prepare("INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)").run(key, content);
+        }
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 router.get('/legal', (req, res) => {
-    const rows = db.prepare("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('legal_policy', 'legal_terms')").all();
-    const dict = {};
-    rows.forEach(r => dict[r.setting_key] = r.setting_value);
-    res.json(dict);
+    try {
+        const rows = db.prepare("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('legal_policy', 'legal_terms')").all();
+        const dict = {};
+        rows.forEach(r => dict[r.setting_key] = r.setting_value);
+        res.json(dict);
+    } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 // Admin: purge database (DANGEROUS)
@@ -60,7 +64,7 @@ router.post('/purge', authMiddleware(['ADMIN']), (req, res) => {
 
         // Delete in correct order to avoid FK violations
         const tables = ['survey_responses', 'survey_questions',
-                       'agenda_items', 'guests', 'pre_registrations', 'user_events', 'group_users',
+                       'event_agenda', 'guests', 'pre_registrations', 'user_events', 'group_users',
                        'events', 'groups', 'users', 'audit_logs', 'settings'];
 
         for (const table of tables) {
