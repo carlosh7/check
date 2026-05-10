@@ -46,6 +46,9 @@ const chatbotRoutes = require('./chatbot.routes');
 const apikeysRoutes = require('./apikeys.routes');
 const deployRoutes = require('./deploy.routes');
 const changesRoutes = require('./changes.routes');
+const ecommerceRoutes = require('./ecommerce.routes');
+const crmRoutes = require('./crm.routes');
+const ecosystemRoutes = require('./ecosystem.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
 const upload = multer({
@@ -200,6 +203,12 @@ app.use('/api/compliance', complianceRoutes);
     app.use('/api', deployRoutes);
     // Change history undo/redo (C6-06)
     app.use('/api', changesRoutes);
+    // Ecommerce integrations (C8-04)
+    app.use('/api/ecommerce', ecommerceRoutes);
+    // CRM integrations (C8-06)
+    app.use('/api', crmRoutes);
+    // Plugin system + Marketplace + Pricing (C8-09/10/11)
+    app.use('/api', ecosystemRoutes);
 
     // Google Sheets Integration (F3-09)
     app.use('/api/google', googleRoutes.router);

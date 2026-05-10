@@ -1673,6 +1673,78 @@ db.exec(`CREATE TABLE IF NOT EXISTS scheduled_notifications (
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_sched_notif_status ON scheduled_notifications(status)"); } catch (_) {}
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_sched_notif_scheduled ON scheduled_notifications(scheduled_at)"); } catch (_) {}
 
+// Ecommerce connections (C8-04)
+db.exec(`CREATE TABLE IF NOT EXISTS ecommerce_connections (
+    id TEXT PRIMARY KEY,
+    platform TEXT NOT NULL,
+    name TEXT NOT NULL,
+    store_url TEXT NOT NULL,
+    api_key TEXT,
+    api_secret TEXT,
+    webhook_secret TEXT,
+    is_active INTEGER DEFAULT 1,
+    last_sync_at TEXT,
+    created_at TEXT
+)`);
+db.exec(`CREATE TABLE IF NOT EXISTS ecommerce_products (
+    id TEXT PRIMARY KEY,
+    connection_id TEXT NOT NULL,
+    external_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    price TEXT DEFAULT '0',
+    currency TEXT DEFAULT 'USD',
+    mapped_event_id TEXT,
+    mapped_category_id TEXT,
+    is_active INTEGER DEFAULT 1,
+    created_at TEXT,
+    updated_at TEXT,
+    FOREIGN KEY (connection_id) REFERENCES ecommerce_connections(id)
+)`);
+db.exec(`CREATE TABLE IF NOT EXISTS ecommerce_sync_logs (
+    id TEXT PRIMARY KEY,
+    connection_id TEXT NOT NULL,
+    event TEXT,
+    status TEXT,
+    payload TEXT,
+    created_at TEXT,
+    FOREIGN KEY (connection_id) REFERENCES ecommerce_connections(id)
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_eco_products_conn ON ecommerce_products(connection_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_eco_logs_conn ON ecommerce_sync_logs(connection_id)"); } catch (_) {}
+
+// CRM connections (C8-06)
+db.exec(`CREATE TABLE IF NOT EXISTS crm_connections (
+    id TEXT PRIMARY KEY, platform TEXT NOT NULL, name TEXT NOT NULL,
+    api_key TEXT, api_secret TEXT, region TEXT DEFAULT 'us',
+    is_active INTEGER DEFAULT 1, last_sync_at TEXT, created_at TEXT
+)`);
+db.exec(`CREATE TABLE IF NOT EXISTS crm_contacts (
+    id TEXT PRIMARY KEY, connection_id TEXT NOT NULL, external_id TEXT,
+    name TEXT, email TEXT, phone TEXT, company TEXT, raw_data TEXT, created_at TEXT,
+    FOREIGN KEY (connection_id) REFERENCES crm_connections(id)
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_crm_contacts_email ON crm_contacts(email)"); } catch (_) {}
+
+// Plugin system (C8-09) + Marketplace (C8-10)
+db.exec(`CREATE TABLE IF NOT EXISTS plugins (
+    id TEXT PRIMARY KEY, name TEXT UNIQUE, version TEXT DEFAULT '1.0.0',
+    author TEXT, description TEXT, source_url TEXT, permissions TEXT DEFAULT 'read',
+    is_active INTEGER DEFAULT 1, installed_at TEXT
+)`);
+db.exec(`CREATE TABLE IF NOT EXISTS marketplace_listings (
+    id TEXT PRIMARY KEY, name TEXT NOT NULL, version TEXT DEFAULT '1.0.0',
+    author TEXT, description TEXT, source_url TEXT, category TEXT DEFAULT 'tools',
+    price TEXT DEFAULT 'free', installs INTEGER DEFAULT 0, is_active INTEGER DEFAULT 1, created_at TEXT
+)`);
+
+// Pricing tiers (C8-11)
+db.exec(`CREATE TABLE IF NOT EXISTS pricing_tiers (
+    id TEXT PRIMARY KEY, name TEXT NOT NULL, price REAL NOT NULL DEFAULT 0,
+    currency TEXT DEFAULT 'USD', features TEXT DEFAULT '[]',
+    max_events INTEGER DEFAULT 0, max_guests_per_event INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1, sort_order INTEGER DEFAULT 0, created_at TEXT
+)`);
+
 // Migracion: encriptar passwords SMTP/IMAP existentes si ENCRYPTION_KEY esta configurada
 try {
     if (process.env.ENCRYPTION_KEY) {
