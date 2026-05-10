@@ -83,6 +83,23 @@ router.get('/captcha', (req, res) => {
     res.json({ question: captcha.question, token: captcha.token });
 });
 
+// QR del evento (BL-17)
+router.get('/event/:id/qr', (req, res) => {
+    try {
+        const id = castId('events', req.params.id);
+        if (!id) return res.status(400).json({ error: 'ID inválido' });
+        const event = db.prepare("SELECT id, name FROM events WHERE id = ?").get(id);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+        const regUrl = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host') + '/registro.html?event=' + id;
+        const QRCode = require('qrcode');
+        QRCode.toBuffer(regUrl, { width: 400, margin: 2, color: { dark: '#1e293b', light: '#ffffff' } }).then(function(buf) {
+            res.setHeader('Content-Type', 'image/png');
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+            res.send(buf);
+        }).catch(function(err) { res.status(500).json({ error: err.message }); });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 router.post('/captcha/verify', (req, res) => {
     const { token, answer } = req.body;
     if (!token || answer === undefined) {
