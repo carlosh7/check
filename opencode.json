@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "minimax-m2.7",
+  "model": "deepseek-v4-flash",
   "mcp": {
     "blender": {
       "type": "local",

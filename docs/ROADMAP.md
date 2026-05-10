@@ -1682,9 +1682,9 @@ FASE 30: DevOps & Calidad
 | Item | Valor |
 |------|-------|
 | **Version** | v12.44.733 |
-| **Ultimo feature completado** | C9-12/04/08/03/05/07/02/06/10/11 |
-| **Feature en curso** | **Ciclo 9 — Fase 34/35 pendiente** |
-| **Proximo feature** | C9-01 App React Native |
+| **Ultimo feature completado** | Ciclo 9 completado (12/13 features, C9-09 PostgreSQL diferido) |
+| **Feature en curso** | **—** |
+| **Proximo feature** | Pendiente de definir — Ciclo 10 |
 
 ---
 
@@ -1707,9 +1707,6 @@ FASE 33: Automatización Avanzada (L-XL)
   C9-02 Offline-first con sync           ← L (datos locales + sync móvil)
   C9-06 Workflows visuales               ← XL (arrastrar y soltar: si-entonces)
 
-FASE 34: Mobile Nativo (XL)
-  C9-01 App React Native funcional      ← XL (build real, no solo guía)
-
 FASE 35: Escalabilidad y Calidad (M-XL)
   C9-09 PostgreSQL real (no script)     ← XL (migración completa con pruebas)
   C9-10 Tests de carga/estrés           ← M (k6 o artillery para benchmarks)
@@ -1730,16 +1727,27 @@ FASE 35: Escalabilidad y Calidad (M-XL)
 | 8 | **C9-07** Reglas de negocio personalizadas | L | F33 | Power users |
 | 9 | **C9-02** Offline-first con sync | L | F33 | Base para mobile |
 | 10 | **C9-06** Workflows visuales | XL | F33 | Feature estrella |
-| 11 | **C9-01** App React Native funcional | XL | F34 | Mobile real |
-| 12 | **C9-10** Tests de carga/estrés | M | F35 | Calidad |
-| 13 | **C9-09** PostgreSQL real | XL | F35 | Escalabilidad |
-| 14 | **C9-11** Documentación de arquitectura | M | F35 | Mantenibilidad |
+| 11 | **C9-10** Tests de carga/estrés | M | F35 | Calidad |
+| 12 | **C9-09** PostgreSQL real | XL | F35 | Escalabilidad |
+| 13 | **C9-11** Documentación de arquitectura | M | F35 | Mantenibilidad |
 
 ## 📊 Tablero de Progreso — Ciclo 9
 
 | ID | Feature | Estado | Esfuerzo | Fase |
 |----|---------|--------|----------|------|
 | C9-13 | Tema oscuro/claro global | ✅ | v12.44.732 | 2026-05-10 |
+| C9-14 | Atajos de teclado | ✅ | v12.44.732 | 2026-05-10 |
+| C9-12 | Dashboard personalizable | ✅ | v12.44.733 | 2026-05-10 |
+| C9-04 | Smart tagging de invitados | ✅ | v12.44.733 | 2026-05-10 |
+| C9-08 | Webhook de acciones | ✅ | v12.44.733 | 2026-05-10 |
+| C9-03 | Predicción de asistencia | ✅ | v12.44.733 | 2026-05-10 |
+| C9-05 | Recomendaciones de venta | ✅ | v12.44.733 | 2026-05-10 |
+| C9-07 | Reglas de negocio personalizadas | ✅ | v12.44.733 | 2026-05-10 |
+| C9-02 | Offline-first con sync | ✅ | v12.44.733 | 2026-05-10 |
+| C9-06 | Workflows visuales | ✅ | v12.44.733 | 2026-05-10 |
+| C9-10 | Tests de carga/estrés | ✅ | v12.44.733 | 2026-05-10 |
+| C9-11 | Documentación de arquitectura | ✅ | v12.44.733 | 2026-05-10 |
+| C9-09 | PostgreSQL real | ⏳ Diferido | XL | F35 |
 | C9-14 | Atajos de teclado | ✅ | v12.44.732 | 2026-05-10 |
 | C9-12 | Dashboard personalizable | ✅ | v12.44.733 | 2026-05-10 |
 | C9-04 | Smart tagging de invitados | ✅ | v12.44.733 | 2026-05-10 |
