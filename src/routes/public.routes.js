@@ -88,16 +88,16 @@ router.get('/captcha', (req, res) => {
 // Portal del asistente (BL-28)
 router.get('/portal/:guestId', (req, res) => {
     try {
-        var gId = castId('guests', req.params.guestId);
+        let gId = castId('guests', req.params.guestId);
         if (!gId) return res.status(400).json({ error: 'ID de invitado no válido' });
-        var guest = db.prepare("SELECT g.*, e.name as event_name, e.date as event_date, e.location as event_location, e.description as event_description FROM guests g JOIN events e ON g.event_id = e.id WHERE g.id = ?").get(gId);
+        let guest = db.prepare("SELECT g.*, e.name as event_name, e.date as event_date, e.location as event_location, e.description as event_description FROM guests g JOIN events e ON g.event_id = e.id WHERE g.id = ?").get(gId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
 
         // Sessions from event DB
-        var sessions = [];
+        let sessions = [];
         try {
-            var { getEventConnection } = require('../../database');
-            var eventDb = getEventConnection(guest.event_id);
+            let { getEventConnection } = require('../../database');
+            let eventDb = getEventConnection(guest.event_id);
             if (eventDb) {
                 sessions = eventDb.prepare("SELECT id, title, date, start_time, end_time, location FROM sessions WHERE event_id = ? ORDER BY start_time ASC").all(guest.event_id);
             }
@@ -114,21 +114,21 @@ router.get('/portal/:guestId', (req, res) => {
 // ICS Calendar (C2-07)
 router.get('/event/:id/ics', (req, res) => {
     try {
-        var id = castId('events', req.params.id);
+        let id = castId('events', req.params.id);
         if (!id) return res.status(400).json({ error: 'ID inválido' });
-        var event = db.prepare("SELECT id, name, date, end_date, location, description FROM events WHERE id = ?").get(id);
+        let event = db.prepare("SELECT id, name, date, end_date, location, description FROM events WHERE id = ?").get(id);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
 
-        var startDate = event.date ? new Date(event.date) : new Date();
-        var endDate = event.end_date ? new Date(event.end_date) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+        let startDate = event.date ? new Date(event.date) : new Date();
+        let endDate = event.end_date ? new Date(event.end_date) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
 
-        var fmt = function(d) {
+        let fmt = function(d) {
             return d.toISOString().replace(/-/g, '').replace(/:/g, '').split('.')[0] + 'Z';
         };
 
-        var esc = function(t) { return (t || '').replace(/,/g, '\\,').replace(/\n/g, '\\n'); };
+        let esc = function(t) { return (t || '').replace(/,/g, '\\,').replace(/\n/g, '\\n'); };
 
-        var ics = [
+        let ics = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
             'PRODID:-//Check Pro//ES',
@@ -169,10 +169,10 @@ router.get('/event/:id/qr', (req, res) => {
 // QR del invitado individual (para portal/ticket)
 router.get('/guests/qr/:guestId', (req, res) => {
     try {
-        var guest = db.prepare("SELECT id, qr_token FROM guests WHERE id = ?").get(req.params.guestId);
+        let guest = db.prepare("SELECT id, qr_token FROM guests WHERE id = ?").get(req.params.guestId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
-        var QRCode = require('qrcode');
-        var url = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host') + '/api/guests/by-id/' + guest.id;
+        let QRCode = require('qrcode');
+        let url = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host') + '/api/guests/by-id/' + guest.id;
         QRCode.toBuffer(url, { width: 300, margin: 1, color: { dark: '#1e293b', light: '#ffffff' } }).then(function(buf) {
             res.setHeader('Content-Type', 'image/png');
             res.setHeader('Cache-Control', 'public, max-age=3600');

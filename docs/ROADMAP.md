@@ -1781,8 +1781,8 @@ FASE 35: Escalabilidad y Calidad (M-XL)
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.735 |
-| **Ultimo feature completado** | Ciclo 10 completado (23/26 items) |
+| **Version** | v12.44.736 |
+| **Ultimo feature completado** | ✅ Ciclo 10 COMPLETADO — 26/26 items |
 | **Feature en curso** | **—** |
 | **Proximo feature** | Pendiente de definir — Ciclo 11 |
 
@@ -1872,11 +1872,11 @@ FASE 38: Pulido (MEDIOS/BAJOS)
 | R2-05 | Unificar Theme | ✅ | v12.44.735 |
 | R2-06 | Unificar Push | ✅ | v12.44.735 |
 | R2-07 | Purge caches | ✅ | v12.44.735 |
-| R3-01 | const/let sobre var | ⏳ | — |
+| R3-01 | const/let sobre var | ✅ | v12.44.736 |
 | R3-02 | .env.example sync | ✅ | v12.44.735 |
 | R3-03 | JWT 24h + HS256 | ✅ | v12.44.735 |
 | R3-04 | Comentario ruso | ✅ | v12.44.735 |
-| R3-05 | Unificar GDPR | ⏳ | — |
+| R3-05 | Unificar GDPR | ✅ | v12.44.736 |
 | R3-06 | parseInt NaN check | ✅ | v12.44.735 |
 | R3-07 | express.json limit | ✅ | v12.44.735 |
 

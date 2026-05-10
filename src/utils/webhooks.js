@@ -301,7 +301,7 @@ function getWebhookLogs(webhookId, limit = 50) {
  * Send enriched Slack message (C5-09)
  */
 async function sendSlackMessage(webhook, payload) {
-    var blocks = [
+    let blocks = [
         { type: 'header', text: { type: 'plain_text', text: payload.title || 'Check Pro' } },
         { type: 'section', text: { type: 'mrkdwn', text: payload.message || '' } }
     ];
@@ -323,19 +323,19 @@ async function sendSlackMessage(webhook, payload) {
 // ─── Backup (C5-11) ───
 
 async function createBackup() {
-    var backupDir = process.env.BACKUP_DIR || './backups';
-    var fs = require('fs'), path = require('path');
+    let backupDir = process.env.BACKUP_DIR || './backups';
+    let fs = require('fs'), path = require('path');
     if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
-    var dateStr = new Date().toISOString().slice(0, 10);
-    var backupFile = path.join(backupDir, 'checkpro_backup_' + dateStr + '.db');
+    let dateStr = new Date().toISOString().slice(0, 10);
+    let backupFile = path.join(backupDir, 'checkpro_backup_' + dateStr + '.db');
 
     try {
-        var srcDb = db.name || (process.env.DATA_PATH ? path.join(process.env.DATA_PATH, 'system', 'database.db') : '/usr/src/app/persistence/system/database.db');
+        let srcDb = db.name || (process.env.DATA_PATH ? path.join(process.env.DATA_PATH, 'system', 'database.db') : '/usr/src/app/persistence/system/database.db');
         if (fs.existsSync(srcDb)) {
             fs.copyFileSync(srcDb, backupFile);
             // Keep only last 7 backups
-            var files = fs.readdirSync(backupDir).filter(function(f) { return f.startsWith('checkpro_backup_'); }).sort();
-            while (files.length > 7) { var old = files.shift(); fs.unlinkSync(path.join(backupDir, old)); }
+            let files = fs.readdirSync(backupDir).filter(function(f) { return f.startsWith('checkpro_backup_'); }).sort();
+            while (files.length > 7) { let old = files.shift(); fs.unlinkSync(path.join(backupDir, old)); }
             return { success: true, file: backupFile, size: fs.statSync(backupFile).size };
         }
         return { success: false, error: 'Database file not found' };
@@ -346,7 +346,7 @@ async function createBackup() {
 
 function logPerformance(operation, durationMs, details) {
     try {
-        var stmt = db.prepare("INSERT INTO performance_logs (id, operation, duration_ms, details, created_at) VALUES (?, ?, ?, ?, ?)");
+        let stmt = db.prepare("INSERT INTO performance_logs (id, operation, duration_ms, details, created_at) VALUES (?, ?, ?, ?, ?)");
         stmt.run(require('uuid').v4(), operation, durationMs, JSON.stringify(details || {}), new Date().toISOString());
     } catch(e) {}
 }

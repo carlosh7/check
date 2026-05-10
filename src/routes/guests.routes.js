@@ -831,6 +831,7 @@ router.post('/:eventId/social-publish', authMiddleware(['ADMIN', 'PRODUCTOR']), 
 });
 
 // ─── GDPR: Export guest data (C6-18) ───
+// DEPRECATED: Usar /api/compliance/events/:eventId/guests/:guestId/export
 router.get('/:eventId/guests/:guestId/export', (req, res) => {
     try {
         var guest = db.prepare("SELECT * FROM guests WHERE id = ? AND event_id = ?").get(req.params.guestId, req.params.eventId);
@@ -840,6 +841,7 @@ router.get('/:eventId/guests/:guestId/export', (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+// DEPRECATED: Usar /api/compliance/events/:eventId/guests/:guestId/personal-data
 router.delete('/:eventId/guests/:guestId/erase', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         db.prepare("DELETE FROM guest_achievements WHERE guest_id = ?").run(req.params.guestId);
