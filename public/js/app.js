@@ -11780,6 +11780,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'sessions') this.loadSessions();
         if (tabName === 'seatmaps') this.loadSeatLayouts();
         if (tabName === 'google') this.loadGoogleEventConfigData();
+        if (tabName === 'google') this.checkGcalStatus();
         if (tabName === 'branding') this.loadBranding();
         if (tabName === 'budget') this.loadBudget();
         if (tabName === 'speakers') this.loadSpeakers();
@@ -17304,6 +17305,37 @@ navigate(viewName, params = {}, push = true) {
 
             this.onGoogleSyncModeChange();
         } catch(e) { console.error('[GOOGLE] Error loading event config:', e.message); }
+    },
+
+    // ═══ Google Calendar Sync (C3-02) ═══
+
+    checkGcalStatus: async function() {
+        var el = document.getElementById('gcal-status');
+        if (!el) return;
+        var eId = this.state.event?.id;
+        if (!eId) { el.textContent = '❌ No hay evento seleccionado'; return; }
+        el.textContent = '✅ Listo para sincronizar. Haz clic en "Sincronizar con Calendar".';
+    },
+
+    syncEventToCalendar: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) { this._notifyAction('Error', 'No hay evento', 'error'); return; }
+        try {
+            var res = await this.fetchAPI('/google/events/' + eId + '/sync-calendar', { method: 'POST' });
+            if (res.success) {
+                document.getElementById('gcal-status').innerHTML = '✅ Sincronizado. <a href="' + (res.htmlLink || '#') + '" target="_blank" class="text-[var(--primary)] underline">Ver en Google Calendar</a>';
+                this._notifyAction('Sincronizado', 'Evento agregado a Google Calendar', 'success');
+            } else { this._notifyAction('Error', res.error, 'error'); }
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    unsyncEventFromCalendar: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var res = await this.fetchAPI('/google/events/' + eId + '/sync-calendar', { method: 'DELETE' });
+            if (res.success) { document.getElementById('gcal-status').textContent = '✅ Eliminado de Google Calendar'; this._notifyAction('Eliminado', 'Evento quitado de Calendar', 'success'); }
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
     saveGoogleEventConfig: async function() {

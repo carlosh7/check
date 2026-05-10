@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.701</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.702</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -1530,6 +1530,14 @@
                             </div>
                             <div id="evs-google-status" class="text-xs text-slate-500">
                                 <p>Selecciona una cuenta y guarda la configuraci&oacute;n.</p>
+                            </div>
+                            <div class="pt-4 border-t border-[var(--border)]">
+                                <p class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-2">Google Calendar (C3-02)</p>
+                                <div class="flex gap-2">
+                                    <button class="btn-primary text-xs" onclick="App.syncEventToCalendar()">📅 Sincronizar con Calendar</button>
+                                    <button class="btn-secondary text-xs" onclick="App.unsyncEventFromCalendar()">🗑 Quitar de Calendar</button>
+                                </div>
+                                <div id="gcal-status" class="text-xs text-slate-500 mt-2"></div>
                             </div>
                         </div>
                     </div>

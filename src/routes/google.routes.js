@@ -732,4 +732,41 @@ function notifyCheckin(eventId) {
     try { triggerExport(eventId); } catch(e) {}
 }
 
+// ─── Google Calendar Sync (C3-02) ───
+
+router.post('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    try {
+        var eventId = require('../utils/helpers').castId('events', req.params.eventId);
+        var event = db.prepare("SELECT id, name, date, end_date, location, description FROM events WHERE id = ?").get(eventId);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+        var oauth2 = getAuthClient(req.userId);
+        if (!oauth2) return res.status(400).json({ error: 'Google no conectado. Ve a Sistema > Perfil y conecta tu cuenta Google.' });
+        var calendar = google.calendar({ version: 'v3', auth: oauth2 });
+        var eventData = { summary: event.name, description: event.description || '', location: event.location || '', start: { dateTime: event.date || new Date().toISOString(), timeZone: 'America/Mexico_City' }, end: { dateTime: event.end_date || event.date || new Date().toISOString(), timeZone: 'America/Mexico_City' } };
+        var existingEventId = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'gcal_event_" + eventId + "'").get();
+        var result;
+        if (existingEventId) { result = await calendar.events.update({ calendarId: 'primary', eventId: existingEventId.setting_value, requestBody: eventData }); }
+        else {
+            result = await calendar.events.insert({ calendarId: 'primary', requestBody: eventData });
+            var upsert = function(k, v) { var e = db.prepare("SELECT setting_key FROM settings WHERE setting_key = ?").get(k); if (e) db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?").run(v, k); else db.prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)").run(k, v); };
+            upsert('gcal_event_' + eventId, result.data.id);
+        }
+        res.json({ success: true, calendarEventId: result.data.id, htmlLink: result.data.htmlLink });
+    } catch(err) { console.error('[GCAL] Error:', err.message); res.status(500).json({ error: err.message }); }
+});
+
+router.delete('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    try {
+        var eventId = require('../utils/helpers').castId('events', req.params.eventId);
+        var existingEventId = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'gcal_event_" + eventId + "'").get();
+        if (!existingEventId) return res.json({ success: true, message: 'No estaba sincronizado' });
+        var oauth2 = getAuthClient(req.userId);
+        if (!oauth2) return res.json({ success: true, message: 'Google no conectado' });
+        var calendar = google.calendar({ version: 'v3', auth: oauth2 });
+        await calendar.events.delete({ calendarId: 'primary', eventId: existingEventId.setting_value }).catch(function() {});
+        db.prepare("DELETE FROM settings WHERE setting_key = 'gcal_event_" + eventId + "'").run();
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = { router, startSyncWorker, stopSyncWorker, notifyCheckin };
