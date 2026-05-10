@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.704</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.705</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -472,6 +472,9 @@
                         </button>
                         <button class="btn-secondary sub-nav-btn" data-tab="proposals" onclick="App.switchConfigTab('proposals')">
                             <span class="material-symbols-outlined">lightbulb</span> Propuestas
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="automation" onclick="App.switchConfigTab('automation')">
+                            <span class="material-symbols-outlined">smart_toy</span> Automatizaciones
                         </button>
                     </div>
 
@@ -1636,6 +1639,22 @@
                                 <table class="data-table w-full">
                                     <thead><tr class="table-header-row"><th class="table-th">Título</th><th class="table-th">Propuesto por</th><th class="table-th">Votos</th><th class="table-th">Estado</th><th class="table-th">Acción</th></tr></thead>
                                     <tbody id="proposals-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Sin propuestas</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AUTOMATIZACIONES (C3-06) -->
+                    <div id="config-content-automation" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Automatizaciones</h2>
+                            <button class="btn-primary" onclick="App.openAutomationModal()">➕ Nueva regla</button>
+                        </div>
+                        <div class="card overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead><tr class="table-header-row"><th class="table-th">Nombre</th><th class="table-th">Evento</th><th class="table-th">Estado</th><th class="table-th">Acción</th></tr></thead>
+                                    <tbody id="automation-tbody"><tr><td colspan="4" class="text-center py-8 text-slate-500">Sin reglas configuradas</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
@@ -4154,6 +4173,65 @@
                 <button class="btn-secondary text-xs" onclick="App.clearWebhookLogs()">🗑️ Borrar logs</button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- ═══ Automation Rule Modal (C3-06) ═══ -->
+<div id="modal-automation" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-60 backdrop-blur-sm">
+    <div class="bg-[var(--bg-primary)] border border-[var(--border)] rounded-xl shadow-2xl w-full max-w-lg mt-[10vh] mx-4">
+        <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white">Regla de automatización</h3>
+            <button onclick="App.closeAutomationModal()" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-slate-400">close</span>
+            </button>
+        </div>
+        <form onsubmit="event.preventDefault(); App.saveAutomationRule()" class="p-5 space-y-4">
+            <input type="hidden" id="auto-id">
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Nombre</label>
+                <input id="auto-name" class="input-field w-full" placeholder="Ej: Enviar bienvenida al registrarse" required>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Cuándo ocurre</label>
+                <select id="auto-trigger" class="input-field w-full">
+                    <option value="guest.created">Invitado creado</option>
+                    <option value="guest.checked_in">Check-in realizado</option>
+                    <option value="guest.confirmed">Invitado confirmado</option>
+                    <option value="pre_registration.created">Pre-registro creado</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Acción a ejecutar</label>
+                <select id="auto-action" class="input-field w-full" onchange="App.onAutoActionChange()">
+                    <option value="send_email">Enviar email</option>
+                    <option value="send_sms">Enviar SMS</option>
+                    <option value="send_whatsapp">Enviar WhatsApp</option>
+                    <option value="webhook">Disparar webhook</option>
+                </select>
+            </div>
+            <div id="auto-action-config" class="space-y-2">
+                <div id="auto-email-config">
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Plantilla de email</label>
+                    <select id="auto-email-template" class="input-field w-full"></select>
+                </div>
+                <div id="auto-message-config" class="hidden">
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Mensaje</label>
+                    <textarea id="auto-message" class="input-field w-full text-xs" rows="3" placeholder="Hola {{name}}, gracias por registrarte..."></textarea>
+                </div>
+                <div id="auto-webhook-config" class="hidden">
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">URL del webhook</label>
+                    <input id="auto-webhook-url" class="input-field w-full" placeholder="https://hooks.example.com/...">
+                </div>
+            </div>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" id="auto-enabled" class="w-4 h-4 accent-[var(--primary)]" checked>
+                <span>Activado</span>
+            </label>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="App.closeAutomationModal()" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
     </div>
 </div>
 

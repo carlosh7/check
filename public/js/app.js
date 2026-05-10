@@ -11800,6 +11800,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'budget') this.loadBudget();
         if (tabName === 'speakers') this.loadSpeakers();
         if (tabName === 'proposals') this.loadProposals();
+        if (tabName === 'automation') this.loadAutomationRules();
         
         // Mostrar action-bar solo en tab Personal
         const actionBar = document.getElementById('config-action-bar');
@@ -13490,6 +13491,109 @@ navigate(viewName, params = {}, push = true) {
         try {
             await this.fetchAPI('/events/' + eId + '/proposals/' + id, { method: 'PUT', body: JSON.stringify({ status: status }) });
         } catch(e) { console.error(e); }
+    },
+
+    // ═══ Automatizaciones (C3-06) ═══
+
+    loadAutomationRules: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var rules = await this.fetchAPI('/events/' + eId + '/automation');
+            var tbody = document.getElementById('automation-tbody');
+            if (!tbody) return;
+            if (!rules || !rules.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-slate-500">Sin reglas configuradas</td></tr>'; return; }
+            tbody.innerHTML = rules.map(function(r) {
+                var actions = JSON.parse(r.actions_json || '{}');
+                var actionLabel = { send_email: 'Email', send_sms: 'SMS', send_whatsapp: 'WhatsApp', webhook: 'Webhook' }[actions.type || ''] || actions.type || '-';
+                return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-medium text-white">' + (r.name || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + (r.trigger_event || '') + ' → ' + actionLabel + '</td>' +
+                    '<td class="table-td"><span class="text-xs font-bold ' + (r.enabled ? 'text-green-500' : 'text-slate-500') + '">' + (r.enabled ? 'Activo' : 'Inactivo') + '</span></td>' +
+                    '<td class="table-td"><button class="btn-icon" onclick="App.editAutomationRule(\'' + r.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                    '<button class="btn-icon text-red-400" onclick="App.deleteAutomationRule(\'' + r.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+            }).join('');
+        } catch(e) { console.error('[AUTO] Error:', e.message); }
+    },
+
+    openAutomationModal: function() {
+        document.getElementById('auto-id').value = '';
+        document.getElementById('auto-name').value = '';
+        document.getElementById('auto-trigger').value = 'guest.created';
+        document.getElementById('auto-action').value = 'send_email';
+        document.getElementById('auto-enabled').checked = true;
+        document.getElementById('auto-message').value = '';
+        document.getElementById('auto-webhook-url').value = '';
+        this.onAutoActionChange();
+        // Load email templates
+        var eId = this.state.event?.id;
+        if (eId) this.loadEmailTemplatesDropdown();
+        document.getElementById('modal-automation')?.classList.remove('hidden');
+    },
+
+    closeAutomationModal: function() { document.getElementById('modal-automation')?.classList.add('hidden'); },
+
+    onAutoActionChange: function() {
+        var action = document.getElementById('auto-action')?.value;
+        document.getElementById('auto-email-config').style.display = action === 'send_email' ? 'block' : 'none';
+        document.getElementById('auto-message-config').style.display = (action === 'send_sms' || action === 'send_whatsapp') ? 'block' : 'none';
+        document.getElementById('auto-webhook-config').style.display = action === 'webhook' ? 'block' : 'none';
+    },
+
+    loadEmailTemplatesDropdown: function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        this.fetchAPI('/events/' + eId + '/templates').then(function(templates) {
+            var sel = document.getElementById('auto-email-template');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">Seleccionar...</option>' + (templates || []).map(function(t) { return '<option value="' + t.id + '">' + (t.name || t.title || 'Sin nombre') + '</option>'; }).join('');
+        }).catch(function() {});
+    },
+
+    saveAutomationRule: async function() {
+        var eId = this.state.event?.id;
+        var id = document.getElementById('auto-id')?.value;
+        var name = document.getElementById('auto-name')?.value.trim();
+        var trigger = document.getElementById('auto-trigger')?.value;
+        var action = document.getElementById('auto-action')?.value;
+        var enabled = document.getElementById('auto-enabled')?.checked;
+        if (!name || !trigger || !action) { this._notifyAction('Error', 'Completa todos los campos', 'error'); return; }
+        var actions = { type: action };
+        if (action === 'send_email') actions.template_id = document.getElementById('auto-email-template')?.value;
+        if (action === 'send_sms' || action === 'send_whatsapp') actions.message = document.getElementById('auto-message')?.value;
+        if (action === 'webhook') actions.url = document.getElementById('auto-webhook-url')?.value;
+        try {
+            await this.fetchAPI('/events/' + eId + '/automation' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify({ name: name, trigger_event: trigger, actions: actions, enabled: enabled }) });
+            this.closeAutomationModal();
+            this.loadAutomationRules();
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    editAutomationRule: async function(ruleId) {
+        var eId = this.state.event?.id;
+        try {
+            var rules = await this.fetchAPI('/events/' + eId + '/automation');
+            var r = rules.find(function(x) { return x.id === ruleId; });
+            if (!r) return;
+            document.getElementById('auto-id').value = r.id;
+            document.getElementById('auto-name').value = r.name || '';
+            document.getElementById('auto-trigger').value = r.trigger_event || 'guest.created';
+            document.getElementById('auto-enabled').checked = r.enabled !== 0;
+            var actions = {};
+            try { actions = JSON.parse(r.actions_json || '{}'); } catch(e) {}
+            document.getElementById('auto-action').value = actions.type || 'send_email';
+            this.onAutoActionChange();
+            if (actions.template_id) document.getElementById('auto-email-template').value = actions.template_id;
+            if (actions.message) document.getElementById('auto-message').value = actions.message;
+            if (actions.url) document.getElementById('auto-webhook-url').value = actions.url;
+            document.getElementById('modal-automation')?.classList.remove('hidden');
+        } catch(e) { console.error(e); }
+    },
+
+    deleteAutomationRule: async function(ruleId) {
+        var eId = this.state.event?.id;
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar regla?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try { await this.fetchAPI('/events/' + eId + '/automation/' + ruleId, { method: 'DELETE' }); this.loadAutomationRules(); } catch(e) { console.error(e); }
     },
 
     currentWheel: null,

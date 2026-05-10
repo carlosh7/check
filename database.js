@@ -143,6 +143,19 @@ try { db.exec("ALTER TABLE events ADD COLUMN music_url TEXT"); } catch (_) {}
 // OTP code for check-in (BL-14)
 try { db.exec("ALTER TABLE guests ADD COLUMN otp_code TEXT"); } catch (_) {}
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_guests_otp ON guests(otp_code)"); } catch (_) {}
+// Automation rules (C3-06)
+db.exec(`CREATE TABLE IF NOT EXISTS automation_rules (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    name TEXT NOT NULL,
+    trigger_event TEXT NOT NULL,
+    conditions_json TEXT,
+    actions_json TEXT NOT NULL,
+    enabled INTEGER DEFAULT 1,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_automation_rules_event ON automation_rules(event_id)"); } catch (_) {}
 // Video conference (C3-03)
 try { db.exec("ALTER TABLE events ADD COLUMN video_conference_url TEXT"); } catch (_) {}
 // Public proposals table (BL-20)
