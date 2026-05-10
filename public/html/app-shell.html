@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.703</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.704</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -255,6 +255,17 @@
 
                 <!-- SECCIÓN: ANALYTICS -->
                 <div id="admin-analytics" class="hidden space-y-2 my-2">
+                    <!-- Live Feed (C3-05) -->
+                    <div id="live-feed" class="card p-3 mb-4 border-l-4 border-l-green-500 border-white/5 bg-white/[0.01]">
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-xs font-bold uppercase text-green-400">🔴 EN VIVO</p>
+                            <span id="live-count" class="text-xs text-slate-500">0 hoy</span>
+                        </div>
+                        <div id="live-feed-list" class="space-y-1 max-h-32 overflow-y-auto text-xs">
+                            <p class="text-slate-600 italic">Esperando actividad...</p>
+                        </div>
+                    </div>
+
                     <!-- Global Analytics (C2-08) -->
                     <div class="card p-3 mb-4 bg-[var(--primary)]/5 border border-[var(--primary)]/10 rounded-xl hidden" id="global-analytics">
                         <div class="text-xs font-bold uppercase text-[var(--primary)] mb-2">🌐 Sistema</div>

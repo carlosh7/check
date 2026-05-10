@@ -9919,6 +9919,21 @@ navigate(viewName, params = {}, push = true) {
         await this.fetchAPI(`/guests/checkin/${gId}`, { method: 'POST', body: JSON.stringify({ status: !status }) });
         this.loadGuests();
     },
+    addLiveEvent: function(data) {
+        var list = document.getElementById('live-feed-list');
+        var count = document.getElementById('live-count');
+        if (!list) return;
+        var name = (data && data.name) || 'Alguien';
+        var entry = document.createElement('div');
+        entry.className = 'flex items-center gap-2 text-green-400 animate-fade-in';
+        entry.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>✅ ' + name + ' hizo check-in';
+        list.insertBefore(entry, list.firstChild);
+        if (list.children.length > 20) list.removeChild(list.lastChild);
+        if (count) count.textContent = parseInt(count.textContent) + 1 + ' hoy';
+        var feed = document.getElementById('live-feed');
+        if (feed) feed.style.borderLeftColor = '#22c55e';
+    },
+
     async updateStats() {
         if (!this.state.event) return;
         try {
@@ -17844,6 +17859,8 @@ async function initApp() {
         window.App.state.socket = io();
         window.App.state.socket.on('update_stats', (id) => { if (App.state.event?.id === id) App.updateStats(); });
         window.App.state.socket.on('checkin_update', () => App.loadGuests());
+        window.App.state.socket.on('live_checkin', function(data) { App.addLiveEvent(data); });
+        window.App.state.socket.on('live_checkin', function(data) { App.filterAttendance(); });
     }
 
     // Listeners System (Se maneja en attachAppListeners para evitar duplicación)

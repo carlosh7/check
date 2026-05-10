@@ -131,6 +131,7 @@ router.post('/otp/verify', (req, res) => {
         if (guest.checked_in) return res.json({ valid: false, error: 'Ya registró asistencia', guest: guest });
         if (!guest.checked_in) {
             db.prepare("UPDATE guests SET checked_in = 1, checkin_time = ? WHERE id = ?").run(new Date().toISOString(), guest.id);
+            try { var io2 = require('../socket').getIO(); if (io2) { io2.to(guest.event_id).emit('update_stats', guest.event_id); io2.to(guest.event_id).emit('live_checkin', { name: guest.name, id: guest.id, event_id: guest.event_id }); } } catch(e) {}
         }
         res.json({ valid: true, guest: { id: guest.id, name: guest.name, event_id: guest.event_id } });
     } catch(err) { res.status(500).json({ error: err.message }); }
@@ -378,7 +379,10 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
             gId, guest.event_id, currentStatus, 'attended', req.userId
         );
     }
-    if (io) io.to(guest.event_id).emit('update_stats', guest.event_id);
+    if (io) {
+        io.to(guest.event_id).emit('update_stats', guest.event_id);
+        io.to(guest.event_id).emit('live_checkin', { name: guest.name, id: guest.id, event_id: guest.event_id });
+    }
     
     // Trigger webhook for check-in
     triggerWebhooks(WEBHOOK_EVENTS.GUEST_CHECKED_IN, {
