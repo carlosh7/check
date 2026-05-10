@@ -76,6 +76,9 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
         Tu navegador no soporta audio.
       </audio>
     </div>
+    <div id="video-container" style="display:none;margin-bottom:20px">
+      <a id="video-link" class="btn" href="#" target="_blank" style="width:100%">🎥 Unirse a videoconferencia</a>
+    </div>
 
     <div class="flex flex-wrap gap-2 justify-center">
       <a class="btn" id="btn-register" href="#" target="_blank">📝 Confirmar asistencia</a>
@@ -159,6 +162,10 @@ async function load(){
     if(eventData.music_url){
       document.getElementById('music-container').style.display='block';
       document.getElementById('event-music').src=eventData.music_url;
+    }
+    if(eventData.video_conference_url){
+      document.getElementById('video-container').style.display='block';
+      document.getElementById('video-link').href=eventData.video_conference_url;
     }
     if(eventData.latitude&&eventData.longitude){
       document.getElementById('map-container').style.display='block';

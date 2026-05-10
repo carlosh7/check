@@ -143,6 +143,8 @@ try { db.exec("ALTER TABLE events ADD COLUMN music_url TEXT"); } catch (_) {}
 // OTP code for check-in (BL-14)
 try { db.exec("ALTER TABLE guests ADD COLUMN otp_code TEXT"); } catch (_) {}
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_guests_otp ON guests(otp_code)"); } catch (_) {}
+// Video conference (C3-03)
+try { db.exec("ALTER TABLE events ADD COLUMN video_conference_url TEXT"); } catch (_) {}
 // Public proposals table (BL-20)
 db.exec(`CREATE TABLE IF NOT EXISTS proposals (
     id TEXT PRIMARY KEY,
