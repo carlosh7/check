@@ -11765,6 +11765,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'google') this.loadGoogleEventConfigData();
         if (tabName === 'branding') this.loadBranding();
         if (tabName === 'budget') this.loadBudget();
+        if (tabName === 'speakers') this.loadSpeakers();
         
         // Mostrar action-bar solo en tab Personal
         const actionBar = document.getElementById('config-action-bar');
@@ -13316,6 +13317,103 @@ navigate(viewName, params = {}, push = true) {
         try {
             await this.fetchAPI('/events/' + eId + '/budget/' + id, { method: 'DELETE' });
             this.loadBudget();
+        } catch(e) { console.error(e); }
+    },
+
+    // ═══ Ponentes (BL-19) ═══
+
+    loadSpeakers: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var speakers = await this.fetchAPI('/events/' + eId + '/speakers');
+            var tbody = document.getElementById('speakers-tbody');
+            if (!tbody) return;
+            if (!speakers || !speakers.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin ponentes registrados</td></tr>';
+                return;
+            }
+            tbody.innerHTML = speakers.map(function(s) {
+                var social = [];
+                if (s.social_twitter) social.push('🐦');
+                if (s.social_linkedin) social.push('💼');
+                if (s.social_web) social.push('🌐');
+                return '<tr class="hover:bg-white/[0.02]">' +
+                    '<td class="table-td font-medium text-white">' + (s.name || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-300">' + (s.topic || '') + '</td>' +
+                    '<td class="table-td text-xs">' + (social.join(' ') || '-') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + (s.sort_order || 0) + '</td>' +
+                    '<td class="table-td"><button class="btn-icon" onclick="App.editSpeaker(\'' + s.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                    '<button class="btn-icon text-red-400" onclick="App.deleteSpeaker(\'' + s.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+            }).join('');
+        } catch(e) { console.error('[SPEAKERS] Error:', e.message); }
+    },
+
+    openSpeakerModal: function() {
+        document.getElementById('speaker-id').value = '';
+        document.getElementById('speaker-name').value = '';
+        document.getElementById('speaker-topic').value = '';
+        document.getElementById('speaker-bio').value = '';
+        document.getElementById('speaker-photo').value = '';
+        document.getElementById('speaker-twitter').value = '';
+        document.getElementById('speaker-linkedin').value = '';
+        document.getElementById('speaker-web').value = '';
+        document.getElementById('speaker-sort').value = '0';
+        document.getElementById('modal-speaker')?.classList.remove('hidden');
+    },
+
+    closeSpeakerModal: function() {
+        document.getElementById('modal-speaker')?.classList.add('hidden');
+    },
+
+    editSpeaker: async function(id) {
+        var eId = this.state.event?.id;
+        try {
+            var speakers = await this.fetchAPI('/events/' + eId + '/speakers');
+            var s = speakers.find(function(x) { return x.id === id; });
+            if (!s) return;
+            document.getElementById('speaker-id').value = s.id;
+            document.getElementById('speaker-name').value = s.name || '';
+            document.getElementById('speaker-topic').value = s.topic || '';
+            document.getElementById('speaker-bio').value = s.bio || '';
+            document.getElementById('speaker-photo').value = s.photo_url || '';
+            document.getElementById('speaker-twitter').value = s.social_twitter || '';
+            document.getElementById('speaker-linkedin').value = s.social_linkedin || '';
+            document.getElementById('speaker-web').value = s.social_web || '';
+            document.getElementById('speaker-sort').value = s.sort_order || 0;
+            document.getElementById('modal-speaker')?.classList.remove('hidden');
+        } catch(e) { console.error(e); }
+    },
+
+    saveSpeaker: async function() {
+        var eId = this.state.event?.id;
+        var id = document.getElementById('speaker-id')?.value;
+        var name = document.getElementById('speaker-name')?.value.trim();
+        if (!name) { this._notifyAction('Error', 'Nombre requerido', 'error'); return; }
+        var body = {
+            name: name,
+            topic: document.getElementById('speaker-topic')?.value || '',
+            bio: document.getElementById('speaker-bio')?.value || '',
+            photo_url: document.getElementById('speaker-photo')?.value || '',
+            social_twitter: document.getElementById('speaker-twitter')?.value || '',
+            social_linkedin: document.getElementById('speaker-linkedin')?.value || '',
+            social_web: document.getElementById('speaker-web')?.value || '',
+            sort_order: parseInt(document.getElementById('speaker-sort')?.value) || 0
+        };
+        try {
+            await this.fetchAPI('/events/' + eId + '/speakers' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) });
+            this.closeSpeakerModal();
+            this.loadSpeakers();
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    deleteSpeaker: async function(id) {
+        var eId = this.state.event?.id;
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar ponente?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI('/events/' + eId + '/speakers/' + id, { method: 'DELETE' });
+            this.loadSpeakers();
         } catch(e) { console.error(e); }
     },
 

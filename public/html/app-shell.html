@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.690</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.691</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -440,6 +440,9 @@
                         </button>
                         <button class="btn-secondary sub-nav-btn" data-tab="budget" onclick="App.switchConfigTab('budget')">
                             <span class="material-symbols-outlined">receipt</span> Presupuesto
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="speakers" onclick="App.switchConfigTab('speakers')">
+                            <span class="material-symbols-outlined">mic</span> Ponentes
                         </button>
                     </div>
 
@@ -1547,6 +1550,22 @@
                                 <table class="data-table w-full">
                                     <thead><tr class="table-header-row"><th class="table-th">Concepto</th><th class="table-th">Categoría</th><th class="table-th">Monto</th><th class="table-th">Notas</th><th class="table-th">Acción</th></tr></thead>
                                     <tbody id="budget-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Sin gastos registrados</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PONENTES (BL-19) -->
+                    <div id="config-content-speakers" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Ponentes <span class="text-[var(--primary)]">del Evento</span></h2>
+                            <button class="btn-primary" onclick="App.openSpeakerModal()">➕ Agregar ponente</button>
+                        </div>
+                        <div class="card overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead><tr class="table-header-row"><th class="table-th">Nombre</th><th class="table-th">Tema</th><th class="table-th">Redes</th><th class="table-th">Orden</th><th class="table-th">Acción</th></tr></thead>
+                                    <tbody id="speakers-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Sin ponentes registrados</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
@@ -3814,6 +3833,59 @@
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" onclick="App.closeBudgetModal()" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: PONENTE -->
+<div id="modal-speaker" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-60 backdrop-blur-sm">
+    <div class="bg-[var(--bg-primary)] border border-[var(--border)] rounded-xl shadow-2xl w-full max-w-md mt-[10vh] mx-4">
+        <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white">Ponente</h3>
+            <button onclick="App.closeSpeakerModal()" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-slate-400">close</span>
+            </button>
+        </div>
+        <form onsubmit="event.preventDefault(); App.saveSpeaker()" class="p-5 space-y-4">
+            <input type="hidden" id="speaker-id">
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Nombre *</label>
+                <input id="speaker-name" class="input-field w-full" placeholder="Nombre del ponente" required>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Tema / Charla</label>
+                <input id="speaker-topic" class="input-field w-full" placeholder="Título de la charla">
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Biograf&iacute;a</label>
+                <textarea id="speaker-bio" class="input-field w-full text-xs" rows="3" placeholder="Breve biografía..."></textarea>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Foto (URL)</label>
+                <input id="speaker-photo" class="input-field w-full" placeholder="https://...">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Twitter</label>
+                    <input id="speaker-twitter" class="input-field w-full" placeholder="@usuario">
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">LinkedIn</label>
+                    <input id="speaker-linkedin" class="input-field w-full" placeholder="URL">
+                </div>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Sitio web</label>
+                <input id="speaker-web" class="input-field w-full" placeholder="https://...">
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Orden</label>
+                <input id="speaker-sort" type="number" class="input-field w-24" value="0" min="0">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="App.closeSpeakerModal()" class="btn-secondary">Cancelar</button>
                 <button type="submit" class="btn-primary">Guardar</button>
             </div>
         </form>

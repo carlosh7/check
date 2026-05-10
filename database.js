@@ -146,6 +146,22 @@ db.exec(`CREATE TABLE IF NOT EXISTS budgets (
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 )`);
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_budgets_event ON budgets(event_id)"); } catch (_) {}
+// Speakers table (BL-19)
+db.exec(`CREATE TABLE IF NOT EXISTS speakers (
+    id TEXT PRIMARY KEY,
+    event_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    bio TEXT,
+    photo_url TEXT,
+    social_twitter TEXT,
+    social_linkedin TEXT,
+    social_web TEXT,
+    topic TEXT,
+    sort_order INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_speakers_event ON speakers(event_id)"); } catch (_) {}
 
 // 3. Invitados
 db.exec(`CREATE TABLE IF NOT EXISTS guests (
