@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.691</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.692</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -1063,6 +1063,14 @@
                                         <select id="evs-venue" class="input-field w-full">
                                             <option value="">-- Sin espacio asignado --</option>
                                         </select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-secondary)]">Coordenadas (Mapa)</label>
+                                        <div class="flex gap-2">
+                                            <input type="number" step="any" id="evs-lat" class="input-field w-1/2" placeholder="Latitud">
+                                            <input type="number" step="any" id="evs-lng" class="input-field w-1/2" placeholder="Longitud">
+                                        </div>
+                                        <p class="text-[10px] text-slate-500">Ej: 19.4326, -99.1332 (opcional, para mostrar mapa en la landing)</p>
                                     </div>
                                     <div class="space-y-2">
                                         <label class="text-xs font-bold uppercase text-">Descripción</label>

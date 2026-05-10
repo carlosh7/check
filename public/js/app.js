@@ -13146,6 +13146,9 @@ navigate(viewName, params = {}, push = true) {
         
         setVal('evs-reg-whitelist', ev.reg_email_whitelist);
         setVal('evs-reg-blacklist', ev.reg_email_blacklist);
+        // Map coordinates
+        setVal('evs-lat', ev.latitude || '');
+        setVal('evs-lng', ev.longitude || '');
         
         // Payment fields (F3-07)
         setCheck('evs-payment-required', ev.payment_required === 1);
@@ -13193,6 +13196,8 @@ navigate(viewName, params = {}, push = true) {
             reg_email_whitelist: getVal('evs-reg-whitelist'),
             reg_email_blacklist: getVal('evs-reg-blacklist'),
             venue_id: getVal('evs-venue'),
+            latitude: parseFloat(getVal('evs-lat')) || null,
+            longitude: parseFloat(getVal('evs-lng')) || null,
             payment_required: getCheck('evs-payment-required') ? 1 : 0,
             currency: getVal('evs-currency'),
             stripe_account: getVal('evs-stripe-account'),

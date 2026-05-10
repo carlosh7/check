@@ -134,6 +134,10 @@ try { db.exec("ALTER TABLE events ADD COLUMN brand_header_html TEXT"); } catch (
 try { db.exec("ALTER TABLE events ADD COLUMN brand_footer_html TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN brand_primary_color TEXT DEFAULT '#7c3aed'"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN brand_logo_url TEXT"); } catch (_) {}
+// Map coordinates (BL-21)
+try { db.exec("ALTER TABLE events ADD COLUMN latitude REAL"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN longitude REAL"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN map_zoom INTEGER DEFAULT 14"); } catch (_) {}
 // Budget table (BL-18)
 db.exec(`CREATE TABLE IF NOT EXISTS budgets (
     id TEXT PRIMARY KEY,
