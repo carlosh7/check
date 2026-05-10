@@ -920,7 +920,7 @@ Registro de espacios fisicos para eventos:
 | BL-23 | **Migraciones de BD** | `Neriiiii/ems-event-management-system` | M |
 | BL-24 | **Musica de fondo en landing** | `Hans-developer/tarjeta-boda` | S |
 | BL-25 | **Webhooks (UI admin, logs, triggers, presets)** | ✅ | v12.44.670 | 2026-05-09 |
-| BL-26 | **API REST publica documentada (Swagger)** | `docs/RECOMENDACIONES.md` | M |
+| BL-26 | **API Swagger/OpenAPI (JSDoc, fix security, swagger-jsdoc)** | ✅ | v12.44.672 | 2026-05-09 |
 | BL-27 | **Carga Masiva Inteligente (fuzzy, CSV, smart mapping, preview)** | ✅ | v12.44.671 | 2026-05-09 |
 | BL-28 | **Portal asistente PWA** | `docs/RECOMENDACIONES.md` | XL |
 
