@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.696</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.697</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -252,6 +252,18 @@
 
                 <!-- SECCIÓN: ANALYTICS -->
                 <div id="admin-analytics" class="hidden space-y-2 my-2">
+                    <!-- Global Analytics (C2-08) -->
+                    <div class="card p-3 mb-4 bg-[var(--primary)]/5 border border-[var(--primary)]/10 rounded-xl hidden" id="global-analytics">
+                        <div class="text-xs font-bold uppercase text-[var(--primary)] mb-2">🌐 Sistema</div>
+                        <div class="grid grid-cols-5 gap-2">
+                            <div class="text-center"><p class="text-lg font-bold text-white" id="ga-total-events">-</p><p class="text-[10px] text-[var(--text-secondary)]">Eventos</p></div>
+                            <div class="text-center"><p class="text-lg font-bold text-white" id="ga-total-guests">-</p><p class="text-[10px] text-[var(--text-secondary)]">Invitados</p></div>
+                            <div class="text-center"><p class="text-lg font-bold text-green-400" id="ga-total-checked">-</p><p class="text-[10px] text-[var(--text-secondary)]">Check-in</p></div>
+                            <div class="text-center"><p class="text-lg font-bold text-amber-400" id="ga-total-users">-</p><p class="text-[10px] text-[var(--text-secondary)]">Usuarios</p></div>
+                            <div class="text-center"><p class="text-lg font-bold text-blue-400" id="ga-conversion">-</p><p class="text-[10px] text-[var(--text-secondary)]">Conversión</p></div>
+                        </div>
+                    </div>
+
                     <div class="flex justify-between items-center">
                         <h2 class="text-lg font-bold text-white">Analytics del Evento</h2>
                         <select id="analytics-period" onchange="App.loadAnalytics()" class="input-field py-1 px-3 text-xs" style="width: auto;">

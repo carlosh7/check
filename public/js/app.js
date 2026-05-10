@@ -1041,6 +1041,20 @@ const App = window.App = {
     // ── Analytics ──
     analyticsFlowChart: null,
 
+    loadGlobalAnalytics: async function() {
+        try {
+            var data = await this.fetchAPI('/analytics?period=30');
+            if (!data) return;
+            document.getElementById('global-analytics')?.classList.remove('hidden');
+            var setText = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val ?? '-'; };
+            setText('ga-total-events', data.totalEvents || 0);
+            setText('ga-total-guests', data.totalGuests || 0);
+            setText('ga-total-checked', data.totalChecked || 0);
+            setText('ga-total-users', data.totalUsers || 0);
+            setText('ga-conversion', (data.conversionRate || 0) + '%');
+        } catch(e) { console.error('[ANALYTICS] Global:', e.message); }
+    },
+
     loadAnalytics: async function() {
         const eventId = this.state.event?.id;
         if (!eventId) return;
@@ -1065,6 +1079,8 @@ const App = window.App = {
             setText('analytics-rate', (res.conversionRate || 0) + '%');
             setText('analytics-orgs', res.orgs || 0);
             setText('analytics-onsite', res.onsite || 0);
+        setText('analytics-orgs-dist', res.orgDistribution?.length || 0);
+        setText('analytics-diet', res.dietaryDistribution?.length || 0);
 
             // Flow chart (check-ins por hora)
             const flowCanvas = document.getElementById('analytics-flow-chart');
@@ -17577,6 +17593,10 @@ window.switchAdminTab = function(tabName) {
         if (typeof this.loadAttendance === 'function') {
             this.loadAttendance(this.state.event.id);
         }
+    }
+    // C2-08: Cargar analytics globales si estamos en el dashboard
+    if (!tabName && typeof App.loadGlobalAnalytics === 'function') {
+        App.loadGlobalAnalytics();
     }
 };
 

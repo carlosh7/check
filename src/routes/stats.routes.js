@@ -42,6 +42,30 @@ function querySum(dbs, sql, params) {
     return total;
 }
 
+// ─── Dashboard global (C2-08) ───
+
+router.get('/analytics', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        var period = parseInt(req.query.period) || 30;
+        var since = new Date(Date.now() - period * 24 * 60 * 60 * 1000).toISOString();
+
+        var totalEvents = db.prepare("SELECT COUNT(*) as c FROM events").get().c;
+        var totalGuests = db.prepare("SELECT COUNT(*) as c FROM guests").get().c;
+        var totalChecked = db.prepare("SELECT COUNT(*) as c FROM guests WHERE checked_in = 1").get().c;
+        var totalUsers = db.prepare("SELECT COUNT(*) as c FROM users WHERE status = 'APPROVED'").get().c;
+
+        var trend = db.prepare("SELECT date(created_at) as day, COUNT(*) as c FROM guests WHERE created_at >= ? GROUP BY day ORDER BY day ASC").all(since);
+        var topEvents = db.prepare("SELECT e.id, e.name, COUNT(g.id) as c FROM events e LEFT JOIN guests g ON g.event_id = e.id GROUP BY e.id ORDER BY c DESC LIMIT 10").all();
+        var monthly = db.prepare("SELECT strftime('%Y-%m', created_at) as month, COUNT(*) as c FROM guests GROUP BY month ORDER BY month ASC LIMIT 12").all();
+
+        res.json({
+            totalEvents, totalGuests, totalChecked, totalUsers,
+            conversionRate: totalGuests > 0 ? Math.round((totalChecked / totalGuests) * 100) : 0,
+            trend, topEvents, monthly
+        });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 router.get('/stats/:eventId', authMiddleware(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
