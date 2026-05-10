@@ -147,4 +147,45 @@ router.get('/stats/:eventId', authMiddleware(), (req, res) => {
     }
 });
 
+// ─── DB Maintenance (C2-09) ───
+
+router.post('/db/maintenance', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        var action = req.body.action || 'analyze';
+        var result = {};
+        if (action === 'analyze' || action === 'all') {
+            db.exec("ANALYZE");
+            result.analyze = 'OK';
+        }
+        if (action === 'integrity_check' || action === 'all') {
+            var check = db.prepare("PRAGMA integrity_check").get();
+            result.integrity = check ? check['integrity_check'] : 'unknown';
+        }
+        if (action === 'quick_optimize' || action === 'all') {
+            db.exec("PRAGMA optimize");
+            result.optimize = 'OK';
+        }
+        if (action === 'stats') {
+            var pageCount = db.prepare("PRAGMA page_count").get();
+            var pageSize = db.prepare("PRAGMA page_size").get();
+            var tableCount = db.prepare("SELECT COUNT(*) as c FROM sqlite_master WHERE type='table'").get();
+            var indexCount = db.prepare("SELECT COUNT(*) as c FROM sqlite_master WHERE type='index'").get();
+            result.stats = {
+                page_count: pageCount?.page_count || 0,
+                page_size: pageSize?.page_size || 0,
+                db_size_kb: Math.round((pageCount?.page_count || 0) * (pageSize?.page_size || 0) / 1024),
+                tables: tableCount?.c || 0,
+                indexes: indexCount?.c || 0
+            };
+        }
+        if (action === 'quick_optimize' || action === 'all') {
+            // Limpiar webhook logs viejos (>30 días)
+            var old = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+            var deleted = db.prepare("DELETE FROM webhook_logs WHERE created_at < ?").run(old);
+            result.clean_logs = deleted.changes + ' logs eliminados';
+        }
+        res.json({ success: true, action: action, result: result });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

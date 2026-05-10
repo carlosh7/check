@@ -497,7 +497,16 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_raffle_results_raffle ON raffle_results(raffle_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffle_spins_raffle ON raffle_spins(raffle_id)",
         "CREATE INDEX IF NOT EXISTS idx_transactions_event ON transactions(event_id)",
-        "CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status)"
+        "CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status)",
+        // Performance indexes (C2-09)
+        "CREATE INDEX IF NOT EXISTS idx_guests_name ON guests(name)",
+        "CREATE INDEX IF NOT EXISTS idx_guests_organization ON guests(organization)",
+        "CREATE INDEX IF NOT EXISTS idx_guests_category ON guests(category_id)",
+        "CREATE INDEX IF NOT EXISTS idx_guests_created ON guests(created_at)",
+        "CREATE INDEX IF NOT EXISTS idx_sessions_event ON sessions(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_session_guests_guest ON session_guests(guest_id)",
+        "CREATE INDEX IF NOT EXISTS idx_guest_status_log_guest ON guest_status_log(guest_id)",
+        "CREATE INDEX IF NOT EXISTS idx_guest_categories_event ON guest_categories(event_id)"
     ];
     
     for (const sql of indices) {

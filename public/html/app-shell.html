@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.697</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.698</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -2523,12 +2523,18 @@
                 <div id="sys-content-db" class="hidden space-y-4">
                     <!-- Botones de acción -->
                     <div class="flex flex-wrap items-center gap-3">
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 flex-wrap">
                             <button class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.openImportModal('all')">
                                 <span class="material-symbols-outlined text-base">upload</span> Importar Todo
                             </button>
                             <button class="btn-secondary btn-standard flex items-center gap-1.5" onclick="App.openExportDBModal()">
                                 <span class="material-symbols-outlined text-base">download</span> Exportar Todo
+                            </button>
+                            <button class="btn-secondary btn-standard flex items-center gap-1.5" onclick="App.runDbMaintenance()">
+                                <span class="material-symbols-outlined text-base">speed</span> Optimizar BD
+                            </button>
+                            <button class="btn-secondary btn-standard flex items-center gap-1.5" onclick="App.runDbStats()">
+                                <span class="material-symbols-outlined text-base">info</span> Estadísticas BD
                             </button>
                         </div>
                     </div>

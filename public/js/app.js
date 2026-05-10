@@ -17316,6 +17316,32 @@ navigate(viewName, params = {}, push = true) {
         } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
     },
 
+    // ═══ DB Maintenance (C2-09) ═══
+
+    runDbMaintenance: async function() {
+        Swal.fire({ title: 'Optimizando...', allowOutsideClick: false, background: '#0f172a', color: '#fff', didOpen: function() { Swal.showLoading(); } });
+        try {
+            var res = await this.fetchAPI('/db/maintenance', { method: 'POST', body: JSON.stringify({ action: 'all' }) });
+            Swal.close();
+            if (res.success) {
+                var msg = '✅ Analyze OK\n✅ Integrity: ' + (res.result?.integrity || 'N/A') + '\n✅ Optimize OK\n🧹 ' + (res.result?.clean_logs || '');
+                Swal.fire({ icon: 'success', title: 'BD Optimizada', text: msg, background: '#0f172a', color: '#fff' });
+            }
+        } catch(e) { Swal.close(); this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    runDbStats: async function() {
+        try {
+            var res = await this.fetchAPI('/db/maintenance', { method: 'POST', body: JSON.stringify({ action: 'stats' }) });
+            if (res.success && res.result?.stats) {
+                var s = res.result.stats;
+                Swal.fire({ icon: 'info', title: 'Estadísticas BD',
+                    html: '📦 Tamaño: ' + s.db_size_kb + ' KB<br>📊 Tablas: ' + s.tables + '<br>📑 Índices: ' + s.indexes + '<br>📄 Páginas: ' + s.page_count,
+                    background: '#0f172a', color: '#fff' });
+            }
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
     importEventFromSheets: async function() {
         var eventId = this.state?.event?.id;
         if (!eventId) return;
