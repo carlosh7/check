@@ -17,7 +17,9 @@ const {
     deleteWebhook,
     generateSecret,
     triggerWebhooks,
-    sendWebhook
+    sendWebhook,
+    logWebhookDelivery,
+    getWebhookLogs
 } = require('../utils/webhooks');
 
 const router = express.Router();
@@ -263,6 +265,35 @@ router.post('/:id/test', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
             error: error.message,
             message: 'Error al enviar webhook' 
         });
+    }
+});
+
+// Get webhook delivery logs
+router.get('/:id/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    try {
+        const webhook = getWebhook(req.params.id);
+        if (!webhook) return res.status(404).json({ error: 'Webhook no encontrado' });
+        if (req.userRole !== 'ADMIN' && webhook.event_id) {
+            const { hasEventAccess } = require('../utils/helpers');
+            if (!hasEventAccess(req.userId, webhook.event_id, req.userRole)) return res.status(403).json({ error: 'No tienes acceso' });
+        }
+        const logs = getWebhookLogs(req.params.id, parseInt(req.query.limit) || 50);
+        res.json(logs);
+    } catch (error) {
+        console.error('Error fetching webhook logs:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Delete webhook logs
+router.delete('/:id/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    try {
+        const webhook = getWebhook(req.params.id);
+        if (!webhook) return res.status(404).json({ error: 'Webhook no encontrado' });
+        db.prepare("DELETE FROM webhook_logs WHERE webhook_id = ?").run(req.params.id);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 

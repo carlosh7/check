@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.669</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.670</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -1529,6 +1529,9 @@
                         <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="venues" onclick="App.switchSystemTab('venues')">
                             <span class="material-symbols-outlined text-base">location_on</span> Espacios
                         </button>
+                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="webhooks" onclick="App.switchSystemTab('webhooks')">
+                            <span class="material-symbols-outlined text-base">webhook</span> Webhooks
+                        </button>
                     </div>
                     </div>
 
@@ -2247,6 +2250,38 @@
                             </thead>
                             <tbody id="venues-tbody" class="table-tbody"></tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: WEBHOOKS -->
+                <div id="sys-content-webhooks" class="hidden space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Webhooks</h2>
+                            <p class="text-[var(--text-secondary)] text-sm">Integraciones externas. Los webhooks env&iacute;an datos en tiempo real cuando ocurren eventos.</p>
+                        </div>
+                        <button class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.openWebhookModal()">
+                            <span class="material-symbols-outlined text-base">add</span> + Webhook
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="card overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead>
+                                        <tr class="table-header-row">
+                                            <th class="table-th">Nombre</th>
+                                            <th class="table-th">URL</th>
+                                            <th class="table-th">Eventos</th>
+                                            <th class="table-th">Estado</th>
+                                            <th class="table-th">Logs</th>
+                                            <th class="table-th">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="webhooks-tbody"><tr><td colspan="6" class="text-center py-8 text-slate-500">Cargando...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -3630,6 +3665,78 @@
                 <button type="submit" class="btn-primary">Guardar</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- ═══ MODAL: WEBHOOK ═══ -->
+<div id="modal-webhook" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-60 backdrop-blur-sm">
+    <div class="bg-[var(--bg-primary)] border border-[var(--border)] rounded-xl shadow-2xl w-full max-w-lg mt-[5vh] mx-4">
+        <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white" id="webhook-modal-title">Nuevo Webhook</h3>
+            <button onclick="App.closeWebhookModal()" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-slate-400">close</span>
+            </button>
+        </div>
+        <form onsubmit="event.preventDefault(); App.saveWebhook()" class="p-5 space-y-4">
+            <input type="hidden" id="webhook-id">
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Nombre</label>
+                <input id="webhook-name" class="input-field w-full" placeholder="Mi integracion" required>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">URL</label>
+                <div class="flex gap-2">
+                    <input id="webhook-url" type="url" class="input-field flex-1" placeholder="https://hooks.slack.com/..." required>
+                    <button type="button" class="btn-secondary text-xs px-2" onclick="App.webhookPreset('slack')" title="Slack">💬</button>
+                    <button type="button" class="btn-secondary text-xs px-2" onclick="App.webhookPreset('discord')" title="Discord">🎮</button>
+                </div>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Secreto (HMAC-SHA256)</label>
+                <div class="flex gap-2">
+                    <input id="webhook-secret" class="input-field flex-1" placeholder="Auto-generado si se deja vacio">
+                    <button type="button" class="btn-secondary text-xs px-2" onclick="App.generateWebhookSecret()">🔄 Generar</button>
+                </div>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Eventos</label>
+                <div id="webhook-events-grid" class="grid grid-cols-2 gap-1 max-h-40 overflow-y-auto p-2 bg-[var(--bg-secondary)] rounded-lg"></div>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Estado</label>
+                <select id="webhook-status" class="input-field w-full">
+                    <option value="ACTIVE">Activo</option>
+                    <option value="INACTIVE">Inactivo</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="App.closeWebhookModal()" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══ MODAL: WEBHOOK LOGS ═══ -->
+<div id="modal-webhook-logs" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-60 backdrop-blur-sm">
+    <div class="bg-[var(--bg-primary)] border border-[var(--border)] rounded-xl shadow-2xl w-full max-w-3xl mt-[5vh] mx-4">
+        <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white">Historial de entregas</h3>
+            <button onclick="document.getElementById('modal-webhook-logs').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-slate-400">close</span>
+            </button>
+        </div>
+        <div class="p-5">
+            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table class="data-table w-full">
+                    <thead><tr class="table-header-row"><th class="table-th">Fecha</th><th class="table-th">Evento</th><th class="table-th">Status</th><th class="table-th">Duración</th><th class="table-th">Detalle</th></tr></thead>
+                    <tbody id="webhook-logs-tbody"><tr><td colspan="5" class="text-center py-4 text-slate-500">Cargando...</td></tr></tbody>
+                </table>
+            </div>
+            <div class="flex justify-end mt-3">
+                <button class="btn-secondary text-xs" onclick="App.clearWebhookLogs()">🗑️ Borrar logs</button>
+            </div>
+        </div>
     </div>
 </div>
 

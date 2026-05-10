@@ -173,6 +173,7 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     }
 
     logAction(req, AUDIT_ACTIONS.EVENT_CREATED, { eventId: id, name });
+    try { triggerWebhooks(WEBHOOK_EVENTS.EVENT_CREATED, { eventId: id, name, date }, id).catch(() => {}); } catch(e) {}
 
     console.log('[EVENT CREATE SERVER] ID generado:', id, 'tipo:', typeof id);
     res.json({ success: true, eventId: id });
@@ -249,18 +250,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     }
 
     logAction(req, AUDIT_ACTIONS.EVENT_UPDATED, { eventId });
-
-    // Actualizar asociación de cliente si se proporciona
-    if ('client_id' in d) {
-        try {
-            db.prepare("DELETE FROM client_events WHERE event_id = ?").run(eventId);
-            if (d.client_id) {
-                db.prepare("INSERT INTO client_events (event_id, client_id) VALUES (?, ?)").run(eventId, d.client_id);
-            }
-        } catch (err) {
-            console.error('[EVENT UPDATE] Error updating client_events:', err);
-        }
-    }
+    try { triggerWebhooks(WEBHOOK_EVENTS.EVENT_UPDATED, { eventId, changes: Object.keys(d) }, eventId).catch(() => {}); } catch(e) {}
 
     res.json({ success: true });
 });

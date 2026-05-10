@@ -9,6 +9,7 @@ const { AuditLog } = require('../security/audit');
 
 const router = express.Router();
 const { castId } = require('../utils/helpers');
+const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 
 // Obtener detalles públicos de un evento para registro
 router.get('/event/:id', (req, res) => {
@@ -146,6 +147,7 @@ router.post('/public-register', async (req, res) => {
             } catch (_) {}
         }
         
+        try { triggerWebhooks(WEBHOOK_EVENTS.PRE_REGISTRATION_CREATED, { guestId, event_id: eId, name, email }, eId).catch(() => {}); } catch(_) {}
         res.json({ success: true, message: isWaitlisted ? 'Registrado en lista de espera' : 'Registro exitoso', guestId, qrToken, waitlisted: isWaitlisted, waitlistPosition });
     } catch (err) {
         console.error('[public-register] CRITICAL ERROR:', err);

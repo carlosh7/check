@@ -1478,6 +1478,24 @@ try { db.exec("ALTER TABLE events ADD COLUMN venue_id TEXT"); } catch (_) {}
     }
 })();
 
+// Tabla de logs de webhooks (BL-25)
+db.exec(`CREATE TABLE IF NOT EXISTS webhook_logs (
+    id TEXT PRIMARY KEY,
+    webhook_id TEXT NOT NULL,
+    event_type TEXT,
+    request_url TEXT,
+    request_headers TEXT,
+    request_body TEXT,
+    response_status INTEGER,
+    response_body TEXT,
+    duration_ms INTEGER,
+    success INTEGER DEFAULT 0,
+    created_at TEXT,
+    FOREIGN KEY (webhook_id) REFERENCES webhooks(id) ON DELETE CASCADE
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_webhook_logs_webhook ON webhook_logs(webhook_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_webhook_logs_created ON webhook_logs(created_at)"); } catch (_) {}
+
 // Importar Database Manager para bases de datos por evento
 const { 
     getEventConnection, 

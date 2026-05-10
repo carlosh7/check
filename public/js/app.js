@@ -11002,7 +11002,7 @@ navigate(viewName, params = {}, push = true) {
         }
         
         // Obtener todos los tabs
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google', 'sys-content-ai-security'];
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google', 'sys-content-ai-security', 'sys-content-webhooks'];
         
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
@@ -11041,6 +11041,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'email') this.loadEmailModuleData();
         if (tabName === 'activity') this.loadActivityLogs();
         if (tabName === 'venues') this.loadVenues();
+        if (tabName === 'webhooks') this.loadWebhooks();
         if (tabName === 'ai-security') this.loadAiSecurity();
         if (tabName === 'compliance') this.loadCompliance();
         if (tabName === 'google') this.loadGoogleTab();
@@ -17217,6 +17218,190 @@ navigate(viewName, params = {}, push = true) {
                 Swal.fire({ icon: 'error', title: 'Error', text: res?.error || 'Error al importar', background: '#0f172a', color: '#fff' });
             }
         } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
+    },
+
+    // ═══ WEBHOOKS (BL-25) ═══
+
+    _webhookEvents: null,
+
+    loadWebhooks: async function() {
+        try {
+            var webhooks = await this.fetchAPI('/webhooks');
+            var tbody = document.getElementById('webhooks-tbody');
+            if (!tbody) return;
+            if (!webhooks || webhooks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">No hay webhooks. Crea uno nuevo.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = webhooks.map(function(w) {
+                var evCount = (w.events || []).length;
+                var statusClass = w.status === 'ACTIVE' ? 'text-green-500' : 'text-slate-500';
+                return '<tr class="hover:bg-white/[0.02] transition-colors">' +
+                    '<td class="table-td font-medium text-white">' + (w.name || 'Sin nombre') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400 max-w-[200px] truncate">' + (w.url || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + evCount + ' eventos</td>' +
+                    '<td class="table-td"><span class="text-xs font-bold ' + statusClass + '">' + w.status + '</span></td>' +
+                    '<td class="table-td"><button class="btn-icon" onclick="App.viewWebhookLogs(\'' + w.id + '\')" title="Ver logs"><span class="material-symbols-outlined text-sm">history</span></button></td>' +
+                    '<td class="table-td">' +
+                        '<button class="btn-icon" onclick="App.testWebhook(\'' + w.id + '\')" title="Test"><span class="material-symbols-outlined text-sm">play_arrow</span></button>' +
+                        '<button class="btn-icon" onclick="App.openWebhookModal(\'' + w.id + '\')" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                        '<button class="btn-icon text-red-400" onclick="App.deleteWebhook(\'' + w.id + '\')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button>' +
+                    '</td></tr>';
+            }).join('');
+        } catch(e) { console.error('[WEBHOOKS] Error loading:', e.message); }
+    },
+
+    openWebhookModal: async function(id) {
+        var modal = document.getElementById('modal-webhook');
+        if (!modal) return;
+        document.getElementById('webhook-id').value = '';
+        document.getElementById('webhook-name').value = '';
+        document.getElementById('webhook-url').value = '';
+        document.getElementById('webhook-secret').value = '';
+        document.getElementById('webhook-status').value = 'ACTIVE';
+        document.getElementById('webhook-modal-title').textContent = 'Nuevo Webhook';
+
+        // Load available events
+        if (!this._webhookEvents) {
+            try {
+                var res = await this.fetchAPI('/webhooks/events/available');
+                this._webhookEvents = res.events;
+            } catch(e) { this._webhookEvents = {}; }
+        }
+        var grid = document.getElementById('webhook-events-grid');
+        if (grid) {
+            var evs = this._webhookEvents || {};
+            grid.innerHTML = Object.keys(evs).map(function(k) {
+                return '<label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:bg-white/[0.02] p-1 rounded">' +
+                    '<input type="checkbox" class="webhook-event-cb" value="' + evs[k] + '" style="accent-color:#7c3aed"> ' + k + '</label>';
+            }).join('');
+        }
+
+        if (id) {
+            try {
+                var w = await this.fetchAPI('/webhooks/' + id);
+                if (!w) return;
+                document.getElementById('webhook-id').value = w.id;
+                document.getElementById('webhook-name').value = w.name || '';
+                document.getElementById('webhook-url').value = w.url || '';
+                document.getElementById('webhook-secret').value = w.secret || '';
+                document.getElementById('webhook-status').value = w.status || 'ACTIVE';
+                document.getElementById('webhook-modal-title').textContent = 'Editar Webhook';
+                // Check selected events
+                if (w.events && grid) {
+                    grid.querySelectorAll('.webhook-event-cb').forEach(function(cb) {
+                        cb.checked = w.events.includes(cb.value);
+                    });
+                }
+            } catch(e) { console.error('[WEBHOOKS] Error loading webhook:', e.message); }
+        }
+        modal.classList.remove('hidden');
+    },
+
+    closeWebhookModal: function() {
+        document.getElementById('modal-webhook')?.classList.add('hidden');
+    },
+
+    saveWebhook: async function() {
+        var id = document.getElementById('webhook-id')?.value;
+        var name = document.getElementById('webhook-name')?.value.trim();
+        var url = document.getElementById('webhook-url')?.value.trim();
+        var secret = document.getElementById('webhook-secret')?.value.trim();
+        var status = document.getElementById('webhook-status')?.value || 'ACTIVE';
+        if (!name || !url) { Swal.fire({ icon: 'warning', title: 'Nombre y URL requeridos', background: '#0f172a', color: '#fff' }); return; }
+        var events = [];
+        document.querySelectorAll('.webhook-event-cb:checked').forEach(function(cb) { events.push(cb.value); });
+        if (events.length === 0) { Swal.fire({ icon: 'warning', title: 'Selecciona al menos un evento', background: '#0f172a', color: '#fff' }); return; }
+        var body = { name: name, url: url, events: events, status: status };
+        if (secret) body.secret = secret;
+        try {
+            if (id) {
+                await this.fetchAPI('/webhooks/' + id, { method: 'PUT', body: JSON.stringify(body) });
+            } else {
+                await this.fetchAPI('/webhooks', { method: 'POST', body: JSON.stringify(body) });
+            }
+            this.closeWebhookModal();
+            this.loadWebhooks();
+        } catch(e) { console.error('[WEBHOOKS] Error saving:', e.message); Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
+    },
+
+    testWebhook: async function(id) {
+        try {
+            var res = await this.fetchAPI('/webhooks/' + id + '/test', { method: 'POST' });
+            Swal.fire({ icon: res.success ? 'success' : 'error', title: res.success ? 'Enviado' : 'Error', text: res.message || res.error, background: '#0f172a', color: '#fff' });
+        } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
+    },
+
+    deleteWebhook: async function(id) {
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar webhook?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI('/webhooks/' + id, { method: 'DELETE' });
+            this.loadWebhooks();
+        } catch(e) { console.error('[WEBHOOKS] Error deleting:', e.message); }
+    },
+
+    viewWebhookLogs: async function(id) {
+        document.getElementById('modal-webhook-logs').classList.remove('hidden');
+        var tbody = document.getElementById('webhook-logs-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-500">Cargando...</td></tr>';
+        try {
+            var logs = await this.fetchAPI('/webhooks/' + id + '/logs');
+            if (!logs || logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-500">Sin entregas registradas</td></tr>';
+                return;
+            }
+            tbody.innerHTML = logs.map(function(l) {
+                var statusText = l.success ? '✅ ' + (l.response_status || 'OK') : '❌ ' + (l.response_status || 'Error');
+                var dateStr = l.created_at ? new Date(l.created_at).toLocaleString() : '-';
+                return '<tr class="hover:bg-white/[0.02] text-xs">' +
+                    '<td class="table-td text-slate-400">' + dateStr + '</td>' +
+                    '<td class="table-td text-slate-300">' + (l.event_type || '-') + '</td>' +
+                    '<td class="table-td"><span class="font-bold ' + (l.success ? 'text-green-500' : 'text-red-500') + '">' + statusText + '</span></td>' +
+                    '<td class="table-td text-slate-400">' + (l.duration_ms || '-') + 'ms</td>' +
+                    '<td class="table-td text-slate-500 max-w-[200px] truncate" title="' + (l.response_body || '') + '">' + (l.response_body ? (l.response_body.length > 60 ? l.response_body.slice(0,60) + '...' : l.response_body) : '-') + '</td></tr>';
+            }).join('');
+            tbody._webhookLogId = id;
+        } catch(e) { console.error('[WEBHOOKS] Error loading logs:', e.message); tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-red-500">Error al cargar logs</td></tr>'; }
+    },
+
+    clearWebhookLogs: function() {
+        var tbody = document.getElementById('webhook-logs-tbody');
+        var id = tbody?._webhookLogId;
+        if (!id) return;
+        Swal.fire({ icon: 'warning', title: 'Borrar logs?', showCancelButton: true, background: '#0f172a', color: '#fff' }).then(function(r) {
+            if (!r.isConfirmed) return;
+            App.fetchAPI('/webhooks/' + id + '/logs', { method: 'DELETE' }).then(function() {
+                App.viewWebhookLogs(id);
+            }).catch(function(e) { console.error(e); });
+        });
+    },
+
+    webhookPreset: function(type) {
+        var urlInput = document.getElementById('webhook-url');
+        if (!urlInput) return;
+        if (type === 'slack') {
+            urlInput.value = 'https://hooks.slack.com/services/YOUR/TEAM/ID';
+            urlInput.placeholder = 'https://hooks.slack.com/services/YOUR/TEAM/ID';
+        } else if (type === 'discord') {
+            urlInput.value = 'https://discord.com/api/webhooks/000000000000000000/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+            urlInput.placeholder = 'https://discord.com/api/webhooks/...';
+        }
+        // Auto-check relevant events for Slack/Discord
+        var grid = document.getElementById('webhook-events-grid');
+        if (grid) {
+            grid.querySelectorAll('.webhook-event-cb').forEach(function(cb) {
+                cb.checked = true;
+            });
+        }
+    },
+
+    generateWebhookSecret: function() {
+        var arr = new Uint8Array(32);
+        crypto.getRandomValues(arr);
+        var hex = Array.from(arr).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+        document.getElementById('webhook-secret').value = hex;
     }
 };
 

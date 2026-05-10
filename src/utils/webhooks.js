@@ -236,7 +236,8 @@ async function sendWebhook(webhook, eventType, data) {
     }
     
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    const startTime = Date.now();
     
     try {
         const response = await fetch(webhook.url, {
@@ -247,6 +248,9 @@ async function sendWebhook(webhook, eventType, data) {
         });
         
         clearTimeout(timeout);
+        const duration = Date.now() - startTime;
+        const respBody = await response.text().catch(() => '');
+        logWebhookDelivery(webhook.id, eventType, webhook.url, JSON.stringify(payload), response.status, respBody, duration, response.ok);
         
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -255,7 +259,41 @@ async function sendWebhook(webhook, eventType, data) {
         return response;
     } catch (error) {
         clearTimeout(timeout);
+        const duration = Date.now() - startTime;
+        logWebhookDelivery(webhook.id, eventType, webhook.url, JSON.stringify(payload), 0, error.message, duration, false);
         throw error;
+    }
+}
+
+/**
+ * Log a webhook delivery attempt
+ */
+function logWebhookDelivery(webhookId, eventType, url, requestBody, responseStatus, responseBody, durationMs, success) {
+    try {
+        const id = uuidv4();
+        const now = new Date().toISOString();
+        const stmt = db.prepare(`
+            INSERT INTO webhook_logs (id, webhook_id, event_type, request_url, request_body, response_status, response_body, duration_ms, success, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        stmt.run(id, webhookId, eventType, url, typeof requestBody === 'string' ? requestBody : JSON.stringify(requestBody), responseStatus, typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody), durationMs, success ? 1 : 0, now);
+        return id;
+    } catch (e) {
+        console.error('[WEBHOOKS] Error logging delivery:', e.message);
+        return null;
+    }
+}
+
+/**
+ * Get webhook delivery logs
+ */
+function getWebhookLogs(webhookId, limit = 50) {
+    try {
+        const stmt = db.prepare("SELECT * FROM webhook_logs WHERE webhook_id = ? ORDER BY created_at DESC LIMIT ?");
+        return stmt.all(webhookId, limit);
+    } catch (e) {
+        console.error('[WEBHOOKS] Error fetching logs:', e.message);
+        return [];
     }
 }
 
@@ -269,5 +307,7 @@ module.exports = {
     generateSecret,
     signPayload,
     triggerWebhooks,
-    sendWebhook
+    sendWebhook,
+    logWebhookDelivery,
+    getWebhookLogs
 };
