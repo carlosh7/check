@@ -14829,9 +14829,19 @@ navigate(viewName, params = {}, push = true) {
                 if (ph) ph.value = user.phone || '';
                 if (em) em.value = user.email || '';
             }
+            // Highlight language button
+            this.updateLangButtons();
             // Cargar estado de cuenta Google personal
             this.loadUserGoogleStatus();
         } catch(e) { console.error('Error loading profile:', e); }
+    },
+
+    updateLangButtons: function() {
+        var lang = (window.i18n && window.i18n.getLang()) || 'es';
+        var esBtn = document.getElementById('btn-lang-es');
+        var enBtn = document.getElementById('btn-lang-en');
+        if (esBtn) esBtn.className = lang === 'es' ? 'btn-primary !px-5 btn-py4 text-xs font-bold' : 'btn-secondary !px-5 btn-py4 text-xs font-bold';
+        if (enBtn) enBtn.className = lang === 'en' ? 'btn-primary !px-5 btn-py4 text-xs font-bold' : 'btn-secondary !px-5 btn-py4 text-xs font-bold';
     },
 
     loadUserGoogleStatus: async function() {

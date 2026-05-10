@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.694</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.695</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -2485,6 +2485,23 @@
                                 <button id="btn-disconnect-google" onclick="App.disconnectUserGoogleAccount()" class="btn-secondary !px-6 btn-py4 uppercase tracking-widest text-10 font-black hidden">
                                     <span class="material-symbols-outlined text-sm mr-1">link_off</span> Desconectar
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Idioma (C2-06) -->
+                    <div class="card p-6 border-l-4 border-l-[#0ba5ec] border-white/5 bg-white/[0.01]">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-xl font-black text-white mb-1">
+                                    <span class="material-symbols-outlined text-[#0ba5ec] align-middle mr-1">language</span>
+                                    Idioma / Language
+                                </h3>
+                                <p class="text-sm text-slate-400">Selecciona el idioma de la interfaz.</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="btn-lang-es" class="btn-primary !px-5 btn-py4 text-xs font-bold" onclick="window.i18n?.setLang('es')">🇪🇸 Español</button>
+                                <button id="btn-lang-en" class="btn-secondary !px-5 btn-py4 text-xs font-bold" onclick="window.i18n?.setLang('en')">🇬🇧 English</button>
                             </div>
                         </div>
                     </div>

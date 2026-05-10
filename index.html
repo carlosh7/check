@@ -78,12 +78,12 @@
             } catch(e) {}
         })();
     </script>
-    <link rel="stylesheet" href="/css/modules/base.css?v=12.44.694">
-    <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.694">
-    <link rel="stylesheet" href="/css/modules/components.css?v=12.44.694">
-    <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.694">
-    <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.694">
-    <link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.694">
+    <link rel="stylesheet" href="/css/modules/base.css?v=12.44.695">
+    <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.695">
+    <link rel="stylesheet" href="/css/modules/components.css?v=12.44.695">
+    <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.695">
+    <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.695">
+    <link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.695">
 
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -314,6 +314,12 @@
             const uniqueId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             const forceReload = 'force_' + Date.now();
             const cacheBuster = 'nocache_' + Math.random().toString(36).substr(2, 10);
+            // Load i18n module first
+            var i18nScript = document.createElement('script');
+            i18nScript.type = 'module';
+            i18nScript.src = `/js/i18n.js?v=${currentVersion}`;
+            document.head.insertBefore(i18nScript, document.head.firstChild);
+
             script.src = `/js/app.js?v=${currentVersion}&_=${uniqueId}&force=${forceReload}&cb=${cacheBuster}`;
             
             // Forzar no-cache con múltiples headers
