@@ -18367,6 +18367,7 @@ App.renderAttendanceTable = function(attendance) {
                     title="${a.validated ? 'Marcar como ausente' : 'Marcar como presente'}"
                     class="attendance-switch mx-auto ${a.validated ? 'validated' : ''}">
                 </div>
+                <button onclick="App.generateOtpCode('${a.client_id}')" title="Generar código OTP" class="text-[10px] mt-1 text-[var(--primary)] hover:underline">OTP</button>
             </td>
             <td class="!py-3 !px-3 text-center">
                 <div class="flex items-center justify-center gap-0.5">
@@ -18420,6 +18421,36 @@ App.changeGuestStatus = async function(guestId, newStatus) {
         console.error('[PIPELINE] Error cambiando estado:', e.message);
     }
 },
+
+App.verifyOtpCheckin = async function() {
+    var code = document.getElementById('otp-input')?.value.trim();
+    if (!code || code.length < 4) { App._notifyAction('Error', 'Código inválido', 'error'); return; }
+    try {
+        var res = await App.fetchAPI('/guests/otp/verify', { method: 'POST', body: JSON.stringify({ code: code }) });
+        var resultDiv = document.getElementById('otp-result');
+        resultDiv.classList.remove('hidden');
+        if (res.valid) {
+            resultDiv.className = 'text-center p-3 rounded-lg bg-green-500/10 text-green-400';
+            resultDiv.innerHTML = '✅ ' + (res.guest?.name || 'Invitado') + ' - Check-in exitoso';
+            if (typeof App.filterAttendance === 'function') App.filterAttendance();
+            document.getElementById('otp-input').value = '';
+        } else {
+            resultDiv.className = 'text-center p-3 rounded-lg bg-red-500/10 text-red-400';
+            resultDiv.innerHTML = '❌ ' + (res.error || 'Código inválido');
+        }
+    } catch(e) { App._notifyAction('Error', e.message, 'error'); }
+};
+
+App.generateOtpCode = async function(clientId) {
+    try {
+        var res = await App.fetchAPI('/guests/otp/generate/' + clientId, { method: 'POST' });
+        if (res.success) {
+            Swal.fire({ title: 'Código OTP', text: 'Código: ' + res.code, icon: 'info', confirmButtonText: 'Copiar', background: '#0f172a', color: '#fff' }).then(function(r) {
+                if (r.isConfirmed) navigator.clipboard.writeText(res.code).then(function() { App._notifyAction('Copiado', 'Código copiado', 'success'); }).catch(function(){});
+            });
+        }
+    } catch(e) { App._notifyAction('Error', e.message, 'error'); }
+};
 
 App.toggleValidateAttendance = async function(clientId) {
     const eventId = this.state.currentEventId || this.state.event?.id;

@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.699</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.700</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -174,6 +174,9 @@
                         </button>
                         <button class="btn-secondary" onclick="App.downloadBadges()">
                             <span class="material-symbols-outlined">badge</span> Gafetes
+                        </button>
+                        <button class="btn-secondary" onclick="document.getElementById('modal-otp').classList.remove('hidden')">
+                            <span class="material-symbols-outlined">pin</span> OTP
                         </button>
                         <button class="btn-danger" onclick="App.clearAttendanceDatabase()">
                             <span class="material-symbols-outlined">delete_forever</span> Borrar DB
@@ -4082,6 +4085,24 @@
             <div class="flex justify-end mt-3">
                 <button class="btn-secondary text-xs" onclick="App.clearWebhookLogs()">🗑️ Borrar logs</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ OTP Check-in Modal (BL-14) ═══ -->
+<div id="modal-otp" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-60 backdrop-blur-sm">
+    <div class="bg-[var(--bg-primary)] border border-[var(--border)] rounded-xl shadow-2xl w-full max-w-sm mt-[20vh] mx-4">
+        <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white">Check-in por OTP</h3>
+            <button onclick="document.getElementById('modal-otp').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-slate-400">close</span>
+            </button>
+        </div>
+        <div class="p-5 space-y-4">
+            <p class="text-xs text-[var(--text-secondary)]">Ingresa el código OTP del invitado:</p>
+            <input id="otp-input" class="input-field w-full text-center text-2xl font-bold tracking-widest" placeholder="_ _ _ _ _ _" maxlength="6" style="letter-spacing:12px">
+            <div id="otp-result" class="hidden text-center p-3 rounded-lg"></div>
+            <button class="btn-primary w-full" onclick="App.verifyOtpCheckin()">✅ Verificar</button>
         </div>
     </div>
 </div>

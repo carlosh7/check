@@ -106,11 +106,34 @@ function getEventDb(eventId) {
 router.get('/by-id/:guestId', (req, res) => {
     const gId = castId('guests', req.params.guestId);
     if (!gId) return res.status(400).json({ error: 'ID de invitado inválido' });
-    
     const guest = db.prepare("SELECT * FROM guests WHERE id = ?").get(gId);
     if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
-    
     res.json(guest);
+});
+
+// OTP Check-in (BL-14)
+router.post('/otp/generate/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        var guest = db.prepare("SELECT id FROM guests WHERE id = ?").get(req.params.guestId);
+        if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+        var code = String(Math.floor(100000 + Math.random() * 900000));
+        db.prepare("UPDATE guests SET otp_code = ? WHERE id = ?").run(code, req.params.guestId);
+        res.json({ success: true, code: code });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/otp/verify', (req, res) => {
+    try {
+        var { code } = req.body;
+        if (!code) return res.status(400).json({ error: 'Código requerido' });
+        var guest = db.prepare("SELECT id, event_id, name, checked_in FROM guests WHERE otp_code = ?").get(code);
+        if (!guest) return res.json({ valid: false, error: 'Código inválido' });
+        if (guest.checked_in) return res.json({ valid: false, error: 'Ya registró asistencia', guest: guest });
+        if (!guest.checked_in) {
+            db.prepare("UPDATE guests SET checked_in = 1, checkin_time = ? WHERE id = ?").run(new Date().toISOString(), guest.id);
+        }
+        res.json({ valid: true, guest: { id: guest.id, name: guest.name, event_id: guest.event_id } });
+    } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 // Obtener invitados de evento (con paginación)
