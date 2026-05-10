@@ -11782,6 +11782,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'branding') this.loadBranding();
         if (tabName === 'budget') this.loadBudget();
         if (tabName === 'speakers') this.loadSpeakers();
+        if (tabName === 'proposals') this.loadProposals();
         
         // Mostrar action-bar solo en tab Personal
         const actionBar = document.getElementById('config-action-bar');
@@ -13437,6 +13438,38 @@ navigate(viewName, params = {}, push = true) {
         try {
             await this.fetchAPI('/events/' + eId + '/speakers/' + id, { method: 'DELETE' });
             this.loadSpeakers();
+        } catch(e) { console.error(e); }
+    },
+
+    // ═══ Propuestas Públicas (BL-20) ═══
+
+    loadProposals: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var data = await this.fetchAPI('/events/' + eId + '/proposals/admin');
+            var tbody = document.getElementById('proposals-tbody');
+            if (!tbody) return;
+            if (!data || !data.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin propuestas recibidas</td></tr>'; return; }
+            tbody.innerHTML = data.map(function(p) {
+                var badge = p.status === 'approved' ? 'text-green-500' : p.status === 'rejected' ? 'text-red-500' : 'text-amber-500';
+                return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-medium text-white">' + (p.title || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + (p.guest_name || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-300">' + (p.votes || 0) + '</td>' +
+                    '<td class="table-td"><span class="text-xs font-bold ' + badge + '">' + p.status + '</span></td>' +
+                    '<td class="table-td"><select class="input-field text-xs py-1" onchange="App.updateProposalStatus(\'' + p.id + '\',this.value)">' +
+                        '<option value="pending"' + (p.status === 'pending' ? ' selected' : '') + '>Pendiente</option>' +
+                        '<option value="approved"' + (p.status === 'approved' ? ' selected' : '') + '>Aprobar</option>' +
+                        '<option value="rejected"' + (p.status === 'rejected' ? ' selected' : '') + '>Rechazar</option>' +
+                    '</select></td></tr>';
+            }).join('');
+        } catch(e) { console.error('[PROPOSALS] Error:', e.message); }
+    },
+
+    updateProposalStatus: async function(id, status) {
+        var eId = this.state.event?.id;
+        try {
+            await this.fetchAPI('/events/' + eId + '/proposals/' + id, { method: 'PUT', body: JSON.stringify({ status: status }) });
         } catch(e) { console.error(e); }
     },
 

@@ -140,6 +140,20 @@ try { db.exec("ALTER TABLE events ADD COLUMN longitude REAL"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN map_zoom INTEGER DEFAULT 14"); } catch (_) {}
 // Music URL (BL-24)
 try { db.exec("ALTER TABLE events ADD COLUMN music_url TEXT"); } catch (_) {}
+// Public proposals table (BL-20)
+db.exec(`CREATE TABLE IF NOT EXISTS proposals (
+    id TEXT PRIMARY KEY,
+    event_id TEXT NOT NULL,
+    guest_name TEXT NOT NULL,
+    guest_email TEXT,
+    title TEXT NOT NULL,
+    description TEXT,
+    votes INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'pending',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_proposals_event ON proposals(event_id)"); } catch (_) {}
 // Budget table (BL-18)
 db.exec(`CREATE TABLE IF NOT EXISTS budgets (
     id TEXT PRIMARY KEY,
