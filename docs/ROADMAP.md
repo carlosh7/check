@@ -916,7 +916,7 @@ Registro de espacios fisicos para eventos:
 | BL-19 | **Speaker management** | `Neriiiii/ems-event-management-system` | M |
 | BL-20 | **Propuestas publicas de eventos** | `Neriiiii/ems-event-management-system` | S |
 | BL-21 | **Mapa interactivo (LeafletJS)** | `cabrerafrancisco/gdlwebcamp` | S |
-| BL-22 | **Tests automatizados (Jest)** | `Pedrosandoval2/Event-Register-System` | L |
+| BL-22 | **Tests automatizados (38 tests backend + 190 total)** | ✅ | v12.44.676 | 2026-05-09 |
 | BL-23 | **Migraciones de BD** | `Neriiiii/ems-event-management-system` | M |
 | BL-24 | **Musica de fondo en landing** | `Hans-developer/tarjeta-boda` | S |
 | BL-25 | **Webhooks (UI admin, logs, triggers, presets)** | ✅ | v12.44.670 | 2026-05-09 |
