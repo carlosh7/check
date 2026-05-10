@@ -282,9 +282,38 @@ const App = window.App = {
     },
 
     // Reemplazo de la función antigua de notificación - usar ToastManager
+    // UX Helpers (C2-02)
+    showLoading: function(msg) {
+        var existing = document.getElementById('global-loading');
+        if (!existing) {
+            var el = document.createElement('div');
+            el.id = 'global-loading';
+            el.className = 'loading-overlay';
+            el.innerHTML = '<div style="text-align:center"><div class="spinner"></div><p>' + (msg || 'Cargando...') + '</p></div>';
+            document.body.appendChild(el);
+        }
+    },
+    hideLoading: function() {
+        var el = document.getElementById('global-loading');
+        if (el) { el.classList.add('hidden'); setTimeout(function() { el.remove(); }, 300); }
+    },
+    renderSkeleton: function(rows, cols) {
+        var html = '';
+        for (var r = 0; r < (rows || 3); r++) {
+            html += '<tr class="tr-hover">';
+            for (var c = 0; c < (cols || 4); c++) {
+                var w = c === 0 ? '60' : c === 1 ? '80' : '40';
+                html += '<td class="table-td"><span class="skeleton skeleton-text w-' + w + '" style="display:block"></span></td>';
+            }
+            html += '</tr>';
+        }
+        return html;
+    },
+    renderEmptyState: function(icon, title, msg, action) {
+        return '<div class="empty-state"><div class="icon">' + (icon || '📭') + '</div><h3>' + (title || 'Sin datos') + '</h3><p>' + (msg || 'No hay información disponible.') + '</p>' + (action || '') + '</div>';
+    },
+
     navigateToCreateEvent: function(type = 'short') {
-        
-        // No navegar si ya estamos en una vista permitida (my-events, dashboard)
         const currentView = LS.get('current_view');
         if (currentView !== 'my-events' && currentView !== 'dashboard') {
             this.navigate('my-events');

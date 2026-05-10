@@ -634,3 +634,80 @@
 #badge-elements-list > div {
     padding: 3px 6px;
 }
+
+/* ================================================
+   UX POLISH — Animaciones y transiciones (C2-02)
+   ================================================ */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes skeleton {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-fade-in-up { animation: fadeInUp 0.4s ease-out; }
+.animate-fade-in-down { animation: fadeInDown 0.3s ease-out; }
+.animate-pulse { animation: pulse 2s ease-in-out infinite; }
+.animate-slide-in { animation: slideInRight 0.3s ease-out; }
+
+/* Skeleton loading */
+.skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200px 100%;
+    animation: skeleton 1.5s ease-in-out infinite;
+    border-radius: 8px;
+}
+.skeleton-text { height: 14px; margin-bottom: 8px; width: 80%; }
+.skeleton-text.w-60 { width: 60%; }
+.skeleton-text.w-40 { width: 40%; }
+.skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
+.skeleton-thumb { width: 60px; height: 60px; border-radius: 8px; }
+
+/* Empty state */
+.empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 48px 24px; text-align: center; animation: fadeIn 0.4s ease-out;
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.3; }
+.empty-state h3 { font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+.empty-state p { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+
+/* Card hover elevate */
+.card-hover { transition: all 0.25s ease; }
+.card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+
+/* Table row hover */
+.tr-hover { transition: background 0.15s ease; }
+.tr-hover:hover { background: rgba(255,255,255,0.03); }
+
+/* Modal overlay transition */
+.modal-overlay { transition: opacity 0.25s ease, backdrop-filter 0.25s ease; }
+.modal-overlay.hidden { opacity: 0; pointer-events: none; }
+.modal-content { transition: transform 0.25s ease, opacity 0.25s ease; }
+.modal-overlay.hidden .modal-content { transform: scale(0.95); opacity: 0; }
+
+/* Toast slide in */
+.toast-slide { animation: slideInRight 0.3s ease-out; }
+
+/* Tab transition */
+.tab-content { animation: fadeIn 0.25s ease-out; }
