@@ -378,3 +378,150 @@ describe('Raffles', () => {
         expect(colNames).toContain('lead_json');
     });
 });
+
+// ─── PUBLIC QR ENDPOINTS ───
+
+describe('Public QR Endpoints', () => {
+    const publicRoutes = require('../src/routes/public.routes');
+    const app = createTestApp(publicRoutes);
+
+    test('GET /api/event/:id/qr returns 400 for invalid event', async () => {
+        const res = await request(app).get('/api/event/invalid-id/qr');
+        expect([400, 404]).toContain(res.status);
+    });
+
+    test('GET /api/guests/qr/:id returns 404 for invalid guest', async () => {
+        const res = await request(app).get('/api/guests/qr/nonexistent-guest');
+        expect(res.status).toBe(404);
+    });
+
+    test('GET /api/portal/:id returns 404 for invalid guest', async () => {
+        const res = await request(app).get('/api/portal/nonexistent-guest');
+        expect(res.status).toBe(404);
+    });
+});
+
+// ─── AUTH ROUTES ───
+
+describe('Auth Routes', () => {
+    const authRoutes = require('../src/routes/auth.routes');
+    const app = createTestApp(authRoutes);
+
+    test('POST /api/login rejects empty body', async () => {
+        const res = await request(app).post('/api/login').send({});
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('errors');
+    });
+
+    test('POST /api/login rejects invalid credentials', async () => {
+        const res = await request(app).post('/api/login').send({ username: 'nonexistent@test.com', password: 'wrong' });
+        expect(res.status).toBe(401);
+    });
+
+    test('GET /api/me returns 401 without auth', async () => {
+        const res = await request(app).get('/api/me');
+        expect(res.status).toBe(401);
+    });
+});
+
+// ─── USERS ROUTES ───
+
+describe('Users Routes', () => {
+    const usersRoutes = require('../src/routes/users.routes');
+    const app = createTestApp(usersRoutes, '/api/users');
+
+    test('GET /api/users returns 401 without auth', async () => {
+        const res = await request(app).get('/api/users');
+        expect(res.status).toBe(401);
+    });
+
+    test('GET /api/users/:id returns 401 without auth', async () => {
+        const res = await request(app).get('/api/users/some-id');
+        expect(res.status).toBe(401);
+    });
+});
+
+// ─── VENUES ROUTES ───
+
+describe('Venues Routes', () => {
+    const venuesRoutes = require('../src/routes/venues.routes');
+    const app = createTestApp(venuesRoutes, '/api/venues');
+
+    test('GET /api/venues returns 401 without auth', async () => {
+        const res = await request(app).get('/api/venues');
+        expect(res.status).toBe(401);
+    });
+});
+
+// ─── SESSIONS ROUTES ───
+
+describe('Sessions Routes', () => {
+    const sessionsRoutes = require('../src/routes/sessions.routes');
+    const app = createTestApp(sessionsRoutes, '/api/sessions');
+
+    test('GET /api/sessions/:eventId returns 401 without auth', async () => {
+        const res = await request(app).get('/api/sessions/any-event');
+        expect(res.status).toBe(401);
+    });
+});
+
+// ─── GROUPS ROUTES ───
+
+describe('Groups Routes', () => {
+    const groupsRoutes = require('../src/routes/groups.routes');
+    const app = createTestApp(groupsRoutes, '/api/groups');
+
+    test('GET /api/groups returns 401 without auth', async () => {
+        const res = await request(app).get('/api/groups');
+        expect(res.status).toBe(401);
+    });
+});
+
+// ─── VERSION ROUTES ───
+
+describe('Version Routes', () => {
+    const versionRoutes = require('../src/routes/version.routes');
+    const app = createTestApp(versionRoutes);
+
+    test('GET /api/app-version returns version object', async () => {
+        const res = await request(app).get('/api/app-version');
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty('version');
+        expect(typeof res.body.version).toBe('string');
+    });
+
+    test('GET /api/health returns ok', async () => {
+        const res = await request(app).get('/api/health');
+        expect(res.status).toBe(200);
+        expect(res.body.status).toBe('ok');
+    });
+});
+
+// ─── SURVEYS ROUTES ───
+
+describe('Surveys Routes', () => {
+    const surveysRoutes = require('../src/routes/surveys.routes');
+    const app = createTestApp(surveysRoutes, '/api/events');
+
+    test('GET /api/events/:id/templates returns 401 without auth', async () => {
+        const res = await request(app).get('/api/events/any-event/templates');
+        expect(res.status).toBe(401);
+    });
+});
+
+// ─── RAFELES ROUTES ───
+
+describe('Raffles Routes', () => {
+    const rafflesRoutes = require('../src/routes/raffles.routes');
+    const app = createTestApp(rafflesRoutes, '/api/raffles');
+
+    test('GET /api/raffles/events/:id/raffles returns 401 without auth', async () => {
+        const res = await request(app).get('/api/raffles/events/any-event/raffles');
+        expect(res.status).toBe(401);
+    });
+
+    test('GET /api/raffles/:id/public returns 404 for nonexistent', async () => {
+        const res = await request(app).get('/api/raffles/nonexistent-id/public');
+        expect(res.status).toBe(404);
+    });
+});
