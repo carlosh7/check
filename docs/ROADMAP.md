@@ -1166,15 +1166,125 @@ FASE 10: Mejoras Profundas
 
 | ID | Feature | Estado | Version | Fecha |
 |----|---------|--------|---------|-------|
-| BL-14 | Reconocimiento facial / OTP | ⏳ Pendiente | — | — |
-| BL-20 | Propuestas públicas | ⏳ Pendiente | — | — |
-| C3-01 | WhatsApp API | ⏳ Pendiente | — | — |
-| C3-02 | Google Calendar Sync | ⏳ Pendiente | — | — |
-| C3-03 | Zoom / Meet integration | ⏳ Pendiente | — | — |
-| C3-04 | Portal offline (PWA+) | ⏳ Pendiente | — | — |
-| C3-05 | Dashboard en tiempo real | ⏳ Pendiente | — | — |
-| C3-06 | Automatizaciones / reglas | ⏳ Pendiente | — | — |
-| C3-07 | Multi-tenant / white label | ⏳ Pendiente | — | — |
+| BL-20 | Propuestas públicas | ✅ | v12.44.699 | 2026-05-09 |
+| BL-14 | OTP Check-in | ✅ | v12.44.700 | 2026-05-09 |
+| C3-01 | WhatsApp API | ✅ | v12.44.701 | 2026-05-09 |
+| C3-02 | Google Calendar Sync | ✅ | v12.44.702 | 2026-05-09 |
+| C3-03 | Zoom / Meet integration | ✅ | v12.44.703 | 2026-05-09 |
+| C3-05 | Dashboard en tiempo real | ✅ | v12.44.704 | 2026-05-09 |
+| C3-06 | Automatizaciones / reglas | ✅ | v12.44.705 | 2026-05-09 |
+| C3-04 | Portal offline (PWA+) | ✅ | v12.44.706 | 2026-05-09 |
+| C3-07 | Multi-tenant / white label | ✅ | v12.44.707 | 2026-05-09 |
+
+---
+
+# Ciclo 4 — Estabilización, IA, E-commerce, i18n
+
+## ⚡ Estado Actual
+
+| Item | Valor |
+|------|-------|
+| **Version** | v12.44.707 |
+| **Ultimo ciclo completado** | Ciclo 3 — Fases 8, 9, 10 al 100% |
+| **Feature en curso** | **Ciclo 4 — Fase 11: Estabilización + F12: E-commerce + F13: IA + F14: i18n completo** |
+| **Proximo feature** | C4-01 Bug fixes & rendimiento (ronda 2) |
+
+---
+
+## 🗺️ Mapa de Dependencias — Ciclo 4
+
+```
+FASE 11: Estabilización (bug fixes, performance, tests, docs, PWA+)
+  C4-01 Bug fixes & rendimiento v2     ← M (nueva ronda de optimización)
+  C4-02 Cobertura de tests v2           ← L (más rutas, integración)
+  C4-03 PWA avanzada (push offline)    ← M (notificaciones sin conexión, sync)
+  C4-04 UX polish v2                    ← M (micro-interacciones, temas, accesibilidad)
+
+FASE 12: E-commerce (venta de boletos completa)
+  C4-05 Carrito de compras              ← M (múltiples boletos por orden)
+  C4-06 Cupones y descuentos            ← M (códigos promocionales, % descuento)
+  C4-07 Facturación / Receipts          ← M (facturas PDF, emails post-compra)
+
+FASE 13: IA & Automación Inteligente
+  C4-08 Chatbot asistente               ← XL (chat en vivo para invitados)
+  C4-09 Reportes IA                     ← M (insights automáticos, predicciones)
+  C4-10 Moderación IA de propuestas     ← M (clasificación automática de propuestas)
+
+FASE 14: i18n Completo
+  C4-11 Traducción completa UI          ← XL (100% de la interfaz traducida)
+  C4-12 Selector de idioma persistente  ← S (guardar preferencia por usuario)
+```
+
+---
+
+## 🎯 Matriz de Prioridad Real — Ciclo 4
+
+| Feature | Impacto | Esfuerzo | Dependencias | Fase |
+|---------|---------|----------|-------------|------|
+| **C4-01** Bug fixes & rendimiento v2 | Alto | M | Ninguna | **F11** |
+| **C4-02** Cobertura de tests v2 | Alto | L | Ninguna | **F11** |
+| **C4-03** PWA avanzada (push offline) | Alto | M | C3-04 (offline) | **F11** |
+| **C4-04** UX polish v2 | Medio | M | Ninguna | **F11** |
+| **C4-05** Carrito de compras | Alto | M | F3-07 (pagos) | **F12** |
+| **C4-06** Cupones y descuentos | Alto | M | C4-05 (carrito) | **F12** |
+| **C4-07** Facturación / Receipts | Medio | M | C4-05 (carrito) | **F12** |
+| **C4-08** Chatbot asistente | Alto | XL | Ninguna | **F13** |
+| **C4-09** Reportes IA | Medio | M | Stats | **F13** |
+| **C4-10** Moderación IA de propuestas | Bajo | M | BL-20 (propuestas) | **F13** |
+| **C4-11** Traducción completa UI | Alto | XL | C2-06 (i18n base) | **F14** |
+| **C4-12** Selector de idioma persistente | Medio | S | C2-06 (i18n base) | **F14** |
+
+---
+
+## 🚀 Orden de Ejecucion Sugerido — Ciclo 4
+
+### Fase 11: Estabilización
+| Orden | Feature | Esfuerzo |
+|-------|---------|----------|
+| 1 | **C4-01** Bug fixes & rendimiento v2 | M |
+| 2 | **C4-04** UX polish v2 | M |
+| 3 | **C4-02** Cobertura de tests v2 | L |
+| 4 | **C4-03** PWA avanzada (push offline) | M |
+
+### Fase 12: E-commerce
+| Orden | Feature | Esfuerzo | Dependencia |
+|-------|---------|----------|-------------|
+| 1 | **C4-05** Carrito de compras | M | Stripe (F3-07) |
+| 2 | **C4-06** Cupones y descuentos | M | Carrito |
+| 3 | **C4-07** Facturación / Receipts | M | Carrito |
+
+### Fase 13: IA & Automación Inteligente
+| Orden | Feature | Esfuerzo |
+|-------|---------|----------|
+| 1 | **C4-09** Reportes IA | M |
+| 2 | **C4-10** Moderación IA de propuestas | M |
+| 3 | **C4-08** Chatbot asistente | XL |
+
+### Fase 14: i18n Completo
+| Orden | Feature | Esfuerzo | Dependencia |
+|-------|---------|----------|-------------|
+| 1 | **C4-12** Selector de idioma persistente | S | C2-06 |
+| 2 | **C4-11** Traducción completa UI | XL | C2-06 + C4-12 |
+
+---
+
+## 📊 Tablero de Progreso — Ciclo 4
+
+| ID | Feature | Estado | Version | Fecha |
+|----|---------|--------|---------|-------|
+| — | **Ciclo 4 iniciado** | ⏳ | v12.44.707 | — |
+| C4-01 | Bug fixes & rendimiento v2 | ⏳ | — | — |
+| C4-02 | Cobertura de tests v2 | ⏳ | — | — |
+| C4-03 | PWA avanzada (push offline) | ⏳ | — | — |
+| C4-04 | UX polish v2 | ⏳ | — | — |
+| C4-05 | Carrito de compras | ⏳ | — | — |
+| C4-06 | Cupones y descuentos | ⏳ | — | — |
+| C4-07 | Facturación / Receipts | ⏳ | — | — |
+| C4-08 | Chatbot asistente | ⏳ | — | — |
+| C4-09 | Reportes IA | ⏳ | — | — |
+| C4-10 | Moderación IA de propuestas | ⏳ | — | — |
+| C4-11 | Traducción completa UI | ⏳ | — | — |
+| C4-12 | Selector de idioma persistente | ⏳ | — | — |
 
 ---
 
