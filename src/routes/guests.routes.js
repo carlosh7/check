@@ -741,5 +741,76 @@ router.get('/:eventId/report', authMiddleware(), (req, res) => {
     }
 });
 
+// ─── Networking directory (C5-05) ───
+router.get('/:eventId/network', (req, res) => {
+    try {
+        var guests = db.prepare("SELECT id, name, email, organization, position, bio, interests, social_linkedin, photo_url FROM guests WHERE event_id = ? AND (bio IS NOT NULL AND bio != '') ORDER BY name ASC").all(req.params.eventId);
+        res.json(guests);
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+router.put('/:eventId/guests/:guestId/profile', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        var { bio, interests, social_linkedin, photo_url } = req.body;
+        db.prepare("UPDATE guests SET bio = COALESCE(?, bio), interests = COALESCE(?, interests), social_linkedin = COALESCE(?, social_linkedin), photo_url = COALESCE(?, photo_url) WHERE id = ?").run(
+            bio || null, interests || null, social_linkedin || null, photo_url || null, req.params.guestId
+        );
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Gamification (C5-06) ───
+router.get('/:eventId/achievements/:guestId', (req, res) => {
+    try {
+        var achievements = db.prepare("SELECT * FROM guest_achievements WHERE guest_id = ? AND event_id = ? ORDER BY awarded_at DESC").all(req.params.guestId, req.params.eventId);
+        res.json(achievements);
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/:eventId/achievements/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        var { achievement } = req.body;
+        if (!achievement) return res.status(400).json({ error: 'Achievement requerido' });
+        var id = require('uuid').v4();
+        db.prepare("INSERT INTO guest_achievements (id, guest_id, event_id, achievement) VALUES (?, ?, ?, ?)").run(id, req.params.guestId, req.params.eventId, achievement);
+        res.json({ success: true, id: id });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Social Media auto-publish (C5-08) ───
+router.post('/:eventId/social-publish', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    try {
+        var event = db.prepare("SELECT id, name, date, location, description FROM events WHERE id = ?").get(req.params.eventId);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+
+        var message = '📢 ' + event.name + ' - ' + new Date(event.date).toLocaleDateString('es-ES');
+        if (event.location) message += '\n📍 ' + event.location;
+        if (event.description) message += '\n\n' + event.description.slice(0, 200);
+        message += '\n\nRegístrate aquí: ' + (req.headers.origin || '') + '/registro.html?event=' + event.id;
+
+        // Twitter/X
+        var twitterResult = null;
+        try {
+            var twToken = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'twitter_token'").get();
+            if (twToken) {
+                var twRes = await fetch('https://api.twitter.com/2/tweets', { method: 'POST', headers: { 'Authorization': 'Bearer ' + twToken.setting_value, 'Content-Type': 'application/json' }, body: JSON.stringify({ text: message.slice(0, 280) }) });
+                twitterResult = twRes.ok ? 'published' : 'error';
+            }
+        } catch(e) { twitterResult = 'error'; }
+
+        // LinkedIn
+        var linkedinResult = null;
+        try {
+            var liToken = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'linkedin_token'").get();
+            if (liToken) {
+                var liRes = await fetch('https://api.linkedin.com/v2/ugcPosts', { method: 'POST', headers: { 'Authorization': 'Bearer ' + liToken.setting_value, 'Content-Type': 'application/json' }, body: JSON.stringify({ author: 'urn:li:person:me', lifecycleState: 'PUBLISHED', specificContent: { 'com.linkedin.ugc.ShareContent': { shareCommentary: { text: message }, shareMediaCategory: 'NONE' } }, visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' } }) });
+                linkedinResult = liRes.ok ? 'published' : 'error';
+            }
+        } catch(e) { linkedinResult = 'error'; }
+
+        res.json({ success: true, twitter: twitterResult, linkedin: linkedinResult, message: message });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;
 module.exports.tempImport = tempImport;

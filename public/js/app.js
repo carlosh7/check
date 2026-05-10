@@ -11862,6 +11862,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'proposals') this.loadProposals();
         if (tabName === 'automation') this.loadAutomationRules();
         if (tabName === 'coupons') this.loadCoupons();
+        if (tabName === 'network') this.loadNetwork();
         
         // Mostrar action-bar solo en tab Personal
         const actionBar = document.getElementById('config-action-bar');
@@ -13722,6 +13723,55 @@ navigate(viewName, params = {}, push = true) {
         var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar cupón?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try { await this.fetchAPI('/events/' + eId + '/coupons/' + id, { method: 'DELETE' }); this.loadCoupons(); } catch(e) { console.error(e); }
+    },
+
+    // ═══ Networking (C5-05) ═══
+    loadNetwork: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var guests = await this.fetchAPI('/guests/' + eId + '/guests');
+            var tbody = document.getElementById('network-tbody');
+            if (!tbody) return;
+            if (!guests || !guests.guests || !guests.guests.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin invitados</td></tr>'; return; }
+            tbody.innerHTML = guests.guests.slice(0, 50).map(function(g) {
+                return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-medium text-white">' + (g.name || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + (g.email || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + (g.organization || '-') + '</td>' +
+                    '<td class="table-td text-xs"><button class="text-[10px] text-[var(--primary)] hover:underline" onclick="App.awardAchievement(\'' + g.id + '\')">🏆 Dar logro</button></td>' +
+                    '<td class="table-td"><button class="text-[10px] text-[var(--primary)] hover:underline" onclick="App.editProfile(\'' + g.id + '\')">✏️ Editar perfil</button></td></tr>';
+            }).join('');
+        } catch(e) { console.error('[NETWORK] Error:', e.message); }
+    },
+
+    awardAchievement: async function(guestId) {
+        var eId = this.state.event?.id;
+        var achievements = ['early_bird', 'first_checkin', 'networking_star', 'social_share', 'survey_responder'];
+        var labels = ['🐤 Early Bird', '✅ Primer check-in', '🌟 Networking Star', '📢 Social Share', '📊 Encuesta'];
+        var html = achievements.map(function(a, i) { return '<div class="cursor-pointer p-2 hover:bg-white/5 rounded" onclick="App.saveAchievement(\'' + guestId + '\',\'' + a + '\')">' + labels[i] + '</div>'; }).join('');
+        Swal.fire({ title: '🏆 Dar logro', html: html, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+    },
+
+    saveAchievement: async function(guestId, achievement) {
+        var eId = this.state.event?.id;
+        try { await this.fetchAPI('/guests/' + eId + '/achievements/' + guestId, { method: 'POST', body: JSON.stringify({ achievement: achievement }) }); Swal.close(); this._notifyAction('Logro otorgado', '', 'success'); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    editProfile: async function(guestId) {
+        var eId = this.state.event?.id;
+        var { value: form } = await Swal.fire({ title: 'Editar perfil', html: '<input id="swal-bio" class="input-field w-full mb-2" placeholder="Bio"><input id="swal-interests" class="input-field w-full mb-2" placeholder="Intereses"><input id="swal-linkedin" class="input-field w-full" placeholder="LinkedIn URL">', focusConfirm: false, background: '#0f172a', color: '#fff', preConfirm: function() { return { bio: document.getElementById('swal-bio').value, interests: document.getElementById('swal-interests').value, social_linkedin: document.getElementById('swal-linkedin').value }; } });
+        if (form) { try { await this.fetchAPI('/guests/' + eId + '/guests/' + guestId + '/profile', { method: 'PUT', body: JSON.stringify(form) }); this._notifyAction('Perfil actualizado', '', 'success'); } catch(e) { this._notifyAction('Error', e.message, 'error'); } }
+    },
+
+    publishToSocial: async function() {
+        var eId = this.state.event?.id;
+        try {
+            var res = await this.fetchAPI('/guests/' + eId + '/social-publish', { method: 'POST' });
+            if (res.success) {
+                var msg = 'Twitter: ' + (res.twitter === 'published' ? '✅' : '⚠️ No config') + '\nLinkedIn: ' + (res.linkedin === 'published' ? '✅' : '⚠️ No config');
+                Swal.fire({ icon: 'info', title: 'Publicación', text: msg, background: '#0f172a', color: '#fff' });
+            }
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
     currentWheel: null,

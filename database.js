@@ -179,6 +179,14 @@ try { db.exec("CREATE INDEX IF NOT EXISTS idx_coupons_event ON coupons(event_id)
 // Performance logs table (C5-12)
 db.exec("CREATE TABLE IF NOT EXISTS performance_logs (id TEXT PRIMARY KEY, operation TEXT, duration_ms INTEGER, details TEXT, created_at TEXT)");
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_perf_logs_created ON performance_logs(created_at)"); } catch (_) {}
+// Guest achievements / gamification (C5-06)
+db.exec(`CREATE TABLE IF NOT EXISTS guest_achievements (id TEXT PRIMARY KEY, guest_id TEXT NOT NULL, event_id TEXT NOT NULL, achievement TEXT NOT NULL, awarded_at TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (guest_id) REFERENCES guests(id))`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_guest_achievements ON guest_achievements(guest_id)"); } catch (_) {}
+// Guest networking profiles (C5-05)
+try { db.exec("ALTER TABLE guests ADD COLUMN bio TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE guests ADD COLUMN interests TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE guests ADD COLUMN social_linkedin TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE guests ADD COLUMN photo_url TEXT"); } catch (_) {}
 // Public proposals table (BL-20)
 db.exec(`CREATE TABLE IF NOT EXISTS proposals (
     id TEXT PRIMARY KEY,
