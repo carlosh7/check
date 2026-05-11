@@ -13954,6 +13954,7 @@ navigate(viewName, params = {}, push = true) {
             if (document.getElementById('brand-header-html')) document.getElementById('brand-header-html').value = data.brand_header_html || '';
             if (document.getElementById('brand-footer-html')) document.getElementById('brand-footer-html').value = data.brand_footer_html || '';
         } catch(e) { console.error('[BRANDING] Error:', e.message); }
+        this.loadLandingConfig();
     },
 
     saveBranding: async function() {
@@ -13969,6 +13970,42 @@ navigate(viewName, params = {}, push = true) {
         try {
             await this.fetchAPI('/events/' + eId + '/branding', { method: 'PUT', body: JSON.stringify(data) });
             this._notifyAction('Guardado', 'Branding actualizado', 'success');
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    loadLandingConfig: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var data = await this.fetchAPI('/landing/' + eId + '/config');
+            if (!data) return;
+            if (document.getElementById('landing-hero-title')) document.getElementById('landing-hero-title').value = data.hero_title || '';
+            if (document.getElementById('landing-hero-subtitle')) document.getElementById('landing-hero-subtitle').value = data.hero_subtitle || '';
+            if (document.getElementById('landing-about-text')) document.getElementById('landing-about-text').value = data.about_text || '';
+            if (document.getElementById('landing-cta-text')) document.getElementById('landing-cta-text').value = data.cta_text || 'Registrarse';
+            if (document.getElementById('landing-cta-link')) document.getElementById('landing-cta-link').value = data.cta_link || '';
+            if (document.getElementById('landing-show-countdown')) document.getElementById('landing-show-countdown').checked = data.show_countdown !== false;
+            if (document.getElementById('landing-show-map')) document.getElementById('landing-show-map').checked = data.show_map !== false;
+            if (document.getElementById('landing-show-schedule')) document.getElementById('landing-show-schedule').checked = data.show_schedule !== false;
+        } catch(e) { console.error('[LANDING] Error:', e.message); }
+    },
+
+    saveLandingConfig: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var data = {
+            hero_title: document.getElementById('landing-hero-title')?.value || '',
+            hero_subtitle: document.getElementById('landing-hero-subtitle')?.value || '',
+            about_text: document.getElementById('landing-about-text')?.value || '',
+            cta_text: document.getElementById('landing-cta-text')?.value || 'Registrarse',
+            cta_link: document.getElementById('landing-cta-link')?.value || '',
+            show_countdown: document.getElementById('landing-show-countdown')?.checked !== false,
+            show_map: document.getElementById('landing-show-map')?.checked !== false,
+            show_schedule: document.getElementById('landing-show-schedule')?.checked !== false
+        };
+        try {
+            await this.fetchAPI('/landing/' + eId + '/config', { method: 'PUT', body: JSON.stringify(data) });
+            this._notifyAction('Guardado', 'Landing page actualizada', 'success');
         } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
 

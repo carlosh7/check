@@ -111,6 +111,7 @@ try { db.exec("ALTER TABLE events ADD COLUMN reg_show_position INTEGER DEFAULT 0
 try { db.exec("ALTER TABLE events ADD COLUMN reg_show_vegan INTEGER DEFAULT 1"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN reg_show_dietary INTEGER DEFAULT 1"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN badge_config TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN landing_config TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN reg_show_gender INTEGER DEFAULT 0"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN reg_require_agreement INTEGER DEFAULT 1"); } catch (_) {}
 // Campos Fase 8: Personalización de Tickets y QR

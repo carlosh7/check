@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.747</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.748</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -1786,6 +1786,44 @@
                                 <textarea id="brand-footer-html" class="input-field w-full text-xs" rows="3" placeholder="&lt;div style=&quot;text-align:center;font-size:12px&quot;&gt;© Mi Evento&lt;/div&gt;"></textarea>
                             </div>
                             <p class="text-xs text-slate-500 italic">Estos valores sobrescriben la configuraci&oacute;n visual general para este evento espec&iacute;fico.</p>
+                        </div>
+
+                        <!-- Landing Page Editor (C11-06) -->
+                        <div class="card p-6 space-y-4">
+                            <h3 class="text-lg font-bold text-white">Landing Page <span class="text-[var(--primary)]">del Evento</span></h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)]">Título principal</label>
+                                    <input id="landing-hero-title" class="input-field w-full" placeholder="Nombre del evento">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)]">Subtítulo</label>
+                                    <input id="landing-hero-subtitle" class="input-field w-full" placeholder="Subtítulo o fecha">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)]">Texto de descripción</label>
+                                <textarea id="landing-about-text" class="input-field w-full" rows="3" placeholder="Descripción del evento..."></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)]">Texto del botón CTA</label>
+                                    <input id="landing-cta-text" class="input-field w-full" value="Registrarse">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)]">Enlace del botón CTA</label>
+                                    <input id="landing-cta-link" class="input-field w-full" placeholder="/mi-evento/registro">
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4 flex-wrap">
+                                <label class="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" id="landing-show-countdown" checked> Mostrar countdown</label>
+                                <label class="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" id="landing-show-map" checked> Mostrar mapa</label>
+                                <label class="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" id="landing-show-schedule" checked> Mostrar agenda</label>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="btn-primary text-xs" onclick="App.saveLandingConfig()">💾 Guardar Landing</button>
+                                <button class="btn-secondary text-xs" onclick="window.open('/' + (App.state.event?.slug || App.state.event?.id) + '/landing', '_blank')">👁 Vista previa</button>
+                            </div>
                         </div>
                     </div>
 

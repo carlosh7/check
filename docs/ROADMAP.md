@@ -1963,7 +1963,7 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 | C11-02 | Badge printing | ✅ | v12.44.743 | 2026-05-11 |
 | C11-03 | Kiosko auto-check-in | ✅ | v12.44.744 | 2026-05-11 |
 | C11-04 | Networking scoring | ✅ | v12.44.746 | 2026-05-11 |
-| C11-06 | Constructor landing pages | ⏳ Pendiente | — | — |
+| C11-06 | Constructor landing pages | ✅ | v12.44.748 | 2026-05-11 |
 | C11-07 | Álbum de fotos compartido | ✅ | v12.44.747 | 2026-05-11 |
 | C11-08 | Certificados automáticos | ✅ | v12.44.745 | 2026-05-11 |
 | C11-09 | Plugin marketplace | ⏳ Pendiente | — | — |
