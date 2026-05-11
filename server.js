@@ -175,6 +175,8 @@ app.use('/api/proposals', limiters.proposals);
 app.use('/api/automation', limiters.automation);
 app.use('/api/settings', limiters.settings);
 app.use('/api/surveys', limiters.surveys);
+app.use('/api/polls', limiters.polls);
+app.use('/api/leaderboard', limiters.polls);
 app.use('/api/sessions', limiters.sessions);
 app.use('/api/venues', limiters.venues);
 app.use('/api/chatbot', limiters.chatbot);

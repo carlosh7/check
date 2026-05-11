@@ -395,6 +395,89 @@ function createEventTables(db, eventId) {
         )
     `);
     
+    // Tabla de encuestas en vivo (C11-01 Gamificación)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS polls (
+            id TEXT PRIMARY KEY,
+            event_id TEXT NOT NULL,
+            session_id TEXT,
+            title TEXT NOT NULL,
+            description TEXT,
+            type TEXT DEFAULT 'single',
+            status TEXT DEFAULT 'draft',
+            points INTEGER DEFAULT 10,
+            time_limit_seconds INTEGER DEFAULT 0,
+            correct_answer TEXT,
+            created_at TEXT,
+            updated_at TEXT
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS poll_options (
+            id TEXT PRIMARY KEY,
+            poll_id TEXT NOT NULL,
+            label TEXT NOT NULL,
+            order_index INTEGER DEFAULT 0,
+            is_correct INTEGER DEFAULT 0,
+            FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS poll_votes (
+            id TEXT PRIMARY KEY,
+            poll_id TEXT NOT NULL,
+            guest_id TEXT,
+            option_id TEXT,
+            answer_text TEXT,
+            voted_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE,
+            FOREIGN KEY (guest_id) REFERENCES guests(id)
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS leaderboard (
+            id TEXT PRIMARY KEY,
+            event_id TEXT NOT NULL,
+            guest_id TEXT NOT NULL,
+            points INTEGER DEFAULT 0,
+            updated_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (guest_id) REFERENCES guests(id),
+            UNIQUE(event_id, guest_id)
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS point_history (
+            id TEXT PRIMARY KEY,
+            event_id TEXT NOT NULL,
+            guest_id TEXT NOT NULL,
+            points INTEGER NOT NULL,
+            reason TEXT,
+            reference_id TEXT,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (guest_id) REFERENCES guests(id)
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS badges (
+            id TEXT PRIMARY KEY,
+            event_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            description TEXT,
+            icon TEXT DEFAULT '🏆',
+            criteria TEXT,
+            points_reward INTEGER DEFAULT 0
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS guest_badges (
+            id TEXT PRIMARY KEY,
+            badge_id TEXT NOT NULL,
+            guest_id TEXT NOT NULL,
+            earned_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (badge_id) REFERENCES badges(id) ON DELETE CASCADE,
+            FOREIGN KEY (guest_id) REFERENCES guests(id)
+        )
+    `);
     // Tabla de agenda del evento
     db.exec(`
         CREATE TABLE IF NOT EXISTS event_agenda (
@@ -503,6 +586,13 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_guests_email ON guests(email)",
         "CREATE INDEX IF NOT EXISTS idx_survey_questions_template ON survey_questions(template_id)",
         "CREATE INDEX IF NOT EXISTS idx_survey_templates_event ON survey_templates(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_polls_event ON polls(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_poll_options_poll ON poll_options(poll_id)",
+        "CREATE INDEX IF NOT EXISTS idx_poll_votes_poll ON poll_votes(poll_id)",
+        "CREATE INDEX IF NOT EXISTS idx_poll_votes_guest ON poll_votes(guest_id)",
+        "CREATE INDEX IF NOT EXISTS idx_leaderboard_event ON leaderboard(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_point_history_guest ON point_history(guest_id)",
+        "CREATE INDEX IF NOT EXISTS idx_guest_badges_guest ON guest_badges(guest_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffles_event ON raffles(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffle_participants_raffle ON raffle_participants(raffle_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffle_results_raffle ON raffle_results(raffle_id)",

@@ -51,6 +51,8 @@ const crmRoutes = require('./crm.routes');
 const ecosystemRoutes = require('./ecosystem.routes');
 const intelligenceRoutes = require('./intelligence.routes');
 const automationV2Routes = require('./automation-v2.routes');
+const pollsRoutes = require('./polls.routes');
+const leaderboardRoutes = require('./leaderboard.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
 const upload = multer({
@@ -221,6 +223,13 @@ app.use('/api/compliance', complianceRoutes);
 
     // Raffles / Sorteos (V12.45)
     app.use('/api/raffles', rafflesRoutes);
+
+    // Polls / Live Polling (C11-01)
+    app.use('/api/polls', pollsRoutes);
+
+    // Leaderboard / Insignias (C11-01)
+    app.use('/api/leaderboard', leaderboardRoutes);
+
     googleRoutes.startSyncWorker();
 
     // Stats (Dashboard Analítica)

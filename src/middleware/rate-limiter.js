@@ -35,6 +35,7 @@ const limiters = {
     automation: createLimiter({ max: 100, message: { error: 'Demasiadas peticiones de automatizacion' } }),
     settings: createLimiter({ max: 100, message: { error: 'Demasiadas peticiones de configuracion' } }),
     surveys: createLimiter({ max: 200, message: { error: 'Demasiadas peticiones de encuestas' } }),
+    polls: createLimiter({ max: 200, message: { error: 'Demasiadas peticiones de gamificación' } }),
     sessions: createLimiter({ max: 200, message: { error: 'Demasiadas peticiones de sesiones' } }),
     venues: createLimiter({ max: 100, message: { error: 'Demasiadas peticiones de sedes' } }),
     chatbot: createLimiter({ max: 50, message: { error: 'Demasiadas peticiones al chatbot' } }),
