@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kiosko | Check Pro</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center}
+#app{width:100%;max-width:500px;padding:24px;text-align:center}
+.logo{margin-bottom:24px}
+.logo h1{font-size:24px;font-weight:800;color:#a78bfa}
+.logo p{font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px}
+.search-box{position:relative;margin-bottom:16px}
+.search-box input{width:100%;padding:16px 20px;border-radius:16px;border:2px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:#fff;font-size:18px;font-weight:500;outline:none;text-align:center;transition:border-color .2s}
+.search-box input:focus{border-color:#a78bfa}
+.search-box input::placeholder{color:rgba(255,255,255,0.2)}
+.qr-section{margin:16px 0}
+.qr-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;border-radius:16px;border:2px dashed rgba(255,255,255,0.1);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.4);font-size:15px;cursor:pointer;transition:all .2s}
+.qr-btn:hover{border-color:#a78bfa;color:#a78bfa}
+.qr-btn .icon{font-size:24px}
+#reader{display:none;margin:16px 0;border-radius:16px;overflow:hidden}
+#reader video{border-radius:16px;width:100%}
+.results{margin-top:8px;text-align:left}
+.result-item{display:flex;align-items:center;justify-content:space-between;padding:16px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);margin-bottom:6px;cursor:pointer;transition:all .2s}
+.result-item:hover{background:rgba(124,58,237,0.1);border-color:#a78bfa}
+.result-item .info .name{font-size:15px;font-weight:600;color:#e2e8f0}
+.result-item .info .detail{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px}
+.result-item .status{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600}
+.result-item .status.done{background:rgba(16,185,129,0.15);color:#34d399}
+.result-item .status.pending{background:rgba(251,191,36,0.15);color:#fbbf24}
+.result-item.disabled{opacity:0.4;pointer-events:none}
+.confirm-screen{display:none;padding:24px}
+.confirm-screen .icon{font-size:48px;margin-bottom:16px}
+.confirm-screen .name{font-size:22px;font-weight:700;color:#e2e8f0;margin-bottom:4px}
+.confirm-screen .detail{font-size:14px;color:rgba(255,255,255,0.4);margin-bottom:24px}
+.confirm-screen .checkin-btn{width:100%;padding:18px;border:none;border-radius:16px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;font-size:17px;font-weight:700;cursor:pointer;margin-bottom:8px;transition:transform .1s}
+.confirm-screen .checkin-btn:active{transform:scale(0.97)}
+.confirm-screen .cancel-btn{background:none;border:none;color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer;padding:8px}
+.success-screen{display:none;padding:40px 24px}
+.success-screen .icon{font-size:64px;margin-bottom:16px;display:block;animation:pop .3s ease}
+@keyframes pop{0%{transform:scale(0)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+.success-screen .name{font-size:24px;font-weight:700;color:#34d399;margin-bottom:4px}
+.success-screen .detail{font-size:14px;color:rgba(255,255,255,0.4)}
+.success-screen .timer{font-size:60px;font-weight:800;color:#a78bfa;margin-top:24px}
+.already-screen{display:none;padding:40px 24px}
+.already-screen .icon{font-size:48px;margin-bottom:16px}
+.already-screen .name{font-size:20px;font-weight:600;color:#fbbf24;margin-bottom:4px}
+.error-msg{color:#ef4444;font-size:13px;margin-top:8px;display:none}
+.stats{display:flex;gap:12px;margin:16px 0;justify-content:center}
+.stats-item{padding:10px 16px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
+.stats-item .num{font-size:20px;font-weight:700;color:#a78bfa;display:block}
+.stats-item .lbl{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-top:2px}
+@media(max-width:480px){#app{padding:16px}.search-box input{font-size:16px}}
+#reset-timer{font-size:13px;color:rgba(255,255,255,0.2);margin-top:32px;transition:color .2s;cursor:pointer;display:none}
+#reset-timer:hover{color:rgba(255,255,255,0.5)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="logo">
+    <h1>Check Pro</h1>
+    <p id="event-name">Cargando evento...</p>
+  </div>
+
+  <div class="stats" id="stats-bar">
+    <div class="stats-item"><span class="num" id="stat-total">0</span><span class="lbl">Invitados</span></div>
+    <div class="stats-item"><span class="num" id="stat-checked">0</span><span class="lbl">Ingresaron</span></div>
+  </div>
+
+  <div id="main-screen">
+    <div class="search-box">
+      <input id="search-input" type="text" placeholder="Busca tu nombre o email..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div id="error-msg" class="error-msg"></div>
+
+    <div class="qr-section">
+      <button class="qr-btn" id="qr-btn" onclick="toggleQR()">
+        <span class="icon">📷</span> Escanear código QR
+      </button>
+    </div>
+    <div id="reader"></div>
+
+    <div id="results" class="results"></div>
+  </div>
+
+  <div id="confirm-screen" class="confirm-screen">
+    <div class="icon">👤</div>
+    <div class="name" id="confirm-name"></div>
+    <div class="detail" id="confirm-detail"></div>
+    <button class="checkin-btn" onclick="confirmCheckin()">✅ Confirmar ingreso</button>
+    <button class="cancel-btn" onclick="cancelCheckin()">No soy yo, volver</button>
+  </div>
+
+  <div id="success-screen" class="success-screen">
+    <span class="icon">✅</span>
+    <div class="name" id="success-name">¡Bienvenido!</div>
+    <div class="detail">Tu ingreso ha sido registrado</div>
+    <div class="timer" id="reset-timer-display">5</div>
+  </div>
+
+  <div id="already-screen" class="already-screen">
+    <div class="icon">ℹ️</div>
+    <div class="name">Ya registraste tu ingreso</div>
+    <div class="detail" id="already-detail"></div>
+    <div class="timer" id="already-timer-display" style="font-size:40px;font-weight:700;color:#a78bfa;margin-top:16px">5</div>
+  </div>
+
+  <div id="reset-timer" onclick="resetKiosk()">↩ Volver al inicio</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
+<script>
+var API = '/api';
+var eventId = null;
+var selectedGuest = null;
+var resetTimeout = null;
+var html5QrCode = null;
+
+function getEventFromUrl() {
+  var path = window.location.pathname.split('/');
+  var slug = path[1];
+  if (!slug) return;
+  var params = new URLSearchParams(window.location.search);
+  var eid = params.get('eid');
+  if (eid) { loadEvent(eid); return; }
+  // Try to get event by slug
+  fetch(API + '/event-by-slug/' + slug).then(function(r) { return r.json(); }).then(function(ev) {
+    if (ev && ev.id) loadEvent(ev.id);
+    else document.getElementById('event-name').textContent = 'Evento no encontrado';
+  }).catch(function() { document.getElementById('event-name').textContent = 'Error cargando evento'; });
+}
+
+function loadEvent(eId) {
+  eventId = eId;
+  fetch(API + '/kiosk/' + eId + '/event').then(function(r) { return r.json(); }).then(function(ev) {
+    if (ev && ev.name) {
+      document.getElementById('event-name').textContent = ev.name;
+      document.title = 'Kiosko | ' + ev.name;
+      if (ev.primary_color) {
+        document.querySelector('.checkin-btn').style.background = 'linear-gradient(135deg,' + ev.primary_color + ', #a78bfa)';
+      }
+    }
+    updateStats();
+  }).catch(function() { document.getElementById('event-name').textContent = 'Error cargando evento'; });
+}
+
+function updateStats() {
+  if (!eventId) return;
+  fetch(API + '/kiosk/' + eventId + '/event').then(function(r) { return r.json(); }).then(function(ev) {
+    if (ev && ev.stats) {
+      document.getElementById('stat-total').textContent = ev.stats.total || 0;
+      document.getElementById('stat-checked').textContent = ev.stats.checkedIn || 0;
+    }
+  }).catch(function() {});
+}
+
+// Search
+var searchTimer = null;
+document.getElementById('search-input').addEventListener('input', function() {
+  clearTimeout(searchTimer);
+  var q = this.value.trim();
+  if (q.length < 2) { document.getElementById('results').innerHTML = ''; return; }
+  searchTimer = setTimeout(function() { searchGuests(q); }, 300);
+});
+
+function searchGuests(q) {
+  if (!eventId) return;
+  hideError();
+  fetch(API + '/kiosk/' + eventId + '/search?q=' + encodeURIComponent(q)).then(function(r) { return r.json(); }).then(function(guests) {
+    var c = document.getElementById('results');
+    if (!guests || guests.length === 0) {
+      c.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);font-size:13px">Sin resultados</div>';
+      return;
+    }
+    c.innerHTML = guests.map(function(g) {
+      var statusClass = g.checked_in ? 'done' : 'pending';
+      var statusText = g.checked_in ? '✅ Ingresó' : '⏳ Pendiente';
+      var disabledClass = g.checked_in ? 'disabled' : '';
+      return '<div class="result-item ' + disabledClass + '" onclick="' + (g.checked_in ? '' : 'selectGuest(\'' + g.id + '\',\'' + escJs(g.name) + '\',\'' + escJs(g.email || '') + '\',\'' + escJs(g.organization || '') + '\')') + '">'
+        + '<div class="info"><div class="name">' + escHtml(g.name) + '</div>'
+        + '<div class="detail">' + escHtml(g.email || g.organization || '') + '</div></div>'
+        + '<div class="status ' + statusClass + '">' + statusText + '</div></div>';
+    }).join('');
+  }).catch(function() { showError('Error al buscar'); });
+}
+
+function selectGuest(id, name, email, org) {
+  selectedGuest = { id: id, name: name, email: email, organization: org };
+  document.getElementById('confirm-screen').style.display = 'block';
+  document.getElementById('main-screen').style.display = 'none';
+  document.getElementById('confirm-name').textContent = name;
+  document.getElementById('confirm-detail').textContent = [email, org].filter(Boolean).join(' · ');
+  document.getElementById('search-input').value = '';
+  document.getElementById('results').innerHTML = '';
+}
+
+function confirmCheckin() {
+  if (!selectedGuest) return;
+  // Get guest token from API
+  fetch(API + '/guests/qr/' + selectedGuest.id + '/token').then(function(r) { return r.json(); }).then(function(data) {
+    if (!data || !data.token) { showError('Error al obtener token'); return; }
+    return fetch(API + '/kiosk/checkin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ guest_token: data.token }) });
+  }).then(function(r) { return r.json(); }).then(function(res) {
+    if (res && res.success) {
+      if (res.alreadyCheckedIn) {
+        showAlready(res.guest.name);
+      } else {
+        showSuccess(selectedGuest.name);
+      }
+      updateStats();
+    } else {
+      showError(res && res.error ? res.error : 'Error al registrar');
+    }
+  }).catch(function() { showError('Error de conexión'); });
+}
+
+function showSuccess(name) {
+  document.getElementById('confirm-screen').style.display = 'none';
+  document.getElementById('success-screen').style.display = 'block';
+  document.getElementById('success-name').textContent = '¡Bienvenido, ' + name + '!';
+  document.getElementById('reset-timer').style.display = 'block';
+  startResetTimer('reset-timer-display');
+}
+
+function showAlready(name) {
+  document.getElementById('confirm-screen').style.display = 'none';
+  document.getElementById('already-screen').style.display = 'block';
+  document.getElementById('already-detail').textContent = name + ' ya había registrado su ingreso anteriormente.';
+  document.getElementById('reset-timer').style.display = 'block';
+  startResetTimer('already-timer-display');
+}
+
+function cancelCheckin() {
+  selectedGuest = null;
+  document.getElementById('confirm-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display = 'block';
+  document.getElementById('search-input').focus();
+}
+
+function startResetTimer(displayId) {
+  var seconds = 5;
+  var el = document.getElementById(displayId);
+  el.textContent = seconds;
+  clearInterval(resetTimeout);
+  resetTimeout = setInterval(function() {
+    seconds--;
+    el.textContent = seconds;
+    if (seconds <= 0) {
+      clearInterval(resetTimeout);
+      resetKiosk();
+    }
+  }, 1000);
+}
+
+function resetKiosk() {
+  clearInterval(resetTimeout);
+  selectedGuest = null;
+  document.getElementById('success-screen').style.display = 'none';
+  document.getElementById('already-screen').style.display = 'none';
+  document.getElementById('confirm-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display = 'block';
+  document.getElementById('reset-timer').style.display = 'none';
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-input').focus();
+  document.getElementById('results').innerHTML = '';
+}
+
+function toggleQR() {
+  var reader = document.getElementById('reader');
+  if (reader.style.display === 'block') {
+    reader.style.display = 'none';
+    if (html5QrCode) { html5QrCode.stop(); html5QrCode = null; }
+    return;
+  }
+  reader.style.display = 'block';
+  if (typeof Html5Qrcode !== 'undefined') {
+    html5QrCode = new Html5Qrcode('reader');
+    html5QrCode.start({ facingMode: 'environment' }, { fps: 10, qrbox: 250 },
+      function(qrText) {
+        // QR scanned - extract guest token from URL
+        var token = qrText.split('/').pop();
+        if (token && token.length > 5) {
+          handleQRToken(token);
+        }
+        if (html5QrCode) { html5QrCode.stop(); html5QrCode = null; }
+        reader.style.display = 'none';
+      },
+      function() {}
+    ).catch(function(e) { console.error('QR error:', e); });
+  }
+}
+
+function handleQRToken(token) {
+  fetch(API + '/kiosk/checkin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ guest_token: token }) })
+  .then(function(r) { return r.json(); })
+  .then(function(res) {
+    if (res && res.success) {
+      if (res.alreadyCheckedIn) showAlready(res.guest.name);
+      else showSuccess(res.guest.name);
+      updateStats();
+    } else {
+      showError(res && res.error ? res.error : 'QR no válido');
+    }
+  }).catch(function() { showError('Error al procesar QR'); });
+}
+
+function showError(msg) {
+  var el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 4000);
+}
+
+function hideError() { document.getElementById('error-msg').style.display = 'none'; }
+
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escJs(s) { return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+// Init
+getEventFromUrl();
+setInterval(updateStats, 15000); // Refresh stats every 15s
+document.getElementById('search-input').focus();
+</script>
+</body>
+</html>

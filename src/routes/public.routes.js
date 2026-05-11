@@ -107,7 +107,72 @@ router.get('/portal/:guestId', (req, res) => {
             guest: { id: guest.id, name: guest.name, email: guest.email, checked_in: guest.checked_in, qr_token: guest.qr_token, category_id: guest.category_id },
             event: { id: guest.event_id, name: guest.event_name, date: guest.event_date, location: guest.event_location, description: guest.event_description },
             sessions: sessions
-        });
+});
+
+// ── Kiosko Auto-Check-In (C11-03) ──
+
+// Buscar invitados por nombre (para kiosko)
+router.get('/kiosk/:eventId/search', (req, res) => {
+    try {
+        var q = req.query.q || '';
+        if (!q || q.length < 2) return res.json([]);
+        var eId = require('../utils/helpers').castId('events', req.params.eventId);
+        if (!eId) return res.status(400).json({ error: 'Evento inválido' });
+        var event = db.prepare("SELECT id, has_own_db FROM events WHERE id = ?").get(eId);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+        var targetDb = require('../../database');
+        if (event.has_own_db) {
+            try { targetDb = require('../utils/database-manager').getEventConnection(eId) || targetDb; } catch(e) {}
+        }
+        var guests = targetDb.prepare("SELECT id, name, email, organization, checked_in FROM guests WHERE event_id = ? AND (name LIKE ? OR email LIKE ? OR organization LIKE ?) LIMIT 20").all(eId, '%' + q + '%', '%' + q + '%', '%' + q + '%');
+        res.json(guests);
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// Auto-check-in público (vía QR token)
+router.post('/kiosk/checkin', (req, res) => {
+    try {
+        var { guest_token } = req.body;
+        if (!guest_token) return res.status(400).json({ error: 'Token requerido' });
+        var guest = db.prepare("SELECT * FROM guests WHERE qr_token = ?").get(guest_token);
+        if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+        if (guest.checked_in) return res.json({ success: true, alreadyCheckedIn: true, guest: { name: guest.name } });
+        var targetDb = require('../../database');
+        var eventData = db.prepare("SELECT id, has_own_db FROM events WHERE id = ?").get(guest.event_id);
+        if (eventData && eventData.has_own_db) {
+            try { targetDb = require('../utils/database-manager').getEventConnection(guest.event_id) || targetDb; } catch(e) {}
+        }
+        targetDb.prepare("UPDATE guests SET checked_in = 1, checkin_time = ?, status = 'attended' WHERE id = ?").run(new Date().toISOString(), guest.id);
+        // Trigger webhook
+        try {
+            var wh = require('./webhooks.routes');
+            if (wh && wh.triggerWebhooks) wh.triggerWebhooks('guest.checked_in', { guest_id: guest.id, event_id: guest.event_id, name: guest.name, email: guest.email, source: 'kiosk' }, guest.event_id).catch(function() {});
+        } catch(e) {}
+        // Emit socket event
+        try {
+            var io = require('../../src/socket').getIO();
+            if (io) { io.to(guest.event_id).emit('update_stats', guest.event_id); io.to(guest.event_id).emit('live_checkin', { name: guest.name, id: guest.id, event_id: guest.event_id, source: 'kiosk' }); }
+        } catch(e) {}
+        res.json({ success: true, alreadyCheckedIn: false, guest: { name: guest.name } });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// Obtener datos del evento para el kiosko
+router.get('/kiosk/:eventId/event', (req, res) => {
+    try {
+        var eId = require('../utils/helpers').castId('events', req.params.eventId);
+        if (!eId) return res.status(400).json({ error: 'Evento inválido' });
+        var event = db.prepare("SELECT id, name, date, location, logo_url, banner_url, primary_color FROM events WHERE id = ?").get(eId);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+        // Obtener stats
+        var targetDb = require('../../database');
+        if (event.has_own_db) {
+            try { targetDb = require('../utils/database-manager').getEventConnection(eId) || targetDb; } catch(e) {}
+        }
+        var total = targetDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ?").get(eId).c;
+        var checkedIn = targetDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1").get(eId).c;
+        event.stats = { total: total, checkedIn: checkedIn };
+        res.json(event);
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -178,6 +243,25 @@ router.get('/guests/qr/:guestId', (req, res) => {
             res.setHeader('Cache-Control', 'public, max-age=3600');
             res.send(buf);
         }).catch(function(err) { res.status(500).json({ error: err.message }); });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// Token QR del invitado (para kiosko)
+router.get('/guests/qr/:guestId/token', (req, res) => {
+    try {
+        let guest = db.prepare("SELECT id, qr_token FROM guests WHERE id = ?").get(req.params.guestId);
+        if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+        res.json({ token: guest.qr_token });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// Buscar evento por slug (para kiosko)
+router.get('/event-by-slug/:slug', (req, res) => {
+    try {
+        var slug = req.params.slug;
+        var event = db.prepare("SELECT id, name FROM events WHERE slug = ? OR id = ? LIMIT 1").get(slug, slug);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+        res.json(event);
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
