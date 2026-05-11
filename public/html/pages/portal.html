@@ -131,6 +131,37 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
         <div id="portal-badges-list"><p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Cargando...</p></div>
       </div>
     </div>
+  <!-- Networking -->
+  <div id="networking-section" style="display:none">
+    <div class="section">
+      <h3>🤝 Tu código de networking</h3>
+      <div class="card" style="text-align:center">
+        <div id="networking-qr-container" style="background:#fff;border-radius:12px;display:inline-block;padding:8px;margin-bottom:8px">
+          <img id="networking-qr-img" src="" style="width:160px;height:160px">
+        </div>
+        <p style="font-size:12px;color:rgba(255,255,255,0.4)">Escanea el QR de otro asistente para conectar</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>📷 Escanear QR</h3>
+      <button class="qr-btn" id="net-qr-btn" onclick="toggleNetQR()" style="margin:0 16px;width:calc(100% - 32px)">
+        <span class="icon">📷</span> Escanear QR de otro asistente
+      </button>
+      <div id="net-reader" style="display:none;margin:12px 16px;border-radius:16px;overflow:hidden"></div>
+    </div>
+
+    <div id="net-stats" class="stats" style="margin:12px 16px">
+      <div class="stats-item"><span class="num" id="net-score">0</span><span class="lbl">Puntos</span></div>
+      <div class="stats-item"><span class="num" id="net-connections">0</span><span class="lbl">Conexiones</span></div>
+    </div>
+
+    <div class="section">
+      <h3>🤝 Tus conexiones</h3>
+      <div id="net-connections-list" style="padding:0 16px">
+        <p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">Cargando...</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -139,12 +170,13 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
   <a href="#" class="active" onclick="switchTab('ticket',this)"><span class="icon">🎟️</span>Ticket</a>
   <a href="#" onclick="switchTab('agenda',this)"><span class="icon">📋</span>Agenda</a>
   <a href="#" onclick="switchTab('participate',this)"><span class="icon">🏆</span>Participar</a>
+  <a href="#" onclick="switchTab('networking',this)"><span class="icon">🤝</span>Networking</a>
   <a href="#" onclick="switchTab('event',this)"><span class="icon">ℹ️</span>Evento</a>
 </div>
 
 <script>
 var API='/api',guestData=null,deferredPrompt=null;
-var tabs=['ticket','agenda','participate','event'];
+var tabs=['ticket','agenda','participate','networking','event'];
 
 // PWA Install
 window.addEventListener('beforeinstallprompt',function(e){
@@ -165,9 +197,11 @@ function switchTab(tab,el){
   document.getElementById('ticket-section').style.display=tab==='ticket'?'block':'none';
   document.getElementById('agenda-section').style.display=tab==='agenda'?'block':'none';
   document.getElementById('participate-section').style.display=tab==='participate'?'block':'none';
+  document.getElementById('networking-section').style.display=tab==='networking'?'block':'none';
   document.getElementById('event-stats').style.display=tab==='event'?'grid':'none';
   document.getElementById('notif-card').style.display=tab==='event'?'block':'none';
   if(tab==='participate'){loadPortalPolls();loadPortalLeaderboard();loadPortalBadges();}
+  if(tab==='networking'){loadNetworking();}
 }
 
 function switchParticipateTab(tab,el){
@@ -289,6 +323,82 @@ function urlBase64ToUint8Array(base64String){
   var base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
   var rawData=window.atob(base64);
   return Uint8Array.from(rawData.split('').map(function(c){return c.charCodeAt(0)}));
+}
+
+// ── Networking ──
+var netQrCode = null;
+
+function loadNetworking() {
+  if (!guestData) return;
+  var guestId = guestData.guest?.id;
+  var eventId = guestData.event?.id;
+  if (!guestId || !eventId) return;
+  // Load QR
+  var qrUrl = window.location.origin + '/api/guests/qr/' + guestId;
+  document.getElementById('networking-qr-img').src = qrUrl;
+  // Load score
+  fetch(API + '/networking/' + eventId + '/guest/' + guestId + '/score').then(function(r) { return r.json(); }).then(function(data) {
+    if (data) {
+      document.getElementById('net-score').textContent = data.score || 0;
+      document.getElementById('net-connections').textContent = data.uniqueConnections || 0;
+    }
+  }).catch(function() {});
+  // Load connections list
+  fetch(API + '/networking/' + eventId + '/guest/' + guestId).then(function(r) { return r.json(); }).then(function(conns) {
+    var c = document.getElementById('net-connections-list');
+    if (!conns || conns.length === 0) { c.innerHTML = '<p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">Aún no tienes conexiones. Escanea el QR de otros asistentes.</p>'; return; }
+    c.innerHTML = conns.map(function(n) {
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0">'
+        + '<span style="font-size:18px">👤</span>'
+        + '<div><span style="font-size:13px;font-weight:600;color:#e2e8f0">' + escHtml(n.connected_name) + '</span>'
+        + '<span style="font-size:11px;color:rgba(255,255,255,0.4);display:block">' + escHtml(n.connected_email || n.connected_org || '') + '</span></div></div>';
+    }).join('');
+  }).catch(function() {});
+}
+
+function toggleNetQR() {
+  var reader = document.getElementById('net-reader');
+  if (reader.style.display === 'block') {
+    reader.style.display = 'none';
+    if (netQrCode) { netQrCode.stop(); netQrCode = null; }
+    return;
+  }
+  reader.style.display = 'block';
+  if (typeof Html5Qrcode !== 'undefined') {
+    netQrCode = new Html5Qrcode('net-reader');
+    netQrCode.start({ facingMode: 'environment' }, { fps: 10, qrbox: 250 },
+      function(qrText) {
+        var token = qrText.split('/').pop();
+        if (token && token.length > 5) {
+          handleNetQR(token);
+        }
+        if (netQrCode) { netQrCode.stop(); netQrCode = null; }
+        reader.style.display = 'none';
+      }, function() {}
+    ).catch(function(e) { console.error('QR error:', e); });
+  }
+}
+
+function handleNetQR(token) {
+  if (!guestData) return;
+  var eventId = guestData.event?.id;
+  var myToken = guestData.guest?.qr_token;
+  if (!eventId || !myToken) { alert('Error: datos de invitado no disponibles'); return; }
+  if (token === myToken) { alert('¡Este es tu propio código!'); return; }
+  fetch(API + '/networking/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_id: eventId, from_guest_token: myToken, to_guest_token: token })
+  }).then(function(r) { return r.json(); }).then(function(res) {
+    if (res && res.success) {
+      if (res.alreadyConnected) {
+        alert('Ya estás conectado con ' + (res.guest?.name || 'este asistente'));
+      } else {
+        alert('✅ ¡Conexión realizada con ' + (res.guest?.name || 'el asistente') + '!');
+      }
+      loadNetworking();
+    } else {
+      alert('❌ ' + (res && res.error ? res.error : 'Error al conectar'));
+    }
+  }).catch(function() { alert('Error de conexión'); });
 }
 
 async function load(){

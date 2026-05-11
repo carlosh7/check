@@ -478,9 +478,21 @@ function createEventTables(db, eventId) {
             FOREIGN KEY (guest_id) REFERENCES guests(id)
         )
     `);
-    // Tabla de plantillas de certificados (C11-08)
+    // Tabla de conexiones de networking (C11-04)
     db.exec(`
-        CREATE TABLE IF NOT EXISTS certificate_templates (
+        CREATE TABLE IF NOT EXISTS networking_connections (
+            id TEXT PRIMARY KEY,
+            event_id TEXT NOT NULL,
+            from_guest_id TEXT NOT NULL,
+            to_guest_id TEXT NOT NULL,
+            connected_at TEXT DEFAULT (datetime('now')),
+            notes TEXT,
+            FOREIGN KEY (from_guest_id) REFERENCES guests(id),
+            FOREIGN KEY (to_guest_id) REFERENCES guests(id),
+            UNIQUE(event_id, from_guest_id, to_guest_id)
+        )
+    `);
+    // Tabla de plantillas de certificados (C11-08)
             id TEXT PRIMARY KEY,
             event_id TEXT NOT NULL,
             name TEXT NOT NULL,
@@ -615,6 +627,9 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_leaderboard_event ON leaderboard(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_point_history_guest ON point_history(guest_id)",
         "CREATE INDEX IF NOT EXISTS idx_guest_badges_guest ON guest_badges(guest_id)",
+        "CREATE INDEX IF NOT EXISTS idx_networking_event ON networking_connections(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_networking_from ON networking_connections(from_guest_id)",
+        "CREATE INDEX IF NOT EXISTS idx_networking_to ON networking_connections(to_guest_id)",
         "CREATE INDEX IF NOT EXISTS idx_cert_templates_event ON certificate_templates(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_guest_certificates_guest ON guest_certificates(guest_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffles_event ON raffles(event_id)",
