@@ -1,88 +1,93 @@
-# Análisis Comparativo — Check vs 29 Repos de Gestión de Eventos
+# Análisis Comparativo — Check Pro vs Competidores (v12.44.736)
 
 ## Resumen Ejecutivo
 
-Se analizaron **29 repositorios** de gestión de eventos/invitados. Check ya cubre la mayoría de las funcionalidades base. A continuación, las **características ausentes** más valiosas, priorizadas por impacto.
+Check Pro ha completado **10 ciclos de desarrollo** (v12.44.736) con **39 rutas API**, módulo de mailing, analytics, pipeline de estados, clone events, PDF export, guest categories, Stripe/PayPal, waitlist, Google Sheets, rol organizer, venues, sesiones + seat maps, activity logs, password recovery, webhooks, carga masiva inteligente, Swagger API, tests automatizados (Jest + Playwright), landing digital, portal asistente PWA, migraciones BD, AI Security (FS 01-04), SMS (Twilio), 2FA (Speakeasy), budget, speakers, proposals, site branding (tenants), CRM, ecommerce, chatbot, intelligence, raffles, y 3 ciclos de refinamiento/estabilización.
+
+Se realizó una **auditoría externa fresca** de repositorios open-source y servicios SaaS para identificar brechas funcionales.
 
 ---
 
-## 🔴 ALTA PRIORIDAD (Implementar primero)
+## Repos GitHub Analizados (nuevos, no incluidos en análisis anterior)
 
-| # | Feature | Inspiración | Por qué |
-|---|---------|-------------|---------|
-| 1 | **Analytics / Dashboard con gráficos** | `crm-smartfit` + `EVENT-MANGEMENT-SYSTEM` | KPIs visuales: asistencia por día, conversión, top eventos, tendencias. Chart.js ya es fácil de integrar. |
-| 2 | **Pipeline de estados de invitado** | `crm-smartfit` + `Event-Guest-Manager` | Lead → Contactado → Confirmado → Asistió → No interesado. Permite hacer seguimiento real. |
-| 3 | **Seguimiento de llamados / actividad** | `crm-smartfit` + `event-registration-system` (Eventura) | Registro de cuándo se contactó al invitado, qué se dijo, resultado. Activity log de todas las acciones admin. |
-| 4 | **Clone events (duplicar evento como plantilla)** | `event-registration-system` (Eventura) | Crear un evento nuevo basado en uno existente (invitados, configuración, agenda). Ahorra muchísimo tiempo. |
-| 5 | **Pasarela de pagos (Stripe/PayPal)** | `gdlwebcamp` + `RIK-EventRegistration` + `Smart-Event-Management` | Venta de boletos con planes (General, VIP, Early bird). Monetización del evento. |
-| 6 | **Generación de PDF** | `registroInvitados` + `crm-smartfit` + `event-registration-system` | Gafetes, certificados, listados, plan del evento, tickets imprimibles. |
-
-## 🟡 MEDIA PRIORIDAD
-
-| # | Feature | Inspiración | Por qué |
-|---|---------|-------------|---------|
-| 7 | **Guest categories / tags** | `registro_yair` + `event-registration-system` | VIP, Regular, Staff, Proveedor. Cada categoría con campos distintos. |
-| 8 | **Rol "Organizer" intermedio** | `ems-event-management-system` | Usuario con dashboard propio que gestiona solo sus eventos, sin acceso admin total. |
-| 9 | **Waitlist con auto-promoción** | `SistemDeGestiuneInscrieri` + `EduVent` | Lista de espera. Cuando alguien cancela, el siguiente sube automáticamente. |
-| 10 | **Sesiones / sub-eventos + Seat maps** | `Exhibition-Ticketing` + `events-management` | Eventos con múltiples sesiones (workshops, charlas) cada una con booking individual. Asignación de asientos. |
-| 11 | **Exportación a Google Sheets** | `crm-smartfit` + `biocodersmx/invitados` | Sincronizar invitados con Google Sheets como respaldo o fuente de datos. |
-| 12 | **Gestión de venues / espacios** | `Event-Management-System` + `wedding-management-db` | Registrar ubicaciones, capacidad, dirección, recursos disponibles por evento. |
-| 13 | **Flujo de aprobación de solicitudes** | `ems-event-management-system` + `registroInvitados` | Pre-registro → Pendiente → Revisión manual → Aprobado/Rechazado. |
-| 14 | **Site branding por cliente** | `event-registration-system` (Eventura) | Personalizar nombre, logo, colores del sitio por cliente (ej: "Registro Samsung"). |
-| 15 | **Password recovery (olvidé contraseña)** | `Event-Registration-System` (SirOsborn) | Flujo completo de recuperación con email + token de reseteo. |
-| 16 | **SMS integration** | `Rose-of-Sharon-Management-System` | Notificaciones vía SMS como complemento al email. |
-
-## 🟢 BAJA PRIORIDAD (Nice to have)
-
-| # | Feature | Inspiración |
-|---|---------|-------------|
-| 17 | **Términos y condiciones en registro público** | `registroInvitados` |
-| 18 | **Mapa interactivo del venue (LeafletJS)** | `gdlwebcamp` |
-| 19 | **Testimonios / reseñas** | `gdlwebcamp` |
-| 20 | **Cuenta regresiva en landing pública** | `gdlwebcamp` |
-| 21 | **Lading page tipo invitación digital (bodas)** | `tarjeta-boda` |
-| 22 | **Música de fondo en página pública** | `tarjeta-boda` |
-| 23 | **Reconocimiento facial / OTP check-in** | `A-Recognition` |
-| 24 | **Course / training management** | `Rose-of-Sharon-Management-System` |
-| 25 | **Presupuesto / Budgeting por evento** | `EVENT-MANGEMENT-SYSTEM` |
+| Repositorio | Stack | Features destacadas | Por qué es relevante |
+|-------------|-------|-------------------|----------------------|
+| **VHarshB/Converge** | TypeScript, Web | Networking scoring: QR entre asistentes, log de conversaciones, engagement score | Medir conexiones en eventos |
+| **jigar-dhulla/connect-snap-mobile** | Laravel, Livewire, Android | Perfiles públicos con QR para networking, notas privadas sobre contactos | Networking post-evento |
+| **rili-live/therr-app** (⭐11) | TypeScript, React Native | Geo-social: contenido exclusivo para asistentes por geolocalización | Contenido geolocalizado |
+| **lirim-sulejmani/EventHub** | C# | Notificaciones en tiempo real, networking entre asistentes, analytics | Web + mobile |
+| **ashmalzahra/event-booking-management-system** | Node.js + Express + SQLite | Ticket tiers con precios, códigos de ticket únicos, guest email CC, feedback post-evento, check-in por código | Mismo stack que Check |
+| **Bilal025/EventoEMS** (⭐96) | MERN + React | QR generator + scanner, campus event focus, con 40 forks | Popular en su nicho |
+| **HiEventsDev/Hi.Events** (⭐3783) | PHP + Laravel + React | Plataforma completa de ticketing open-source, door management, self-hosted, check-in | Referencia de UI/UX profesional |
+| **indico/indico** (⭐2065) | Python + Flask | Call for abstracts, peer review, timetable management, room booking | Desarrollado en CERN |
+| **GDSC-ESTIN/checkin-system** | Express + React | Check-in QR con notificaciones email automáticas, rate limiting con bottleneck | Check-in optimizado |
 
 ---
 
-## Tecnologías a considerar
+## Servicios SaaS Analizados
 
-| Tecnología | Para qué | Visto en |
-|------------|----------|----------|
-| **Chart.js** | Gráficos analytics | `crm-smartfit` |
-| **jsPDF + html2canvas** | PDF con gráficos | `crm-smartfit` |
-| **LeafletJS** | Mapas interactivos | `gdlwebcamp` |
-| **jsQR** | Escaneo QR vía webcam | `biocodersmx/invitados` |
-| **Jest** | Tests automatizados | `Event-Register-System` |
-| **Mailjet** | Email transaccional | `events-management` |
-
----
-
-## Repos más valiosos analizados
-
-| Repositorio | Estrellas funcionales |
-|-------------|----------------------|
-| **Hidalgo1714/crm-smartfit** | Analytics, pipeline, PDF, Google Sheets, llamados |
-| **eventuraofficials/event-registration-system** | Clone events, activity logs, categories, branding, PDF |
-| **albardas/registro_yair** | VIP vs Regular, empresa/cargo, notas |
-| **Neriiiii/ems-event-management-system** | Rol organizer, aprobaciones, speakers, migraciones |
-| **alright212/RIK-EventRegistration** | Pagos, tipos participante, tests |
-| **AlokaAbeysinghe/Smart-Event-Management** | Ticketing, precios dinámicos, inventario |
-| **ajiboyesunkanmisunday-rgb/Rose-of-Sharon** | SMS, follow-up pipelines, celebraciones, cursos |
-| **cos301-2019-se/A-Recognition** | Reconocimiento facial, OTP, GDPR |
+| Servicio | Enfoque | Puntos Fuertes |
+|----------|---------|----------------|
+| **Partiful** | Invitaciones sociales modernas | UI ultra-moderna, álbum de fotos compartido, encuestas de fecha, cobro compartido (Venmo), reminders automáticos |
+| **RSVPify** | Gestión de invitados corporativa | Badge printing, seating chart drag-drop, kiosko auto-check-in, appointment scheduling, table captains, contact tagging, integraciones |
+| **Whova** | Eventos corporativos integral | Gamificación (puntos/rankings), live polling, certificados automáticos, waiver digital, speaker center, abstract management, exhibitor management, social wall, app nativa |
+| **Splash (Cvent)** | Marketing de eventos enterprise | Constructor visual de landing pages no-code, AI attendance predictions, integración Salesforce/Marketo, team management |
+| **Eventbrite** | Ticketing masivo | Marketplace público de eventos, SEO/descubrimiento, anuncios pagos, app check-in |
+| **Cvent** | Enterprise suite | Venue sourcing, diagramación 3D, webinars, RFPs, integración CRM, floor plans, AI (CventIQ) |
+| **Pretix** | Ticketing técnico open-source | POS (punto de venta físico), plugin marketplace, hardware dedicado (scanners), certificación ISO/GDPR, WCAG accesibilidad |
 
 ---
 
-## Recomendación
+## Gap Analysis — Check Pro vs Competidores
 
-**Top 5 features para comenzar:**
-1. **Dashboard analytics** (Chart.js + KPIs)
-2. **Pipeline de invitados** (lead → asistió)
-3. **Clone events**
-4. **PDF de gafetes / reportes**
-5. **Guest categories/tags** (VIP, Regular, etc.)
+| Feature | Partiful | RSVPify | Whova | Splash | Check Pro |
+|---------|----------|---------|-------|--------|-----------|
+| Gestión de invitados | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Check-in QR | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Email marketing | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Stripe/PayPal | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Pipeline estados | ❌ | ❌ | ❌ | ❌ | ✅ |
+| BD independiente x evento | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Ruleta / gamificación simple | ❌ | ❌ | ✅ | ❌ | ✅ |
+| **Gamificación avanzada / Live Polling** | ❌ | ❌ | ✅ | ❌ | **❌** |
+| **Badge printing (gafetes físicos)** | ❌ | ✅ | ✅ | ✅ | **❌** |
+| **Kiosko auto-check-in** | ❌ | ✅ | ✅ | ❌ | **❌** |
+| **Seating chart drag-drop** | ❌ | ✅ | ❌ | ❌ | **⏳ parcial** |
+| **Constructor landing pages no-code** | ❌ | ✅ | ✅ | ✅ | **❌** |
+| **Álbum de fotos compartido** | ✅ | ❌ | ❌ | ❌ | **❌** |
+| **Certificados automáticos** | ❌ | ❌ | ✅ | ❌ | **❌** |
+| **Networking scoring entre asistentes** | ❌ | ❌ | ✅ | ❌ | **❌** |
+| **Encuestas de fecha (date polling)** | ✅ | ❌ | ✅ | ❌ | **❌** |
+| Notificaciones push | ❌ | ✅ | ✅ | ✅ | ✅ (mejorable) |
+| App nativa (iOS/Android) | ✅ | ✅ | ✅ | ❌ | ✅ (PWA) |
+| API pública / Webhooks | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Multi-idioma (i18n) | ✅ | ❌ | ✅ | ❌ | ✅ |
 
-¿Quieres que profundice en alguna de estas features y te presente un plan de implementación?
+---
+
+## Top Features Sugeridas para Implementar
+
+| # | Feature | Inspiración | Impacto | Esfuerzo |
+|---|---------|-------------|---------|----------|
+| 1 | **Gamificación / Live Polling** (trivia, puntos, rankings, encuestas en vivo) | Whova | 🔴 Alto | M |
+| 2 | **Badge printing** (impresión de gafetes físicos con QR vía Zebra/Brother) | RSVPify, Whova | 🔴 Alto | M |
+| 3 | **Kiosko auto-check-in** (tablet en puerta donde el invitado se registra solo) | RSVPify | 🔴 Alto | M |
+| 4 | **Networking scoring** (QR entre asistentes, log de conversaciones, engagement score) | Converge, Whova | 🟡 Medio | M |
+| 5 | **Seating chart interactivo** (drag-drop para asignar asientos) | RSVPify | 🟡 Medio | M |
+| 6 | **Constructor de landing pages** (editor visual drag-drop no-code para páginas de evento) | Splash | 🟡 Medio | L |
+| 7 | **Álbum de fotos compartido post-evento** (invitados suben fotos, todos ven) | Partiful | 🟡 Medio | M |
+| 8 | **Certificados de asistencia automáticos** (PDF descargable post-evento con QR) | Whova | 🟡 Medio | S |
+| 9 | **Plugin marketplace** (sistema de extensiones para terceros) | Pretix | 🟢 Bajo | XL |
+
+---
+
+## Conclusión
+
+Check Pro está **a la par o supera** a la mayoría de competidores open-source en funcionalidades core. Las brechas más notables vs SaaS comerciales son:
+
+1. **Gamificación / Live Polling** — ausente en Check, estrella en Whova
+2. **Herramientas físicas** (badge printing, kiosko) — RSVPify y Whova los tienen
+3. **Networking entre asistentes** — Whova y Converge apuestan fuerte aquí
+4. **Constructor visual de landing pages** — Splash es el rey en esto
+
+**Recomendación:** Abordar los items 1-3 (gamificación, badge printing, kiosko) como prioritarios para Ciclo 11 por su alto impacto y esfuerzo moderado.

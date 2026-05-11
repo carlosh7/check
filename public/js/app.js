@@ -975,7 +975,6 @@ const App = window.App = {
         const icon = document.getElementById('theme-icon');
         if (icon) icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
         document.querySelectorAll('.theme-icon').forEach(icon => icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode');
-        });
         
         if (!window._themeListenerAdded) {
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {

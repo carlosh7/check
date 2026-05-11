@@ -8,11 +8,11 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.678 |
-| **Ultima feature completada** | BL-28: Portal Asistente PWA (ticket QR, agenda, notificaciones push) |
-| **Todas las fases 0-4, S, backlog** | ✅ Completadas al 100% |
-| **Feature en curso** | **Ciclo 2 — Fase 5: Refinamiento y Legado** |
-| **Proximo feature** | BL-13: Integración SMS |
+| **Version** | v12.44.736 |
+| **Ultimo ciclo completado** | Ciclo 10 — Operación Código Limpio (26/26 items) |
+| **Todas las fases 0-4, S, backlog, Ciclos 2-10** | ✅ Completados al 100% |
+| **Feature en curso** | **Ciclo 11 — Análisis Competitivo y Nuevas Features** |
+| **Proximo feature** | Pendiente de definir según gap analysis |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
 
@@ -1879,6 +1879,89 @@ FASE 38: Pulido (MEDIOS/BAJOS)
 | R3-05 | Unificar GDPR | ✅ | v12.44.736 |
 | R3-06 | parseInt NaN check | ✅ | v12.44.735 |
 | R3-07 | express.json limit | ✅ | v12.44.735 |
+
+---
+
+# Ciclo 11 — Análisis Competitivo y Nuevas Features
+
+## ⚡ Estado Actual
+
+| Item | Valor |
+|------|-------|
+| **Version** | v12.44.736 |
+| **Ultimo ciclo completado** | ✅ Ciclo 10 — Operación Código Limpio |
+| **Feature en curso** | **Ciclo 11 — Análisis Competitivo** |
+| **Proximo feature** | Pendiente de definir según gap analysis |
+
+---
+
+## 🧭 Contexto
+
+Se realizó una auditoría externa completa de **repositorios open-source** y **servicios SaaS** de gestión de eventos para identificar brechas funcionales de Check Pro vs el mercado actual.
+
+**Documento de referencia:** `docs/repos-analysis.md` (reemplazado con análisis fresco v12.44.736)
+
+---
+
+## 🗺️ Gap Analysis vs Competidores
+
+| Feature | Partiful | RSVPify | Whova | Splash | Check Pro |
+|---------|----------|---------|-------|--------|-----------|
+| Gamificación / Live Polling | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Badge printing (gafetes físicos) | ❌ | ✅ | ✅ | ✅ | ❌ |
+| Kiosko auto-check-in | ❌ | ✅ | ✅ | ❌ | ❌ |
+| Seating chart drag-drop | ❌ | ✅ | ❌ | ❌ | ⏳ (base F4-11) |
+| Constructor landing pages no-code | ❌ | ✅ | ✅ | ✅ | ❌ |
+| Álbum de fotos compartido | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Certificados automáticos | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Networking scoring entre asistentes | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Marketplace/Plugin system | ❌ | ❌ | ❌ | ❌ | ⏳ (diferido C6) |
+| App nativa (iOS/Android) | ❌ | ✅ | ✅ | ❌ | ✅ (PWA, no nativa) |
+| Encuestas de fecha (date polling) | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Notificaciones push segmentadas | ❌ | ✅ | ✅ | ✅ | ✅ (mejorable) |
+
+---
+
+## 🎯 Top 9 Features Sugeridas para Ciclo 11
+
+| # | Feature | Inspiración | Impacto | Esfuerzo | Prioridad |
+|---|---------|-------------|---------|----------|-----------|
+| 1 | **Gamificación / Live Polling** | Whova | 🔴 Alto | M | **Alta** |
+| 2 | **Badge printing** (gafetes físicos Zebra/Brother) | RSVPify, Whova | 🔴 Alto | M | **Alta** |
+| 3 | **Kiosko auto-check-in** (tablet en puerta) | RSVPify | 🔴 Alto | M | **Alta** |
+| 4 | **Networking scoring** (QR entre asistentes) | Converge | 🟡 Medio | M | **Media** |
+| 5 | **Seating chart interactivo** (drag-drop) | RSVPify | 🟡 Medio | M | **Media** |
+| 6 | **Constructor de landing pages** (no-code) | Splash | 🟡 Medio | L | **Media** |
+| 7 | **Álbum de fotos compartido post-evento** | Partiful | 🟡 Medio | M | **Media** |
+| 8 | **Certificados de asistencia automáticos** | Whova | 🟡 Medio | S | **Media** |
+| 9 | **Plugin marketplace** (extensiones) | Pretix | 🟢 Bajo | XL | **Baja** |
+
+---
+
+## 🔄 Flujo de Trabajo Sugerido
+
+1. Revisar `docs/repos-analysis.md` para análisis detallado de cada competidor
+2. Seleccionar feature del top 9 según prioridad
+3. Implementar, version bump, commit + tag
+4. Actualizar tablero de progreso abajo
+5. Repetir
+
+---
+
+## 📊 Tablero de Progreso — Ciclo 11
+
+| ID | Feature | Estado | Version | Fecha |
+|----|---------|--------|---------|-------|
+| — | **Ciclo 11 iniciado** | ✅ | v12.44.736 | 2026-05-10 |
+| C11-01 | Gamificación / Live Polling | ⏳ Pendiente | — | — |
+| C11-02 | Badge printing | ⏳ Pendiente | — | — |
+| C11-03 | Kiosko auto-check-in | ⏳ Pendiente | — | — |
+| C11-04 | Networking scoring | ⏳ Pendiente | — | — |
+| C11-05 | Seating chart drag-drop | ⏳ Pendiente | — | — |
+| C11-06 | Constructor landing pages | ⏳ Pendiente | — | — |
+| C11-07 | Álbum de fotos compartido | ⏳ Pendiente | — | — |
+| C11-08 | Certificados automáticos | ⏳ Pendiente | — | — |
+| C11-09 | Plugin marketplace | ⏳ Pendiente | — | — |
 
 ---
 

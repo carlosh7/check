@@ -1,19 +1,12 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "deepseek-v4-flash",
+  "model": "minimax-m2.7",
   "mcp": {
     "blender": {
-      "type": "local",
-      "command": [
-        "/home/carlosh/blender-mcp/.venv/bin/python3",
-        "/home/carlosh/blender-mcp/server.py",
-        "--mode",
-        "all",
-        "--check-path",
-        "/home/carlosh/check-3d-planner/public/models"
-      ],
+      "type": "remote",
+      "url": "http://127.0.0.1:9879/sse",
       "enabled": true,
-      "timeout": 60000
+      "timeout": 120000
     }
   }
 }

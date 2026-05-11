@@ -16,13 +16,9 @@ let translations = {};
 
 async function loadLang(lang) {
     try {
-        const res = await fetch('/js/lang/' + lang + '.js?v=12.44.694');
+        const res = await fetch('/js/lang/' + lang + '.json?v=12.44.737');
         if (res.ok) {
-            const text = await res.text();
-            // The file exports a variable named `translations`
-            // We use eval-like approach but via Function constructor for safety
-            const mod = new Function('return ' + text)();
-            translations = mod || {};
+            translations = await res.json();
         } else {
             console.warn('[i18n] Language not found:', lang);
             translations = {};
