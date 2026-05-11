@@ -546,6 +546,8 @@ function createEventTables(db, eventId) {
         )
     `);
     // Tabla de plantillas de certificados (C11-08)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS certificate_templates (
             id TEXT PRIMARY KEY,
             event_id TEXT NOT NULL,
             name TEXT NOT NULL,
