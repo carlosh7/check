@@ -107,6 +107,8 @@ router.get('/portal/:guestId', (req, res) => {
             guest: { id: guest.id, name: guest.name, email: guest.email, checked_in: guest.checked_in, qr_token: guest.qr_token, category_id: guest.category_id },
             event: { id: guest.event_id, name: guest.event_name, date: guest.event_date, location: guest.event_location, description: guest.event_description },
             sessions: sessions
+        });
+    } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 // ── Kiosko Auto-Check-In (C11-03) ──
