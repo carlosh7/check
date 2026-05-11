@@ -354,5 +354,15 @@ try {
     console.warn('⚠️ Backup Scheduler no disponible:', e.message);
 }
 
+// ═══ PLUGIN ENGINE (C11-09) ═══
+try {
+    const { initPlugins, seedDefaultPlugins } = require('./src/engine/plugin-engine');
+    seedDefaultPlugins();
+    initPlugins();
+    console.log('✓ Plugin Engine inicializado');
+} catch (e) {
+    console.warn('⚠️ Plugin Engine no disponible:', e.message);
+}
+
 // ═══ ARRANQUE DEL SERVIDOR ═══
 server.listen(port, '0.0.0.0', () => console.log(`\x1b[35mCHECK PRO V${APP_VERSION} (Enterprise Grade + Backups + Rate Limiting): Puerto ${port}\x1b[0m`));

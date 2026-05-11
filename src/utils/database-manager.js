@@ -478,6 +478,46 @@ function createEventTables(db, eventId) {
             FOREIGN KEY (guest_id) REFERENCES guests(id)
         )
     `);
+    // Tabla de plugins del marketplace (C11-09)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS plugins (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            description TEXT,
+            version TEXT DEFAULT '1.0.0',
+            author TEXT,
+            icon TEXT DEFAULT '🧩',
+            hooks TEXT,
+            script TEXT,
+            settings_schema TEXT,
+            enabled INTEGER DEFAULT 0,
+            is_system INTEGER DEFAULT 0,
+            installed_at TEXT DEFAULT (datetime('now'))
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS plugin_instances (
+            id TEXT PRIMARY KEY,
+            plugin_id TEXT NOT NULL,
+            event_id TEXT,
+            enabled INTEGER DEFAULT 0,
+            settings TEXT,
+            installed_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (plugin_id) REFERENCES plugins(id) ON DELETE CASCADE
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS plugin_logs (
+            id TEXT PRIMARY KEY,
+            plugin_id TEXT NOT NULL,
+            event_id TEXT,
+            hook TEXT,
+            status TEXT,
+            message TEXT,
+            logged_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (plugin_id) REFERENCES plugins(id) ON DELETE CASCADE
+        )
+    `);
     // Tabla de álbum de fotos (C11-07)
     db.exec(`
         CREATE TABLE IF NOT EXISTS event_photos (
@@ -640,6 +680,9 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_leaderboard_event ON leaderboard(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_point_history_guest ON point_history(guest_id)",
         "CREATE INDEX IF NOT EXISTS idx_guest_badges_guest ON guest_badges(guest_id)",
+        "CREATE INDEX IF NOT EXISTS idx_plugin_instances_plugin ON plugin_instances(plugin_id)",
+        "CREATE INDEX IF NOT EXISTS idx_plugin_instances_event ON plugin_instances(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_plugin_logs_plugin ON plugin_logs(plugin_id)",
         "CREATE INDEX IF NOT EXISTS idx_event_photos_event ON event_photos(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_networking_event ON networking_connections(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_networking_from ON networking_connections(from_guest_id)",

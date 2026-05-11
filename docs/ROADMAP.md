@@ -1966,7 +1966,7 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 | C11-06 | Constructor landing pages | ✅ | v12.44.748 | 2026-05-11 |
 | C11-07 | Álbum de fotos compartido | ✅ | v12.44.747 | 2026-05-11 |
 | C11-08 | Certificados automáticos | ✅ | v12.44.745 | 2026-05-11 |
-| C11-09 | Plugin marketplace | ⏳ Pendiente | — | — |
+| C11-09 | Plugin marketplace | ✅ | v12.44.749 | 2026-05-11 |
 
 ---
 

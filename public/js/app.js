@@ -11948,7 +11948,7 @@ navigate(viewName, params = {}, push = true) {
 
     
     switchConfigTab(tabName) {
-        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-gamification', 'config-content-settings', 'config-content-categories', 'config-content-badge', 'config-content-sessions', 'config-content-seatmaps', 'config-content-google'];
+        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-gamification', 'config-content-settings', 'config-content-categories', 'config-content-badge', 'config-content-sessions', 'config-content-seatmaps', 'config-content-google', 'config-content-plugins'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
@@ -12003,6 +12003,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'google') this.loadGoogleEventConfigData();
         if (tabName === 'google') this.checkGcalStatus();
         if (tabName === 'branding') this.loadBranding();
+        if (tabName === 'plugins') this.loadPlugins();
         if (tabName === 'budget') this.loadBudget();
         if (tabName === 'speakers') this.loadSpeakers();
         if (tabName === 'proposals') this.loadProposals();
@@ -14006,6 +14007,85 @@ navigate(viewName, params = {}, push = true) {
         try {
             await this.fetchAPI('/landing/' + eId + '/config', { method: 'PUT', body: JSON.stringify(data) });
             this._notifyAction('Guardado', 'Landing page actualizada', 'success');
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    // ═══ Plugins (C11-09) ═══
+
+    loadPlugins: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var plugins = await this.fetchAPI('/plugins');
+            var list = document.getElementById('plugins-list');
+            if (!plugins || plugins.length === 0) { list.innerHTML = '<p class="text-xs text-slate-500 italic col-span-full">No hay plugins disponibles</p>'; return; }
+            list.innerHTML = plugins.map(function(p) {
+                var hooksList = (p.hooks || []).join(', ') || '—';
+                return '<div class="card p-3 flex flex-col gap-2">'
+                    + '<div class="flex items-center gap-2"><span class="text-xl">' + (p.icon || '🧩') + '</span><div><p class="text-sm font-semibold text-white">' + App.esc(p.name) + '</p><p class="text-xs text-slate-400">v' + App.esc(p.version) + ' · ' + App.esc(p.author) + '</p></div></div>'
+                    + '<p class="text-xs text-slate-500">' + App.esc(p.description || '') + '</p>'
+                    + '<p class="text-xs text-slate-600">Hooks: ' + hooksList + '</p>'
+                    + '<button class="btn-primary text-xs self-start" onclick="App.installPlugin(\'' + p.id + '\')">Instalar en este evento</button></div>';
+            }).join('');
+            // Load installed plugins
+            var installed = await this.fetchAPI('/plugins/event/' + eId);
+            var installedSection = document.getElementById('plugins-installed-section');
+            var installedList = document.getElementById('plugins-installed-list');
+            if (installed && installed.length > 0) {
+                installedSection.classList.remove('hidden');
+                installedList.innerHTML = installed.map(function(i) {
+                    return '<div class="card p-3 flex justify-between items-center">'
+                        + '<div class="flex items-center gap-2"><span class="text-xl">' + (i.icon || '🧩') + '</span><div><p class="text-sm font-semibold text-white">' + App.esc(i.name) + '</p>'
+                        + '<p class="text-xs text-slate-400">' + (i.enabled ? '✅ Activo' : '⏸ Pausado') + '</p></div></div>'
+                        + '<div class="flex gap-2">'
+                        + '<button class="btn-secondary text-xs" onclick="App.togglePlugin(\'' + i.id + '\', ' + (i.enabled ? '0' : '1') + ')">' + (i.enabled ? 'Pausar' : 'Activar') + '</button>'
+                        + '<button class="btn-secondary text-xs text-red-400" onclick="App.uninstallPlugin(\'' + i.plugin_id + '\')">Desinstalar</button></div></div>';
+                }).join('');
+                // Load logs
+                var logs = await this.fetchAPI('/plugins/logs/' + eId);
+                var logsSection = document.getElementById('plugins-logs-section');
+                var logsList = document.getElementById('plugins-logs-list');
+                if (logs && logs.length > 0) {
+                    logsSection.classList.remove('hidden');
+                    logsList.innerHTML = logs.map(function(l) {
+                        var color = l.status === 'success' ? 'text-green-400' : 'text-red-400';
+                        return '<div class="text-xs ' + color + '">[' + (l.plugin_name || '') + '] ' + l.hook + ' → ' + l.status + (l.message ? ': ' + App.esc(l.message) : '') + '</div>';
+                    }).join('');
+                }
+            } else {
+                installedSection.classList.add('hidden');
+            }
+        } catch(e) { console.error('[PLUGINS] Error:', e.message); }
+    },
+
+    installPlugin: async function(pluginId) {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var res = await this.fetchAPI('/plugins/' + pluginId + '/install', { method: 'POST', body: JSON.stringify({ event_id: eId }) });
+            if (res && res.success) {
+                this._notifyAction('Instalado', 'Plugin instalado en el evento', 'success');
+                this.loadPlugins();
+            }
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    uninstallPlugin: async function(pluginId) {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var res = await this.fetchAPI('/plugins/' + pluginId + '/uninstall', { method: 'POST', body: JSON.stringify({ event_id: eId }) });
+            if (res && res.success) {
+                this._notifyAction('Desinstalado', 'Plugin desinstalado del evento', 'success');
+                this.loadPlugins();
+            }
+        } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    togglePlugin: async function(instanceId, enabled) {
+        try {
+            var res = await this.fetchAPI('/plugins/instance/' + instanceId, { method: 'PUT', body: JSON.stringify({ enabled: enabled }) });
+            if (res && res.success) this.loadPlugins();
         } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
 

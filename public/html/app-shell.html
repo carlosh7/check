@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.748</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.749</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -485,6 +485,9 @@
                         </button>
                         <button class="btn-secondary sub-nav-btn" data-tab="branding" onclick="App.switchConfigTab('branding')">
                             <span class="material-symbols-outlined">palette</span> Branding
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="plugins" onclick="App.switchConfigTab('plugins')">
+                            <span class="material-symbols-outlined">puzzle</span> Plugins
                         </button>
                         <button class="btn-secondary sub-nav-btn" data-tab="budget" onclick="App.switchConfigTab('budget')">
                             <span class="material-symbols-outlined">receipt</span> Presupuesto
@@ -1823,6 +1826,28 @@
                             <div class="flex gap-2">
                                 <button class="btn-primary text-xs" onclick="App.saveLandingConfig()">💾 Guardar Landing</button>
                                 <button class="btn-secondary text-xs" onclick="window.open('/' + (App.state.event?.slug || App.state.event?.id) + '/landing', '_blank')">👁 Vista previa</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PLUGINS (C11-09) -->
+                    <div id="config-content-plugins" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Marketplace de Plugins</h2>
+                        </div>
+                        <div id="plugins-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <p class="text-xs text-slate-500 italic col-span-full">Cargando...</p>
+                        </div>
+                        <div id="plugins-installed-section" class="hidden">
+                            <h3 class="text-lg font-bold text-white mt-4">Instalados en este evento</h3>
+                            <div id="plugins-installed-list" class="space-y-2 mt-2">
+                                <p class="text-xs text-slate-500 italic">Cargando...</p>
+                            </div>
+                        </div>
+                        <div id="plugins-logs-section" class="hidden">
+                            <h3 class="text-lg font-bold text-white mt-4">Logs de plugins</h3>
+                            <div id="plugins-logs-list" class="space-y-1 mt-2">
+                                <p class="text-xs text-slate-500 italic">Cargando...</p>
                             </div>
                         </div>
                     </div>
