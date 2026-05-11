@@ -16,7 +16,7 @@ let translations = {};
 
 async function loadLang(lang) {
     try {
-        const res = await fetch('/js/lang/' + lang + '.json?v=12.44.746');
+        const res = await fetch('/js/lang/' + lang + '.json?v=12.44.747');
         if (res.ok) {
             translations = await res.json();
         } else {

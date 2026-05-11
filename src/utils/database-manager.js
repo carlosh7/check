@@ -478,6 +478,19 @@ function createEventTables(db, eventId) {
             FOREIGN KEY (guest_id) REFERENCES guests(id)
         )
     `);
+    // Tabla de álbum de fotos (C11-07)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS event_photos (
+            id TEXT PRIMARY KEY,
+            event_id TEXT NOT NULL,
+            guest_id TEXT,
+            filename TEXT,
+            caption TEXT,
+            approved INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (guest_id) REFERENCES guests(id)
+        )
+    `);
     // Tabla de conexiones de networking (C11-04)
     db.exec(`
         CREATE TABLE IF NOT EXISTS networking_connections (
@@ -627,6 +640,7 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_leaderboard_event ON leaderboard(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_point_history_guest ON point_history(guest_id)",
         "CREATE INDEX IF NOT EXISTS idx_guest_badges_guest ON guest_badges(guest_id)",
+        "CREATE INDEX IF NOT EXISTS idx_event_photos_event ON event_photos(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_networking_event ON networking_connections(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_networking_from ON networking_connections(from_guest_id)",
         "CREATE INDEX IF NOT EXISTS idx_networking_to ON networking_connections(to_guest_id)",
