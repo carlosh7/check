@@ -1960,7 +1960,7 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 | — | Fix: 3D Planner React error #185 (LeftPanel selector + Button extend) | ✅ | v0.28.6–0.28.7 | 2026-05-11 |
 | C11-05 | Seating chart interactivo (drag-drop) | ✅ 3D Planner fix | v12.44.738 / v0.28.8 | 2026-05-11 |
 | C11-01 | Gamificación / Live Polling | ✅ | v12.44.742 | 2026-05-11 |
-| C11-02 | Badge printing | ⏳ Pendiente | — | — |
+| C11-02 | Badge printing | ✅ | v12.44.743 | 2026-05-11 |
 | C11-03 | Kiosko auto-check-in | ⏳ Pendiente | — | — |
 | C11-04 | Networking scoring | ⏳ Pendiente | — | — |
 | C11-06 | Constructor landing pages | ⏳ Pendiente | — | — |

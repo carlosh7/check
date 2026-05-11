@@ -668,6 +668,80 @@ router.get('/:eventId/badges', authMiddleware(), async (req, res) => {
     }
 });
 
+// ZPL: Gafetes para impresoras térmicas Zebra (C11-02)
+router.get('/:eventId/badges/zpl', authMiddleware(), (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        if (!eId) return res.status(400).json({ error: 'ID invalido' });
+        const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+        const targetDb = getEventDb(eId);
+        var guests = targetDb.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
+        // Filtrar solo checked_in si se solicita
+        if (req.query.checked_in === '1') guests = guests.filter(function(g) { return g.checked_in === 1; });
+        // Ancho etiqueta: 90mm (aprox 850 dots a 203dpi)
+        var labelW = parseInt(req.query.width) || 850;
+        var labelH = parseInt(req.query.height) || 550;
+        var zpl = '^XA\n';
+        zpl += '^CF0,30\n';
+        zpl += '^FO30,30^FD' + escZpl(event.name || 'Evento') + '^FS\n';
+        zpl += '^CF0,50\n';
+        guests.forEach(function(g, i) {
+            if (i > 0) zpl += '^XZ\n^XA\n';
+            zpl += '^FO30,80^FD' + escZpl(g.name || '') + '^FS\n';
+            zpl += '^CF0,25\n';
+            if (g.organization) zpl += '^FO30,140^FD' + escZpl(g.organization) + '^FS\n';
+            if (g.qr_token) {
+                zpl += '^FO' + (labelW - 200) + ',30^BQN,2,5^FDQA,' + g.qr_token + '^FS\n';
+                zpl += '^FO' + (labelW - 200) + ',30^BQN,2,5^FDMA,' + g.qr_token + '^FS\n';
+            }
+        });
+        zpl += '^XZ\n';
+        res.setHeader('Content-Type', 'application/x-zebra-zpl');
+        res.setHeader('Content-Disposition', 'attachment; filename=gafetes_' + eId.slice(0, 8) + '.zpl');
+        res.send(zpl);
+    } catch (err) {
+        console.error('[ZPL] Error:', err.message);
+        res.status(500).json({ error: 'Error generando ZPL' });
+    }
+});
+function escZpl(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/\^/g, '').replace(/~/g, ''); }
+
+// ESC/POS: Gafetes para impresoras térmicas Brother/Epson (C11-02)
+router.get('/:eventId/badges/escpos', authMiddleware(), (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        if (!eId) return res.status(400).json({ error: 'ID invalido' });
+        const targetDb = getEventDb(eId);
+        var guests = targetDb.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
+        if (req.query.checked_in === '1') guests = guests.filter(function(g) { return g.checked_in === 1; });
+        var lines = [];
+        guests.forEach(function(g) {
+            lines.push('');
+            lines.push('================================');
+            lines.push('  ' + (g.name || ''));
+            lines.push('  ' + (g.organization || ''));
+            if (g.qr_token) lines.push('  QR: ' + g.qr_token);
+            lines.push('================================');
+            lines.push('');
+        });
+        var text = lines.join('\n');
+        // ESC/POS: Initialize printer, set font, print text, cut
+        var escpos = Buffer.concat([
+            Buffer.from([0x1B, 0x40]), // Initialize
+            Buffer.from(text, 'ascii'),
+            Buffer.from([0x1B, 0x64, 0x03]), // Feed 3 lines
+            Buffer.from([0x1D, 0x56, 0x41, 0x00]), // Full cut
+        ]);
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', 'attachment; filename=gafetes_' + eId.slice(0, 8) + '.bin');
+        res.send(escpos);
+    } catch (err) {
+        console.error('[ESCPOS] Error:', err.message);
+        res.status(500).json({ error: 'Error generando ESC/POS' });
+    }
+});
+
 // PDF: Reporte del evento
 router.get('/:eventId/report', authMiddleware(), (req, res) => {
     try {

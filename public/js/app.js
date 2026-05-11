@@ -7265,6 +7265,12 @@ navigate(viewName, params = {}, push = true) {
             if (suggestions && !suggestions.contains(e.target) && e.target !== searchInput) {
                 this.hideEventSuggestions();
             }
+            // Cerrar dropdowns de gafetes al hacer click fuera
+            document.querySelectorAll('[id$="-dropdown"]').forEach(function(d) {
+                if (d.id.endsWith('-dropdown') && !d.classList.contains('hidden') && !d.parentElement.contains(e.target)) {
+                    d.classList.add('hidden');
+                }
+            });
         });
         
         // Event Config view - action buttons
@@ -13146,7 +13152,10 @@ navigate(viewName, params = {}, push = true) {
         }
         container.innerHTML = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         var modal = document.getElementById('modal-badge-print');
-        if (modal) modal.classList.remove('hidden');
+        if (modal) {
+            modal.setAttribute('data-guesttoken', guestData?.qr_token || '');
+            modal.classList.remove('hidden');
+        }
     },
 
     printBadgeFromModal: function() {
@@ -13192,6 +13201,121 @@ navigate(viewName, params = {}, push = true) {
         win.document.close();
         win.focus();
         setTimeout(function() { win.print(); }, 300);
+    },
+
+    // Imprimir gafete en impresora térmica (ESC/POS via descarga)
+    printBadgeThermal: function(guestToken) {
+        if (!guestToken) {
+            guestToken = document.getElementById('modal-badge-print')?.getAttribute('data-guesttoken');
+        }
+        if (!guestToken) { Swal.fire({ icon: 'warning', title: 'No hay datos del invitado' }); return; }
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        // Intentar descargar ESC/POS para impresión térmica
+        var token = this.state.user?.token;
+        var userId = this.state.user?.userId;
+        var url = '/api/guests/' + eId + '/badges/escpos?checked_in=1';
+        Swal.fire({ title: 'Descargando para impresión térmica...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+        fetch(url, { headers: { 'Authorization': 'Bearer ' + token, 'x-user-id': userId || '' } })
+        .then(function(r) { return r.blob(); })
+        .then(function(blob) {
+            Swal.close();
+            var urlBlob = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = urlBlob;
+            a.download = 'gafetes_termico.bin';
+            a.click();
+            URL.revokeObjectURL(urlBlob);
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Archivo térmico descargado. Envíalo a la impresora.', showConfirmButton: false, timer: 4000 });
+        })
+        .catch(function() { Swal.fire({ icon: 'error', title: 'Error al generar gafete térmico' }); });
+    },
+
+    toggleDropdown: function(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden');
+        // Cerrar otros dropdowns abiertos
+        document.querySelectorAll('[id$="-dropdown"]').forEach(function(d) {
+            if (d.id !== id) d.classList.add('hidden');
+        });
+    },
+
+    downloadZPL: function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var token = this.state.user?.token;
+        var userId = this.state.user?.userId;
+        var a = document.createElement('a');
+        a.href = '/api/guests/' + eId + '/badges/zpl';
+        a.download = 'gafetes_' + eId.slice(0, 8) + '.zpl';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        fetch('/api/guests/' + eId + '/badges/zpl', { headers: { 'Authorization': 'Bearer ' + token, 'x-user-id': userId || '' } })
+        .then(function(r) {
+            if (!r.ok) throw Error('Error');
+            return r.text();
+        })
+        .then(function(zpl) {
+            var blob = new Blob([zpl], { type: 'application/x-zebra-zpl' });
+            var url = URL.createObjectURL(blob);
+            a.href = url;
+            a.click();
+            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'ZPL descargado para Zebra', showConfirmButton: false, timer: 3000 });
+        })
+        .catch(function() { document.body.removeChild(a); Swal.fire({ icon: 'error', title: 'Error generando ZPL' }); });
+    },
+
+    downloadESCPOS: function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var token = this.state.user?.token;
+        var userId = this.state.user?.userId;
+        var a = document.createElement('a');
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        fetch('/api/guests/' + eId + '/badges/escpos?checked_in=1', { headers: { 'Authorization': 'Bearer ' + token, 'x-user-id': userId || '' } })
+        .then(function(r) {
+            if (!r.ok) throw Error('Error');
+            return r.blob();
+        })
+        .then(function(blob) {
+            var url = URL.createObjectURL(blob);
+            a.href = url;
+            a.download = 'gafetes_termico.bin';
+            a.click();
+            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'ESC/POS descargado para impresora térmica', showConfirmButton: false, timer: 3000 });
+        })
+        .catch(function() { document.body.removeChild(a); Swal.fire({ icon: 'error', title: 'Error generando ESC/POS' }); });
+    },
+
+    printBatchLabels: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var guests = await this.fetchAPI('/events/' + eId + '/badge-config');
+            var cfg = guests?.badgeConfig || { badgeWidth: 90, badgeHeight: 55, elements: this._getDefaultBadgeElements() };
+            var attendance = this.state.attendance || [];
+            var checkedIn = attendance.filter(function(a) { return a.status === 'present' || a.validated; });
+            if (checkedIn.length === 0) { Swal.fire({ icon: 'info', title: 'Sin invitados con check-in' }); return; }
+            var labels = [];
+            for (var i = 0; i < checkedIn.length; i++) {
+                var guestData = { name: checkedIn[i].client_name, organization: checkedIn[i].organization, qr_token: checkedIn[i].qr_token };
+                labels.push(this.renderBadgeHtml(cfg.elements, cfg.background?.url, cfg.badgeWidth, cfg.badgeHeight, {}, guestData));
+            }
+            var allHtml = labels.join('<div style="page-break-after:always"></div>');
+            var win = window.open('', '_blank', 'width=400,height=600');
+            if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
+            win.document.write('<!DOCTYPE html><html><head><title>Gafetes</title>'
+                + '<style>body{margin:0;padding:0}@media print{@page{size:' + (cfg.badgeWidth || 90) + 'mm ' + (cfg.badgeHeight || 55) + 'mm;margin:0}}img{max-width:100%}</style>'
+                + '</head><body>' + allHtml + '</body></html>');
+            win.document.close();
+            win.focus();
+            setTimeout(function() { win.print(); }, 500);
+        } catch(e) { console.error('[BATCH_PRINT] Error:', e.message); Swal.fire({ icon: 'error', title: 'Error al imprimir lote' }); }
     },
 
     // ── Sesiones ──
