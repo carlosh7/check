@@ -13220,7 +13220,9 @@ navigate(viewName, params = {}, push = true) {
         } else {
             editorHost = 'http://192.168.2.17:3001';
         }
-        iframe.src = editorHost + '/?eventId=' + eId + '&jwt=' + (this.state.token || '');
+        var url = editorHost + '/editor?eventId=' + eId + '&jwt=' + (this.state.token || '');
+        if (layoutId) url += '&layoutId=' + encodeURIComponent(layoutId);
+        iframe.src = url;
         overlay.classList.remove('hidden');
         status.classList.remove('hidden');
         status.textContent = 'Conectando con el editor 3D...';
