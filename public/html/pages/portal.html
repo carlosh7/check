@@ -98,18 +98,53 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
     <p>🔔 Recibe notificaciones cuando haya cambios en el evento</p>
     <button id="btn-notif" onclick="requestNotif()">Activar notificaciones</button>
   </div>
+
+  <!-- Participate -->
+  <div id="participate-section" style="display:none">
+    <!-- Tabs -->
+    <div style="display:flex;gap:8px;margin:12px 16px;overflow-x:auto">
+      <button class="participate-tab active" onclick="switchParticipateTab('polls',this)" style="padding:8px 16px;border-radius:20px;border:none;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">📊 Encuestas</button>
+      <button class="participate-tab" onclick="switchParticipateTab('leaderboard',this)" style="padding:8px 16px;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">🏆 Ranking</button>
+      <button class="participate-tab" onclick="switchParticipateTab('mybadges',this)" style="padding:8px 16px;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">🎖️ Mis insignias</button>
+    </div>
+
+    <!-- Polls list -->
+    <div id="participate-polls">
+      <div class="card">
+        <div class="card-title">Encuestas activas</div>
+        <div id="portal-polls-list"><p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Cargando...</p></div>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div id="participate-leaderboard" style="display:none">
+      <div class="card">
+        <div class="card-title">Ranking del evento</div>
+        <div id="portal-leaderboard-list"><p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Cargando...</p></div>
+      </div>
+    </div>
+
+    <!-- My badges -->
+    <div id="participate-mybadges" style="display:none">
+      <div class="card">
+        <div class="card-title">Mis insignias</div>
+        <div id="portal-badges-list"><p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Cargando...</p></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Bottom nav -->
 <div class="bottom-nav" id="bottom-nav">
   <a href="#" class="active" onclick="switchTab('ticket',this)"><span class="icon">🎟️</span>Ticket</a>
   <a href="#" onclick="switchTab('agenda',this)"><span class="icon">📋</span>Agenda</a>
+  <a href="#" onclick="switchTab('participate',this)"><span class="icon">🏆</span>Participar</a>
   <a href="#" onclick="switchTab('event',this)"><span class="icon">ℹ️</span>Evento</a>
 </div>
 
 <script>
 var API='/api',guestData=null,deferredPrompt=null;
-var tabs=['ticket','agenda','event'];
+var tabs=['ticket','agenda','participate','event'];
 
 // PWA Install
 window.addEventListener('beforeinstallprompt',function(e){
@@ -129,8 +164,106 @@ function switchTab(tab,el){
   if(el)el.classList.add('active');
   document.getElementById('ticket-section').style.display=tab==='ticket'?'block':'none';
   document.getElementById('agenda-section').style.display=tab==='agenda'?'block':'none';
+  document.getElementById('participate-section').style.display=tab==='participate'?'block':'none';
   document.getElementById('event-stats').style.display=tab==='event'?'grid':'none';
   document.getElementById('notif-card').style.display=tab==='event'?'block':'none';
+  if(tab==='participate'){loadPortalPolls();loadPortalLeaderboard();loadPortalBadges();}
+}
+
+function switchParticipateTab(tab,el){
+  document.querySelectorAll('.participate-tab').forEach(function(b){
+    b.style.background=b===el?'#7c3aed':'rgba(255,255,255,0.06)';
+    b.style.color=b===el?'#fff':'rgba(255,255,255,0.6)';
+  });
+  document.getElementById('participate-polls').style.display=tab==='polls'?'block':'none';
+  document.getElementById('participate-leaderboard').style.display=tab==='leaderboard'?'block':'none';
+  document.getElementById('participate-mybadges').style.display=tab==='mybadges'?'block':'none';
+}
+
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function loadPortalPolls(){
+  var eId=guestData?.event?.id;
+  if(!eId){document.getElementById('portal-polls-list').innerHTML='<p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Evento no disponible</p>';return}
+  fetch(API+'/polls/public/'+eId+'/active').then(function(r){return r.json()}).then(function(polls){
+    var c=document.getElementById('portal-polls-list');
+    if(!polls||polls.length===0){c.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">No hay encuestas activas</p>';return}
+    c.innerHTML=polls.map(function(p){
+      var opts=p.options||[];
+      var optionsHtml=opts.map(function(o,idx){
+        return '<label style="display:flex;align-items:center;gap:8px;padding:10px;margin:4px 0;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;cursor:pointer;font-size:13px">'
+          +'<input type="'+(p.type==='multiple'?'checkbox':'radio')+'" name="poll_'+p.id+'" value="'+o.id+'" style="accent-color:#7c3aed">'
+          +escHtml(o.label)+'</label>';
+      }).join('');
+      return '<div class="card" style="margin:12px 0"><div class="card-title">📊 '+escHtml(p.title)+'</div>'
+        +(p.description?'<p style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:12px">'+escHtml(p.description)+'</p>':'')
+        +optionsHtml
+        +'<button class="vote-btn" data-pollid="'+p.id+'" style="margin-top:12px;width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;font-size:13px;font-weight:600;cursor:pointer" onclick="votePoll(this)">Votar</button></div>';
+    }).join('');
+  }).catch(function(e){console.error('Polls load error:',e);document.getElementById('portal-polls-list').innerHTML='<p style="font-size:13px;color:#ef4444;text-align:center;padding:20px 0">Error al cargar encuestas</p>'});
+}
+
+function votePoll(btn){
+  var pollId=btn.getAttribute('data-pollid');
+  var selected=document.querySelectorAll('input[name="poll_'+pollId+'"]:checked');
+  if(selected.length===0){btn.style.background='#dc2626';setTimeout(function(){btn.style.background=''},500);return}
+  var optionIds=[];
+  selected.forEach(function(cb){optionIds.push(cb.value)});
+  var qrToken=guestData?.guest?.qr_token;
+  if(!qrToken){alert('Debes estar registrado para votar');return}
+  fetch(API+'/polls/public/'+pollId+'/vote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({guest_token:qrToken,option_id:optionIds[0]})})
+  .then(function(r){return r.json()})
+  .then(function(res){
+    if(res&&res.success){
+      btn.textContent='✅ Voto registrado';
+      btn.style.background='rgba(16,185,129,0.2)';
+      btn.style.color='#34d399';
+      btn.disabled=true;
+    }else{
+      btn.textContent='❌ '+(res&&res.error?res.error:'Error');
+      btn.style.background='#dc2626';
+    }
+  }).catch(function(){
+    btn.textContent='❌ Error de conexión';
+    btn.style.background='#dc2626';
+  });
+}
+
+function loadPortalLeaderboard(){
+  var eId=guestData?.event?.id;
+  if(!eId)return;
+  fetch(API+'/leaderboard/'+eId).then(function(r){return r.json()}).then(function(entries){
+    var c=document.getElementById('portal-leaderboard-list');
+    if(!entries||entries.length===0){c.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Sin datos aún</p>';return}
+    c.innerHTML='<div style="display:flex;flex-direction:column;gap:4px">'
+      +entries.map(function(e,i){
+        var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+        var isMe=e.guest_id===guestData?.guest?.id;
+        return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:'+(isMe?'rgba(124,58,237,0.1)':'transparent')+';border-radius:10px;border:1px solid '+(isMe?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.04)')+'">'
+          +'<span style="font-size:16px;font-weight:700;color:'+(i<3?'#fbbf24':'rgba(255,255,255,0.3)')+';min-width:28px;text-align:center">'+medal+'</span>'
+          +'<div style="flex:1"><span style="font-size:13px;font-weight:600;color:#e2e8f0">'+escHtml(e.guest_name||'Anónimo')+'</span>'
+          +(e.organization?'<span style="font-size:11px;color:rgba(255,255,255,0.4);display:block">'+escHtml(e.organization)+'</span>':'')+'</div>'
+          +'<span style="font-size:15px;font-weight:700;color:#a78bfa">'+e.points+' pts</span>'
+          +'</div>';
+      }).join('')
+      +'</div>';
+  }).catch(function(){});
+}
+
+function loadPortalBadges(){
+  var eId=guestData?.event?.id;
+  var gId=guestData?.guest?.id;
+  if(!eId||!gId)return;
+  fetch(API+'/leaderboard/'+eId+'/guest/'+gId+'/badges').then(function(r){return r.json()}).then(function(badges){
+    var c=document.getElementById('portal-badges-list');
+    if(!badges||badges.length===0){c.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">No tienes insignias aún. ¡Participa en encuestas para ganarlas!</p>';return}
+    c.innerHTML=badges.map(function(b){
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0">'
+        +'<span style="font-size:24px">'+(b.icon||'🏆')+'</span>'
+        +'<div><span style="font-size:13px;font-weight:600;color:#e2e8f0">'+escHtml(b.name)+'</span>'
+        +(b.description?'<span style="font-size:11px;color:rgba(255,255,255,0.4);display:block">'+escHtml(b.description)+'</span>':'')+'</div></div>';
+    }).join('');
+  }).catch(function(){});
 }
 
 async function requestNotif(){
@@ -196,6 +329,11 @@ async function load(){
         return '<div class="session-item"><div class="time">'+(s.start_time||'')+'</div><div class="info"><div class="title">'+(s.title||'')+'</div><div class="detail">'+(s.location||'')+'</div></div></div>';
       }).join('');
     }
+
+    // Load gamification data
+    loadPortalPolls();
+    loadPortalLeaderboard();
+    loadPortalBadges();
 
     // PWA: register service worker + cache guest data for offline
     if('serviceWorker' in navigator){
