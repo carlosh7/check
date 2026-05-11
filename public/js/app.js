@@ -11942,7 +11942,7 @@ navigate(viewName, params = {}, push = true) {
 
     
     switchConfigTab(tabName) {
-        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings', 'config-content-categories', 'config-content-badge', 'config-content-sessions', 'config-content-seatmaps', 'config-content-google'];
+        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-gamification', 'config-content-settings', 'config-content-categories', 'config-content-badge', 'config-content-sessions', 'config-content-seatmaps', 'config-content-google'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
@@ -11988,6 +11988,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'agenda') this.loadConfigAgenda();
         if (tabName === 'wheel') this.loadWheelList();
         if (tabName === 'surveys') this.loadSurveys();
+        if (tabName === 'gamification') this.loadGamification();
         if (tabName === 'settings') this.loadConfigSettings();
         if (tabName === 'categories') this.loadCategories();
         if (tabName === 'badge') this.loadBadgeConfig();
@@ -12011,6 +12012,352 @@ navigate(viewName, params = {}, push = true) {
     // Cargar encuestas (v12.34.2)
     loadSurveys() {
         this.loadSurveyTemplates();
+    },
+
+    // ── Gamificación / Live Polling (C11-01) ──
+
+    loadGamification: function() {
+        this.loadPolls();
+        this.loadLeaderboard();
+        this.loadBadges();
+    },
+
+    switchGamificationTab: function(tab) {
+        document.querySelectorAll('[data-gamification-subtab]').forEach(function(b) { b.classList.remove('active'); });
+        var btn = document.querySelector('[data-gamification-subtab="' + tab + '"]');
+        if (btn) btn.classList.add('active');
+        ['polls', 'leaderboard', 'badges'].forEach(function(id) {
+            var el = document.getElementById('gamification-' + id);
+            if (el) el.classList.toggle('hidden', id !== tab);
+        });
+    },
+
+    loadPolls: function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var container = document.getElementById('poll-list');
+        if (!container) return;
+        this.fetchAPI('/polls/' + eId).then(function(polls) {
+            if (!polls || polls.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-500 italic">No hay encuestas. Crea la primera.</p>';
+                return;
+            }
+            var html = '';
+            polls.forEach(function(p) {
+                var statusColor = p.status === 'active' ? 'text-green-400' : p.status === 'closed' ? 'text-red-400' : 'text-yellow-400';
+                var statusLabel = p.status === 'active' ? 'Activa' : p.status === 'closed' ? 'Cerrada' : 'Borrador';
+                html += '<div class="card p-3 flex justify-between items-center">';
+                html += '<div><p class="text-sm font-semibold text-white">' + App.esc(p.title) + '</p>';
+                html += '<p class="text-xs text-slate-500">' + p.type + ' · ' + p.points + ' pts · <span class="' + statusColor + '">' + statusLabel + '</span></p></div>';
+                html += '<div class="flex gap-2">';
+                if (p.status === 'draft') {
+                    html += '<button class="btn-secondary text-xs" onclick="App.editPoll(\'' + p.id + '\')">Editar</button>';
+                    html += '<button class="btn-primary text-xs" onclick="App.startPoll(\'' + p.id + '\')">Activar</button>';
+                    html += '<button class="btn-secondary text-xs text-red-400" onclick="App.deletePoll(\'' + p.id + '\')">Eliminar</button>';
+                } else if (p.status === 'active') {
+                    html += '<button class="btn-primary text-xs" onclick="App.showPollResults(\'' + p.id + '\')">Resultados</button>';
+                    html += '<button class="btn-secondary text-xs" onclick="App.closePoll(\'' + p.id + '\')">Cerrar</button>';
+                } else {
+                    html += '<button class="btn-secondary text-xs" onclick="App.showPollResults(\'' + p.id + '\')">Ver resultados</button>';
+                    html += '<button class="btn-secondary text-xs" onclick="App.deletePoll(\'' + p.id + '\')">Eliminar</button>';
+                }
+                html += '</div></div>';
+            });
+            container.innerHTML = html;
+        }).catch(function() { container.innerHTML = '<p class="text-xs text-red-400">Error al cargar encuestas</p>'; });
+    },
+
+    showPollEditor: function() {
+        document.getElementById('gamification-polls').classList.add('hidden');
+        document.getElementById('gamification-poll-editor').classList.remove('hidden');
+        document.getElementById('poll-editor-title').value = '';
+        document.getElementById('poll-editor-description').value = '';
+        document.getElementById('poll-editor-type').value = 'single';
+        document.getElementById('poll-editor-points').value = 10;
+        document.getElementById('poll-editor-timer').value = 0;
+        document.getElementById('poll-options-container').innerHTML = '';
+        document.getElementById('poll-correct-answer-container').classList.add('hidden');
+        // Cargar sesiones para el selector
+        this.loadSessionsSelect();
+        this._initPollOptionListener();
+        App._editingPollId = null;
+    },
+
+    editPoll: function(pollId) {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        this.fetchAPI('/polls/' + eId + '/' + pollId).then(function(poll) {
+            if (!poll) return;
+            App._editingPollId = pollId;
+            document.getElementById('poll-editor-title').value = poll.title || '';
+            document.getElementById('poll-editor-description').value = poll.description || '';
+            document.getElementById('poll-editor-type').value = poll.type || 'single';
+            document.getElementById('poll-editor-points').value = poll.points || 10;
+            document.getElementById('poll-editor-timer').value = poll.time_limit_seconds || 0;
+            var optContainer = document.getElementById('poll-options-container');
+            optContainer.innerHTML = '';
+            if (poll.options && poll.options.length > 0) {
+                poll.options.forEach(function(opt, idx) {
+                    App.addPollOptionRow(opt.label || '', opt.is_correct === 1, idx);
+                });
+            }
+            if (poll.type === 'trivia') {
+                document.getElementById('poll-correct-answer-container').classList.remove('hidden');
+                App.updateCorrectAnswerOptions();
+            }
+            document.getElementById('gamification-polls').classList.add('hidden');
+            document.getElementById('gamification-poll-editor').classList.remove('hidden');
+        });
+    },
+
+    savePoll: function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var title = document.getElementById('poll-editor-title').value.trim();
+        if (!title) { Swal.fire({ icon: 'warning', title: 'Título requerido' }); return; }
+        var type = document.getElementById('poll-editor-type').value;
+        var points = parseInt(document.getElementById('poll-editor-points').value) || 10;
+        var timeLimit = parseInt(document.getElementById('poll-editor-timer').value) || 0;
+        var sessionId = document.getElementById('poll-editor-session').value;
+        var description = document.getElementById('poll-editor-description').value.trim();
+        var options = [];
+        document.querySelectorAll('#poll-options-container .poll-option-row').forEach(function(row) {
+            var label = row.querySelector('.poll-option-input').value.trim();
+            if (label) {
+                var isCorrect = row.querySelector('.poll-option-correct') ? row.querySelector('.poll-option-correct').checked : false;
+                options.push({ label: label, is_correct: isCorrect });
+            }
+        });
+        var body = { title: title, type: type, points: points, time_limit_seconds: timeLimit, session_id: sessionId || null, description: description, options: options };
+        // Correct answer for trivia
+        if (type === 'trivia') {
+            var correctIds = [];
+            document.querySelectorAll('#poll-correct-options input:checked').forEach(function(cb) { correctIds.push(cb.value); });
+            body.correct_answer = correctIds;
+        }
+        var url = App._editingPollId ? '/polls/' + eId + '/' + App._editingPollId : '/polls/' + eId;
+        var method = App._editingPollId ? 'PUT' : 'POST';
+        this.fetchAPI(url, { method: method, body: JSON.stringify(body) }).then(function(res) {
+            if (res && res.success) {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: App._editingPollId ? 'Encuesta actualizada' : 'Encuesta creada', showConfirmButton: false, timer: 2000 });
+                App._editingPollId = null;
+                App.backToPollList();
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error al guardar' });
+            }
+        }).catch(function() { Swal.fire({ icon: 'error', title: 'Error al guardar' }); });
+    },
+
+    backToPollList: function() {
+        document.getElementById('gamification-poll-editor').classList.add('hidden');
+        document.getElementById('gamification-poll-control').classList.add('hidden');
+        document.getElementById('gamification-polls').classList.remove('hidden');
+        this.loadPolls();
+    },
+
+    addPollOption: function() {
+        var idx = document.querySelectorAll('#poll-options-container .poll-option-row').length;
+        App.addPollOptionRow('', false, idx);
+    },
+
+    onPollTypeChange: function() {
+        var type = document.getElementById('poll-editor-type').value;
+        document.getElementById('poll-correct-answer-container').classList.toggle('hidden', type !== 'trivia');
+        document.getElementById('poll-correct-options').innerHTML = '';
+        if (type === 'trivia') this.updateCorrectAnswerOptions();
+    },
+
+    addPollOptionRow: function(label, isCorrect, idx) {
+        var container = document.getElementById('poll-options-container');
+        var div = document.createElement('div');
+        div.className = 'poll-option-row flex items-center gap-2';
+        div.innerHTML = '<input class="input-field flex-1 poll-option-input" type="text" placeholder="Opción ' + (idx + 1) + '" value="' + App.esc(label) + '">'
+            + '<label class="text-xs text-slate-400 flex items-center gap-1"><input class="poll-option-correct" type="checkbox" ' + (isCorrect ? 'checked' : '') + '> Correcta</label>'
+            + '<button class="btn-secondary text-xs text-red-400" onclick="this.parentElement.remove()">✕</button>';
+        container.appendChild(div);
+    },
+
+    updateCorrectAnswerOptions: function() {
+        var container = document.getElementById('poll-correct-options');
+        container.innerHTML = '';
+        document.querySelectorAll('#poll-options-container .poll-option-row').forEach(function(row, idx) {
+            var label = row.querySelector('.poll-option-input').value.trim() || ('Opción ' + (idx + 1));
+            var cb = document.createElement('label');
+            cb.className = 'flex items-center gap-1 text-xs text-slate-300';
+            cb.innerHTML = '<input type="checkbox" value="opt_' + idx + '"> ' + App.esc(label);
+            container.appendChild(cb);
+        });
+    },
+
+    // Init poll option change listener (llamar una vez)
+    _initPollOptionListener: function() {
+        if (App._pollOptionListenerInited) return;
+        App._pollOptionListenerInited = true;
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('poll-option-input')) {
+                App.updateCorrectAnswerOptions();
+            }
+        });
+    },
+
+    loadSessionsSelect: function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var select = document.getElementById('poll-editor-session');
+        this.fetchAPI('/sessions/' + eId).then(function(sessions) {
+            select.innerHTML = '<option value="">Sin sesión</option>';
+            if (sessions && sessions.length > 0) {
+                sessions.forEach(function(s) {
+                    select.innerHTML += '<option value="' + s.id + '">' + App.esc(s.title || s.name) + '</option>';
+                });
+            }
+        }).catch(function() {});
+    },
+
+    startPoll: function(pollId) {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        this.fetchAPI('/polls/' + eId + '/' + pollId + '/status', { method: 'PATCH', body: JSON.stringify({ status: 'active' }) }).then(function(res) {
+            if (res && res.success) { App.loadPolls(); Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Encuesta activada', showConfirmButton: false, timer: 2000 }); }
+        });
+    },
+
+    closePoll: function(pollId) {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        this.fetchAPI('/polls/' + eId + '/' + pollId + '/status', { method: 'PATCH', body: JSON.stringify({ status: 'closed' }) }).then(function(res) {
+            if (res && res.success) { App.loadPolls(); Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Encuesta cerrada', showConfirmButton: false, timer: 2000 }); }
+        });
+    },
+
+    deletePoll: function(pollId) {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        Swal.fire({ icon: 'warning', title: 'Eliminar encuesta?', text: 'Los votos también se eliminarán.', showCancelButton: true }).then(function(r) {
+            if (!r.isConfirmed) return;
+            App.fetchAPI('/polls/' + eId + '/' + pollId, { method: 'DELETE' }).then(function(res) {
+                if (res && res.success) { App.loadPolls(); }
+            });
+        });
+    },
+
+    showPollResults: function(pollId) {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        this.fetchAPI('/polls/' + eId + '/' + pollId + '/results').then(function(data) {
+            var container = document.getElementById('poll-results-container');
+            document.getElementById('poll-control-title').textContent = data.title || 'Resultados';
+            var html = '<div class="flex gap-4 mb-3"><div class="card p-2 text-center"><p class="text-2xl font-bold text-white">' + data.totalVotes + '</p><p class="text-xs text-slate-400">Votos</p></div>';
+            if (data.type === 'trivia') html += '<div class="card p-2 text-center"><p class="text-2xl font-bold text-green-400">' + data.correctCount + '</p><p class="text-xs text-slate-400">Acertaron</p></div></div>';
+            html += '</div>';
+            data.results.forEach(function(r) {
+                var pct = r.percentage || 0;
+                html += '<div class="card p-3">';
+                html += '<div class="flex justify-between text-sm mb-1"><span>' + App.esc(r.label) + '</span><span>' + r.count + ' (' + pct + '%)</span></div>';
+                html += '<div class="w-full bg-slate-700 rounded h-2"><div class="bg-blue-500 rounded h-2" style="width:' + pct + '%"></div></div>';
+                html += '</div>';
+            });
+            if (data.recentVotes && data.recentVotes.length > 0) {
+                html += '<p class="text-xs text-slate-500 mt-2">Últimos votos:</p>';
+                data.recentVotes.forEach(function(v) {
+                    html += '<div class="text-xs text-slate-400">' + App.esc(v.guest_name || 'Anónimo') + ' · ' + (v.voted_at || '').slice(0, 19) + '</div>';
+                });
+            }
+            container.innerHTML = html;
+            document.getElementById('gamification-polls').classList.add('hidden');
+            document.getElementById('gamification-poll-control').classList.remove('hidden');
+        });
+    },
+
+    loadLeaderboard: function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var container = document.getElementById('leaderboard-table-container');
+        if (!container) return;
+        this.fetchAPI('/leaderboard/' + eId).then(function(entries) {
+            if (!entries || entries.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-500 italic">Sin datos de leaderboard aún</p>';
+                return;
+            }
+            var html = '<table class="w-full text-sm"><thead><tr class="text-left text-slate-400 border-b border-slate-700"><th class="py-1 px-2">#</th><th class="py-1 px-2">Nombre</th><th class="py-1 px-2">Organización</th><th class="py-1 px-2 text-right">Puntos</th><th class="py-1 px-2 text-right">Insignias</th></tr></thead><tbody>';
+            entries.forEach(function(e, i) {
+                var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+                html += '<tr class="border-b border-slate-800"><td class="py-1 px-2">' + medal + (i + 1) + '</td>';
+                html += '<td class="py-1 px-2 text-white">' + App.esc(e.guest_name || 'Anónimo') + '</td>';
+                html += '<td class="py-1 px-2 text-slate-400">' + App.esc(e.organization || '') + '</td>';
+                html += '<td class="py-1 px-2 text-right font-bold text-white">' + e.points + '</td>';
+                html += '<td class="py-1 px-2 text-right">' + (e.badges_count || 0) + '</td></tr>';
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }).catch(function() { container.innerHTML = '<p class="text-xs text-red-400">Error al cargar leaderboard</p>'; });
+    },
+
+    loadBadges: function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var container = document.getElementById('badge-list');
+        if (!container) return;
+        this.fetchAPI('/leaderboard/' + eId + '/badges').then(function(badges) {
+            if (!badges || badges.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-500 italic">No hay insignias. Crea la primera.</p>';
+                return;
+            }
+            var html = '';
+            badges.forEach(function(b) {
+                html += '<div class="card p-3 flex justify-between items-center">';
+                html += '<div class="flex items-center gap-3"><span class="text-2xl">' + (b.icon || '🏆') + '</span>';
+                html += '<div><p class="text-sm font-semibold text-white">' + App.esc(b.name) + '</p>';
+                html += '<p class="text-xs text-slate-500">' + App.esc(b.description || '') + ' · ' + (b.earned_count || 0) + ' obtenidas</p></div></div>';
+                html += '<button class="btn-secondary text-xs text-red-400" onclick="App.deleteBadge(\'' + b.id + '\')">Eliminar</button>';
+                html += '</div>';
+            });
+            container.innerHTML = html;
+        }).catch(function() { container.innerHTML = '<p class="text-xs text-red-400">Error al cargar insignias</p>'; });
+    },
+
+    showBadgeCreator: function() {
+        document.getElementById('badge-creator').classList.remove('hidden');
+    },
+
+    hideBadgeCreator: function() {
+        document.getElementById('badge-creator').classList.add('hidden');
+    },
+
+    saveBadge: function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var name = document.getElementById('badge-creator-name').value.trim();
+        if (!name) { Swal.fire({ icon: 'warning', title: 'Nombre requerido' }); return; }
+        var icon = document.getElementById('badge-creator-icon').value.trim() || '🏆';
+        var criteriaType = document.getElementById('badge-creator-criteria-type').value;
+        var criteriaValue = parseInt(document.getElementById('badge-creator-criteria-value').value) || 5;
+        var pointsReward = parseInt(document.getElementById('badge-creator-reward').value) || 0;
+        var description = document.getElementById('badge-creator-description').value.trim();
+        var body = {
+            name: name, icon: icon, description: description, points_reward: pointsReward,
+            criteria: { type: criteriaType, value: criteriaValue }
+        };
+        this.fetchAPI('/leaderboard/' + eId + '/badges', { method: 'POST', body: JSON.stringify(body) }).then(function(res) {
+            if (res && res.success) {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Insignia creada', showConfirmButton: false, timer: 2000 });
+                App.hideBadgeCreator();
+                App.loadBadges();
+                document.getElementById('badge-creator-name').value = '';
+                document.getElementById('badge-creator-description').value = '';
+            }
+        });
+    },
+
+    deleteBadge: function(badgeId) {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        Swal.fire({ icon: 'warning', title: 'Eliminar insignia?', showCancelButton: true }).then(function(r) {
+            if (!r.isConfirmed) return;
+            App.fetchAPI('/leaderboard/' + eId + '/badges/' + badgeId, { method: 'DELETE' }).then(function(res) {
+                if (res && res.success) App.loadBadges();
+            });
+        });
     },
 
     surveyBuilderQuestions: [],

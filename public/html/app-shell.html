@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.740</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.741</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -445,6 +445,9 @@
                     </button>
                     <button class="btn-secondary sub-nav-btn" data-tab="surveys" onclick="App.switchConfigTab('surveys')">
                         <span class="material-symbols-outlined">poll</span> Encuestas
+                    </button>
+                    <button class="btn-secondary sub-nav-btn" data-tab="gamification" onclick="App.switchConfigTab('gamification')">
+                        <span class="material-symbols-outlined">celebration</span> Gamificación
                     </button>
                         <button class="btn-secondary sub-nav-btn" data-tab="settings" onclick="App.switchConfigTab('settings')">
                             <span class="material-symbols-outlined">settings</span> Ajustes
@@ -1054,6 +1057,173 @@
                             <div class="card p-0 overflow-hidden">
                                 <div class="overflow-x-auto">
                                     <table class="data-table w-full"><tbody id="survey-responses-tbody"></tbody></table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTENIDO: GAMIFICACIÓN -->
+                    <div id="config-content-gamification" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Gamificación</h2>
+                        </div>
+
+                        <!-- Sub-tabs -->
+                        <div class="flex gap-2 border-b border-slate-700 pb-2">
+                            <button class="btn-secondary text-xs" data-gamification-subtab="polls" onclick="App.switchGamificationTab('polls')">Encuestas en vivo</button>
+                            <button class="btn-secondary text-xs" data-gamification-subtab="leaderboard" onclick="App.switchGamificationTab('leaderboard')">Leaderboard</button>
+                            <button class="btn-secondary text-xs" data-gamification-subtab="badges" onclick="App.switchGamificationTab('badges')">Insignias</button>
+                        </div>
+
+                        <!-- POLLS LIST -->
+                        <div id="gamification-polls" class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <p class="text-sm text-slate-400">Encuestas en vivo para el evento</p>
+                                <button class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.showPollEditor()">
+                                    <span class="material-symbols-outlined text-sm">add</span> Nueva Encuesta
+                                </button>
+                            </div>
+                            <div id="poll-list" class="space-y-2">
+                                <p class="text-xs text-slate-500 italic">Cargando...</p>
+                            </div>
+                        </div>
+
+                        <!-- POLL EDITOR (oculto) -->
+                        <div id="gamification-poll-editor" class="hidden space-y-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <button class="btn-secondary btn-standard" onclick="App.backToPollList()">
+                                        <span class="material-symbols-outlined text-sm">arrow_back</span>
+                                    </button>
+                                    <input id="poll-editor-title" class="input-field text-lg font-bold w-80" placeholder="Título de la encuesta">
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="btn-primary btn-standard" onclick="App.savePoll()">
+                                        <span class="material-symbols-outlined text-sm">save</span> Guardar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card p-4 space-y-3">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs text-slate-400">Tipo</label>
+                                        <select id="poll-editor-type" class="input-field w-full" onchange="App.onPollTypeChange()">
+                                            <option value="single">Opción única</option>
+                                            <option value="multiple">Opción múltiple</option>
+                                            <option value="trivia">Trivia</option>
+                                            <option value="rating">Valoración</option>
+                                            <option value="open">Respuesta abierta</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-slate-400">Puntos por participar</label>
+                                        <input id="poll-editor-points" class="input-field w-full" type="number" value="10" min="0">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-slate-400">Límite de tiempo (segundos, 0 = sin límite)</label>
+                                        <input id="poll-editor-timer" class="input-field w-full" type="number" value="0" min="0">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-slate-400">Vincular a sesión (opcional)</label>
+                                        <select id="poll-editor-session" class="input-field w-full">
+                                            <option value="">Sin sesión</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-slate-400">Descripción (opcional)</label>
+                                    <textarea id="poll-editor-description" class="input-field w-full" rows="2"></textarea>
+                                </div>
+                            </div>
+                            <!-- Opciones -->
+                            <div class="card p-4 space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <p class="text-sm font-semibold text-white">Opciones</p>
+                                    <button class="btn-secondary text-xs" onclick="App.addPollOption()">+ Agregar opción</button>
+                                </div>
+                                <div id="poll-options-container" class="space-y-2">
+                                    <p class="text-xs text-slate-500 italic">Agrega opciones de respuesta</p>
+                                </div>
+                                <div id="poll-correct-answer-container" class="hidden space-y-2">
+                                    <p class="text-sm font-semibold text-white">Respuesta correcta (para trivia)</p>
+                                    <div id="poll-correct-options" class="flex gap-2 flex-wrap"></div>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="btn-primary" onclick="App.savePoll()">Guardar encuesta</button>
+                                <button class="btn-secondary" onclick="App.backToPollList()">Cancelar</button>
+                            </div>
+                        </div>
+
+                        <!-- POLL CONTROL PANEL (oculto) -->
+                        <div id="gamification-poll-control" class="hidden space-y-4">
+                            <div class="flex items-center gap-3">
+                                <button class="btn-secondary btn-standard" onclick="App.backToPollList()">
+                                    <span class="material-symbols-outlined text-sm">arrow_back</span>
+                                </button>
+                                <h3 id="poll-control-title" class="text-lg font-bold text-white"></h3>
+                            </div>
+                            <div id="poll-results-container" class="space-y-3">
+                                <p class="text-xs text-slate-500 italic">Cargando resultados...</p>
+                            </div>
+                        </div>
+
+                        <!-- LEADERBOARD -->
+                        <div id="gamification-leaderboard" class="hidden space-y-4">
+                            <div class="flex justify-between items-center">
+                                <p class="text-sm text-slate-400">Ranking de asistentes por puntuación</p>
+                            </div>
+                            <div id="leaderboard-table-container">
+                                <p class="text-xs text-slate-500 italic">Cargando...</p>
+                            </div>
+                        </div>
+
+                        <!-- BADGES -->
+                        <div id="gamification-badges" class="hidden space-y-4">
+                            <div class="flex justify-between items-center">
+                                <p class="text-sm text-slate-400">Insignias del evento</p>
+                                <button class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.showBadgeCreator()">
+                                    <span class="material-symbols-outlined text-sm">add</span> Nueva Insignia
+                                </button>
+                            </div>
+                            <div id="badge-list" class="space-y-2">
+                                <p class="text-xs text-slate-500 italic">Cargando...</p>
+                            </div>
+                            <!-- Badge creator (oculto) -->
+                            <div id="badge-creator" class="hidden card p-4 space-y-3">
+                                <h4 class="text-sm font-semibold text-white">Crear Insignia</h4>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs text-slate-400">Nombre</label>
+                                        <input id="badge-creator-name" class="input-field w-full" placeholder="Nombre de la insignia">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-slate-400">Icono (emoji)</label>
+                                        <input id="badge-creator-icon" class="input-field w-full" value="🏆">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-slate-400">Tipo de criterio</label>
+                                        <select id="badge-creator-criteria-type" class="input-field w-full">
+                                            <option value="poll_count">Cantidad de encuestas respondidas</option>
+                                            <option value="points">Puntos acumulados</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-slate-400">Valor requerido</label>
+                                        <input id="badge-creator-criteria-value" class="input-field w-full" type="number" value="5" min="1">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-slate-400">Puntos de recompensa</label>
+                                        <input id="badge-creator-reward" class="input-field w-full" type="number" value="0" min="0">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-slate-400">Descripción</label>
+                                    <textarea id="badge-creator-description" class="input-field w-full" rows="2"></textarea>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="btn-primary text-xs" onclick="App.saveBadge()">Guardar</button>
+                                    <button class="btn-secondary text-xs" onclick="App.hideBadgeCreator()">Cancelar</button>
                                 </div>
                             </div>
                         </div>
