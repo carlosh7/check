@@ -108,7 +108,7 @@ app.use(helmet({
     // Cross-Origin policies
     crossOriginEmbedderPolicy: false, // Deshabilitado por compatibilidad con fonts
     crossOriginResourcePolicy: { policy: "cross-origin" },
-    crossOriginOpenerPolicy: { policy: "same-origin" },
+    crossOriginOpenerPolicy: false,
     // Denegar embedding en iframes
     frameguard: { action: 'deny' },
     // Prevenir MIME sniffing
@@ -118,6 +118,11 @@ app.use(helmet({
     // XSS filter (legacy pero útil)
     xssFilter: true
 }));
+// Remover headers que generan errores en HTTP (requieren HTTPS)
+app.use(function (req, res, next) {
+    res.removeHeader('Origin-Agent-Cluster');
+    next();
+});
 app.use(cors({
     origin: function (origin, callback) {
         // 1. Permitir peticiones sin origen (apps móviles, Postman o carga directa de assets)
