@@ -1965,7 +1965,7 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 | C11-04 | Networking scoring | ⏳ Pendiente | — | — |
 | C11-06 | Constructor landing pages | ⏳ Pendiente | — | — |
 | C11-07 | Álbum de fotos compartido | ⏳ Pendiente | — | — |
-| C11-08 | Certificados automáticos | ⏳ Pendiente | — | — |
+| C11-08 | Certificados automáticos | ✅ | v12.44.745 | 2026-05-11 |
 | C11-09 | Plugin marketplace | ⏳ Pendiente | — | — |
 
 ---

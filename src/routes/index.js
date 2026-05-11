@@ -53,6 +53,7 @@ const intelligenceRoutes = require('./intelligence.routes');
 const automationV2Routes = require('./automation-v2.routes');
 const pollsRoutes = require('./polls.routes');
 const leaderboardRoutes = require('./leaderboard.routes');
+const certificatesRoutes = require('./certificates.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
 const upload = multer({
@@ -229,6 +230,9 @@ app.use('/api/compliance', complianceRoutes);
 
     // Leaderboard / Insignias (C11-01)
     app.use('/api/leaderboard', leaderboardRoutes);
+
+    // Certificados / Certificates (C11-08)
+    app.use('/api/certificates', certificatesRoutes);
 
     googleRoutes.startSyncWorker();
 

@@ -478,6 +478,28 @@ function createEventTables(db, eventId) {
             FOREIGN KEY (guest_id) REFERENCES guests(id)
         )
     `);
+    // Tabla de plantillas de certificados (C11-08)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS certificate_templates (
+            id TEXT PRIMARY KEY,
+            event_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            config TEXT,
+            created_at TEXT,
+            updated_at TEXT
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS guest_certificates (
+            id TEXT PRIMARY KEY,
+            template_id TEXT NOT NULL,
+            event_id TEXT NOT NULL,
+            guest_id TEXT NOT NULL,
+            generated_at TEXT DEFAULT (datetime('now')),
+            download_count INTEGER DEFAULT 0,
+            FOREIGN KEY (guest_id) REFERENCES guests(id)
+        )
+    `);
     // Tabla de agenda del evento
     db.exec(`
         CREATE TABLE IF NOT EXISTS event_agenda (
@@ -593,6 +615,8 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_leaderboard_event ON leaderboard(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_point_history_guest ON point_history(guest_id)",
         "CREATE INDEX IF NOT EXISTS idx_guest_badges_guest ON guest_badges(guest_id)",
+        "CREATE INDEX IF NOT EXISTS idx_cert_templates_event ON certificate_templates(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_guest_certificates_guest ON guest_certificates(guest_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffles_event ON raffles(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffle_participants_raffle ON raffle_participants(raffle_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffle_results_raffle ON raffle_results(raffle_id)",
