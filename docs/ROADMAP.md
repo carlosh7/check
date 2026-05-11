@@ -8,8 +8,8 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.736 |
-| **Ultimo ciclo completado** | Ciclo 10 — Operación Código Limpio (26/26 items) |
+| **Version** | v12.44.739 |
+| **Ultimos fixes completados** | SyntaxError app.js, i18n CSP, headers HTTP, 3D Planner integración |
 | **Todas las fases 0-4, S, backlog, Ciclos 2-10** | ✅ Completados al 100% |
 | **Feature en curso** | **Ciclo 11 — Análisis Competitivo y Nuevas Features** |
 | **Proximo feature** | Pendiente de definir según gap analysis |
@@ -1888,8 +1888,8 @@ FASE 38: Pulido (MEDIOS/BAJOS)
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.736 |
-| **Ultimo ciclo completado** | ✅ Ciclo 10 — Operación Código Limpio |
+| **Version** | v12.44.739 |
+| **Ultimos fixes** | ✅ app.js SyntaxError, i18n CSP JSON, Cross-Origin-Opener-Policy, 3D Planner |
 | **Feature en curso** | **Ciclo 11 — Análisis Competitivo** |
 | **Proximo feature** | Pendiente de definir según gap analysis |
 
@@ -1952,12 +1952,17 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 
 | ID | Feature | Estado | Version | Fecha |
 |----|---------|--------|---------|-------|
-| — | **Ciclo 11 iniciado** | ✅ | v12.44.736 | 2026-05-10 |
+| — | **Ciclo 11 iniciado** | ✅ | v12.44.739 | 2026-05-10 |
+| — | Fix: app.js SyntaxError `)` | ✅ | v12.44.737 | 2026-05-10 |
+| — | Fix: i18n CSP unsafe-eval → JSON | ✅ | v12.44.737 | 2026-05-10 |
+| — | Fix: 3D Planner iframe ruta `/editor` | ✅ | v12.44.738 | 2026-05-10 |
+| — | Fix: Cross-Origin-Opener-Policy / Origin-Agent-Cluster | ✅ | v12.44.739 | 2026-05-11 |
+| — | Fix: 3D Planner React error #185 (LeftPanel selector + Button extend) | ✅ | v0.28.6–0.28.7 | 2026-05-11 |
+| C11-05 | Seating chart interactivo (drag-drop) | ✅ 3D Planner fix | v12.44.738 / v0.28.8 | 2026-05-11 |
 | C11-01 | Gamificación / Live Polling | ⏳ Pendiente | — | — |
 | C11-02 | Badge printing | ⏳ Pendiente | — | — |
 | C11-03 | Kiosko auto-check-in | ⏳ Pendiente | — | — |
 | C11-04 | Networking scoring | ⏳ Pendiente | — | — |
-| C11-05 | Seating chart drag-drop | ⏳ Pendiente | — | — |
 | C11-06 | Constructor landing pages | ⏳ Pendiente | — | — |
 | C11-07 | Álbum de fotos compartido | ⏳ Pendiente | — | — |
 | C11-08 | Certificados automáticos | ⏳ Pendiente | — | — |
