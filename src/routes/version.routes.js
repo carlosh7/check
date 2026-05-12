@@ -56,24 +56,30 @@ router.get('/health/redis', async (req, res) => {
 router.get('/health/full', async (req, res) => {
     var appVersion = 'unknown';
     try { var pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8')); appVersion = pkg.version; } catch(e) {}
+    var startTime = Date.now();
     const checks = {
         status: 'ok',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         version: appVersion,
+        responseTimeMs: 0,
         database: { status: 'unknown' },
         cache: { status: 'unknown' },
-        smtp: { status: 'unknown' }
+        disk: { status: 'unknown' },
+        memory: { status: 'unknown' }
     };
     
     let allHealthy = true;
     
     // Check Database
     try {
-        const result = db.prepare('SELECT 1 as test').get();
+        var result = db.prepare('SELECT 1 as test').get();
+        // Check event DB accessibility (sample)
+        var eventCount = db.prepare('SELECT COUNT(*) as c FROM events').get().c;
         checks.database = { 
             status: result ? 'connected' : 'error',
-            engine: 'sqlite'
+            engine: 'sqlite',
+            totalEvents: eventCount
         };
     } catch (err) {
         checks.database = { status: 'error', message: err.message };
@@ -82,7 +88,7 @@ router.get('/health/full', async (req, res) => {
     
     // Check Cache
     try {
-        const stats = await getStats();
+        var stats = await getStats();
         checks.cache = {
             status: stats ? 'connected' : 'error',
             engine: stats?.engine || 'unknown',
@@ -93,7 +99,49 @@ router.get('/health/full', async (req, res) => {
         allHealthy = false;
     }
     
-    // Determinar status general
+    // Check Disk
+    try {
+        var dataPath = process.env.DATA_PATH || '/usr/src/app/persistence';
+        if (fs.existsSync(dataPath)) {
+            var diskStats = {};
+            try {
+                var st = fs.statfsSync(dataPath);
+                diskStats = { availableBytes: st.bfree * st.bsize, totalBytes: st.blocks * st.bsize, availablePercent: Math.round((st.bfree / st.blocks) * 100) };
+            } catch(e) {
+                // statfs not available on all platforms
+                diskStats = { availableBytes: 'N/A', totalBytes: 'N/A' };
+            }
+            checks.disk = { status: 'available', path: dataPath, ...diskStats };
+        } else {
+            checks.disk = { status: 'unavailable', path: dataPath };
+            allHealthy = false;
+        }
+    } catch (err) {
+        checks.disk = { status: 'error', message: err.message };
+    }
+    
+    // Check Memory
+    try {
+        var mem = process.memoryUsage();
+        checks.memory = {
+            status: 'ok',
+            rss: Math.round(mem.rss / 1024 / 1024) + 'MB',
+            heapTotal: Math.round(mem.heapTotal / 1024 / 1024) + 'MB',
+            heapUsed: Math.round(mem.heapUsed / 1024 / 1024) + 'MB',
+            heapPercent: Math.round((mem.heapUsed / mem.heapTotal) * 100) + '%'
+        };
+        if (mem.heapUsed / mem.heapTotal > 0.9) {
+            checks.memory.status = 'critical';
+            allHealthy = false;
+        } else if (mem.heapUsed / mem.heapTotal > 0.75) {
+            checks.memory.status = 'warning';
+        }
+    } catch (err) {
+        checks.memory = { status: 'error', message: err.message };
+    }
+    
+    checks.responseTimeMs = Date.now() - startTime;
+    
     if (!allHealthy) {
         checks.status = 'degraded';
     }

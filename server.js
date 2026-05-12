@@ -123,6 +123,11 @@ app.use(function (req, res, next) {
     res.removeHeader('Origin-Agent-Cluster');
     next();
 });
+
+// Logger estructurado (H-05)
+const { requestLogger } = require('./src/middleware/logger');
+app.use(requestLogger);
+
 app.use(cors({
     origin: function (origin, callback) {
         // 1. Permitir peticiones sin origen (apps móviles, Postman o carga directa de assets)

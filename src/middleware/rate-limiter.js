@@ -7,17 +7,27 @@ function skipLocal(req) {
         ip.startsWith('172.') || ip.startsWith('192.168.') || ip.startsWith('10.') || !ip;
 }
 
+function getClientKey(req) {
+    // Use user ID if authenticated, fallback to IP + user-agent
+    var userId = req.userId || (req.user && req.user.id) || (req.auth && req.auth.userId);
+    if (userId) return 'user:' + userId;
+    var ip = req.ip || req.connection.remoteAddress || 'unknown';
+    var ua = req.headers['user-agent'] || '';
+    return 'ip:' + ip + '|' + ua.substring(0, 30);
+}
+
 function createLimiter(opts) {
-    return rateLimit({
+    var config = {
         windowMs: opts.windowMs || 15 * 60 * 1000,
         max: opts.max || 100,
         skip: skipLocal,
         message: opts.message || { error: 'Demasiadas peticiones. Espera unos segundos.' },
         standardHeaders: true,
         legacyHeaders: false,
-        keyGenerator: opts.keyGenerator || undefined,
+        keyGenerator: opts.keyGenerator || getClientKey,
         ...opts.extra
-    });
+    };
+    return rateLimit(config);
 }
 
 const limiters = {

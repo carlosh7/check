@@ -23,6 +23,7 @@
 
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const { body, validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
@@ -54,7 +55,13 @@ const router = express.Router();
  *       400:
  *         description: Credenciales inválidas
  */
-router.post('/login', (req, res) => {
+router.post('/login',
+    body('username').isString().trim().notEmpty().withMessage('Usuario requerido'),
+    body('password').isString().notEmpty().withMessage('Contraseña requerida'),
+    function(req, res) {
+        var errors = validationResult(req);
+        if (!errors.isEmpty()) return res.status(400).json({ success: false, error: errors.array()[0].msg });
+        // ... existing login logic
     try {
         const v = validate(schemas.login, req.body);
         if (!v.valid) return res.status(400).json({ success: false, errors: v.errors });

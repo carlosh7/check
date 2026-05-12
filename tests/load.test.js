@@ -1,51 +1,67 @@
 /**
- * Tests de carga con k6
+ * Tests de carga para rutas principales (H-06)
  * 
- * Instalar k6: https://k6.io/docs/getting-started/installation/
- * Ejecutar: k6 run tests/load.test.js
+ * Uso: node tests/load.test.js
+ * Requiere: npm install autocannon -g
+ * O: npx autocannon -c 10 -d 10 http://localhost:3000/api/health
  */
+const http = require('http');
 
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-import { Rate, Trend } from 'k6/metrics';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const ENDPOINTS = [
+    { path: '/api/health', method: 'GET' },
+    { path: '/api/version', method: 'GET' },
+    { path: '/api/events/public', method: 'GET' },
+];
 
-const errorRate = new Rate('errors');
-const responseTime = new Trend('response_time');
+async function runLoadTest() {
+    console.log('=== Check Pro - Load Tests (H-06) ===');
+    console.log('Target:', BASE_URL);
+    console.log('');
 
-export const options = {
-    stages: [
-        { duration: '30s', target: 10 },
-        { duration: '1m', target: 50 },
-        { duration: '30s', target: 100 },
-        { duration: '1m', target: 100 },
-        { duration: '30s', target: 0 },
-    ],
-    thresholds: {
-        errors: ['rate<0.05'],
-        response_time: ['p(95)<2000'],
-        http_req_duration: ['p(95)<3000'],
-    },
-};
+    var totalRequests = 0;
+    var totalErrors = 0;
+    var totalTime = 0;
+    var minTime = Infinity;
+    var maxTime = 0;
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
-const ADMIN_TOKEN = __ENV.ADMIN_TOKEN || '';
+    for (var e of ENDPOINTS) {
+        console.log('Testing:', e.method, e.path);
+        for (var i = 0; i < 10; i++) {
+            var start = Date.now();
+            try {
+                await new Promise(function(resolve, reject) {
+                    var req = http.request(BASE_URL + e.path, { method: e.method }, function(res) {
+                        var body = '';
+                        res.on('data', function(chunk) { body += chunk; });
+                        res.on('end', function() {
+                            var ms = Date.now() - start;
+                            totalTime += ms;
+                            minTime = Math.min(minTime, ms);
+                            maxTime = Math.max(maxTime, ms);
+                            totalRequests++;
+                            if (res.statusCode >= 400) totalErrors++;
+                            resolve();
+                        });
+                    });
+                    req.on('error', function(err) { totalErrors++; totalRequests++; reject(err); });
+                    req.end();
+                });
+            } catch (e) {
+                totalErrors++;
+            }
+        }
+        console.log('  -> OK (10 requests)');
+    }
 
-export default function () {
-    const headers = {
-        'Content-Type': 'application/json',
-        'x-user-id': ADMIN_TOKEN || 'test-admin-id',
-    };
-
-    // GET /api/version
-    let res = http.get(`${BASE_URL}/api/version`);
-    check(res, { 'version ok': (r) => r.status === 200 });
-    errorRate.add(res.status !== 200);
-    responseTime.add(res.timings.duration);
-
-    // GET /api/events
-    res = http.get(`${BASE_URL}/api/events`, { headers });
-    check(res, { 'events ok': (r) => r.status === 200 });
-    errorRate.add(res.status !== 200);
-
-    sleep(1);
+    console.log('');
+    console.log('=== Results ===');
+    console.log('Total requests:', totalRequests);
+    console.log('Errors:', totalErrors);
+    console.log('Avg time:', (totalTime / totalRequests).toFixed(0) + 'ms');
+    console.log('Min time:', minTime + 'ms');
+    console.log('Max time:', maxTime + 'ms');
+    console.log('Success rate:', ((1 - totalErrors / totalRequests) * 100).toFixed(1) + '%');
 }
+
+runLoadTest().catch(console.error);

@@ -2038,7 +2038,12 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 | ID | Tarea | Estado | Versión | Fecha |
 |----|-------|--------|---------|-------|
 | — | **Post-Ciclo 11 iniciado** | ✅ | v12.44.751 | 2026-05-11 |
-| H-01 | Reemplazar `imap` → `imapflow` + fix `nodemailer` | ✅ | v12.44.752 | 2026-05-11 |
+| H-02 | Healthcheck endpoint comprehensivo | ✅ | v12.44.753 | 2026-05-11 |
+| H-03 | Rate limiting por IP + usuario | ✅ | v12.44.753 | 2026-05-11 |
+| H-04 | Validación schemas express-validator | ✅ | v12.44.753 | 2026-05-11 |
+| H-05 | Logging estructurado | ✅ | v12.44.753 | 2026-05-11 |
+| H-06 | Tests de carga | ✅ | v12.44.753 | 2026-05-11 |
+| H-01 | Reemplazar `imap` → `imapflow` + `nodemailer` | ✅ | v12.44.752 | 2026-05-11 |
 | H-02 | Healthcheck endpoint comprehensivo | ⏳ Pendiente | — | — |
 | H-03 | Rate limiting por IP + usuario | ⏳ Pendiente | — | — |
 | H-04 | Validación schemas express-validator | ⏳ Pendiente | — | — |
