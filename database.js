@@ -112,6 +112,8 @@ try { db.exec("ALTER TABLE events ADD COLUMN reg_show_vegan INTEGER DEFAULT 1");
 try { db.exec("ALTER TABLE events ADD COLUMN reg_show_dietary INTEGER DEFAULT 1"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN badge_config TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN landing_config TEXT"); } catch (_) {}
+// Migration tracking table (C-04)
+try { db.exec("CREATE TABLE IF NOT EXISTS _migrations (id TEXT PRIMARY KEY, name TEXT UNIQUE, applied_at TEXT DEFAULT (datetime('now')))"); } catch(_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN reg_show_gender INTEGER DEFAULT 0"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN reg_require_agreement INTEGER DEFAULT 1"); } catch (_) {}
 // Campos Fase 8: Personalización de Tickets y QR

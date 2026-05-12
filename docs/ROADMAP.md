@@ -2057,7 +2057,7 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 | C-01 | Tests unitarios API | ⏳ Pendiente | — | — |
 | C-02 | Refactor app.js módulos | ⏳ Pendiente | — | — |
 | C-03 | ESLint + Prettier | ⏳ Pendiente | — | — |
-| C-04 | Migraciones BD formales | ⏳ Pendiente | — | — |
+| C-04 | Migraciones BD formales | ✅ | v12.44.755 | 2026-05-11 |
 | C-05 | Error handling centralizado | ⏳ Pendiente | — | — |
 | F-01 | WebSocket tiempo real | ⏳ Pendiente | — | — |
 | F-02 | Dashboard métricas | ⏳ Pendiente | — | — |
