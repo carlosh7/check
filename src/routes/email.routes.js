@@ -7,7 +7,7 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
-const Imap = require('imap');
+const { ImapFlow } = require('imapflow');
 const { simpleParser } = require('mailparser');
 const { db } = require('../../database');
 const { decryptPassword, encryptPassword } = require('../security/encryption');
@@ -313,22 +313,20 @@ router.post('/accounts/:id/test-imap', async (req, res) => {
             return res.json({ success: false, error: 'Configuración IMAP incompleta' });
         }
         
-        const imap = new Imap(getImapConfig(account));
-        
-        return new Promise((resolve) => {
-            imap.once('ready', () => {
-                imap.end();
-                res.json({ success: true, message: 'Conexión IMAP exitosa' });
-                resolve();
-            });
-            
-            imap.once('error', (err) => {
-                res.json({ success: false, error: err.message });
-                resolve();
-            });
-            
-            imap.connect();
+        var cfg = getImapConfig(account);
+        var client = new ImapFlow({
+            host: cfg.host, port: cfg.port, secure: cfg.tls,
+            auth: { user: cfg.user, pass: cfg.password },
+            logger: false
         });
+        
+        try {
+            await client.connect();
+            await client.logout();
+            res.json({ success: true, message: 'Conexión IMAP exitosa' });
+        } catch (err) {
+            res.json({ success: false, error: err.message });
+        }
     } catch (error) {
         console.error('IMAP test error:', error);
         res.json({ success: false, error: error.message });
@@ -1121,53 +1119,29 @@ router.get('/mailbox/folders', async (req, res) => {
             return res.status(400).json({ error: 'Cuenta no disponible' });
         }
         
-        const imap = new Imap(getImapConfig(account));
-        
-        return new Promise((resolve) => {
-            imap.once('ready', () => {
-                imap.getBoxes((err, boxes) => {
-                    imap.end();
-                    if (err) {
-                        res.json({ success: false, error: err.message });
-                        resolve();
-                        return;
-                    }
-                    
-                    // Extraer solo nombres de carpetas (evitar referencias circulares)
-                    const folderNames = [];
-                    function extractFolders(boxObj, prefix = '') {
-                        if (!boxObj) return;
-                        for (const [name, box] of Object.entries(boxObj)) {
-                            if (box && typeof box === 'object' && box.name) {
-                                folderNames.push(prefix ? `${prefix}/${box.name}` : box.name);
-                                if (box.children) {
-                                    extractFolders(box.children, prefix ? `${prefix}/${box.name}` : box.name);
-                                }
-                            }
-                        }
-                    }
-                    extractFolders(boxes);
-                    
-                    // Asegurar carpetas estándar
-                    const standardFolders = ['INBOX', 'Sent', 'Drafts', 'Trash', 'Spam', 'Junk'];
-                    for (const sf of standardFolders) {
-                        if (!folderNames.includes(sf) && !folderNames.some(f => f.toLowerCase() === sf.toLowerCase())) {
-                            folderNames.push(sf);
-                        }
-                    }
-                    
-                    res.json({ success: true, folders: folderNames.sort() });
-                    resolve();
-                });
-            });
-            
-            imap.once('error', (err) => {
-                res.json({ success: false, error: err.message });
-                resolve();
-            });
-            
-            imap.connect();
+        var cfg = getImapConfig(account);
+        var client = new ImapFlow({
+            host: cfg.host, port: cfg.port, secure: cfg.tls,
+            auth: { user: cfg.user, pass: cfg.password },
+            logger: false
         });
+        
+        try {
+            await client.connect();
+            var mailboxList = await client.list();
+            await client.logout();
+            var folderNames = mailboxList.map(function(m) { return m.path; });
+            var standardFolders = ['INBOX', 'Sent', 'Drafts', 'Trash', 'Spam', 'Junk'];
+            for (var sf of standardFolders) {
+                if (!folderNames.includes(sf) && !folderNames.some(function(f) { return f.toLowerCase() === sf.toLowerCase(); })) {
+                    folderNames.push(sf);
+                }
+            }
+            res.json({ success: true, folders: folderNames.sort() });
+        } catch (err) {
+            try { await client.logout(); } catch(e) {}
+            res.json({ success: false, error: err.message });
+        }
     } catch (error) {
         console.error('Error getting mailbox folders:', error);
         res.status(500).json({ error: error.message });
@@ -1188,114 +1162,56 @@ router.get('/mailbox/messages', async (req, res) => {
             return res.status(400).json({ error: 'Cuenta no disponible' });
         }
         
-        const imap = new Imap(getImapConfig(account));
-        
-        return new Promise((resolve) => {
-            imap.once('ready', () => {
-                let folderName = folder;
-                if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) {
-                    folderName = `INBOX.${folder}`;
-                }
-                
-                imap.openBox(folderName, true, (err, box) => {
-                    if (err) {
-                        imap.end();
-                        res.json({ success: false, error: err.message });
-                        return resolve();
-                    }
-                    
-                    const total = box.messages.total;
-                    
-                    if (total === 0) {
-                        imap.end();
-                        res.json({ success: true, messages: [], total: 0 });
-                        return resolve();
-                    }
-                    
-                    // Search para obtener TODOS los UIDs
-                    imap.search([['ALL']], (err, results) => {
-                        if (err || !results || results.length === 0) {
-                            imap.end();
-                            res.json({ success: err ? false : true, messages: [], total });
-                            return resolve();
-                        }
-                        
-                        // Obtener los últimos N UIDs
-                        const count = Math.min(limit, total);
-                        const uids = results.slice(-count);
-                        const messages = [];
-                        
-                        // Fetch secuencial: un UID a la vez
-                        function fetchNext(index) {
-                            if (index >= uids.length) {
-                                imap.end();
-                                res.json({ success: true, messages, total });
-                                return resolve();
-                            }
-                            
-                            const uid = uids[index];
-                            const fetch = imap.fetch([uid], {
-                                bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
-                                markSeen: false
-                            });
-                            
-                            fetch.on('message', (msg) => {
-                                const msgData = { uid: uid, from: '', from_name: '', to: '', subject: '', date: '', seen: false };
-                                
-                                msg.on('attributes', (attrs) => {
-                                    msgData.seen = attrs.flags.includes('\\Seen');
-                                });
-                                
-                                msg.on('body', (stream) => {
-                                    let buffer = '';
-                                    stream.on('data', chunk => { buffer += chunk.toString('utf8'); });
-                                    stream.on('end', () => {
-                                        const lines = buffer.split(/\r?\n/);
-                                        for (const line of lines) {
-                                            if (/^From:/i.test(line) && !msgData.from) {
-                                                const clean = line.replace(/^From:\s*/i, '').trim();
-                                                const match = clean.match(/^(.*?)\s*<(.+?)>/);
-                                                if (match) {
-                                                    msgData.from_name = match[1].replace(/"/g, '').trim();
-                                                    msgData.from = match[2].trim();
-                                                } else {
-                                                    msgData.from = clean;
-                                                }
-                                            } else if (/^To:/i.test(line) && !msgData.to) {
-                                                const clean = line.replace(/^To:\s*/i, '').trim();
-                                                const match = clean.match(/<(.+?)>/);
-                                                msgData.to = match ? match[1] : clean;
-                                            } else if (/^Subject:/i.test(line) && !msgData.subject) {
-                                                msgData.subject = line.replace(/^Subject:\s*/i, '').trim();
-                                            } else if (/^Date:/i.test(line) && !msgData.date) {
-                                                msgData.date = line.replace(/^Date:\s*/i, '').trim();
-                                            }
-                                        }
-                                        messages.push(msgData);
-                                        // Siguiente mensaje
-                                        fetchNext(index + 1);
-                                    });
-                                });
-                            });
-                            
-                            fetch.once('error', () => {
-                                // Skip this message and continue
-                                fetchNext(index + 1);
-                            });
-                        }
-                        
-                        fetchNext(0);
-                    });
-                });
-            });
-            
-            imap.once('error', (err) => {
-                res.json({ success: false, error: err.message });
-                resolve();
-            });
-            
-            imap.connect();
+        var cfg = getImapConfig(account);
+        var client = new ImapFlow({
+            host: cfg.host, port: cfg.port, secure: cfg.tls,
+            auth: { user: cfg.user, pass: cfg.password },
+            logger: false
         });
+        
+        try {
+            await client.connect();
+            var folderName = folder;
+            if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) {
+                folderName = 'INBOX.' + folder;
+            }
+            var lock = await client.getMailboxLock(folderName);
+            try {
+                var total = await client.mailboxOpen(folderName);
+                var messages = [];
+                var count = 0;
+                for await (var msg of client.fetch('1:*', { uid: true, headers: true })) {
+                    if (count >= total - parseInt(limit) - parseInt(offset)) {
+                        var h = msg.headers;
+                        var msgData = {
+                            uid: msg.uid,
+                            from: h.get('from') || '',
+                            from_name: '',
+                            to: h.get('to') || '',
+                            subject: h.get('subject') || '',
+                            date: h.get('date') || '',
+                            seen: msg.flags.includes('\\Seen')
+                        };
+                        var fromMatch = (msgData.from || '').match(/^(.*?)\s*<(.+?)>/);
+                        if (fromMatch) {
+                            msgData.from_name = fromMatch[1].replace(/"/g, '').trim();
+                            msgData.from = fromMatch[2].trim();
+                        }
+                        messages.push(msgData);
+                    }
+                    count++;
+                }
+                // Take only the last `limit` messages
+                messages = messages.slice(-parseInt(limit));
+                res.json({ success: true, messages: messages, total: total });
+            } finally {
+                lock.release();
+                await client.logout();
+            }
+        } catch (err) {
+            try { await client.logout(); } catch(e) {}
+            res.json({ success: false, error: err.message });
+        }
     } catch (error) {
         console.error('Error getting mailbox messages:', error);
         res.status(500).json({ error: error.message });
@@ -1317,59 +1233,30 @@ router.get('/mailbox/message/:uid', async (req, res) => {
             return res.status(400).json({ error: 'Cuenta no disponible' });
         }
         
-        const imap = new Imap(getImapConfig(account));
+        var cfg = getImapConfig(account);
+        var client = new ImapFlow({
+            host: cfg.host, port: cfg.port, secure: cfg.tls,
+            auth: { user: cfg.user, pass: cfg.password },
+            logger: false
+        });
         
         try {
-            // Obtener el email raw via IMAP
-            const rawEmail = await new Promise((resolve, reject) => {
-                imap.once('ready', () => {
-                    let folderName = folder;
-                    if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) {
-                        folderName = `INBOX.${folder}`;
-                    }
-                    
-                    imap.openBox(folderName, false, (err, box) => {
-                        if (err) {
-                            imap.end();
-                            return reject(err);
-                        }
-                        
-                        const fetch = imap.fetch(uid, { 
-                            bodies: '',
-                            markSeen: false 
-                        });
-                        
-                        const chunks = [];
-                        let totalSize = 0;
-                        const maxSize = 10 * 1024 * 1024; // 10MB max
-                        
-                        fetch.on('message', (msg) => {
-                            msg.on('body', (stream) => {
-                                stream.on('data', chunk => {
-                                    if (totalSize < maxSize) {
-                                        chunks.push(chunk);
-                                        totalSize += chunk.length;
-                                    }
-                                });
-                            });
-                        });
-                        
-                        fetch.once('end', () => {
-                            imap.end();
-                            resolve(Buffer.concat(chunks));
-                        });
-                        
-                        fetch.once('error', (err) => {
-                            imap.end();
-                            reject(err);
-                        });
-                    });
-                });
-                
-                imap.once('error', (err) => reject(err));
-                
-                imap.connect();
-            });
+            await client.connect();
+            var folderName = folder;
+            if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) {
+                folderName = 'INBOX.' + folder;
+            }
+            var lock = await client.getMailboxLock(folderName);
+            try {
+                var rawEmail = null;
+                for await (var msg of client.fetch(uid, { uid: true, source: true })) {
+                    rawEmail = msg.source;
+                }
+                if (!rawEmail) throw new Error('Mensaje no encontrado');
+            } finally {
+                lock.release();
+                await client.logout();
+            }
             
             // Parsear con mailparser usando async/await
             const parsed = await simpleParser(rawEmail);
@@ -1529,51 +1416,40 @@ router.get('/mailbox/attachment/:uid', async (req, res) => {
         const account = getEmailDb().prepare('SELECT * FROM email_accounts WHERE id = ? AND is_active = 1').get(account_id);
         if (!account) return res.status(400).json({ error: 'Cuenta no disponible' });
         
-        const imap = new Imap(getImapConfig(account));
-        
-        return new Promise((resolve) => {
-            imap.once('ready', () => {
-                let folderName = folder;
-                if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) folderName = `INBOX.${folder}`;
-                
-                imap.openBox(folderName, false, (err) => {
-                    if (err) { imap.end(); res.json({ success: false, error: err.message }); return resolve(); }
-                    
-                    const fetch = imap.fetch(uid, { bodies: '', markSeen: false });
-                    const chunks = [];
-                    let totalSize = 0;
-                    const maxSize = 20 * 1024 * 1024; // 20MB
-                    
-                    fetch.on('message', (msg) => {
-                        msg.on('body', (stream) => {
-                            stream.on('data', chunk => { if (totalSize < maxSize) { chunks.push(chunk); totalSize += chunk.length; } });
-                        });
-                    });
-                    
-                    fetch.once('end', () => {
-                        const rawEmail = Buffer.concat(chunks);
-                        simpleParser(rawEmail, (err, parsed) => {
-                            imap.end();
-                            if (err) { res.json({ success: false, error: err.message }); return resolve(); }
-                            
-                            const attachments = parsed.attachments || [];
-                            const idx = parseInt(attachmentIndex) || 0;
-                            if (idx >= attachments.length) { res.json({ success: false, error: 'Adjunto no encontrado' }); return resolve(); }
-                            
-                            const att = attachments[idx];
-                            res.setHeader('Content-Disposition', `attachment; filename="${att.filename}"`);
-                            res.setHeader('Content-Type', att.contentType || 'application/octet-stream');
-                            res.send(att.content);
-                            resolve();
-                        });
-                    });
-                    
-                    fetch.once('error', (err) => { imap.end(); res.json({ success: false, error: err.message }); resolve(); });
-                });
-            });
-            imap.once('error', (err) => { res.json({ success: false, error: err.message }); resolve(); });
-            imap.connect();
+        var cfg = getImapConfig(account);
+        var client = new ImapFlow({
+            host: cfg.host, port: cfg.port, secure: cfg.tls,
+            auth: { user: cfg.user, pass: cfg.password },
+            logger: false
         });
+        
+        try {
+            await client.connect();
+            var folderName = folder;
+            if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) folderName = 'INBOX.' + folder;
+            var lock = await client.getMailboxLock(folderName);
+            try {
+                var rawEmail = null;
+                for await (var msg of client.fetch(uid, { uid: true, source: true })) {
+                    rawEmail = msg.source;
+                }
+                if (!rawEmail) throw new Error('Mensaje no encontrado');
+                var parsed = await simpleParser(rawEmail);
+                var attachments = parsed.attachments || [];
+                var idx = parseInt(attachmentIndex) || 0;
+                if (idx >= attachments.length) { res.json({ success: false, error: 'Adjunto no encontrado' }); return; }
+                var att = attachments[idx];
+                res.setHeader('Content-Disposition', 'attachment; filename="' + (att.filename || 'attachment') + '"');
+                res.setHeader('Content-Type', att.contentType || 'application/octet-stream');
+                res.send(att.content);
+            } finally {
+                lock.release();
+                await client.logout();
+            }
+        } catch (err) {
+            try { await client.logout(); } catch(e) {}
+            res.json({ success: false, error: err.message });
+        }
     } catch (error) {
         console.error('Error downloading attachment:', error);
         res.status(500).json({ error: error.message });
