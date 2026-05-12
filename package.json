@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.761",
+  "version": "12.44.762",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "script.js",
   "scripts": {
@@ -27,7 +27,6 @@
   },
   "homepage": "https://github.com/carlosh7/check#readme",
   "dependencies": {
-    "@paypal/checkout-server-sdk": "^1.0.3",
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^12.8.0",
     "compression": "^1.7.4",
