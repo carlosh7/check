@@ -302,7 +302,14 @@ router.post('/import-confirm', authMiddleware(), async (req, res) => {
 router.get('/export-excel/:eventId', authMiddleware(), async (req, res) => {
     const eId = castId('events', req.params.eventId);
     const targetDb = getEventDb(eId);
-    const rows = targetDb.prepare("SELECT name as Nombre, email as Email, organization as Organizacion, phone as Telefono, gender as Genero, CASE WHEN checked_in = 1 THEN 'SÍ' ELSE 'NO' END as Asistio, checkin_time as Hora FROM guests WHERE event_id = ?").all(eId);
+    // Filtros opcionales (F-03)
+    var whereClause = "WHERE event_id = ?";
+    var params = [eId];
+    if (req.query.checked_in === '1') { whereClause += " AND checked_in = 1"; }
+    if (req.query.checked_in === '0') { whereClause += " AND checked_in = 0"; }
+    if (req.query.category_id) { whereClause += " AND category_id = ?"; params.push(req.query.category_id); }
+    if (req.query.search) { whereClause += " AND (name LIKE ? OR email LIKE ? OR organization LIKE ?)"; var s = '%' + req.query.search + '%'; params.push(s, s, s); }
+    var rows = targetDb.prepare("SELECT name as Nombre, email as Email, organization as Organizacion, phone as Telefono, gender as Genero, category_id as Categoria, CASE WHEN checked_in = 1 THEN 'SÍ' ELSE 'NO' END as Asistio, checkin_time as Hora FROM guests " + whereClause + " ORDER BY name ASC").all.apply(targetDb, params);
     
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Check Pro V10';
@@ -314,9 +321,13 @@ router.get('/export-excel/:eventId', authMiddleware(), async (req, res) => {
         { header: 'Organización', key: 'Organizacion', width: 30 },
         { header: 'Teléfono', key: 'Telefono', width: 18 },
         { header: 'Género', key: 'Genero', width: 10 },
+        { header: 'Categoría', key: 'Categoria', width: 15 },
         { header: 'Asistió', key: 'Asistio', width: 12 },
         { header: 'Hora Check-in', key: 'Hora', width: 22 }
     ];
+    
+    // Auto-filtros
+    sheet.autoFilter = { reference: 'A1:H1' };
     
     sheet.getRow(1).eachCell(cell => {
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7C3AED' } };

@@ -166,6 +166,8 @@ router.post('/public/:pollId/vote', (req, res) => {
         if (existingVote) return res.status(400).json({ error: 'Ya has votado en esta encuesta' });
         var id = uuidv4();
         db.prepare("INSERT INTO poll_votes (id, poll_id, guest_id, option_id, answer_text) VALUES (?, ?, ?, ?, ?)").run(id, req.params.pollId, guest.id, option_id || null, answer_text || null);
+        // Emitir evento en tiempo real
+        try { var io = require('../../src/socket').getIO(); if (io) { io.to(poll.event_id).emit('poll_updated', { pollId: poll.id, pollTitle: poll.title }); } } catch(e) {}
         // Sumar puntos al leaderboard
         if (poll.points > 0) {
             var existing = db.prepare("SELECT id FROM leaderboard WHERE event_id = ? AND guest_id = ?").get(guest.event_id, guest.id);

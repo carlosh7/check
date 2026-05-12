@@ -300,8 +300,17 @@ router.get('/bi/dashboard', authMiddleware(['ADMIN']), (req, res) => {
         // Hourly check-in distribution
         var hourlyDist = db.prepare("SELECT strftime('%H', checkin_time) as h, COUNT(*) as c FROM guests WHERE checked_in = 1 AND checkin_time IS NOT NULL GROUP BY h ORDER BY h ASC").all();
 
+        // Polls stats (C11-01)
+        var totalPolls = db.prepare("SELECT COUNT(*) as c FROM polls").get().c;
+        var totalVotes = db.prepare("SELECT COUNT(*) as c FROM poll_votes").get().c;
+        // Networking stats (C11-04)
+        var totalConnections = db.prepare("SELECT COUNT(*) as c FROM networking_connections").get().c;
+        // Certificates stats (C11-08)
+        var totalCerts = db.prepare("SELECT COUNT(*) as c FROM guest_certificates").get().c;
+
         res.json({
             system: { totalEvents, totalGuests, totalChecked, totalUsers, conversionRate },
+            gamification: { totalPolls, totalVotes, totalConnections, totalCerts },
             trends: { dailyRegistrations: dailyRegs, dailyCheckins: dailyCheckins },
             topEvents,
             monthly,

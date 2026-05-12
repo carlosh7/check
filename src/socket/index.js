@@ -60,6 +60,13 @@ function init(server, opts = {}) {
             });
         });
 
+        // Poll vote notification (C11-01)
+        socket.on('poll_vote', (data) => {
+            const { eventId, pollId, pollTitle } = data;
+            if (!eventId || !pollId) return;
+            socket.to(eventId).emit('poll_updated', { pollId, pollTitle, timestamp: new Date().toISOString() });
+        });
+
         socket.on('presence_heartbeat', (data) => {
             const { eventId, userId, userName } = data;
             if (!eventId || !userId) return;

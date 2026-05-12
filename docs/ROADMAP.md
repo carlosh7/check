@@ -2059,12 +2059,12 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 | C-03 | ESLint + Prettier | ⏳ Pendiente | — | — |
 | C-04 | Migraciones BD formales | ✅ | v12.44.755 | 2026-05-11 |
 | C-05 | Error handling centralizado | ⏳ Pendiente | — | — |
-| F-01 | WebSocket tiempo real | ⏳ Pendiente | — | — |
-| F-02 | Dashboard métricas | ⏳ Pendiente | — | — |
-| F-03 | Exportación avanzada | ⏳ Pendiente | — | — |
-| F-04 | Multi-tenant | ⏳ Pendiente | — | — |
-| F-05 | API pública OpenAPI | ⏳ Pendiente | — | — |
-| F-06 | CI/CD pipeline | ⏳ Pendiente | — | — |
+| F-01 | WebSocket tiempo real | ✅ | v12.44.756 | 2026-05-11 |
+| F-02 | Dashboard métricas | ✅ | v12.44.756 | 2026-05-11 |
+| F-03 | Exportación avanzada | ✅ | v12.44.756 | 2026-05-11 |
+| F-04 | Multi-tenant | ✅ | v12.44.756 | 2026-05-11 |
+| F-05 | API pública OpenAPI | ✅ | v12.44.756 | 2026-05-11 |
+| F-06 | CI/CD pipeline | ✅ | v12.44.756 | 2026-05-11 |
 
 ---
 
