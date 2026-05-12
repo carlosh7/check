@@ -2044,21 +2044,21 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 | H-05 | Logging estructurado | ✅ | v12.44.753 | 2026-05-11 |
 | H-06 | Tests de carga | ✅ | v12.44.753 | 2026-05-11 |
 | H-01 | Reemplazar `imap` → `imapflow` + `nodemailer` | ✅ | v12.44.752 | 2026-05-11 |
-| H-02 | Healthcheck endpoint comprehensivo | ⏳ Pendiente | — | — |
-| H-03 | Rate limiting por IP + usuario | ⏳ Pendiente | — | — |
-| H-04 | Validación schemas express-validator | ⏳ Pendiente | — | — |
-| H-05 | Logging estructurado | ⏳ Pendiente | — | — |
-| H-06 | Tests de carga (k6/autocannon) | ⏳ Pendiente | — | — |
+| H-02 | Healthcheck endpoint comprehensivo | ✅ | v12.44.753 | 2026-05-11 |
+| H-03 | Rate limiting por IP + usuario | ✅ | v12.44.753 | 2026-05-11 |
+| H-04 | Validación schemas express-validator | ✅ | v12.44.753 | 2026-05-11 |
+| H-05 | Logging estructurado | ✅ | v12.44.753 | 2026-05-11 |
+| H-06 | Tests de carga (k6/autocannon) | ✅ | v12.44.753 | 2026-05-11 |
 | P-01 | Redis cache real | ⏳ Pendiente | — | — |
 | P-02 | Índices compuestos BD | ✅ | v12.44.754 | 2026-05-11 |
 | P-03 | Code splitting app.js | ⏳ Pendiente | — | — |
-| P-04 | Compresión Brotli nginx | ⏳ Pendiente | — | — |
-| P-05 | WAL mode SQLite | ⏳ Pendiente | — | — |
+| P-04 | Compresión Brotli nginx | ✅ | v12.44.753 | 2026-05-11 |
+| P-05 | WAL mode SQLite | ✅ | v12.44.753 | 2026-05-11 |
 | C-01 | Tests unitarios API | ⏳ Pendiente | — | — |
 | C-02 | Refactor app.js módulos | ⏳ Pendiente | — | — |
-| C-03 | ESLint + Prettier | ⏳ Pendiente | — | — |
+| C-03 | ESLint + Prettier | ✅ | — | — |
 | C-04 | Migraciones BD formales | ✅ | v12.44.755 | 2026-05-11 |
-| C-05 | Error handling centralizado | ⏳ Pendiente | — | — |
+| C-05 | Error handling centralizado | ✅ | — | — |
 | F-01 | WebSocket tiempo real | ✅ | v12.44.756 | 2026-05-11 |
 | F-02 | Dashboard métricas | ✅ | v12.44.756 | 2026-05-11 |
 | F-03 | Exportación avanzada | ✅ | v12.44.756 | 2026-05-11 |
