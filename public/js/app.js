@@ -14459,11 +14459,11 @@ navigate(viewName, params = {}, push = true) {
         var eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var guests = await this.fetchAPI('/guests/' + eId + '/guests');
+            var guests = await this.fetchAPI('/guests/' + eId + '/network');
             var tbody = document.getElementById('network-tbody');
             if (!tbody) return;
-            if (!guests || !guests.guests || !guests.guests.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin invitados</td></tr>'; return; }
-            tbody.innerHTML = guests.guests.slice(0, 50).map(function(g) {
+            if (!guests || !guests.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin invitados</td></tr>'; return; }
+            tbody.innerHTML = guests.slice(0, 50).map(function(g) {
                 return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-medium text-white">' + (g.name || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (g.email || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (g.organization || '-') + '</td>' +
@@ -18643,7 +18643,7 @@ navigate(viewName, params = {}, push = true) {
 
     loadSmsSettings: async function() {
         try {
-            var res = await this.fetchAPI('/api/sms/settings');
+            var res = await this.fetchAPI('/sms/settings');
             if (res.account_sid !== undefined) document.getElementById('sms-account-sid').value = res.account_sid;
             if (res.from_number !== undefined) document.getElementById('sms-from-number').value = res.from_number;
             if (document.getElementById('sms-enabled')) document.getElementById('sms-enabled').checked = res.enabled || false;
@@ -18660,7 +18660,7 @@ navigate(viewName, params = {}, push = true) {
             enabled: document.getElementById('sms-enabled')?.checked || false
         };
         try {
-            await this.fetchAPI('/api/sms/settings', { method: 'POST', body: JSON.stringify(data) });
+            await this.fetchAPI('/sms/settings', { method: 'POST', body: JSON.stringify(data) });
             this._notifyAction('Guardado', 'Configuración SMS guardada', 'success');
         } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
@@ -18673,7 +18673,7 @@ navigate(viewName, params = {}, push = true) {
         var to = document.getElementById('sms-test-number')?.value.trim();
         if (!to) { this._notifyAction('Error', 'Número requerido', 'error'); return; }
         try {
-            var res = await this.fetchAPI('/api/sms/send', { method: 'POST', body: JSON.stringify({ to: to, message: 'Test SMS desde Check Pro - ' + new Date().toLocaleString() }) });
+            var res = await this.fetchAPI('/sms/send', { method: 'POST', body: JSON.stringify({ to: to, message: 'Test SMS desde Check Pro - ' + new Date().toLocaleString() }) });
             if (res.success) this._notifyAction('Enviado', 'SMS enviado correctamente (SID: ' + res.sid + ')', 'success');
             else this._notifyAction('Error', res.error, 'error');
         } catch(e) { this._notifyAction('Error', e.message, 'error'); }
@@ -18682,7 +18682,7 @@ navigate(viewName, params = {}, push = true) {
     // ═══ WhatsApp (C3-01) ═══
     loadWaSettings: async function() {
         try {
-            var res = await this.fetchAPI('/api/whatsapp/settings');
+            var res = await this.fetchAPI('/whatsapp/settings');
             if (res.phone_number_id !== undefined) document.getElementById('wa-phone-id').value = res.phone_number_id;
             if (res.from_phone !== undefined) document.getElementById('wa-from').value = res.from_phone;
             if (document.getElementById('wa-enabled')) document.getElementById('wa-enabled').checked = res.enabled || false;
@@ -18692,20 +18692,20 @@ navigate(viewName, params = {}, push = true) {
     },
     saveWaSettings: async function() {
         var data = { phone_number_id: document.getElementById('wa-phone-id')?.value || '', access_token: document.getElementById('wa-token')?.value || '', from_phone: document.getElementById('wa-from')?.value || '', enabled: document.getElementById('wa-enabled')?.checked || false };
-        try { await this.fetchAPI('/api/whatsapp/settings', { method: 'POST', body: JSON.stringify(data) }); this._notifyAction('Guardado', 'Config WhatsApp guardada', 'success'); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+        try { await this.fetchAPI('/whatsapp/settings', { method: 'POST', body: JSON.stringify(data) }); this._notifyAction('Guardado', 'Config WhatsApp guardada', 'success'); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
     testWa: function() { document.getElementById('wa-test-section')?.classList.toggle('hidden'); },
     sendTestWa: async function() {
         var to = document.getElementById('wa-test-number')?.value.trim();
         if (!to) { this._notifyAction('Error', 'Número requerido', 'error'); return; }
-        try { var res = await this.fetchAPI('/api/whatsapp/send', { method: 'POST', body: JSON.stringify({ to: to, message: 'Test WhatsApp desde Check Pro' }) }); if (res.success) this._notifyAction('Enviado', 'WhatsApp enviado', 'success'); else this._notifyAction('Error', res.error, 'error'); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+        try { var res = await this.fetchAPI('/whatsapp/send', { method: 'POST', body: JSON.stringify({ to: to, message: 'Test WhatsApp desde Check Pro' }) }); if (res.success) this._notifyAction('Enviado', 'WhatsApp enviado', 'success'); else this._notifyAction('Error', res.error, 'error'); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
     // ═══ Tenants / Multi-tenant (C3-07) ═══
 
     loadTenants: async function() {
         try {
-            var tenants = await this.fetchAPI('/api/tenants');
+            var tenants = await this.fetchAPI('/tenants');
             var tbody = document.getElementById('tenants-tbody');
             if (!tbody) return;
             if (!tenants || !tenants.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin tenants configurados</td></tr>'; return; }
@@ -18730,7 +18730,7 @@ navigate(viewName, params = {}, push = true) {
 
     editTenant: async function(id) {
         try {
-            var tenants = await this.fetchAPI('/api/tenants');
+            var tenants = await this.fetchAPI('/tenants');
             var t = tenants.find(function(x) { return x.id === id; });
             if (!t) return;
             document.getElementById('tenant-id').value = t.id; document.getElementById('tenant-name').value = t.name || '';
@@ -18747,13 +18747,13 @@ navigate(viewName, params = {}, push = true) {
         var slug = document.getElementById('tenant-slug')?.value.trim();
         if (!name || !slug) { this._notifyAction('Error', 'Nombre y slug requeridos', 'error'); return; }
         var body = { name: name, slug: slug, domain: document.getElementById('tenant-domain')?.value || '', logo_url: document.getElementById('tenant-logo')?.value || '', primary_color: document.getElementById('tenant-color')?.value || '#7c3aed', welcome_text: document.getElementById('tenant-welcome')?.value || '', is_active: document.getElementById('tenant-active')?.checked };
-        try { await this.fetchAPI('/api/tenants' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) }); this.closeTenantModal(); this.loadTenants(); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+        try { await this.fetchAPI('/tenants' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) }); this.closeTenantModal(); this.loadTenants(); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
     deleteTenant: async function(id) {
         var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar tenant?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
-        try { await this.fetchAPI('/api/tenants/' + id, { method: 'DELETE' }); this.loadTenants(); } catch(e) { console.error(e); }
+        try { await this.fetchAPI('/tenants/' + id, { method: 'DELETE' }); this.loadTenants(); } catch(e) { console.error(e); }
     }
 };
 
