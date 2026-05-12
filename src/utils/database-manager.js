@@ -705,7 +705,15 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_sessions_event ON sessions(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_session_guests_guest ON session_guests(guest_id)",
         "CREATE INDEX IF NOT EXISTS idx_guest_status_log_guest ON guest_status_log(guest_id)",
-        "CREATE INDEX IF NOT EXISTS idx_guest_categories_event ON guest_categories(event_id)"
+        "CREATE INDEX IF NOT EXISTS idx_guest_categories_event ON guest_categories(event_id)",
+        // Composite indexes for common queries (P-02)
+        "CREATE INDEX IF NOT EXISTS idx_networking_from_to ON networking_connections(event_id, from_guest_id, to_guest_id)",
+        "CREATE INDEX IF NOT EXISTS idx_leaderboard_event_guest ON leaderboard(event_id, guest_id)",
+        "CREATE INDEX IF NOT EXISTS idx_point_history_event_guest ON point_history(event_id, guest_id)",
+        "CREATE INDEX IF NOT EXISTS idx_proposals_event_status ON proposals(event_id, status)",
+        "CREATE INDEX IF NOT EXISTS idx_pre_registrations_event_status ON pre_registrations(event_id, status)",
+        "CREATE INDEX IF NOT EXISTS idx_password_resets_code_used ON password_resets(code, used)",
+        "CREATE INDEX IF NOT EXISTS idx_guest_badges_guest_badge ON guest_badges(guest_id, badge_id)"
     ];
     
     for (const sql of indices) {

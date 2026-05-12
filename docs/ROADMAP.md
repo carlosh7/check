@@ -2050,7 +2050,7 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 | H-05 | Logging estructurado | ⏳ Pendiente | — | — |
 | H-06 | Tests de carga (k6/autocannon) | ⏳ Pendiente | — | — |
 | P-01 | Redis cache real | ⏳ Pendiente | — | — |
-| P-02 | Índices compuestos BD | ⏳ Pendiente | — | — |
+| P-02 | Índices compuestos BD | ✅ | v12.44.754 | 2026-05-11 |
 | P-03 | Code splitting app.js | ⏳ Pendiente | — | — |
 | P-04 | Compresión Brotli nginx | ⏳ Pendiente | — | — |
 | P-05 | WAL mode SQLite | ⏳ Pendiente | — | — |
