@@ -1257,54 +1257,28 @@ const App = window.App = {
         const eventId = this.state.event?.id || this.state.currentEventId;
         if (!eventId) return;
         const token = this.state.user?.token;
-        const userId = this.state.user?.userId;
         if (!token) return;
-        try {
-            const resp = await fetch(`/api/guests/${eventId}/badges`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'x-user-id': userId || ''
-                }
-            });
-            if (!resp.ok) throw new Error('Error en servidor');
-            const blob = await resp.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Gafetes_${eventId}.pdf`;
-            a.click();
-            URL.revokeObjectURL(url);
-        } catch(e) {
-            console.error('[BADGES] Error:', e.message);
-            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron generar los gafetes' });
-        }
+        var a = document.createElement('a');
+        a.href = '/api/guests/' + eventId + '/badges?token=' + encodeURIComponent(token);
+        a.download = 'Gafetes_' + eventId + '.pdf';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     },
 
     downloadReport: async function() {
         const eventId = this.state.event?.id || this.state.currentEventId;
         if (!eventId) return;
         const token = this.state.user?.token;
-        const userId = this.state.user?.userId;
         if (!token) return;
-        try {
-            const resp = await fetch(`/api/guests/${eventId}/report`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'x-user-id': userId || ''
-                }
-            });
-            if (!resp.ok) throw new Error('Error en servidor');
-            const blob = await resp.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Reporte_${eventId}.pdf`;
-            a.click();
-            URL.revokeObjectURL(url);
-        } catch(e) {
-            console.error('[REPORT] Error:', e.message);
-            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo generar el reporte' });
-        }
+        var a = document.createElement('a');
+        a.href = '/api/guests/' + eventId + '/report?token=' + encodeURIComponent(token);
+        a.download = 'Reporte_' + eventId + '.pdf';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     },
 
     // ── Sort Attendance Table ──

@@ -47,9 +47,14 @@ function authMiddleware(roles = []) {
 
         let userId = null;
 
-        // PRIMERO: Intentar JWT
+        // PRIMERO: Intentar JWT desde header o query param (para descargas directas)
+        let token = null;
         if (authHeader && authHeader.startsWith('Bearer ')) {
-            const token = authHeader.substring(7);
+            token = authHeader.substring(7);
+        } else if (req.query.token) {
+            token = req.query.token;
+        }
+        if (token) {
             const decoded = verifyToken(token);
             if (decoded) {
                 userId = decoded.userId;
