@@ -1774,6 +1774,121 @@ const {
     deleteEventDatabase
 } = require('./src/utils/database-manager');
 
+// ═══ Tablas del Ciclo 11 (master DB) ═══
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS polls (
+        id TEXT PRIMARY KEY, event_id TEXT NOT NULL, session_id TEXT,
+        title TEXT NOT NULL, description TEXT, type TEXT DEFAULT 'single',
+        status TEXT DEFAULT 'draft', points INTEGER DEFAULT 10,
+        time_limit_seconds INTEGER DEFAULT 0, correct_answer TEXT,
+        created_at TEXT, updated_at TEXT
+    )
+`); } catch(_) {}
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS poll_options (
+        id TEXT PRIMARY KEY, poll_id TEXT NOT NULL, label TEXT NOT NULL,
+        order_index INTEGER DEFAULT 0, is_correct INTEGER DEFAULT 0,
+        FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE
+    )
+`); } catch(_) {}
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS poll_votes (
+        id TEXT PRIMARY KEY, poll_id TEXT NOT NULL, guest_id TEXT,
+        option_id TEXT, answer_text TEXT, voted_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE,
+        FOREIGN KEY (guest_id) REFERENCES guests(id)
+    )
+`); } catch(_) {}
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS leaderboard (
+        id TEXT PRIMARY KEY, event_id TEXT NOT NULL, guest_id TEXT NOT NULL,
+        points INTEGER DEFAULT 0, updated_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (guest_id) REFERENCES guests(id), UNIQUE(event_id, guest_id)
+    )
+`); } catch(_) {}
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS point_history (
+        id TEXT PRIMARY KEY, event_id TEXT NOT NULL, guest_id TEXT NOT NULL,
+        points INTEGER NOT NULL, reason TEXT, reference_id TEXT,
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (guest_id) REFERENCES guests(id)
+    )
+`); } catch(_) {}
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS badges (
+        id TEXT PRIMARY KEY, event_id TEXT NOT NULL, name TEXT NOT NULL,
+        description TEXT, icon TEXT DEFAULT '🏆', criteria TEXT,
+        points_reward INTEGER DEFAULT 0
+    )
+`); } catch(_) {}
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS guest_badges (
+        id TEXT PRIMARY KEY, badge_id TEXT NOT NULL, guest_id TEXT NOT NULL,
+        earned_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (badge_id) REFERENCES badges(id) ON DELETE CASCADE,
+        FOREIGN KEY (guest_id) REFERENCES guests(id)
+    )
+`); } catch(_) {}
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS networking_connections (
+        id TEXT PRIMARY KEY, event_id TEXT NOT NULL, from_guest_id TEXT NOT NULL,
+        to_guest_id TEXT NOT NULL, connected_at TEXT DEFAULT (datetime('now')),
+        notes TEXT, FOREIGN KEY (from_guest_id) REFERENCES guests(id),
+        FOREIGN KEY (to_guest_id) REFERENCES guests(id),
+        UNIQUE(event_id, from_guest_id, to_guest_id)
+    )
+`); } catch(_) {}
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS event_photos (
+        id TEXT PRIMARY KEY, event_id TEXT NOT NULL, guest_id TEXT,
+        filename TEXT, caption TEXT, approved INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (guest_id) REFERENCES guests(id)
+    )
+`); } catch(_) {}
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS certificate_templates (
+        id TEXT PRIMARY KEY, event_id TEXT NOT NULL, name TEXT NOT NULL,
+        config TEXT, created_at TEXT, updated_at TEXT
+    )
+`); } catch(_) {}
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS guest_certificates (
+        id TEXT PRIMARY KEY, template_id TEXT NOT NULL, event_id TEXT NOT NULL,
+        guest_id TEXT NOT NULL, generated_at TEXT DEFAULT (datetime('now')),
+        download_count INTEGER DEFAULT 0,
+        FOREIGN KEY (guest_id) REFERENCES guests(id)
+    )
+`); } catch(_) {}
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS plugin_instances (
+        id TEXT PRIMARY KEY, plugin_id TEXT NOT NULL, event_id TEXT,
+        enabled INTEGER DEFAULT 0, settings TEXT,
+        installed_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (plugin_id) REFERENCES plugins(id) ON DELETE CASCADE
+    )
+`); } catch(_) {}
+try { db.exec(`
+    CREATE TABLE IF NOT EXISTS plugin_logs (
+        id TEXT PRIMARY KEY, plugin_id TEXT NOT NULL, event_id TEXT,
+        hook TEXT, status TEXT, message TEXT,
+        logged_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (plugin_id) REFERENCES plugins(id) ON DELETE CASCADE
+    )
+`); } catch(_) {}
+// Índices Ciclo 11
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_polls_event ON polls(event_id)"); } catch(_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_poll_options_poll ON poll_options(poll_id)"); } catch(_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_poll_votes_poll ON poll_votes(poll_id)"); } catch(_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_leaderboard_event ON leaderboard(event_id)"); } catch(_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_point_history_guest ON point_history(guest_id)"); } catch(_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_guest_badges_guest ON guest_badges(guest_id)"); } catch(_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_networking_event ON networking_connections(event_id)"); } catch(_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_event_photos_event ON event_photos(event_id)"); } catch(_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_cert_templates_event ON certificate_templates(event_id)"); } catch(_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_plugin_instances_plugin ON plugin_instances(plugin_id)"); } catch(_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_plugin_logs_plugin ON plugin_logs(plugin_id)"); } catch(_) {}
+
 // Exportar función para usar en server.js
 module.exports = { 
     db, 
