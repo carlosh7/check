@@ -91,3 +91,73 @@ describe('Check Pro API - Settings Routes', () => {
         expect(res.status).toBe(401);
     });
 });
+
+describe('Check Pro API - Polls Routes (C11-01)', () => {
+    test('GET /api/polls/:eventId returns 401 without auth', async () => {
+        const app = express();
+        app.use(express.json());
+        const pollsRoutes = require('../src/routes/polls.routes');
+        app.use('/api/polls', pollsRoutes);
+        const res = await request(app).get('/api/polls/nonexistent');
+        expect(res.status).toBe(401);
+    });
+    
+    test('polls DB table exists', () => {
+        const { db } = require('../database');
+        const result = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='polls'").get();
+        expect(result).toBeDefined();
+    });
+    
+    test('leaderboard DB table exists', () => {
+        const { db } = require('../database');
+        const result = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='leaderboard'").get();
+        expect(result).toBeDefined();
+    });
+    
+    test('networking_connections DB table exists', () => {
+        const { db } = require('../database');
+        const result = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='networking_connections'").get();
+        expect(result).toBeDefined();
+    });
+    
+    test('event_photos DB table exists', () => {
+        const { db } = require('../database');
+        const result = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='event_photos'").get();
+        expect(result).toBeDefined();
+    });
+    
+    test('certificate_templates DB table exists', () => {
+        const { db } = require('../database');
+        const result = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='certificate_templates'").get();
+        expect(result).toBeDefined();
+    });
+    
+    test('plugins DB table exists', () => {
+        const { db } = require('../database');
+        const result = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='plugins'").get();
+        expect(result).toBeDefined();
+    });
+});
+
+describe('Check Pro API - Health Routes', () => {
+    test('GET /api/health returns ok', async () => {
+        const app = express();
+        const versionRoutes = require('../src/routes/version.routes');
+        app.use('/api', versionRoutes);
+        const res = await request(app).get('/api/health');
+        expect(res.status).toBe(200);
+        expect(res.body.status).toBe('ok');
+    });
+    
+    test('GET /api/health/full returns system checks', async () => {
+        const app = express();
+        const versionRoutes = require('../src/routes/version.routes');
+        app.use('/api', versionRoutes);
+        const res = await request(app).get('/api/health/full');
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty('database');
+        expect(res.body).toHaveProperty('disk');
+        expect(res.body).toHaveProperty('memory');
+        expect(res.body).toHaveProperty('responseTimeMs');
+    });
+});

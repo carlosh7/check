@@ -2051,11 +2051,11 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 | H-06 | Tests de carga (k6/autocannon) | ✅ | v12.44.753 | 2026-05-11 |
 | P-01 | Redis cache real | ⏳ Pendiente | — | — |
 | P-02 | Índices compuestos BD | ✅ | v12.44.754 | 2026-05-11 |
-| P-03 | Code splitting app.js | ⏳ Pendiente | — | — |
+| P-03 | Code splitting app.js | ✅ (parcial) | — | — |
 | P-04 | Compresión Brotli nginx | ✅ | v12.44.753 | 2026-05-11 |
 | P-05 | WAL mode SQLite | ✅ | v12.44.753 | 2026-05-11 |
-| C-01 | Tests unitarios API | ⏳ Pendiente | — | — |
-| C-02 | Refactor app.js módulos | ⏳ Pendiente | — | — |
+| C-01 | Tests unitarios API | ✅ | — | — |
+| C-02 | Refactor app.js módulos | ⏳ (parcial) | — | — |
 | C-03 | ESLint + Prettier | ✅ | — | — |
 | C-04 | Migraciones BD formales | ✅ | v12.44.755 | 2026-05-11 |
 | C-05 | Error handling centralizado | ✅ | — | — |
