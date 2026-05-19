@@ -63,6 +63,7 @@ aux
 # --- Capturas de pantalla ---
 .Capturas/
 *.png
+!public/icon-*.png
 *.jpg
 *.jpeg
 *.gif
