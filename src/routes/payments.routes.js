@@ -178,7 +178,7 @@ router.post('/webhooks/stripe', (req, res) => {
                             var gId = createGuestFromTxn(txn, catId, now, eventDb);
                             if (!firstGuestId) firstGuestId = gId;
                         });
-                    } catch(e) {}
+                    } catch(e) { console.error('[PAYMENTS] Error procesando categorías:', e.message); }
                 }
 
                 if (!firstGuestId) {
@@ -186,8 +186,8 @@ router.post('/webhooks/stripe', (req, res) => {
                 }
 
                 db.prepare("UPDATE transactions SET guest_id = ? WHERE id = ?").run(firstGuestId, txnId);
-                try { triggerWebhooks(txn.event_id, 'PAYMENT_COMPLETED', { transactionId: txnId, guestId: firstGuestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }); } catch(e) {}
-                try { logAction(req, 'PAYMENT_COMPLETED', { eventId: txn.event_id, transactionId: txnId, guestId: firstGuestId, amount: txn.amount }); } catch(e) {}
+                try { triggerWebhooks(txn.event_id, 'PAYMENT_COMPLETED', { transactionId: txnId, guestId: firstGuestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }); } catch(e) { console.error('[PAYMENTS] Error trigger webhook:', e.message); }
+                try { logAction(req, 'PAYMENT_COMPLETED', { eventId: txn.event_id, transactionId: txnId, guestId: firstGuestId, amount: txn.amount }); } catch(e) { console.error('[PAYMENTS] Error log action:', e.message); }
                 console.log('[PAYMENTS] Checkout completado:', txnId);
             }
         }

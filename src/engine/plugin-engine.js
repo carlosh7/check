@@ -21,7 +21,7 @@ const loadedPlugins = new Map(); // plugin_id -> { hooks, script, sandbox }
 function loadPlugin(plugin) {
     try {
         var hooks = [];
-        try { hooks = JSON.parse(plugin.hooks || '[]'); } catch(e) {}
+        try { hooks = JSON.parse(plugin.hooks || '[]'); } catch(e) { console.warn('[PLUGIN] Error parsing hooks for', plugin.name, ':', e.message); }
         var script = plugin.script || '';
         var sandbox = {
             console: { log: function() {}, error: function() {} },

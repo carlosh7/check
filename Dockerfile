@@ -3,7 +3,7 @@ FROM node:20-slim
 WORKDIR /usr/src/app
 
 # Instalar dependencias del sistema necesarias para better-sqlite3 y sharp
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     make \
     g++ \
@@ -40,6 +40,10 @@ COPY . .
 
 # Exponer el puerto
 EXPOSE 3000
+
+# Health check — verifica que la app responda cada 30s
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
 
 # Usar script de entrada para inicialización automática
 ENTRYPOINT ["./docker-entrypoint.sh"]
