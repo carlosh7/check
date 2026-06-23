@@ -561,6 +561,30 @@ db.exec(`CREATE TABLE IF NOT EXISTS settings (
     setting_value TEXT
 )`);
 
+// Cache para settings (evita queries repetidas)
+const _settingsCache = new Map();
+const SETTINGS_CACHE_TTL = 60000; // 1 minuto
+
+function getSetting(key) {
+    const cached = _settingsCache.get(key);
+    if (cached && Date.now() - cached.ts < SETTINGS_CACHE_TTL) {
+        return cached.value;
+    }
+    const row = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").get(key);
+    const value = row ? row.setting_value : null;
+    _settingsCache.set(key, { value, ts: Date.now() });
+    return value;
+}
+
+function setSetting(key, value) {
+    db.prepare("INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)").run(key, value);
+    _settingsCache.delete(key);
+}
+
+function clearSettingsCache() {
+    _settingsCache.clear();
+}
+
 // Semilla de textos legales (V12.1.1 - Profesional)
 const POLICY_TEXT = `<div class="legal-content space-y-4">
     <h2 class="text-xl font-bold text-white border-b border-primary/30 pb-2">POLÍTICA DE TRATAMIENTO DE DATOS PERSONALES</h2>
@@ -1541,6 +1565,39 @@ const additionalIndices = [
     // Webhooks - por evento y estado
     "CREATE INDEX IF NOT EXISTS idx_webhooks_event_status ON webhooks(event_id, status)",
     "CREATE INDEX IF NOT EXISTS idx_webhooks_status ON webhooks(status)",
+    
+    // Webhook logs - por webhook
+    "CREATE INDEX IF NOT EXISTS idx_webhook_logs_webhook ON webhook_logs(webhook_id)",
+    
+    // Email queue - por estado y campaña
+    "CREATE INDEX IF NOT EXISTS idx_email_queue_status_campaign ON email_queue(status, campaign_id)",
+    
+    // Email campaigns - por estado y programación
+    "CREATE INDEX IF NOT EXISTS idx_email_campaigns_status_scheduled ON email_campaigns(status, scheduled_at)",
+    
+    // Scheduled notifications - por estado y programación
+    "CREATE INDEX IF NOT EXISTS idx_scheduled_notifications_status ON scheduled_notifications(status, scheduled_at)",
+    
+    // Guest tags - por evento
+    "CREATE INDEX IF NOT EXISTS idx_guest_tags_event ON guest_tags(event_id)",
+    
+    // Guest tag assignments - por guest
+    "CREATE INDEX IF NOT EXISTS idx_guest_tag_assignments_guest ON guest_tag_assignments(guest_id)",
+    
+    // AI prompt logs - por inyección
+    "CREATE INDEX IF NOT EXISTS idx_ai_prompt_logs_injection ON ai_prompt_logs(injection_detected)",
+    
+    // AI alerts - por acknowledged
+    "CREATE INDEX IF NOT EXISTS idx_ai_alerts_acknowledged ON ai_alerts(acknowledged_at)",
+    
+    // Data access log - por fecha
+    "CREATE INDEX IF NOT EXISTS idx_data_access_log_created ON data_access_log(created_at)",
+    
+    // Business rules - por trigger
+    "CREATE INDEX IF NOT EXISTS idx_business_rules_trigger ON business_rules(trigger_event)",
+    
+    // CRM contacts - por email y conexión
+    "CREATE INDEX IF NOT EXISTS idx_crm_contacts_email_conn ON crm_contacts(email, connection_id)",
 ];
 
 for (const sql of additionalIndices) {
@@ -1912,5 +1969,9 @@ module.exports = {
     getEventDbPath,
     getEventDatabases,
     getEventDatabaseInfo,
-    deleteEventDatabase
+    deleteEventDatabase,
+    // Cache de settings
+    getSetting,
+    setSetting,
+    clearSettingsCache
 };

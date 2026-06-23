@@ -5,7 +5,7 @@
 
 export const Config = {
     // Versión actual de la app
-    VERSION: '12.44.366',
+    VERSION: '12.44.769',
     
     // Configuración de API
     API_URL: '/api',

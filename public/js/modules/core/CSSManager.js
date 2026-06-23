@@ -21,7 +21,7 @@ export class CSSManager {
     }
 
     getVersion() {
-        return '12.44.483';
+        return '12.44.769';
     }
 
     async loadModule(moduleName) {

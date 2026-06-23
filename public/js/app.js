@@ -289,65 +289,7 @@ const App = window.App = {
 
     // Reemplazo de la función antigua de notificación - usar ToastManager
     // UX Helpers (C2-02)
-    initPullToRefresh: function(containerId, callback) {
-        var el = document.getElementById(containerId);
-        if (!el || !('ontouchstart' in window)) return;
-        var startY = 0, pulling = false;
-        el.addEventListener('touchstart', function(e) { startY = e.touches[0].clientY; pulling = startY <= 5; });
-        el.addEventListener('touchmove', function(e) {
-            if (!pulling) return;
-            var dy = e.touches[0].clientY - startY;
-            if (dy > 80) {
-                pulling = false;
-                var indicator = document.createElement('div');
-                indicator.className = 'ptr-indicator';
-                indicator.innerHTML = '<div class="spinner"></div><p>Actualizando...</p>';
-                el.prepend(indicator);
-                callback().then(function() { setTimeout(function() { indicator.remove(); }, 500); }).catch(function() { indicator.remove(); });
-            }
-        });
-    },
 
-    renderSkeletonV2: function(type, count) {
-        count = count || 3;
-        var html = '<div class="skeleton-table">';
-        for (var i = 0; i < count; i++) {
-            if (type === 'card') html += '<div class="skeleton-card"></div>';
-            else if (type === 'row') html += '<div class="skeleton-row"></div>';
-            else html += '<div class="skeleton-row"></div>';
-        }
-        return html + '</div>';
-    },
-
-    showLoading: function(msg) {
-        var existing = document.getElementById('global-loading');
-        if (!existing) {
-            var el = document.createElement('div');
-            el.id = 'global-loading';
-            el.className = 'loading-overlay';
-            el.innerHTML = '<div style="text-align:center"><div class="spinner"></div><p>' + (msg || 'Cargando...') + '</p></div>';
-            document.body.appendChild(el);
-        }
-    },
-    hideLoading: function() {
-        var el = document.getElementById('global-loading');
-        if (el) { el.classList.add('hidden'); setTimeout(function() { el.remove(); }, 300); }
-    },
-    renderSkeleton: function(rows, cols) {
-        var html = '';
-        for (var r = 0; r < (rows || 3); r++) {
-            html += '<tr class="tr-hover">';
-            for (var c = 0; c < (cols || 4); c++) {
-                var w = c === 0 ? '60' : c === 1 ? '80' : '40';
-                html += '<td class="table-td"><span class="skeleton skeleton-text w-' + w + '" style="display:block"></span></td>';
-            }
-            html += '</tr>';
-        }
-        return html;
-    },
-    renderEmptyState: function(icon, title, msg, action) {
-        return '<div class="empty-state"><div class="icon">' + (icon || '📭') + '</div><h3>' + (title || 'Sin datos') + '</h3><p>' + (msg || 'No hay información disponible.') + '</p>' + (action || '') + '</div>';
-    },
 
     navigateToCreateEvent: function(type = 'short') {
         const currentView = LS.get('current_view');
@@ -876,20 +818,7 @@ const App = window.App = {
         }
     },
 
-    selectEvent: async function(id) {
-        try {
-            const event = await this.fetchAPI(`/events/${id}`);
-            this.state.event = event;
-            this.navigate('admin', { id: id });
-            
-            // Actualizar UI del panel de control
-            document.getElementById('admin-event-title').textContent = event.name;
-            document.getElementById('admin-event-location').textContent = event.location || 'Sin ubicación';
-            
-            // Cargar invitados
-            this.loadGuests();
-        } catch(e) { console.error('Error selecting event:', e); }
-    },
+
 
     canAccess(permission) {
         const role = this.state.user?.role;
@@ -992,11 +921,7 @@ const App = window.App = {
         }
     },
     
-    // Verificar versión de la aplicación
-    checkVersion: async function() {
-        // Usar función unificada loadAppVersion()
-        await this.loadAppVersion();
-    },
+
 
     toggleSidebar() {
         if (typeof SidebarManager !== 'undefined') {
@@ -12243,29 +12168,7 @@ navigate(viewName, params = {}, push = true) {
         this.renderBadgeEditor();
     },
 
-    uploadBadgeBackground: async function(input) {
-        const file = input?.files?.[0];
-        if (!file) return;
-        const eId = this.state.event?.id;
-        if (!eId) return;
-        const formData = new FormData();
-        formData.append('logo', file);
-        try {
-            const token = this.state.user?.token;
-            const userId = this.state.user?.userId;
-            const res = await fetch('/api/events/' + eId + '/badge-logo', {
-                method: 'POST',
-                headers: { 'Authorization': 'Bearer ' + token, 'x-user-id': userId || '' },
-                body: formData
-            });
-            const data = await res.json();
-            if (data.success) {
-                this._badgeBackground = { url: data.url };
-                this.renderBadgeEditor();
-            }
-        } catch(e) { console.error('[BADGE] Error:', e.message); }
-        input.value = '';
-    },
+
 
     uploadBadgeElementLogo: async function(elId, input) {
         const file = input?.files?.[0];
@@ -15433,22 +15336,7 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
-    async testIMAP() {
-        const host = document.getElementById('imap-host').value;
-        const user = document.getElementById('imap-user').value;
-        if (!host || !user) return Swal.fire('Error', 'Completa host y usuario', 'warning');
 
-        Swal.fire({ title: 'Probando...', text: 'Conectando con servidor IMAP', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-        
-        try {
-            const res = await this.fetchAPI('/email/imap/test', {
-                method: 'POST',
-                body: JSON.stringify({ host, user, port: document.getElementById('imap-port').value, pass: document.getElementById('imap-pass').value })
-            });
-            if (res.success) Swal.fire('Conectado', 'La configuración IMAP es correcta', 'success');
-            else Swal.fire('Error', res.error || 'Fallo de conexión', 'error');
-        } catch { Swal.fire('Error', 'Error de red', 'error'); }
-    },
 
     // Utilidad privada para confirmaciones Premium (V12.6.1)
     async _confirmAction(title, text, confirmText = 'Sí, eliminar') {
@@ -15625,30 +15513,7 @@ navigate(viewName, params = {}, push = true) {
         } catch(e) { console.error('Error:', e); }
     },
 
-    async toggleEventToCompany(groupId, eventId, isSelected) {
-        try {
-            // Obtener eventos actuales del estado para recalcular el array
-            const events = await this.fetchAPI('/events');
-            const companyEvents = events.filter(e => String(e.group_id) === String(groupId));
-            let newIds = companyEvents.map(e => String(e.id));
-            
-            if (isSelected) {
-                newIds = newIds.filter(id => id !== String(eventId));
-            } else {
-                newIds.push(String(eventId));
-            }
 
-            const res = await this.fetchAPI(`/groups/${groupId}/events`, {
-                method: 'PUT',
-                body: JSON.stringify({ events: newIds })
-            });
-
-            if (res.success) {
-                this.showEventSelectorForCompany(groupId);
-                await this.refreshAllTables();
-            }
-        } catch(e) { console.error('Error:', e); }
-    },
 
     async removeUserFromEvent(userId, eventId) {
         if (!(await this._confirmAction('¿Quitar este usuario del evento?', 'Esta acción desvinculará al usuario del evento seleccionado.'))) return;
@@ -15681,40 +15546,11 @@ navigate(viewName, params = {}, push = true) {
         } catch (e) { console.error('[LEGAL] Load error:', e); }
     },
 
-    applyUISettings(settings) {
-        const links = document.getElementById('login-legal-links');
-        if (links) links.classList.toggle('hidden', settings.show_legal_login === '0');
-    },
 
-    async handleCreateEvent(e) {
-        const id = document.getElementById('ev-id-hidden').value;
-        const data = {
-            name: document.getElementById('ev-name').value,
-            date: document.getElementById('ev-date').value,
-            location: document.getElementById('ev-location').value
-        };
-        try {
-            if (id) await this.updateEvent(id, data);
-            else await this.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
-            this.hideModal('modal-event');
-            this.loadEvents();
-        } catch(err) { alert("Error: " + err.message); }
-    },
 
-    async handleSaveEventFull(e) {
-        const id = document.getElementById('evf-id-hidden').value;
-        const data = {
-            name: document.getElementById('evf-name').value,
-            date: document.getElementById('evf-date').value,
-            location: document.getElementById('evf-location').value,
-            description: document.getElementById('evf-desc').value,
-            reg_title: document.getElementById('evf-reg-title').value,
-            // ... otros campos ya mapeados en initApp pero que ahora centralizamos
-        };
-        // Para simplificar esta migración masiva, seguiremos usando App.updateEvent
-        if (id) this.updateEvent(id, data);
-        else this.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
-    },
+
+
+
 
     async showQR() {
         if (!this.state.event) return alert("Selecciona un evento primero.");
@@ -15731,25 +15567,7 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
-    async renderDigitalTicket(guestId) {
-        const guest = this.state.guests.find(g => String(g.id) === String(guestId));
-        const event = this.state.event;
-        if (!guest || !event) return;
-        const modal = document.getElementById('modal-ticket');
-        document.getElementById('ticket-event-name').textContent = event.name;
-        document.getElementById('ticket-guest-name').textContent = guest.name;
-        document.getElementById('ticket-date').textContent = new Date(event.date).toLocaleDateString();
-        document.getElementById('ticket-location').textContent = event.location;
-        const accent = event.ticket_accent_color || '#7c3aed';
-        modal.querySelectorAll('.ticket-accent').forEach(el => el.style.color = accent);
-        const qrContent = JSON.stringify({ g: guest.id, e: event.id });
-        const ticketQrEl = document.getElementById('ticket-qr');
-        if (ticketQrEl && typeof qrcode !== 'undefined') {
-            ticketQrEl.src = await qrcode.toDataURL(qrContent, { width: 600, margin: 1, color: { dark: event.qr_color_dark || '#000000', light: event.qr_color_light || '#ffffff' } });
-        }
-        modal.classList.remove('hidden');
-        this.state.currentTicketGuest = guest;
-    },
+
 
     async downloadTicket() {
         const card = document.querySelector('#modal-ticket .ticket-card');

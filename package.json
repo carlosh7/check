@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.769",
+  "version": "12.44.770",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "script.js",
   "scripts": {
@@ -52,8 +52,6 @@
     "socket.io": "^4.7.5",
     "speakeasy": "^2.0.0",
     "stripe": "^22.1.1",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0",
     "twilio": "^6.0.2",
     "uuid": "^10.0.0",
     "web-push": "^3.6.7",
@@ -70,6 +68,8 @@
     "lint-staged": "^15.5.2",
     "playwright": "^1.59.1",
     "prettier": "^3.8.3",
-    "supertest": "^7.2.2"
+    "supertest": "^7.2.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
   }
 }
