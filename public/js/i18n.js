@@ -38,7 +38,7 @@ function applyTranslations() {
             if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                 el.placeholder = val;
             } else {
-                el.innerHTML = val;
+                el.textContent = val;
             }
         }
     });

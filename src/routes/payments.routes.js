@@ -150,7 +150,7 @@ router.post('/webhooks/stripe', (req, res) => {
     // Handle checkout.session.completed (Stripe Checkout)
     function createGuestFromTxn(txn, catId, now, eventDb) {
         var gId = uuidv4(); var qrT = uuidv4().replace(/-/g, '').slice(0, 12);
-        eventDb.prepare("INSERT INTO guests (id, event_id, name, email, category_id, qr_token, is_new_registration, status, registered_at, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, 'confirmed', ?, ?)").run(gId, txn.event_id, txn.guest_name, txn.guest_email, catId || txn.category_id, qrT, now, now);
+        eventDb.prepare("INSERT INTO guests (id, event_id, name, email, category_id, qr_token, is_new_registration, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, 'confirmed', ?)").run(gId, txn.event_id, txn.guest_name, txn.guest_email, catId || txn.category_id, qrT, now);
         return gId;
     }
 
@@ -205,8 +205,8 @@ router.post('/webhooks/stripe', (req, res) => {
                 var guestId = uuidv4();
                 var qrToken = uuidv4().replace(/-/g, '').slice(0, 12);
                 var eventDb = getEventDb(txn.event_id);
-                eventDb.prepare("INSERT INTO guests (id, event_id, name, email, category_id, qr_token, is_new_registration, status, registered_at, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, 'confirmed', ?, ?)").run(
-                    guestId, txn.event_id, txn.guest_name, txn.guest_email, txn.category_id, qrToken, now, now
+                eventDb.prepare("INSERT INTO guests (id, event_id, name, email, category_id, qr_token, is_new_registration, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, 'confirmed', ?)").run(
+                    guestId, txn.event_id, txn.guest_name, txn.guest_email, txn.category_id, qrToken, now
                 );
                 db.prepare("UPDATE transactions SET guest_id = ? WHERE id = ?").run(guestId, txnId);
 

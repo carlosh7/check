@@ -8,6 +8,11 @@ const { google } = require('googleapis');
 
 const router = express.Router();
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function getSetting(key) {
     try {
         var row = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").get(key);
@@ -270,14 +275,14 @@ router.get('/callback', async (req, res) => {
                 db.prepare("INSERT INTO user_google_accounts (id, user_id, google_email, refresh_token) VALUES (?, ?, ?, ?)").run(uuidv4(), state.userId, googleEmail, refreshToken);
             }
             try { logAction(req, 'GOOGLE_USER_CONNECTED', { email: googleEmail }); } catch(e) {}
-            res.send('<html><body style="background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif"><div style="text-align:center"><h2 style="color:#10b981">✅ Cuenta personal conectada</h2><p>' + googleEmail + '</p><p>Vinculada a tu perfil. Tus eventos se sincronizar&aacute;n autom&aacute;ticamente.</p><p>Puedes cerrar esta ventana.</p></div></body></html>');
+            res.send('<html><body style="background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif"><div style="text-align:center"><h2 style="color:#10b981">✅ Cuenta personal conectada</h2><p>' + escapeHtml(googleEmail) + '</p><p>Vinculada a tu perfil. Tus eventos se sincronizar&aacute;n autom&aacute;ticamente.</p><p>Puedes cerrar esta ventana.</p></div></body></html>');
         } else {
             var accountId = uuidv4();
             db.prepare("INSERT INTO group_google_accounts (id, group_id, label, google_email, refresh_token, created_by) VALUES (?, ?, ?, ?, ?, ?)").run(
                 accountId, state.groupId, state.label, googleEmail, refreshToken, state.userId || null
             );
             try { logAction(req, 'GOOGLE_ACCOUNT_CONNECTED', { groupId: state.groupId, label: state.label, email: googleEmail }); } catch(e) {}
-            res.send('<html><body style="background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif"><div style="text-align:center"><h2 style="color:#10b981">✅ Cuenta conectada</h2><p>Cuenta ' + googleEmail + ' vinculada al grupo.</p><p>Puedes cerrar esta ventana.</p></div></body></html>');
+            res.send('<html><body style="background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif"><div style="text-align:center"><h2 style="color:#10b981">✅ Cuenta conectada</h2><p>Cuenta ' + escapeHtml(googleEmail) + ' vinculada al grupo.</p><p>Puedes cerrar esta ventana.</p></div></body></html>');
         }
     } catch (err) {
         console.error('[GOOGLE] Callback error:', err.message);

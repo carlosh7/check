@@ -62,6 +62,11 @@ const { castId } = require('../utils/helpers');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 const { authMiddleware } = require('../middleware/auth');
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 // Obtener detalles públicos de un evento para registro
 router.get('/event/:id', (req, res) => {
     const id = castId('events', req.params.id);
@@ -289,7 +294,7 @@ router.get('/unsubscribe/:token', (req, res) => {
     res.send(`
         <div style="font-family: sans-serif; text-align: center; padding: 50px;">
             <h1>Desuscripción Exitosa</h1>
-            <p>Hola ${guest.name}, hemos procesado tu solicitud. No recibirás más correos automáticos.</p>
+            <p>Hola ${escapeHtml(guest.name)}, hemos procesado tu solicitud. No recibirás más correos automáticos.</p>
             <p><small>Si fue un error, contacta con soporte.</small></p>
         </div>
     `);

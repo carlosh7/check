@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const { db } = require('../../database');
 const { v4: uuidv4 } = require('uuid');
 const { getStatus, migrateExistingPasswords } = require('../security/encryption');
+const { authMiddleware } = require('../middleware/auth');
 
 function verifyGitHubSignature(payload, signature) {
     const secret = process.env.DEPLOY_WEBHOOK_SECRET;
@@ -62,17 +63,17 @@ router.post('/deploy/webhook', async (req, res) => {
     res.json({ ok: true, status: 'received' });
 });
 
-router.get('/deploy/logs', (req, res) => {
+router.get('/deploy/logs', authMiddleware(['ADMIN']), (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 200);
     const logs = db.prepare(`SELECT * FROM deploy_logs ORDER BY created_at DESC LIMIT ?`).all(limit);
     res.json(logs);
 });
 
-router.get('/deploy/encryption-status', (req, res) => {
+router.get('/deploy/encryption-status', authMiddleware(['ADMIN']), (req, res) => {
     res.json(getStatus());
 });
 
-router.post('/deploy/migrate-encryption', (req, res) => {
+router.post('/deploy/migrate-encryption', authMiddleware(['ADMIN']), (req, res) => {
     try {
         const result = migrateExistingPasswords();
         res.json({ ok: true, migrated: result });
@@ -81,7 +82,7 @@ router.post('/deploy/migrate-encryption', (req, res) => {
     }
 });
 
-router.get('/deploy/rate-limit-status', (req, res) => {
+router.get('/deploy/rate-limit-status', authMiddleware(['ADMIN']), (req, res) => {
     try {
         const { getRateLimitStatus } = require('../middleware/rate-limiter');
         res.json(getRateLimitStatus());
