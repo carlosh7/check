@@ -2,6 +2,7 @@
  * Rutas de Encuestas (Builder + Dashboard + Pública)
  */
 const express = require('express');
+const { z } = require('zod');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
@@ -29,10 +30,23 @@ router.get('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZ
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
+const createSurveyTemplateSchema = z.object({
+    title: z.string().min(1, 'Título requerido').max(200),
+    description: z.string().max(2000).optional()
+});
+
+const createSuggestionSchema = z.object({
+    guest_id: z.string().max(100).optional(),
+    suggestion: z.string().min(1, 'Sugerencia requerida').max(2000)
+});
+
 router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { title, description } = req.body;
-        if (!title || !title.trim()) return res.status(400).json({ error: 'Título requerido' });
+        const result = createSurveyTemplateSchema.safeParse(req.body);
+        if (!result.success) {
+            return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+        }
+        var { title, description } = result.data;
         var id = uuidv4();
         db.prepare("INSERT INTO survey_templates (id, event_id, title, description, status, created_at, updated_at) VALUES (?, ?, ?, ?, 'draft', ?, ?)").run(
             id, req.params.eventId, title.trim(), description || '', new Date().toISOString(), new Date().toISOString()
@@ -257,7 +271,11 @@ router.get('/:eventId/suggestions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req
 
 router.post('/:eventId/suggestions', (req, res) => {
     const eventId = castId('events', req.params.eventId);
-    const { guest_id, suggestion } = req.body;
+    const result = createSuggestionSchema.safeParse(req.body);
+    if (!result.success) {
+        return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+    }
+    const { guest_id, suggestion } = result.data;
     const targetDb = getEventDb(eventId);
     const id = getValidId('guest_suggestions');
     targetDb.prepare("INSERT INTO guest_suggestions (id, event_id, guest_id, suggestion, submitted_at) VALUES (?, ?, ?, ?, ?)").run(id, eventId, guest_id || null, suggestion, new Date().toISOString());

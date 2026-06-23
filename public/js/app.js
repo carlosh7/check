@@ -1094,7 +1094,7 @@ const App = window.App = {
                     const maxCount = Math.max(...orgs.map(o => o.count));
                     orgsList.innerHTML = orgs.map(o =>
                         '<div class="flex items-center gap-2">' +
-                        '<span class="w-20 truncate text-[var(--text-secondary)]">' + (o.organization || '-') + '</span>' +
+                        '<span class="w-20 truncate text-[var(--text-secondary)]">' + App.esc(o.organization || '-') + '</span>' +
                         '<div class="flex-1 h-3 rounded-full bg-[var(--bg-secondary)] overflow-hidden">' +
                         '<div class="h-full rounded-full bg-[var(--primary)]" style="width:' + Math.round((o.count / maxCount) * 100) + '%"></div></div>' +
                         '<span class="w-6 text-right font-bold text-white text-[10px]">' + o.count + '</span></div>'
@@ -1111,7 +1111,7 @@ const App = window.App = {
                 } else {
                     const total = diet.reduce((a, d) => a + d.count, 0);
                     dietEl.innerHTML = diet.map(d =>
-                        '<div class="flex justify-between text-xs"><span>' + (d.diet_type || '-') + '</span><span class="font-bold text-white">' + d.count + ' <span class="text-[var(--text-muted)]">(' + Math.round((d.count / total) * 100) + '%)</span></span></div>'
+                        '<div class="flex justify-between text-xs"><span>' + App.esc(d.diet_type || '-') + '</span><span class="font-bold text-white">' + d.count + ' <span class="text-[var(--text-muted)]">(' + Math.round((d.count / total) * 100) + '%)</span></span></div>'
                     ).join('');
                 }
             }
@@ -1124,7 +1124,7 @@ const App = window.App = {
                     genderEl.innerHTML = '<p class="text-[var(--text-secondary)] italic">Sin datos</p>';
                 } else {
                     genderEl.innerHTML = gender.map(g =>
-                        '<div class="flex justify-between text-xs"><span>' + (g.gender || '-') + '</span><span class="font-bold text-white">' + g.count + '</span></div>'
+                        '<div class="flex justify-between text-xs"><span>' + App.esc(g.gender || '-') + '</span><span class="font-bold text-white">' + g.count + '</span></div>'
                     ).join('');
                 }
             }
@@ -1154,12 +1154,12 @@ const App = window.App = {
                     if (restrictedCount) restrictedCount.textContent = restrictedGuests.length + ' invitados';
                     restrictedTbody.innerHTML = restrictedGuests.map(g =>
                         '<tr class="hover:bg-[var(--bg-hover)] transition-colors">' +
-                        '<td class="table-td">' + (g.name || '-') + '</td>' +
-                        '<td class="table-td">' + (g.organization || '-') + '</td>' +
-                        '<td class="table-td">' + (g.phone || '-') + '</td>' +
-                        '<td class="table-td">' + (g.email || '-') + '</td>' +
-                        '<td class="table-td"><span class="' + (g.vegano === 'SI' ? 'text-green-400' : 'text-slate-500') + '">' + (g.vegano || 'NO') + '</span></td>' +
-                        '<td class="table-td text-amber-400">' + (g.restriccion || '-') + '</td>' +
+                        '<td class="table-td">' + App.esc(g.name || '-') + '</td>' +
+                        '<td class="table-td">' + App.esc(g.organization || '-') + '</td>' +
+                        '<td class="table-td">' + App.esc(g.phone || '-') + '</td>' +
+                        '<td class="table-td">' + App.esc(g.email || '-') + '</td>' +
+                        '<td class="table-td"><span class="' + (g.vegano === 'SI' ? 'text-green-400' : 'text-slate-500') + '">' + App.esc(g.vegano || 'NO') + '</span></td>' +
+                        '<td class="table-td text-amber-400">' + App.esc(g.restriccion || '-') + '</td>' +
                         '</tr>'
                     ).join('');
                 } else {
@@ -4026,18 +4026,6 @@ const App = window.App = {
         this._notifyAction('Procesando', 'Analizando archivo...', 'info');
     },
 
-    async purgeDatabase() {
-        if (await this._confirmAction('¿BORRAR TODO?', 'Esta acción eliminará TODOS los registros del sistema permanentemente.')) {
-            try {
-                await this.fetchAPI('/settings/purge', { method: 'POST' });
-                this._notifyAction('Base de Datos Limpia', 'Se han borrado todos los datos.', 'success');
-                location.reload();
-            } catch (e) {
-                this._notifyAction('Error', 'Falla en la purga: ' + e.message, 'error');
-            }
-        }
-    },
-
     // --- FUNCIÓN GLOBAL PARA OCULTAR MODALES (Accessibility) ---
     hideModal(id) {
         const m = document.getElementById(id);
@@ -6113,17 +6101,6 @@ const App = window.App = {
         } catch(e) { console.error('Error mailbox:', e); }
     },
 
-    async syncIMAP() {
-        Swal.fire({ title: 'Sincronizando...', text: 'Conectando con IMAP', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-        try {
-            const res = await this.fetchAPI('/email/imap/sync');
-            if (res.success) {
-                Swal.fire('✓ Sincronizado', 'Correos actualizados correctamente.', 'success');
-                this.loadMailbox();
-            }
-        } catch(e) { Swal.fire('Error', 'Falla en sincronización IMAP', 'error'); }
-    },
-
     async loadMailingData() {
         try {
             const eventsRes = await this.fetchAPI('/events');
@@ -6145,59 +6122,6 @@ const App = window.App = {
 
             if (!this.state.mailingGuests) this.state.mailingGuests = [];
         } catch(e) { console.error('Error mailing data:', e); }
-    },
-
-    async onMailingEventChange() {
-        const eventId = document.getElementById('mailing-event-selector').value;
-        if (!eventId) {
-            this.state.mailingGuests = (this.state.mailingGuests || []).filter(g => g.manual);
-            return this.filterMailingGuests();
-        }
-        try {
-            const guests = await this.fetchAPI(`/events/${eventId}/guests`);
-            const manualOnes = (this.state.mailingGuests || []).filter(g => g.manual);
-            const formattedGuests = guests.map(g => ({ ...g, selected: true }));
-            this.state.mailingGuests = [...manualOnes, ...formattedGuests];
-            this.filterMailingGuests();
-        } catch(e) { console.error('[MAIL] Error fetch guests:', e); }
-    },
-
-    addDirectRecipient() {
-        const input = document.getElementById('direct-email-input');
-        const email = input.value.trim();
-        if (!email || !email.includes('@')) return Swal.fire('Error', 'Ingresa un correo válido.', 'error');
-
-        const newGuest = {
-            id: 'manual-' + Date.now(),
-            name: email.split('@')[0],
-            email: email,
-            organization: 'Directo',
-            manual: true,
-            selected: true
-        };
-
-        if (!this.state.mailingGuests) this.state.mailingGuests = [];
-        
-        if (this.state.mailingGuests.find(g => g.email === email)) {
-            return Swal.fire('Atención', 'Este correo ya está en la lista.', 'info');
-        }
-
-        this.state.mailingGuests.unshift(newGuest);
-        this.filterMailingGuests();
-        input.value = '';
-        this._notifyAction('Añadido', `${email} agregado a la lista.`, 'success');
-    },
-
-    onTemplateChange() {
-        const templateId = document.getElementById('mailing-template-selector').value;
-        const template = (this.state.emailTemplates || []).find(t => t.id == templateId);
-        if (template) {
-            const previewArea = document.getElementById('email-preview-area');
-            if (previewArea) {
-                const body = template.body || ''; 
-                previewArea.innerHTML = `<iframe srcdoc="${body.replace(/"/g, '&quot;')}" class="w-full border-none animate-fade-in" style="min-height: 600px; height: 600px;" onload="this.style.height = (this.contentWindow.document.documentElement.scrollHeight + 20) + 'px';"></iframe>`;
-            }
-        }
     },
 
     filterMailingGuests() {
@@ -6249,37 +6173,6 @@ const App = window.App = {
             guest.selected = isChecked;
             this.filterMailingGuests();
         }
-    },
-
-    clearMailingSearch() {
-        const input = document.getElementById('mailing-search');
-        if (input) {
-            input.value = '';
-            this.filterMailingGuests();
-            input.focus();
-        }
-    },
-
-    showScheduleModal() {
-        Swal.fire({
-            title: 'Programar Campaña',
-            html: `<input type="datetime-local" id="schedule-datetime" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white">`,
-            background: 'var(--bg-card)',
-            color: 'var(--text-primary)',
-            confirmButtonText: 'Programar Ahora',
-            showCancelButton: true,
-            confirmButtonColor: 'var(--primary)',
-            preConfirm: () => {
-                const date = document.getElementById('schedule-datetime').value;
-                if (!date) return Swal.showValidationMessage('Debes seleccionar una fecha y hora');
-                return date;
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                this.state.scheduledMailingDate = result.value;
-                Swal.fire('Programado', `La campaña iniciará el ${new Date(result.value).toLocaleString()}`, 'success');
-            }
-        });
     },
 
     closeModal: function() {
@@ -6501,27 +6394,6 @@ const App = window.App = {
                 </button>
         `;
         container.appendChild(div);
-    },
-    
-    saveEventAgenda: async function() {
-        const eventId = this.currentEventId;
-        const items = [];
-        
-        document.querySelectorAll('#config-agenda-list .agenda-item').forEach(div => {
-            const item = {};
-            div.querySelectorAll('input').forEach(input => {
-                item[input.dataset.field] = input.value;
-            });
-            if (item.title) items.push(item);
-        });
-        
-        try {
-            await this.fetchAPI(`/events/${eventId}/agenda`, {
-                method: 'PUT',
-                body: JSON.stringify({ agenda_items: items })
-            });
-            alert('✓ Agenda guardada');
-        } catch (e) { alert('Error al guardar agenda'); }
     },
     
     // --- CORE NAV V10.5 (SPA Routing) ---
@@ -7597,24 +7469,6 @@ navigate(viewName, params = {}, push = true) {
         if (container) container.classList.toggle('hidden', type !== 'multiple');
     },
 
-    async saveSurveyQuestion() {
-        const eventId = this.state.event?.id;
-        if (!eventId) return;
-        const data = {
-            title: document.getElementById('survey-question-title').value,
-            type: document.getElementById('survey-question-type').value,
-            options: document.getElementById('survey-question-options').value
-        };
-        const id = document.getElementById('survey-question-id').value;
-        try {
-            const method = id ? 'PUT' : 'POST';
-            const endpoint = id ? `/events/surveys/${id}` : `/events/${eventId}/surveys`;
-            await this.fetchAPI(endpoint, { method, body: JSON.stringify(data) });
-            document.getElementById('modal-survey-editor').classList.add('hidden');
-            this.loadSurveyQuestions();
-        } catch (e) { alert('Error al guardar la pregunta'); }
-    },
-
     async deleteSurveyQuestion(id) {
         if (!confirm('¿Eliminar esta pregunta?')) return;
         try {
@@ -7622,13 +7476,6 @@ navigate(viewName, params = {}, push = true) {
             this.loadSurveyQuestions();
         } catch (e) { alert('Error al eliminar'); }
     },
-
-    exportSurveyResponses() {
-        const eventId = this.state.event?.id;
-        if (!eventId) return;
-        window.open(`${this.constants.API_URL}/events/${eventId}/surveys/responses/export?userId=${this.state.user.userId}`, '_blank');
-    },
-
 
     // --- DATA LOADERS ---
     _lastEventsLoad: 0,
@@ -7876,425 +7723,6 @@ navigate(viewName, params = {}, push = true) {
                 </tr>
             `;
         }).join('');
-    },
-
-    // Wrapper para usar el nuevo módulo TableManager
-    renderEventsTable() {
-        // Verificar si la vista legacy existe (events-tbody)
-        const tbody = document.getElementById('events-tbody');
-        if (tbody) {
-            // Usar renderizado legacy (más completo con filtros, sort, countdown)
-            this._renderLegacyEventsTable();
-            return;
-        }
-        
-        // Fallback: usar TableManager si no hay events-tbody
-        if (typeof TableManager !== 'undefined') {
-            let events = Array.isArray(this.state.events) ? this.state.events : [];
-            if (this.state.user?.role === 'PRODUCTOR') {
-                events = events.filter(e => e.user_id === this.state.user.userId);
-            }
-            this._populateEventFilters(events);
-            this._updateEventsSubtitle(events);
-            TableManager.renderEventsTable(events, 'events-table-container');
-            return;
-        }
-    },
-    
-    _renderLegacyEventsTable() {
-        const tbody = document.getElementById('events-tbody');
-        const emptyState = document.getElementById('events-empty-state');
-        const tableContainer = document.querySelector('#view-my-events .card');
-        
-        if (!tbody) return;
-        
-        let events = Array.isArray(this.state.events) ? this.state.events : [];
-        
-        // FILTRO: PRODUCTOR solo ve sus eventos
-        if (this.state.user?.role === 'PRODUCTOR') {
-            events = events.filter(e => e.user_id === this.state.user.userId);
-        }
-        
-        // Guardar eventos filtrados para búsqueda
-        this._eventsFiltered = [...events];
-        
-        // Actualizar selects de filtros
-        this._populateEventFilters(events);
-        
-        // Actualizar subtítulo con info del usuario
-        this._updateEventsSubtitle(events);
-        
-        // Mostrar/ocultar estado vacío
-        if (events.length === 0) {
-            tbody.innerHTML = '';
-            if (emptyState) emptyState.classList.remove('hidden');
-            if (emptyState) emptyState.style.display = 'flex';
-            if (tableContainer) tableContainer.classList.add('hidden');
-            return;
-        }
-        
-        if (emptyState) emptyState.classList.add('hidden');
-        if (emptyState) emptyState.style.display = 'none';
-        if (tableContainer) tableContainer.classList.remove('hidden');
-        
-        const userRole = this.state.user?.role;
-        const canDelete = userRole === 'ADMIN' || userRole === 'PRODUCTOR';
-        
-        // Mapear clientes y grupos para lookup
-        const clientsMap = {};
-        (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
-        const groupsMap = {};
-        (this.state.allGroups || []).forEach(g => { groupsMap[g.id] = g.name; });
-        
-        tbody.innerHTML = events.map(ev => {
-            const dateObj = new Date(ev.date);
-            const dateStr = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-            const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-            const total = ev.total_guests || 0;
-            const attended = ev.attended_guests || 0;
-            // Clientes: ahora vienen como string comma-separated (client_ids, client_names)
-            const clientNames = ev.client_names ? ev.client_names.split(',').map(n => n.trim()).join(', ') : '—';
-            const clientIds = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
-            
-            const companyName = ev.group_id ? (groupsMap[ev.group_id] || '—') : '—';
-            const location = ev.location || '—';
-            const status = this._getEventStatus(ev);
-            const statusBadge = this._getEventStatusBadge(status);
-            const isChecked = this._selectedEvents.has(String(ev.id));
-            
-            return `
-                <tr class="hover:bg-white/[0.02] transition-colors group/event" data-event-id="${ev.id}" data-client-ids="${clientIds.join(',')}">
-                    <td class="!py-3 !px-3">
-                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} onchange="App.toggleEventSelection('${ev.id}')" style="width: 16px; height: 16px; cursor: pointer;">
-                    </td>
-                    <td class="!py-3 !px-3">
-                        <div class="flex items-center gap-3">
-<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-[#0ba5ec] to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-[#0ba5ec]">
-                                <span class="material-symbols-outlined text-[10px] text-[#0ba5ec]">event</span>
-                            </div>
-                            <div class="min-w-0">
-                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
-                                <span class="text-[10px] text-slate-500">${companyName !== '—' ? companyName : ''}</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="!py-3 !px-3">
-                        <div class="text-xs text-slate-300">${dateStr} <span class="text-slate-500">${timeStr}</span></div>
-                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
-                    </td>
-                    <td class="!py-3 !px-3">
-                        <span class="text-xs text-slate-300">${clientNames}</span>
-                    </td>
-                    <td class="!py-3 !px-3">
-                        <span class="text-xs text-slate-400 truncate block max-w-[150px]">${location}</span>
-                    </td>
-                    <td class="!py-3 !px-3">
-                        <div class="text-xs">
-                            <span class="font-bold text-[#0ba5ec]">${total}</span><span class="text-slate-500"> / </span>
-                            <span class="font-bold text-emerald-400">${attended}</span>
-                        </div>
-                        <div class="text-[10px] text-slate-500">Reg. / Asist.</div>
-                    </td>
-                    <td class="!py-3 !px-3">
-                        ${statusBadge}
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    },
-
-    _populateEventFilters(events) {
-        // Filtro Cliente
-        const clientFilter = document.getElementById('filter-event-client');
-        if (clientFilter) {
-            const clients = this.state.clients || [];
-            const currentVal = clientFilter.value;
-            clientFilter.innerHTML = '<option value="">Cliente</option>' + 
-                clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            clientFilter.value = currentVal;
-        }
-        
-        // Filtro Empresa
-        const companyFilter = document.getElementById('filter-event-company');
-        if (companyFilter) {
-            const groups = this.state.allGroups || [];
-            const currentVal = companyFilter.value;
-            companyFilter.innerHTML = '<option value="">Empresa</option>' + 
-                groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-            companyFilter.value = currentVal;
-        }
-    },
-
-    _updateEventsSubtitle(events) {
-        const subtitle = document.getElementById('my-events-subtitle');
-        if (!subtitle) return;
-        
-        const userRole = this.state.user?.role || '';
-        const userName = this.state.user?.name || this.state.user?.email || '';
-        
-        if (this.state.user?.role === 'PRODUCTOR') {
-            subtitle.textContent = `${events.length} evento${events.length !== 1 ? 's' : ''} — ${userName}`;
-        } else if (this.state.user?.role === 'STAFF') {
-            subtitle.textContent = `${events.length} evento${events.length !== 1 ? 's' : ''} asignado${events.length !== 1 ? 's' : ''} — ${userName}`;
-        } else if (this.state.user?.role === 'CLIENTE') {
-            subtitle.textContent = `${events.length} evento${events.length !== 1 ? 's' : ''} — ${userName}`;
-        } else {
-            subtitle.textContent = `${events.length} evento${events.length !== 1 ? 's' : ''} en total — ${userName} (${userRole})`;
-        }
-    },
-
-    _getEventStatus(ev) {
-        const now = new Date();
-        const eventDate = new Date(ev.date);
-        const endDate = ev.end_date ? new Date(ev.end_date) : new Date(eventDate.getTime() + 8 * 60 * 60 * 1000);
-        
-        if (ev.status === 'cancelled') return 'cancelled';
-        if (ev.status === 'draft') return 'draft';
-        if (now > endDate) return 'completed';
-        if (now >= eventDate && now <= endDate) return 'active';
-        return 'upcoming';
-    },
-
-    _getEventStatusBadge(status) {
-        const badges = {
-            active: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Activo</span>',
-            upcoming: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20"><span class="material-symbols-outlined text-[10px]">schedule</span>Próximo</span>',
-            completed: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-400 border border-slate-500/20"><span class="material-symbols-outlined text-[10px]">check_circle</span>Finalizado</span>',
-            draft: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20"><span class="material-symbols-outlined text-[10px]">edit_note</span>Borrador</span>',
-            cancelled: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20"><span class="material-symbols-outlined text-[10px]">cancel</span>Cancelado</span>'
-        };
-        return badges[status] || badges.draft;
-    },
-
-    startCountdownTimers() {
-        if (this._countdownInterval) {
-            clearInterval(this._countdownInterval);
-        }
-        
-        this._countdownInterval = setInterval(() => {
-            const timers = document.querySelectorAll('.countdown-timer');
-            const now = new Date();
-            
-            timers.forEach(timer => {
-                const eventDate = new Date(timer.dataset.eventDate);
-                const diff = eventDate - now;
-                
-                if (diff <= 0) {
-                    timer.textContent = '🔴 En vivo';
-                    timer.style.color = '#ef4444';
-                    return;
-                }
-                
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                
-                if (days > 0) {
-                    timer.textContent = `⏳ ${days}d ${hours}h ${mins}m`;
-                } else if (hours > 0) {
-                    timer.textContent = `⏳ ${hours}h ${mins}m`;
-                } else {
-                    timer.textContent = `⏳ ${mins}m`;
-                    timer.style.color = '#f59e0b';
-                }
-            });
-        }, 30000); // Actualizar cada 30 segundos (sin segundos)
-        
-        // Ejecutar inmediatamente
-        setTimeout(() => {
-            const timers = document.querySelectorAll('.countdown-timer');
-            const now = new Date();
-            timers.forEach(timer => {
-                const eventDate = new Date(timer.dataset.eventDate);
-                const diff = eventDate - now;
-                if (diff <= 0) {
-                    timer.textContent = '🔴 En vivo';
-                    timer.style.color = '#ef4444';
-                } else {
-                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    if (days > 0) {
-                        timer.textContent = `⏳ ${days}d ${hours}h ${mins}m`;
-                    } else if (hours > 0) {
-                        timer.textContent = `⏳ ${hours}h ${mins}m`;
-                    } else {
-                        timer.textContent = `⏳ ${mins}m`;
-                        timer.style.color = '#f59e0b';
-                    }
-                }
-            });
-        }, 100);
-    },
-
-    filterEvents() {
-        const searchInput = document.getElementById('event-search');
-        const searchTerm = (searchInput?.value || '').toLowerCase().trim();
-        const clientFilter = document.getElementById('filter-event-client')?.value || '';
-        const statusFilter = document.getElementById('filter-event-status')?.value || '';
-        let events = Array.isArray(this.state.events) ? [...this.state.events] : [];
-        
-        // Debug
-        
-        // FILTRO: PRODUCTOR solo ve sus eventos
-        if (this.state.user?.role === 'PRODUCTOR') {
-            events = events.filter(e => e.user_id === this.state.user.userId);
-        }
-        
-        // Filtro por búsqueda con normalización de texto (manejo de acentos)
-        if (searchTerm) {
-            // Normalizar: quitar acentos y convertir a lowercase
-            const normalize = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-            const normalizedTerm = normalize(searchTerm);
-            
-            events = events.filter(ev => {
-                const clientNames = ev.client_names || '';
-                const groupName = (this.state.allGroups || []).find(g => g.id === ev.group_id)?.name || '';
-                const searchable = normalize(`${ev.name} ${ev.location || ''} ${ev.description || ''} ${clientNames} ${groupName}`);
-                return searchable.includes(normalizedTerm);
-            });
-        }
-        
-        // Filtro por cliente
-        if (clientFilter) {
-            events = events.filter(ev => {
-                const ids = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
-                return ids.some(id => String(id) === String(clientFilter));
-            });
-        }
-        
-        // Filtro por estado
-        if (statusFilter) {
-            events = events.filter(ev => this._getEventStatus(ev) === statusFilter);
-        }
-        
-        
-        this._eventsFiltered = events;
-        this._renderFilteredEvents(events);
-    },
-
-    _renderFilteredEvents(events) {
-        const tbody = document.getElementById('events-tbody');
-        const emptyState = document.getElementById('events-empty-state');
-        const tableContainer = document.querySelector('#view-my-events .card');
-        
-        if (!tbody) return;
-        
-        if (events.length === 0) {
-            tbody.innerHTML = '';
-            if (emptyState) { emptyState.classList.remove('hidden'); emptyState.style.display = 'flex'; }
-            if (tableContainer) tableContainer.classList.add('hidden');
-            return;
-        }
-        
-        if (emptyState) { emptyState.classList.add('hidden'); emptyState.style.display = 'none'; }
-        if (tableContainer) tableContainer.classList.remove('hidden');
-        
-        const clientsMap = {};
-        (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
-        const groupsMap = {};
-        (this.state.allGroups || []).forEach(g => { groupsMap[g.id] = g.name; });
-        
-        tbody.innerHTML = events.map(ev => {
-            const dateObj = new Date(ev.date);
-            const dateStr = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-            const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-            const total = ev.total_guests || 0;
-            const attended = ev.attended_guests || 0;
-            const clientName = ev.client_id ? (clientsMap[ev.client_id] || '—') : '—';
-            const clientNames = ev.client_names ? ev.client_names.split(',').map(n => n.trim()).join(', ') : '—';
-            const location = ev.location || '—';
-            const status = this._getEventStatus(ev);
-            const statusBadge = this._getEventStatusBadge(status);
-            const isChecked = this._selectedEvents.has(String(ev.id));
-            
-            return `
-                <tr class="hover:bg-white/[0.02] transition-colors" data-event-id="${ev.id}">
-                    <td class="!py-3 !px-3">
-                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} onchange="App.toggleEventSelection('${ev.id}')" style="width: 16px; height: 16px; cursor: pointer;">
-                    </td>
-                    <td class="!py-3 !px-3">
-                        <div class="flex items-center gap-3">
-<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-[#0ba5ec] to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-[#0ba5ec]">
-                                <span class="material-symbols-outlined text-[10px] text-[#0ba5ec]">event</span>
-                            </div>
-                            <div class="min-w-0">
-                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="!py-3 !px-3">
-                        <div class="text-xs text-slate-300">${dateStr} <span class="text-slate-500">${timeStr}</span></div>
-                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
-                    </td>
-                    <td class="!py-3 !px-3">
-                        <span class="text-xs text-slate-300">${clientNames}</span>
-                    </td>
-                    <td class="!py-3 !px-3">
-                        <span class="text-xs text-slate-400 truncate block max-w-[150px]">${location}</span>
-                    </td>
-                    <td class="!py-3 !px-3">
-                        <div class="text-xs">
-                            <span class="font-bold text-[#0ba5ec]">${total}</span><span class="text-slate-500"> / </span>
-                            <span class="font-bold text-emerald-400">${attended}</span>
-                        </div>
-                        <div class="text-[10px] text-slate-500">Reg. / Asist.</div>
-                    </td>
-                    <td class="!py-3 !px-3">
-                        ${statusBadge}
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    },
-
-    clearEventSearch() {
-        const searchInput = document.getElementById('event-search');
-        const clientFilter = document.getElementById('filter-event-client');
-        const statusFilter = document.getElementById('filter-event-status');
-        
-        if (searchInput) searchInput.value = '';
-        if (clientFilter) clientFilter.value = '';
-        if (statusFilter) statusFilter.value = '';
-        
-        this.filterEvents();
-        this.hideEventSuggestions();
-    },
-
-    _highlightText(text, term) {
-        if (!term) return text;
-        const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        return text.replace(regex, '<span class="text-[#0ba5ec] font-bold">$1</span>');
-    },
-
-    toggleSelectAllEvents() {
-        const checkbox = document.getElementById('select-all-events');
-        const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
-        
-        if (checkbox.checked) {
-            events.forEach(ev => this._selectedEvents.add(String(ev.id)));
-        } else {
-            this._selectedEvents.clear();
-        }
-        
-        document.querySelectorAll('.event-checkbox').forEach(cb => {
-            cb.checked = checkbox.checked;
-        });
-    },
-
-    toggleEventSelection(eventId) {
-        const id = String(eventId);
-        if (this._selectedEvents.has(id)) {
-            this._selectedEvents.delete(id);
-        } else {
-            this._selectedEvents.add(id);
-        }
-        
-        // Actualizar select-all
-        const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
-        const allSelected = events.length > 0 && events.every(ev => this._selectedEvents.has(String(ev.id)));
-        const selectAllCheckbox = document.getElementById('select-all-events');
-        if (selectAllCheckbox) selectAllCheckbox.checked = allSelected;
     },
 
     openEventEditAction() {
@@ -8792,48 +8220,6 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
-    // Funciones legacy (no usadas, mantenidas por compatibilidad)
-    updateEventStatus: async function(eventId, status) {
-        if (!await this._confirmAction('¿Cambiar estado del evento?', `El evento pasará a estado: ${status}`)) return;
-        
-        try {
-            await this.fetchAPI(`/events/${eventId}`, {
-                method: 'PUT',
-                body: JSON.stringify({ status })
-            });
-            await this.loadEvents();
-            Swal.fire({ title: '✓ Listo', text: 'Estado actualizado', icon: 'success', background: '#0f172a', color: '#fff' });
-        } catch(e) {
-            Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
-        }
-    },
-
-    rescheduleEvent: async function(eventId) {
-        const ev = this.state.events.find(e => String(e.id) === String(eventId));
-        if (!ev) return;
-        
-        const { value: newDate } = await Swal.fire({
-            title: 'Aplazar Evento',
-            html: `<input type="datetime-local" id="new-event-date" class="swal2-input" value="${new Date(ev.date).toISOString().slice(0,16)}">`,
-            preConfirm: () => {
-                return document.getElementById('new-event-date').value;
-            }
-        });
-        
-        if (newDate) {
-            try {
-                await this.fetchAPI(`/events/${eventId}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ date: newDate })
-                });
-                await this.loadEvents();
-                Swal.fire({ title: '✓ Listo', text: 'Evento aplazado', icon: 'success', background: '#0f172a', color: '#fff' });
-            } catch(e) {
-                Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
-            }
-        }
-    },
-
     deleteEvent: async function(eventId) {
         if (!await this._confirmAction('¿Eliminar evento?', 'Esta acción no se puede deshacer.')) return;
         
@@ -8909,59 +8295,6 @@ navigate(viewName, params = {}, push = true) {
         });
         return result.isConfirmed ? result.value : null;
     },
-
-    openEventEditModal(eventId) {
-        const ev = this.state.events.find(e => String(e.id) === String(eventId));
-        if (!ev) return;
-        
-        document.getElementById('modal-event-title').textContent = 'Editar Evento';
-        document.getElementById('ev-id-hidden').value = ev.id;
-        document.getElementById('ev-name').value = ev.name || '';
-        document.getElementById('ev-location').value = ev.location || '';
-        
-        // Poblar selector de empresa
-        const groupSelect = document.getElementById('ev-group');
-        if (groupSelect && this.state.allGroups) {
-            groupSelect.innerHTML = '<option value="">Seleccionar empresa</option>' + 
-                this.state.allGroups.map(g => `<option value="${g.id}" ${String(ev.group_id) === String(g.id) ? 'selected' : ''}>${g.name}</option>`).join('');
-        }
-        
-        // Formatear fechas para datetime-local
-        const formatDate = (d) => {
-            if (!d) return '';
-            const date = new Date(d);
-            const offset = date.getTimezoneOffset();
-            const local = new Date(date.getTime() - offset * 60000);
-            return local.toISOString().slice(0, 16);
-        };
-        
-        document.getElementById('ev-date').value = formatDate(ev.date);
-        document.getElementById('ev-end-date').value = formatDate(ev.end_date);
-        document.getElementById('ev-desc').value = ev.description || '';
-        
-
-        const hasOwnDbCheck = document.getElementById('ev-has-own-db');
-        if (hasOwnDbCheck) {
-            hasOwnDbCheck.checked = Boolean(ev.has_own_db);
-        }
-        
-        const form = document.getElementById('new-event-form');
-        if (form) {
-            const newForm = form.cloneNode(true);
-            form.parentNode.replaceChild(newForm, form);
-            newForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.saveEventShort(e);
-            });
-        }
-        
-        const modal = document.getElementById('modal-event');
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.style.display = 'flex';
-        }
-    },
-
 
     renderEventsTable() {
         const tbody = document.getElementById('events-tbody');
@@ -9666,29 +8999,6 @@ navigate(viewName, params = {}, push = true) {
         this.openEvent(eventId);
     },
 
-    // Restaurar evento desde localStorage
-    restoreSelectedEvent() {
-        const savedEventId = LS.get('selected_event_id');
-        const savedEventName = LS.get('selected_event_name');
-        
-        if (savedEventId && this.state.events.length > 0) {
-            const event = this.state.events.find(e => String(e.id) === String(savedEventId));
-            if (event) {
-                this.state.event = event;
-                const tit = document.getElementById('admin-event-title');
-                const loc = document.getElementById('admin-event-location');
-                if (tit) tit.innerText = event.name;
-                if (loc) loc.innerText = event.location;
-                this.navigate('admin', { id: event.id });
-                this.loadGuests();
-                this.updateStats();
-                // Actualizar visibilidad del sidebar
-                this.updateSidebarVisibility();
-                return true;
-            }
-        }
-        return false;
-    },
     async loadGuests() {
         if (!this.state.event) return;
         
@@ -9709,20 +9019,6 @@ navigate(viewName, params = {}, push = true) {
         if (countEl) countEl.textContent = `${this.state.guests.length} invitados`;
     },
     
-    // --- COLUMNAS DINÁMICAS V12.1 ---
-    initColumnConfig() {
-        const saved = LS.get('column_config_' + (this.state.event?.id || 'default'));
-        if (saved) {
-            try { this.state.columnConfig = JSON.parse(saved); } catch(e) {}
-        }
-        this.renderColumnOptions();
-    },
-    
-    toggleColumnConfig() {
-        const menu = document.getElementById('column-config-menu');
-        if (menu) menu.classList.toggle('hidden');
-    },
-    
     toggleColumn(id) {
         if (this.state.columnConfig[id]) {
             this.state.columnConfig[id].visible = !this.state.columnConfig[id].visible;
@@ -9741,38 +9037,6 @@ navigate(viewName, params = {}, push = true) {
                 <span class="text-xs font-bold ${cfg.visible ? 'text-white' : 'text-slate-500'}">${cfg.label}</span>
             </label>
         `).join('');
-    },
-    
-    filterGuests() {
-        const search = (document.getElementById('guest-search')?.value || '').toLowerCase();
-        const org = document.getElementById('filter-guest-org')?.value || '';
-        const status = document.getElementById('filter-guest-status')?.value || '';
-        const gender = document.getElementById('filter-guest-gender')?.value || '';
-        const vegan = document.getElementById('filter-guest-vegan')?.value || '';
-        
-        let filtered = this.state.guests.filter(g => {
-            if (search) {
-                const match = (g.name || '').toLowerCase().includes(search) ||
-                    (g.email || '').toLowerCase().includes(search) ||
-                    (g.phone || '').includes(search);
-                if (!match) return false;
-            }
-            if (org && g.organization !== org) return false;
-            if (status === 'acreditado' && !g.checked_in) return false;
-            if (status === 'pendiente' && g.checked_in) return false;
-            if (gender && g.gender !== gender) return false;
-            if (vegan) {
-                const isVegan = (g.dietary_notes || '').toLowerCase().includes('vegano');
-                if (vegan === 'si' && !isVegan) return false;
-                if (vegan === 'no' && isVegan) return false;
-            }
-            return true;
-        });
-        
-        const countEl = document.getElementById('guest-count');
-        if (countEl) countEl.textContent = `${filtered.length} invitados`;
-        
-        this.renderGuestsTarget(filtered);
     },
     
     renderGuestsTarget(list) {
@@ -9879,10 +9143,6 @@ navigate(viewName, params = {}, push = true) {
         } catch (e) {
             console.error('[ATTENDANCE] Error toggling:', e);
         }
-    },
-    async toggleCheckin(gId, status) {
-        await this.fetchAPI(`/guests/checkin/${gId}`, { method: 'POST', body: JSON.stringify({ status: !status }) });
-        this.loadGuests();
     },
     loadAiReport: async function() {
         var eId = this.state.event?.id;
@@ -10744,113 +10004,6 @@ navigate(viewName, params = {}, push = true) {
     // Generar lista de invitados en PDF (compatibilidad con botón existente)
     async generateGuestListPdf() {
         return this.generateGuestListPDF();
-    },
-
-    // Generar certificados para invitados
-    async generateCertificates() {
-        if (!this.state.event || this.state.guests.length === 0) {
-            return alert('No hay invitados para generar certificados.');
-        }
-        
-        const choice = confirm('¿Generar certificados para todos los invitados? (Cancelar para generar solo uno)');
-        if (choice) {
-            // Generar certificados en lote (podría ser pesado)
-            alert('Generar certificados en lote está en desarrollo. Por ahora, genera certificados individuales desde la lista de invitados.');
-        } else {
-            // Mostrar selector de invitado
-            const guestName = prompt('Ingresa el nombre del invitado para generar certificado:');
-            if (!guestName) return;
-            
-            const guest = this.state.guests.find(g => 
-                g.name.toLowerCase().includes(guestName.toLowerCase()) ||
-                g.email?.toLowerCase().includes(guestName.toLowerCase())
-            );
-            
-            if (guest) {
-                await this.generateEnhancedCertificate(guest.id, 'premium');
-            } else {
-                alert('Invitado no encontrado.');
-            }
-        }
-    },
-
-    // Mejorar reporte de evento existente
-    async generateEventReport() {
-        // Usar la versión mejorada por defecto
-        return this.generateEnhancedEventReport();
-    },
-
-    // Generar ticket PDF mejorado
-    async generatePDFTicket(gId = null) {
-        await this.ensurePDFLibsLoaded();
-        const guestId = gId || this.state.ticketGuest?.id;
-        const g = this.state.guests.find(x => x.id === guestId);
-        if (!g || !this.state.event) return;
-        
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ unit: 'mm', format: [100, 150] });
-        const event = this.state.event;
-        const accent = event.ticket_accent_color || '#7c3aed';
-        const ticketBgUrl = event.ticket_bg_url;
-        
-        // Fondo personalizado si existe
-        if (ticketBgUrl) {
-            try {
-                const bgData = await this.loadImageForPDF(ticketBgUrl);
-                doc.addImage(bgData, 'PNG', 0, 0, 100, 150);
-            } catch (e) {
-                console.warn('No se pudo cargar fondo de ticket:', e);
-                doc.setFillColor(15, 23, 42);
-                doc.rect(0, 0, 100, 150, 'F');
-            }
-        } else {
-            doc.setFillColor(15, 23, 42);
-            doc.rect(0, 0, 100, 150, 'F');
-        }
-        
-        // Contenido del ticket
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text(event.name, 50, 15, { align: 'center' });
-        
-        doc.setFontSize(8);
-        doc.setTextColor(accent);
-        doc.text('BOLETO DIGITAL DE ACCESO', 50, 22, { align: 'center' });
-        
-        doc.setDrawColor(255, 255, 255, 0.1);
-        doc.line(10, 28, 90, 28);
-        
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(12);
-        doc.text(g.name, 50, 40, { align: 'center' });
-        doc.setFontSize(7);
-        doc.setTextColor(100, 116, 139);
-        doc.text(g.organization || 'INVITADO ESPECIAL', 50, 45, { align: 'center' });
-        
-        // QR
-        const qrEl = document.querySelector('#ticket-qr-container canvas');
-        if (qrEl) {
-            const qrData = qrEl.toDataURL('image/png');
-            doc.addImage(qrData, 'PNG', 25, 55, 50, 50);
-        }
-        
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(9);
-        doc.text(g.qr_token || '---', 50, 115, { align: 'center' });
-        
-        // Información adicional
-        const dateStr = new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-        doc.setFontSize(6);
-        doc.setTextColor(200, 200, 200);
-        doc.text(`Evento: ${dateStr} - ${event.location || 'S/L'}`, 50, 125, { align: 'center' });
-        
-        doc.setFontSize(6);
-        doc.setTextColor(100, 116, 139);
-        doc.text('Presente este QR en la entrada del evento.', 50, 135, { align: 'center' });
-        doc.text(`Check Pro v${this.state.version}`, 50, 140, { align: 'center' });
-        
-        doc.save(`Ticket_${event.name.replace(/\s+/g, '_')}_${g.name.split(' ')[0]}.pdf`);
     },
 
     switchSystemTab(tabName) {

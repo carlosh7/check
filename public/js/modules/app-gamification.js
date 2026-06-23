@@ -49,7 +49,7 @@ const Gamification = window.GamificationModule = {
                 }
                 return `<div class="card p-3 flex justify-between items-center">
                     <div><p class="text-sm font-semibold text-white">${App.esc(p.title)}</p>
-                    <p class="text-xs text-slate-500">${p.type} · ${p.points} pts · <span class="${statusColor}">${statusLabel}</span></p></div>
+                    <p class="text-xs text-slate-500">${App.esc(p.type)} · ${p.points} pts · <span class="${statusColor}">${statusLabel}</span></p></div>
                     <div class="flex gap-2">${actions}</div></div>`;
             }).join('');
         }).catch(() => { container.innerHTML = '<p class="text-xs text-red-400">Error al cargar encuestas</p>'; });
@@ -256,7 +256,7 @@ const Gamification = window.GamificationModule = {
             }
             container.innerHTML = badges.map(b =>
                 `<div class="card p-3 flex justify-between items-center">
-                    <div class="flex items-center gap-3"><span class="text-2xl">${b.icon || '🏆'}</span>
+                    <div class="flex items-center gap-3"><span class="text-2xl">${App.esc(b.icon || '🏆')}</span>
                     <div><p class="text-sm font-semibold text-white">${App.esc(b.name)}</p>
                     <p class="text-xs text-slate-500">${App.esc(b.description || '')} · ${b.earned_count || 0} obtenidas</p></div></div>
                     <button class="btn-secondary text-xs text-red-400" onclick="App.deleteBadge('${b.id}')">Eliminar</button>

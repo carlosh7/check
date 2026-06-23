@@ -1,4 +1,6 @@
 <div id="app-container" class="app-container hidden">
+    <button id="hamburger-btn" class="hamburger-btn" onclick="document.getElementById('global-sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('active')" aria-label="Abrir menú">☰</button>
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="document.getElementById('global-sidebar').classList.remove('open');this.classList.remove('active')"></div>
     <aside id="global-sidebar" class="app-sidebar">
         <div class="app-sidebar-brand">
             <div class="app-sidebar-brand-left">
@@ -57,7 +59,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.770</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.771</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>

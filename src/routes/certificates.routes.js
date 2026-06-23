@@ -66,10 +66,14 @@ router.post('/:eventId/templates/:templateId/generate', authMiddleware(['ADMIN',
         if (guests.length === 0) return res.status(400).json({ error: 'No hay invitados con check-in' });
         var count = 0;
         var insertCert = db.prepare("INSERT OR IGNORE INTO guest_certificates (id, template_id, event_id, guest_id) VALUES (?, ?, ?, ?)");
-        guests.forEach(function(g) {
-            var certId = uuidv4();
-            try { insertCert.run(certId, req.params.templateId, req.params.eventId, g.id); count++; } catch(e) {}
+        var insertMany = db.transaction(function(guests) {
+            guests.forEach(function(g) {
+                var certId = uuidv4();
+                insertCert.run(certId, req.params.templateId, req.params.eventId, g.id);
+                count++;
+            });
         });
+        insertMany(guests);
         res.json({ success: true, generated: count, total: guests.length });
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });

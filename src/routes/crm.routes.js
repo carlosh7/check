@@ -36,14 +36,18 @@ router.post('/crm/connections/:id/sync', authMiddleware(['ADMIN']), async (req, 
         
         const contacts = await fetchCrmContacts(conn);
         let imported = 0;
-        for (const c of contacts) {
-            const existing = db.prepare("SELECT id FROM crm_contacts WHERE email = ? AND connection_id = ?").get(c.email, conn.id);
-            if (!existing) {
-                db.prepare("INSERT INTO crm_contacts (id, connection_id, external_id, name, email, phone, company, raw_data, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-                    .run(uuidv4(), conn.id, String(c.id), c.name, c.email, c.phone || '', c.company || '', JSON.stringify(c), new Date().toISOString());
-                imported++;
+        const insertContact = db.prepare("INSERT INTO crm_contacts (id, connection_id, external_id, name, email, phone, company, raw_data, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        const checkExisting = db.prepare("SELECT id FROM crm_contacts WHERE email = ? AND connection_id = ?");
+        const importContacts = db.transaction(function(contacts) {
+            for (const c of contacts) {
+                const existing = checkExisting.get(c.email, conn.id);
+                if (!existing) {
+                    insertContact.run(uuidv4(), conn.id, String(c.id), c.name, c.email, c.phone || '', c.company || '', JSON.stringify(c), new Date().toISOString());
+                    imported++;
+                }
             }
-        }
+        });
+        importContacts(contacts);
         db.prepare("UPDATE crm_connections SET last_sync_at = ? WHERE id = ?").run(new Date().toISOString(), conn.id);
         res.json({ success: true, imported, total: contacts.length });
     } catch(err) { res.status(500).json({ error: err.message }); }

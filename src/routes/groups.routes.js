@@ -3,6 +3,7 @@
  */
 
 const express = require('express');
+const { z } = require('zod');
 const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
@@ -25,9 +26,29 @@ router.get('/', authMiddleware(), (req, res) => {
     res.json(rows);
 });
 
+// Schemas de validación
+const createGroupSchema = z.object({
+    name: z.string().min(1, 'Nombre requerido').max(200),
+    description: z.string().max(1000).optional(),
+    email: z.string().email('Email inválido').optional().or(z.literal('')),
+    phone: z.string().max(30).optional()
+});
+
+const updateGroupSchema = z.object({
+    name: z.string().min(1).max(200).optional(),
+    description: z.string().max(1000).optional(),
+    email: z.string().email('Email inválido').optional().or(z.literal('')),
+    phone: z.string().max(30).optional(),
+    status: z.enum(['ACTIVE', 'INACTIVE']).optional()
+});
+
 // Crear grupo
 router.post('/', authMiddleware(['ADMIN']), (req, res) => {
-    const { name, description, email, phone } = req.body;
+    const result = createGroupSchema.safeParse(req.body);
+    if (!result.success) {
+        return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+    }
+    const { name, description, email, phone } = result.data;
     const id = getValidId('groups');
     
     db.prepare("INSERT INTO groups (id, name, description, email, phone, status, created_at, created_by) VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?, ?)")
@@ -38,7 +59,11 @@ router.post('/', authMiddleware(['ADMIN']), (req, res) => {
 
 // Actualizar grupo
 router.put('/:id', authMiddleware(['ADMIN']), (req, res) => {
-    const { name, description, email, phone, status } = req.body;
+    const result = updateGroupSchema.safeParse(req.body);
+    if (!result.success) {
+        return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+    }
+    const { name, description, email, phone, status } = result.data;
     
     const updates = [];
     const values = [];

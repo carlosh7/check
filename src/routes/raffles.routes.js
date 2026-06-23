@@ -162,9 +162,14 @@ router.post('/:id/populate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) 
             var insert = db.prepare("INSERT INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, ?)");
             var count = 0;
             var names = [];
-            guests.forEach(function(g) {
-                try { insert.run(uuidv4(), raffle.id, g.guest_id, g.name, g.email, g.phone, 'survey'); count++; names.push(g.name || g.email); } catch(e) {}
+            var insertMany = db.transaction(function(guests) {
+                guests.forEach(function(g) {
+                    insert.run(uuidv4(), raffle.id, g.guest_id, g.name, g.email, g.phone, 'survey');
+                    count++;
+                    names.push(g.name || g.email);
+                });
             });
+            insertMany(guests);
             db.prepare("UPDATE raffles SET total_participants = ?, updated_at = ? WHERE id = ?").run(count, new Date().toISOString(), raffle.id);
             return res.json({ added: count, participants: names });
         }
@@ -175,9 +180,14 @@ router.post('/:id/populate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) 
             var insert = db.prepare("INSERT INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, ?)");
             var count = 0;
             var names = [];
-            guests.forEach(function(g) {
-                try { insert.run(uuidv4(), raffle.id, g.guest_id, g.name || '', g.email || '', g.phone || '', raffle.data_source); count++; names.push(g.name || g.email); } catch(e) {}
+            var insertMany = db.transaction(function(guests) {
+                guests.forEach(function(g) {
+                    insert.run(uuidv4(), raffle.id, g.guest_id, g.name || '', g.email || '', g.phone || '', raffle.data_source);
+                    count++;
+                    names.push(g.name || g.email);
+                });
             });
+            insertMany(guests);
             db.prepare("UPDATE raffles SET total_participants = ?, updated_at = ? WHERE id = ?").run(count, new Date().toISOString(), raffle.id);
             res.json({ added: count, participants: names });
         }

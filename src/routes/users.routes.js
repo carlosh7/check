@@ -241,8 +241,19 @@ router.put('/:id/password', authMiddleware(), (req, res) => {
     res.json({ success: true });
 });
 
+const updateUserBodySchema = z.object({
+    username: z.string().email('Email inválido').max(200).optional(),
+    display_name: z.string().max(100).optional(),
+    role: z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'LOGISTICO', 'ORGANIZER']).optional(),
+    password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').max(200).optional()
+});
+
 // Actualizar usuario (editar colaborador)
 router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const result = updateUserBodySchema.safeParse(req.body);
+    if (!result.success) {
+        return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+    }
     const targetId = castId('users', req.params.id);
     console.log('[PUT USER] userId:', req.userId, 'targetId:', targetId, 'userRole:', req.userRole);
     
@@ -256,15 +267,11 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         }
     }
     
-    const { username, display_name, role, password } = req.body;
-    console.log('[PUT USER] body:', req.body);
+    const { username, display_name, role, password } = result.data;
+    console.log('[PUT USER] body:', result.data);
     
-    // Validar username si se proporciona
+    // Verificar que el username no esté en uso por otro usuario
     if (username) {
-        if (typeof username !== 'string' || username.length < 5 || !username.includes('@')) {
-            return res.status(400).json({ error: 'El email debe ser válido' });
-        }
-        // Verificar que el username no esté en uso por otro usuario
         const existing = db.prepare("SELECT id FROM users WHERE username = ? AND id != ?").get(username, targetId);
         if (existing) {
             return res.status(400).json({ error: 'El email ya está en uso' });

@@ -2,6 +2,7 @@
  * Rutas de Gamificación — Encuestas en vivo (Live Polling + Trivias)
  */
 const express = require('express');
+const { z } = require('zod');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { castId } = require('../utils/helpers');
@@ -21,10 +22,27 @@ router.get('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (re
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
+const createPollSchema = z.object({
+    title: z.string().min(1, 'Título requerido').max(200),
+    description: z.string().max(1000).optional(),
+    type: z.enum(['single', 'multiple', 'trivia', 'open']).optional(),
+    session_id: z.string().max(100).optional(),
+    points: z.number().int().min(0).max(1000).optional(),
+    time_limit_seconds: z.number().int().min(0).max(3600).optional(),
+    correct_answer: z.any().optional(),
+    options: z.array(z.object({
+        label: z.string().min(1),
+        is_correct: z.boolean().optional()
+    })).optional()
+});
+
 router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { title, description, type, session_id, points, time_limit_seconds, correct_answer, options } = req.body;
-        if (!title || !title.trim()) return res.status(400).json({ error: 'Título requerido' });
+        const result = createPollSchema.safeParse(req.body);
+        if (!result.success) {
+            return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+        }
+        var { title, description, type, session_id, points, time_limit_seconds, correct_answer, options } = result.data;
         var id = uuidv4();
         var now = new Date().toISOString();
         db.prepare("INSERT INTO polls (id, event_id, session_id, title, description, type, status, points, time_limit_seconds, correct_answer, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?)").run(

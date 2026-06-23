@@ -3,6 +3,7 @@
  */
 
 const express = require('express');
+const { z } = require('zod');
 const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
@@ -63,13 +64,29 @@ router.get('/', authMiddleware(), (req, res) => {
     res.json(clientsWithDetails);
 });
 
+// Schemas de validación
+const createClientSchema = z.object({
+    name: z.string().min(1, 'Nombre requerido').max(200),
+    email: z.string().email('Email inválido').optional().or(z.literal('')),
+    phone: z.string().max(30).optional(),
+    group_id: z.union([z.string(), z.number()]).min(1, 'Empresa requerida')
+});
+
+const updateClientSchema = z.object({
+    name: z.string().min(1).max(200).optional(),
+    email: z.string().email('Email inválido').optional().or(z.literal('')),
+    phone: z.string().max(30).optional(),
+    group_id: z.union([z.string(), z.number()]).optional().nullable(),
+    status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']).optional()
+});
+
 // Crear cliente
 router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF']), (req, res) => {
-    const { name, email, phone, group_id } = req.body;
-    
-    if (!name || !group_id) {
-        return res.status(400).json({ error: 'Nombre y empresa son requeridos' });
+    const result = createClientSchema.safeParse(req.body);
+    if (!result.success) {
+        return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
     }
+    const { name, email, phone, group_id } = result.data;
     
     const id = getValidId('clients');
     db.prepare(`
@@ -160,8 +177,12 @@ router.get('/:id', authMiddleware(), (req, res) => {
 
 // Actualizar cliente
 router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF']), (req, res) => {
+    const result = updateClientSchema.safeParse(req.body);
+    if (!result.success) {
+        return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+    }
     const clientId = castId('clients', req.params.id);
-    const { name, email, phone, group_id, status } = req.body;
+    const { name, email, phone, group_id, status } = result.data;
     
     const updates = [];
     const values = [];

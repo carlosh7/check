@@ -58,6 +58,7 @@
  */
 
 const express = require('express');
+const { z } = require('zod');
 const ExcelJS = require('exceljs');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
@@ -488,12 +489,31 @@ router.get('/:eventId/categories', authMiddleware(), (req, res) => {
     }
 });
 
+const createCategorySchema = z.object({
+    name: z.string().min(1, 'Nombre requerido').max(100),
+    color: z.string().max(20).optional(),
+    capacity: z.number().int().min(0).optional(),
+    sort_order: z.number().int().min(0).optional(),
+    price: z.number().min(0).optional()
+});
+
+const updateCategorySchema = z.object({
+    name: z.string().min(1).max(100).optional(),
+    color: z.string().max(20).optional(),
+    capacity: z.number().int().min(0).optional(),
+    sort_order: z.number().int().min(0).optional(),
+    price: z.number().min(0).optional()
+});
+
 router.post('/:eventId/categories', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
-        const { name, color, capacity, sort_order, price } = req.body;
-        if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre requerido' });
+        const result = createCategorySchema.safeParse(req.body);
+        if (!result.success) {
+            return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+        }
+        const { name, color, capacity, sort_order, price } = result.data;
         const id = uuidv4();
         const targetDb = getEventDb(eId);
         targetDb.prepare("INSERT INTO guest_categories (id, event_id, name, color, capacity, sort_order, price) VALUES (?, ?, ?, ?, ?, ?, ?)").run(
@@ -511,7 +531,11 @@ router.put('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR'])
         const eId = castId('events', req.params.eventId);
         const catId = req.params.catId;
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
-        const { name, color, capacity, sort_order, price } = req.body;
+        const result = updateCategorySchema.safeParse(req.body);
+        if (!result.success) {
+            return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+        }
+        const { name, color, capacity, sort_order, price } = result.data;
         const targetDb = getEventDb(eId);
         targetDb.prepare("UPDATE guest_categories SET name = COALESCE(?, name), color = COALESCE(?, color), capacity = COALESCE(?, capacity), sort_order = COALESCE(?, sort_order), price = COALESCE(?, price) WHERE id = ? AND event_id = ?").run(
             name || null, color || null, capacity != null ? capacity : null, sort_order != null ? sort_order : null, price != null ? price : null, catId, eId
