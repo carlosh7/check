@@ -5,6 +5,7 @@ const { db } = require('../../database');
 const { v4: uuidv4 } = require('uuid');
 const { getStatus, migrateExistingPasswords } = require('../security/encryption');
 const { authMiddleware } = require('../middleware/auth');
+const logger = require('../utils/logger');
 
 function verifyGitHubSignature(payload, signature) {
     const secret = process.env.DEPLOY_WEBHOOK_SECRET;
@@ -22,7 +23,7 @@ router.post('/deploy/webhook', async (req, res) => {
     const event = req.headers['x-github-event'];
 
     if (!verifyGitHubSignature(req.body, signature)) {
-        console.warn(`[DEPLOY] Invalid signature from ${req.ip}`);
+        logger.warn('[DEPLOY] Invalid signature from ' + req.ip);
         return res.status(401).json({ error: 'Invalid signature' });
     }
 
@@ -51,10 +52,10 @@ router.post('/deploy/webhook', async (req, res) => {
             const response = await fetch(portainerUrl, { method: 'POST', signal: AbortSignal.timeout(30000) });
             const portainerStatus = response.ok ? 'triggered' : `error: HTTP ${response.status}`;
             db.prepare(`UPDATE deploy_logs SET status = 'deploying', portainer_status = ? WHERE id = ?`).run(portainerStatus, logId);
-            console.log(`[DEPLOY] Redeploy triggered via Portainer (${response.status})`);
+            logger.info('[DEPLOY] Redeploy triggered via Portainer (' + response.status + ')');
         } catch (err) {
             db.prepare(`UPDATE deploy_logs SET status = 'error', error = ? WHERE id = ?`).run(err.message, logId);
-            console.error(`[DEPLOY] Portainer webhook failed:`, err.message);
+            logger.error('[DEPLOY] Portainer webhook failed: ' + err.message);
         }
     } else {
         db.prepare(`UPDATE deploy_logs SET status = 'received', error = 'PORTAINER_WEBHOOK_URL not configured' WHERE id = ?`).run(logId);

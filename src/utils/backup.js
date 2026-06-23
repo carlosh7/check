@@ -2,12 +2,13 @@
 // Usa db.backup() de better-sqlite3 para copias seguras mientras la BD está en uso
 const fs = require('fs');
 const path = require('path');
+const logger = require('./logger');
 
 let db;
 try {
     db = require('../../database').db;
 } catch (e) {
-    console.error('[BACKUP] No se pudo cargar la BD:', e.message);
+    logger.error('[BACKUP] No se pudo cargar la BD: ' + e.message);
 }
 
 const BACKUP_DIR = process.env.DATA_PATH
@@ -16,12 +17,12 @@ const BACKUP_DIR = process.env.DATA_PATH
 
 if (!fs.existsSync(BACKUP_DIR)) {
     fs.mkdirSync(BACKUP_DIR, { recursive: true });
-    console.log('[BACKUP] Directorio de backups creado:', BACKUP_DIR);
+    logger.info('[BACKUP] Directorio de backups creado: ' + BACKUP_DIR);
 }
 
 async function createBackup() {
     if (!db) {
-        console.warn('[BACKUP] BD no disponible, omitiendo backup');
+        logger.warn('[BACKUP] BD no disponible, omitiendo backup');
         return { success: false, error: 'BD no disponible' };
     }
 
@@ -36,13 +37,13 @@ async function createBackup() {
         const stats = fs.statSync(backupPath);
         const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
 
-        console.log(`[BACKUP] ✅ Backup creado: ${backupFileName} (${sizeMB} MB)`);
+        logger.info('[BACKUP] Backup creado: ' + backupFileName + ' (' + sizeMB + ' MB)');
 
         cleanupOldBackups();
 
         return { success: true, path: backupPath, size: sizeMB };
     } catch (error) {
-        console.error('[BACKUP] ❌ Error al crear backup:', error.message);
+        logger.error('[BACKUP] Error al crear backup: ' + error.message);
         return { success: false, error: error.message };
     }
 }
@@ -67,15 +68,15 @@ function cleanupOldBackups() {
         });
 
         if (deletedCount > 0) {
-            console.log(`[BACKUP] 🧹 Limpieza: ${deletedCount} backup(s) antiguo(s) eliminado(s)`);
+            logger.info('[BACKUP] Limpieza: ' + deletedCount + ' backup(s) antiguo(s) eliminado(s)');
         }
     } catch (error) {
-        console.error('[BACKUP] Error en limpieza:', error.message);
+        logger.error('[BACKUP] Error en limpieza: ' + error.message);
     }
 }
 
 function startBackupScheduler() {
-    console.log('[BACKUP] Scheduler iniciado: Backup cada 6 horas');
+    logger.info('[BACKUP] Scheduler iniciado: Backup cada 6 horas');
     setTimeout(() => createBackup(), 5000);
     setInterval(createBackup, 6 * 60 * 60 * 1000);
 }

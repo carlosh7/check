@@ -4,6 +4,7 @@
  */
 
 const express = require('express');
+const { z } = require('zod');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
@@ -12,6 +13,39 @@ const { simpleParser } = require('mailparser');
 const { db } = require('../../database');
 const { decryptPassword, encryptPassword } = require('../security/encryption');
 const { authMiddleware } = require('../middleware/auth');
+const { limiters } = require('../middleware/rate-limiter');
+
+const createAccountSchema = z.object({
+    event_id: z.string().optional().nullable(),
+    name: z.string().min(1, 'Nombre requerido').max(200),
+    smtp_host: z.string().max(200).optional(),
+    smtp_port: z.number().int().min(1).max(65535).optional(),
+    smtp_user: z.string().max(200).optional(),
+    smtp_password: z.string().max(500).optional(),
+    smtp_ssl: z.boolean().optional(),
+    imap_host: z.string().max(200).optional(),
+    imap_port: z.number().int().min(1).max(65535).optional(),
+    imap_user: z.string().max(200).optional(),
+    imap_password: z.string().max(500).optional(),
+    imap_ssl: z.boolean().optional(),
+    imap_folder: z.string().max(100).optional(),
+    sender_name: z.string().max(200).optional(),
+    sender_email: z.string().email('Email inválido').optional().or(z.literal('')),
+    is_default: z.boolean().optional(),
+    is_active: z.boolean().optional(),
+    daily_limit: z.number().int().min(1).max(50000).optional()
+});
+
+const createCampaignSchema = z.object({
+    event_id: z.string().optional().nullable(),
+    account_id: z.string().min(1, 'account_id requerido'),
+    name: z.string().min(1, 'Nombre requerido').max(200),
+    subject: z.string().max(500).optional(),
+    body_html: z.string().max(100000).optional(),
+    recipient_type: z.enum(['all', 'confirmed', 'pending', 'group']).optional(),
+    recipient_group_id: z.string().max(100).optional().nullable(),
+    scheduled_at: z.string().optional().nullable()
+});
 
 // ============================================================
 // HELPERS
@@ -122,6 +156,11 @@ router.get('/accounts/:id', (req, res) => {
 // POST /api/email/accounts - Crear cuenta
 router.post('/accounts', (req, res) => {
     try {
+        const parseResult = createAccountSchema.safeParse(req.body);
+        if (!parseResult.success) {
+            return res.status(400).json({ errors: parseResult.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+        }
+
         const {
             event_id = null,
             name,
@@ -141,11 +180,7 @@ router.post('/accounts', (req, res) => {
             is_default = false,
             is_active = true,
             daily_limit = 500
-        } = req.body;
-        
-        if (!name) {
-            return res.status(400).json({ error: 'El nombre es requerido' });
-        }
+        } = parseResult.data;
         
         const id = uuidv4();
         const now = new Date().toISOString();
@@ -700,6 +735,11 @@ router.get('/campaigns/:id', (req, res) => {
 // POST /api/email/campaigns - Crear campaña
 router.post('/campaigns', (req, res) => {
     try {
+        const parseResult = createCampaignSchema.safeParse(req.body);
+        if (!parseResult.success) {
+            return res.status(400).json({ errors: parseResult.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+        }
+
         const {
             event_id,
             account_id,
@@ -709,11 +749,7 @@ router.post('/campaigns', (req, res) => {
             recipient_type = 'all',
             recipient_group_id = null,
             scheduled_at = null
-        } = req.body;
-        
-        if (!name || !account_id) {
-            return res.status(400).json({ error: 'Nombre y cuenta son requeridos' });
-        }
+        } = parseResult.data;
         
         const id = uuidv4();
         const now = new Date().toISOString();
@@ -1034,7 +1070,7 @@ function startCampaignScheduler() {
 startCampaignScheduler();
 
 // POST /api/email/send - Enviar email individual
-router.post('/send', async (req, res) => {
+router.post('/send', limiters.emailLimiter, async (req, res) => {
     try {
         const { account_id, to, subject, body_html, body_text, variables = {} } = req.body;
         

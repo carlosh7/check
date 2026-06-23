@@ -71,6 +71,7 @@ const { logChange } = require('../utils/change-log');
 const QRCode = require('qrcode');
 const rateLimit = require('express-rate-limit');
 const { getEventDb } = require('../utils/event-db');
+const { limiters } = require('../middleware/rate-limiter');
 
 const router = express.Router();
 
@@ -161,20 +162,38 @@ router.get('/:eventId', authMiddleware(), (req, res) => {
 // Importar preview (PENDIENTE - necesita implementación completa)
 // router.post('/import-preview', authMiddleware(), async (req, res) => { ... });
 
+const importConfirmSchema = z.object({
+    event_id: z.string().min(1, 'event_id requerido'),
+    mapping: z.object({
+        name: z.number().int().min(0).optional(),
+        email: z.number().int().min(0).optional(),
+        organization: z.number().int().min(0).optional(),
+        phone: z.number().int().min(0).optional(),
+        gender: z.number().int().min(0).optional(),
+        position: z.number().int().min(0).optional(),
+        dietary_notes: z.number().int().min(0).optional()
+    }).optional()
+});
+
 // Importar confirmados
-router.post('/import-confirm', authMiddleware(), async (req, res) => {
+router.post('/import-confirm', limiters.importLimiter, authMiddleware(), async (req, res) => {
     console.log('[IMPORT-CONFIRM] ========== INICIO IMPORT ==========');
-    
+
+    const parseResult = importConfirmSchema.safeParse(req.body);
+    if (!parseResult.success) {
+        return res.status(400).json({ errors: parseResult.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+    }
+
     const session = tempImport[req.userId];
     if (!session || !require('fs').existsSync(session.filePath)) {
         return res.status(400).json({ error: 'Sesión expirada' });
     }
-    
+
     const fs = require('fs');
     const pdfParse = require('pdf-parse');
     const ExcelJS = require('exceljs');
-    
-    const { mapping, event_id } = req.body;
+
+    const { mapping, event_id } = parseResult.data;
     console.log('[IMPORT-CONFIRM] event_id:', event_id);
     
     const eId = castId('events', event_id);

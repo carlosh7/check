@@ -3,10 +3,20 @@
  */
 
 const express = require('express');
+const { z } = require('zod');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+
+const updateLegalSchema = z.object({
+    type: z.enum(['policy', 'terms'], { errorMap: () => ({ message: 'type debe ser "policy" o "terms"' }) }),
+    content: z.string().min(1, 'Contenido requerido')
+});
+
+const purgeSchema = z.object({
+    confirm: z.literal('PURGE', { errorMap: () => ({ message: 'confirm debe ser "PURGE" para eliminar todos los datos' }) })
+});
 
 // Obtener settings
 router.get('/', authMiddleware(['ADMIN']), (req, res) => {
@@ -32,11 +42,13 @@ router.put('/', authMiddleware(['ADMIN']), (req, res) => {
 // Legal texts (policy/terms)
 router.put('/legal', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        const { type, content } = req.body;
-        const key = type === 'policy' ? 'legal_policy' : 'legal_terms';
-        if (type && content !== undefined) {
-            db.prepare("INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)").run(key, content);
+        const result = updateLegalSchema.safeParse(req.body);
+        if (!result.success) {
+            return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
         }
+        const { type, content } = result.data;
+        const key = type === 'policy' ? 'legal_policy' : 'legal_terms';
+        db.prepare("INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)").run(key, content);
         res.json({ success: true });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
@@ -52,6 +64,11 @@ router.get('/legal', (req, res) => {
 
 // Admin: purge database (DANGEROUS)
 router.post('/purge', authMiddleware(['ADMIN']), (req, res) => {
+    const result = purgeSchema.safeParse(req.body);
+    if (!result.success) {
+        return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+    }
+
     console.warn(`[ADMIN] PURGE requested by user: ${req.userId}`);
 
     try {

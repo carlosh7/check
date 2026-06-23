@@ -32,6 +32,7 @@ const { generateToken, verifyToken } = require('../security/jwt');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { authMiddleware } = require('../middleware/auth');
 const { blacklistToken } = require('../security/jwt');
+const { limiters } = require('../middleware/rate-limiter');
 
 const router = express.Router();
 
@@ -56,7 +57,7 @@ const router = express.Router();
  *       400:
  *         description: Credenciales inválidas
  */
-router.post('/login',
+router.post('/login', limiters.authLimiter,
     body('username').isString().trim().notEmpty().withMessage('Usuario requerido'),
     body('password').isString().notEmpty().withMessage('Contraseña requerida'),
     function(req, res) {
@@ -157,7 +158,7 @@ router.post('/logout', authMiddleware(), (req, res) => {
  *       201: { description: Usuario creado }
  *       400: { description: Error de validación }
  */
-router.post('/signup', (req, res) => {
+router.post('/signup', limiters.authLimiter, (req, res) => {
     const v = validate(schemas.signup, req.body);
     if (!v.valid) return res.status(400).json({ errors: v.errors });
 

@@ -55,6 +55,28 @@ const limiters = {
         max: 1000,
         message: { error: 'Demasiadas peticiones via API key' },
         keyGenerator: (req) => req.headers['x-api-key'] || req.ip
+    }),
+
+    // Granular limiters for specific endpoints
+    authLimiter: createLimiter({
+        windowMs: 60 * 1000,
+        max: 5,
+        message: { error: 'Demasiados intentos de autenticación. Espera 1 minuto.' }
+    }),
+    importLimiter: createLimiter({
+        windowMs: 60 * 1000,
+        max: 3,
+        message: { error: 'Demasiadas operaciones de importación. Espera 1 minuto.' }
+    }),
+    emailLimiter: createLimiter({
+        windowMs: 60 * 1000,
+        max: 10,
+        message: { error: 'Demasiados envíos de email. Espera 1 minuto.' }
+    }),
+    webhookLimiter: createLimiter({
+        windowMs: 60 * 1000,
+        max: 20,
+        message: { error: 'Demasiadas peticiones de webhooks. Espera 1 minuto.' }
     })
 };
 

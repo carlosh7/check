@@ -8,6 +8,7 @@ const path = require('path');
 const { db } = require('./database');
 const fs = require('fs');
 const helmet = require('helmet');
+const logger = require('./src/utils/logger');
 
 // Middleware de seguridad
 const { csrfMiddleware, securityHeaders } = require('./src/middleware/csrf');
@@ -43,9 +44,9 @@ const port = process.env.PORT || 3000;
 global.emailService = null;
 try {
     global.emailService = require('./src/utils/email-service');
-    console.log('✓ Email Service inicializado');
+    logger.info('Email Service inicializado');
 } catch (e) {
-    console.warn('⚠ Email Service no disponible:', e.message);
+    logger.warn('Email Service no disponible: ' + e.message);
 }
 
 function replaceTemplateVariables(template, data) {
@@ -58,12 +59,12 @@ function replaceTemplateVariables(template, data) {
 
 // Envío básico de emails transaccionales (legacy - para compatibilidad)
 async function sendEmail(to, subject, html, options = {}) {
-    console.log('📧 sendEmail() legado llamado - migrar a email-service.js');
+    logger.debug('sendEmail() legado llamado - migrar a email-service.js');
     // Si hay un servicio de email configurado, lo usamos
     if (global.emailService) {
         return global.emailService.sendEmail({ to, subject, html, ...options });
     }
-    console.log('📧 Email simulation (no email service configured):', { to, subject });
+    logger.info('Email simulation (no email service configured):', { to, subject });
     return { success: true, simulated: true };
 }
 
@@ -128,6 +129,10 @@ app.use(function (req, res, next) {
 const { requestLogger } = require('./src/middleware/logger');
 app.use(requestLogger);
 
+// Request counter para métricas /api/metrics
+const { requestCounterMiddleware } = require('./src/routes/stats.routes');
+app.use(requestCounterMiddleware);
+
 app.use(cors({
     origin: function (origin, callback) {
         // 1. Permitir peticiones sin origen (apps móviles, Postman o carga directa de assets)
@@ -142,7 +147,7 @@ app.use(cors({
         if (isLocal || isWhitelisted) {
             callback(null, true);
         } else {
-            console.log(`[CORS] Bloqueado origin: ${origin}`);
+            logger.warn('CORS Bloqueado origin: ' + origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
@@ -255,7 +260,7 @@ if (!swaggerUi || isProduction) {
     app.use('/api-docs', (req, res) => {
         res.status(404).json({ error: 'API Docs no disponible en producción' });
     });
-    console.log('⚠️  Swagger UI deshabilitado en producción');
+    logger.info('Swagger UI deshabilitado en producción');
 } else {
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
         customCss: '.swagger-ui .topbar { display: none }',
@@ -264,7 +269,7 @@ if (!swaggerUi || isProduction) {
 }
 
 // --- MIGRACIONES AUTOMÁTICAS (BL-23) ---
-try { require('./src/utils/migrate').runPending(); } catch(e) { console.error('[MIGRATE] Error:', e.message); }
+try { require('./src/utils/migrate').runPending(); } catch(e) { logger.error('MIGRATE Error: ' + e.message); }
 
 // --- RUTAS PÚBLICAS DE RULETA (antes del registro de rutas) ---
 // Debe estar ANTES de registerRoutes para que tenga prioridad
@@ -313,7 +318,7 @@ app.use((req, res, next) => {
 // Prevenir exposición de stack traces en producción
 app.use((err, req, res, next) => {
     // Loguear error completo para debugging
-    console.error('[ERROR]', {
+    logger.error('Unhandled error', {
         message: err.message,
         stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
         path: req.path,
@@ -354,9 +359,9 @@ app.use((req, res) => {
 try {
     const { startBackupScheduler } = require('./src/utils/backup');
     startBackupScheduler();
-    console.log('✓ Backup Scheduler inicializado (cada 6 horas)');
+    logger.info('Backup Scheduler inicializado (cada 6 horas)');
 } catch (e) {
-    console.warn('⚠️ Backup Scheduler no disponible:', e.message);
+    logger.warn('Backup Scheduler no disponible: ' + e.message);
 }
 
 // Limpiar token blacklist cada 6 horas (junto con backups)
@@ -364,11 +369,11 @@ try {
     const { cleanBlacklist } = require('./src/security/jwt');
     setInterval(() => {
         const removed = cleanBlacklist();
-        if (removed > 0) console.log(`[BLACKLIST] ${removed} tokens expirados eliminados`);
+        if (removed > 0) logger.info(`${removed} tokens expirados eliminados de blacklist`);
     }, 6 * 60 * 60 * 1000);
-    console.log('✓ Token Blacklist cleanup scheduler iniciado');
+    logger.info('Token Blacklist cleanup scheduler iniciado');
 } catch (e) {
-    console.warn('⚠️ Blacklist cleanup no disponible:', e.message);
+    logger.warn('Blacklist cleanup no disponible: ' + e.message);
 }
 
 // ═══ PLUGIN ENGINE (C11-09) ═══
@@ -376,10 +381,10 @@ try {
     const { initPlugins, seedDefaultPlugins } = require('./src/engine/plugin-engine');
     seedDefaultPlugins();
     initPlugins();
-    console.log('✓ Plugin Engine inicializado');
+    logger.info('Plugin Engine inicializado');
 } catch (e) {
-    console.warn('⚠️ Plugin Engine no disponible:', e.message);
+    logger.warn('Plugin Engine no disponible: ' + e.message);
 }
 
 // ═══ ARRANQUE DEL SERVIDOR ═══
-server.listen(port, '0.0.0.0', () => console.log(`\x1b[35mCHECK PRO V${APP_VERSION} (Enterprise Grade + Backups + Rate Limiting): Puerto ${port}\x1b[0m`));
+server.listen(port, '0.0.0.0', () => logger.info(`CHECK PRO V${APP_VERSION} (Enterprise Grade + Backups + Rate Limiting): Puerto ${port}`));

@@ -2,10 +2,30 @@
  * Rutas de Estadísticas
  */
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const { db, getEventConnection } = require('../../database');
 const { castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { logPerformance } = require('../utils/webhooks');
+
+// ─── Request Counter (para métricas) ───
+let totalRequests = 0;
+let activeConnections = 0;
+const requestTimestamps = [];
+
+function requestCounterMiddleware(req, res, next) {
+    totalRequests++;
+    activeConnections++;
+    const now = Date.now();
+    requestTimestamps.push(now);
+    // Limpiar timestamps viejos (>60s)
+    while (requestTimestamps.length > 0 && requestTimestamps[0] < now - 60000) {
+        requestTimestamps.shift();
+    }
+    res.on('finish', () => { activeConnections = Math.max(0, activeConnections - 1); });
+    next();
+}
 
 const router = express.Router();
 const statsCache = new Map();
@@ -409,6 +429,85 @@ router.get('/health/system', authMiddleware(['ADMIN']), (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── Real-time Metrics (Monitoring) ───
+router.get('/metrics', authMiddleware(['ADMIN']), requestCounterMiddleware, (req, res) => {
+    try {
+        // Uptime
+        const uptimeSeconds = Math.floor(process.uptime());
+
+        // Memory
+        const mem = process.memoryUsage();
+
+        // CPU
+        const cpu = process.cpuUsage();
+
+        // Requests per minute (from timestamps in last 60s)
+        const now = Date.now();
+        while (requestTimestamps.length > 0 && requestTimestamps[0] < now - 60000) {
+            requestTimestamps.shift();
+        }
+        const requestsPerMinute = requestTimestamps.length;
+
+        // DB size via PRAGMA
+        let dbSize = '0KB';
+        try {
+            const pageCount = db.prepare('PRAGMA page_count').get();
+            const pageSize = db.prepare('PRAGMA page_size').get();
+            const sizeBytes = (pageCount?.page_count || 0) * (pageSize?.page_size || 0);
+            if (sizeBytes >= 1048576) {
+                dbSize = (sizeBytes / 1048576).toFixed(1) + 'MB';
+            } else if (sizeBytes >= 1024) {
+                dbSize = Math.round(sizeBytes / 1024) + 'KB';
+            } else {
+                dbSize = sizeBytes + 'B';
+            }
+        } catch (e) {}
+
+        // Backup info
+        const BACKUP_DIR = process.env.DATA_PATH
+            ? path.join(process.env.DATA_PATH, 'system', 'backups')
+            : '/usr/src/app/persistence/system/backups';
+
+        let backupCount = 0;
+        let lastBackup = null;
+        try {
+            if (fs.existsSync(BACKUP_DIR)) {
+                const files = fs.readdirSync(BACKUP_DIR)
+                    .filter(f => f.startsWith('check_app_backup_') && f.endsWith('.db'));
+                backupCount = files.length;
+                if (files.length > 0) {
+                    const sorted = files.sort().reverse();
+                    const latestPath = path.join(BACKUP_DIR, sorted[0]);
+                    const stat = fs.statSync(latestPath);
+                    lastBackup = stat.mtime.toISOString();
+                }
+            }
+        } catch (e) {}
+
+        res.json({
+            uptime: uptimeSeconds,
+            memory: {
+                rss: mem.rss,
+                heapUsed: mem.heapUsed,
+                heapTotal: mem.heapTotal
+            },
+            cpu: {
+                user: cpu.user,
+                system: cpu.system
+            },
+            activeConnections,
+            totalRequests,
+            requestsPerMinute,
+            dbSize,
+            backupCount,
+            lastBackup
+        });
+    } catch (err) {
+        console.error('[METRICS] Error:', err.message);
+        res.status(500).json({ error: 'Error al obtener métricas' });
+    }
+});
+
 // ─── Performance logs (C7-01) ───
 router.get('/performance/logs', authMiddleware(['ADMIN']), (req, res) => {
     try {
@@ -429,3 +528,4 @@ router.post('/system/backup', authMiddleware(['ADMIN']), async (req, res) => {
 });
 
 module.exports = router;
+module.exports.requestCounterMiddleware = requestCounterMiddleware;

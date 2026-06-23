@@ -20,12 +20,15 @@
         "my_events": "My Events",
         "admin": "Admin",
         "event_config": "Event",
+        "config": "Settings",
         "system": "System",
         "dashboard": "Dashboard"
     },
     "event": {
         "title": "Events",
         "create": "New Event",
+        "new": "New Event",
+        "edit": "Edit Event",
         "name": "Event name",
         "date": "Date",
         "location": "Location",
@@ -33,18 +36,27 @@
         "guests": "Guests",
         "checkin": "Check-in",
         "clone": "Clone",
+        "import": "Import Event",
+        "export": "Export Event",
+        "search": "Search Event",
+        "empty": "No events available",
         "delete_confirm": "Delete event?"
     },
     "guest": {
         "title": "Guests",
+        "add": "Add Guest",
+        "edit": "Edit Guest",
+        "delete": "Delete Guest",
         "import": "Import",
         "export": "Export",
         "name": "Name",
         "email": "Email",
         "phone": "Phone",
         "checkin": "Check-in",
+        "search": "Search Guest",
         "pending": "Pending",
-        "checked_in": "Attended"
+        "checked_in": "Attended",
+        "empty": "No guests available"
     },
     "wheel": {
         "title": "Wheel",
@@ -67,6 +79,19 @@
         "profile": "Profile",
         "language": "Language",
         "spanish": "Spanish",
-        "english": "English"
+        "english": "English",
+        "save": "Save Changes",
+        "cancel": "Cancel Changes",
+        "delete": "Delete Settings",
+        "confirm": "Confirm changes?"
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "An error has occurred",
+        "success": "Operation successful",
+        "warning": "Warning",
+        "confirm": "Are you sure?",
+        "yes": "Yes",
+        "no": "No"
     }
 }

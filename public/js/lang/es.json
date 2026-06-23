@@ -20,12 +20,15 @@
         "my_events": "Mis Eventos",
         "admin": "Admin",
         "event_config": "Evento",
+        "config": "Configuración",
         "system": "Sistema",
         "dashboard": "Dashboard"
     },
     "event": {
         "title": "Eventos",
         "create": "Nuevo Evento",
+        "new": "Nuevo Evento",
+        "edit": "Editar Evento",
         "name": "Nombre del evento",
         "date": "Fecha",
         "location": "Ubicación",
@@ -33,18 +36,27 @@
         "guests": "Invitados",
         "checkin": "Check-in",
         "clone": "Clonar",
+        "import": "Importar Evento",
+        "export": "Exportar Evento",
+        "search": "Buscar Evento",
+        "empty": "No hay eventos disponibles",
         "delete_confirm": "¿Eliminar evento?"
     },
     "guest": {
         "title": "Invitados",
+        "add": "Agregar Invitado",
+        "edit": "Editar Invitado",
+        "delete": "Eliminar Invitado",
         "import": "Importar",
         "export": "Exportar",
         "name": "Nombre",
         "email": "Email",
         "phone": "Teléfono",
         "checkin": "Check-in",
+        "search": "Buscar Invitado",
         "pending": "Pendiente",
-        "checked_in": "Asistió"
+        "checked_in": "Asistió",
+        "empty": "No hay invitados disponibles"
     },
     "wheel": {
         "title": "Ruleta",
@@ -67,6 +79,19 @@
         "profile": "Perfil",
         "language": "Idioma",
         "spanish": "Español",
-        "english": "Inglés"
+        "english": "Inglés",
+        "save": "Guardar Cambios",
+        "cancel": "Cancelar Cambios",
+        "delete": "Eliminar Configuración",
+        "confirm": "¿Confirmar cambios?"
+    },
+    "common": {
+        "loading": "Cargando...",
+        "error": "Ha ocurrido un error",
+        "success": "Operación exitosa",
+        "warning": "Advertencia",
+        "confirm": "¿Está seguro?",
+        "yes": "Sí",
+        "no": "No"
     }
 }

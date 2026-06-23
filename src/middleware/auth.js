@@ -4,15 +4,16 @@
  */
 
 const { verifyToken } = require('../security/jwt');
+const logger = require('../utils/logger');
 
 let db;
 const dbPath = require('path').resolve(__dirname, '../../database.js');
 try {
     const mod = require(dbPath);
     db = mod.db;
-    console.log('[AUTH] DB loaded from database.js');
+    logger.info('[AUTH] DB loaded from database.js');
 } catch (e) {
-    console.log('[AUTH] Fallback to direct DB connection, error:', e.message);
+    logger.debug('[AUTH] Fallback to direct DB connection, error: ' + e.message);
     const Database = require('better-sqlite3');
     // Buscar en múltiples ubicaciones posibles
     const possiblePaths = [
@@ -31,9 +32,9 @@ try {
     }
     if (dbFile) {
         db = new Database(dbFile);
-        console.log('[AUTH] DB loaded from:', dbFile);
+        logger.info('[AUTH] DB loaded from: ' + dbFile);
     } else {
-        console.error('[AUTH] Database file not found in any location');
+        logger.error('[AUTH] Database file not found in any location');
     }
 }
 
@@ -62,9 +63,9 @@ function authMiddleware(roles = []) {
         }
 
         try {
-            console.log('[AUTH DEBUG] Buscando usuario con ID:', userId);
+            logger.debug('[AUTH DEBUG] Buscando usuario con ID: ' + userId);
             const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
-            console.log('[AUTH DEBUG] Usuario encontrado:', user ? user.username : 'NO ENCONTRADO');
+            logger.debug('[AUTH DEBUG] Usuario encontrado: ' + (user ? user.username : 'NO ENCONTRADO'));
             if (!user) {
                 return res.status(401).json({ error: 'Token inválido' });
             }
@@ -74,7 +75,7 @@ function authMiddleware(roles = []) {
             }
 
             if (roles.length > 0 && !roles.includes(user.role)) {
-                console.log('[AUTH] Rol del usuario:', user.role, 'Roles permitidos:', roles);
+                logger.warn('[AUTH] Rol del usuario: ' + user.role + ' Roles permitidos: ' + roles.join(', '));
                 return res.status(403).json({ error: 'Acceso denegado' });
             }
 
@@ -84,7 +85,7 @@ function authMiddleware(roles = []) {
             req.userGroupId = user.group_id;
             next();
         } catch (e) {
-            console.log('[AUTH ERROR]', e.message);
+            logger.error('[AUTH ERROR] ' + e.message);
             return res.status(401).json({ error: 'Error de autenticación' });
         }
     };

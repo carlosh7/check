@@ -1,9 +1,17 @@
 const express = require('express');
+const { z } = require('zod');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+
+const createProposalSchema = z.object({
+    guest_name: z.string().min(1, 'Nombre requerido').max(200),
+    guest_email: z.string().email('Email inválido').optional().or(z.literal('')),
+    title: z.string().min(1, 'Título requerido').max(300),
+    description: z.string().max(5000).optional()
+});
 
 // GET /api/events/:eventId/proposals — public
 router.get('/events/:eventId/proposals', (req, res) => {
@@ -16,8 +24,11 @@ router.get('/events/:eventId/proposals', (req, res) => {
 // POST /api/events/:eventId/proposals — public submit
 router.post('/events/:eventId/proposals', (req, res) => {
     try {
-        var { guest_name, guest_email, title, description } = req.body;
-        if (!guest_name || !title) return res.status(400).json({ error: 'Nombre y título requeridos' });
+        const result = createProposalSchema.safeParse(req.body);
+        if (!result.success) {
+            return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
+        }
+        var { guest_name, guest_email, title, description } = result.data;
         var id = uuidv4();
         db.prepare("INSERT INTO proposals (id, event_id, guest_name, guest_email, title, description) VALUES (?, ?, ?, ?, ?, ?)").run(
             id, req.params.eventId, guest_name, guest_email || '', title, description || ''

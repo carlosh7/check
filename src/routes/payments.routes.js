@@ -6,6 +6,8 @@ const { authMiddleware } = require('../middleware/auth');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 const { getEventDb } = require('../utils/event-db');
+const logger = require('../utils/logger');
+const { limiters } = require('../middleware/rate-limiter');
 
 const router = express.Router();
 
@@ -27,7 +29,7 @@ var checkoutSchema = z.object({
     category_id: z.string().min(1, 'Categoría requerida')
 });
 if (!process.env.STRIPE_SECRET_KEY) {
-    console.warn('⚠️ STRIPE_SECRET_KEY no configurada. Pagos con Stripe no disponibles.');
+    logger.warn('STRIPE_SECRET_KEY no configurada. Pagos con Stripe no disponibles.');
 }
 const stripeKey = process.env.STRIPE_SECRET_KEY || '';
 const stripe = stripeKey ? require('stripe')(stripeKey) : null;
@@ -157,7 +159,7 @@ router.post('/events/:eventId/checkout', (req, res) => {
 
 // ── Webhook Stripe ──
 
-router.post('/webhooks/stripe', (req, res) => {
+router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
     var sig = req.headers['stripe-signature'];
     var endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!endpointSecret) return res.status(500).json({ error: 'Stripe webhook secret no configurado' });
@@ -165,7 +167,7 @@ router.post('/webhooks/stripe', (req, res) => {
     try {
         var event2 = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     } catch (err) {
-        console.error('[PAYMENTS] Stripe webhook signature verification failed:', err.message);
+        logger.error('[PAYMENTS] Stripe webhook signature verification failed: ' + err.message);
         return res.status(400).send('Signature verification failed');
     }
 
@@ -202,7 +204,7 @@ router.post('/webhooks/stripe', (req, res) => {
                             var gId = createGuestFromTxn(txn, catId, now, eventDb);
                             if (!firstGuestId) firstGuestId = gId;
                         });
-                    } catch(e) { console.error('[PAYMENTS] Error procesando categorías:', e.message); }
+                    } catch(e) { logger.error('[PAYMENTS] Error procesando categorías: ' + e.message); }
                 }
 
                 if (!firstGuestId) {
@@ -210,9 +212,9 @@ router.post('/webhooks/stripe', (req, res) => {
                 }
 
                 db.prepare("UPDATE transactions SET guest_id = ? WHERE id = ?").run(firstGuestId, txnId);
-                try { triggerWebhooks(txn.event_id, 'PAYMENT_COMPLETED', { transactionId: txnId, guestId: firstGuestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }); } catch(e) { console.error('[PAYMENTS] Error trigger webhook:', e.message); }
-                try { logAction(req, 'PAYMENT_COMPLETED', { eventId: txn.event_id, transactionId: txnId, guestId: firstGuestId, amount: txn.amount }); } catch(e) { console.error('[PAYMENTS] Error log action:', e.message); }
-                console.log('[PAYMENTS] Checkout completado:', txnId);
+                try { triggerWebhooks(txn.event_id, 'PAYMENT_COMPLETED', { transactionId: txnId, guestId: firstGuestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }); } catch(e) { logger.error('[PAYMENTS] Error trigger webhook: ' + e.message); }
+                try { logAction(req, 'PAYMENT_COMPLETED', { eventId: txn.event_id, transactionId: txnId, guestId: firstGuestId, amount: txn.amount }); } catch(e) { logger.error('[PAYMENTS] Error log action: ' + e.message); }
+                logger.info('[PAYMENTS] Checkout completado: ' + txnId);
             }
         }
     }
@@ -238,7 +240,7 @@ router.post('/webhooks/stripe', (req, res) => {
                 try { triggerWebhooks(txn.event_id, 'PAYMENT_COMPLETED', { transactionId: txnId, guestId: guestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }); } catch(e) {}
                 try { logAction(req, 'PAYMENT_COMPLETED', { eventId: txn.event_id, transactionId: txnId, guestId: guestId, amount: txn.amount }); } catch(e) {}
 
-                console.log('[PAYMENTS] Pago completado:', txnId, '- Guest creado:', guestId);
+                logger.info('[PAYMENTS] Pago completado: ' + txnId + ' - Guest creado: ' + guestId);
             }
         }
     }
@@ -319,7 +321,7 @@ router.get('/transactions/:id/receipt', authMiddleware(['ADMIN', 'PRODUCTOR']), 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename=recibo_' + txn.id.slice(0, 8) + '.pdf');
         res.send(Buffer.from(doc.output('arraybuffer')));
-    } catch(err) { console.error('[RECEIPT] Error:', err.message); res.status(500).json({ error: err.message }); }
+    } catch(err) { logger.error('[RECEIPT] Error: ' + err.message); res.status(500).json({ error: err.message }); }
 });
 
 // ─── Coupons (C4-06) ───
