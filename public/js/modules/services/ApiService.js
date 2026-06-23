@@ -76,23 +76,23 @@ class ApiService {
     }
     
     async getGuests(eventId) {
-        return this.get(`/events/${eventId}/guests`);
+        return this.get(`/guests/${eventId}`);
     }
     
     async addGuest(eventId, guestData) {
-        return this.post(`/events/${eventId}/guests`, guestData);
+        return this.post(`/guests/${eventId}`, guestData);
     }
     
     async updateGuest(eventId, guestId, guestData) {
-        return this.put(`/events/${eventId}/guests/${guestId}`, guestData);
+        return this.put(`/guests/${eventId}/guests/${guestId}`, guestData);
     }
     
     async deleteGuest(eventId, guestId) {
-        return this.delete(`/events/${eventId}/guests/${guestId}`);
+        return this.delete(`/guests/${eventId}/guests/${guestId}`);
     }
     
     async checkInGuest(eventId, guestId) {
-        return this.post(`/events/${eventId}/guests/${guestId}/checkin`, {});
+        return this.post(`/guests/checkin/${guestId}`, {});
     }
     
     async getUsers() {
@@ -112,11 +112,11 @@ class ApiService {
     }
     
     async login(credentials) {
-        return this.post('/auth/login', credentials);
+        return this.post('/login', credentials);
     }
     
     async logout() {
-        return this.post('/auth/logout', {});
+        return this.post('/logout', {});
     }
     
     // Manejo de errores

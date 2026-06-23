@@ -5,7 +5,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
-const { loadPlugin, unloadPlugin } = require('../engine/plugin-engine');
+const { loadPlugin } = require('../engine/plugin-engine');
 
 const router = express.Router();
 

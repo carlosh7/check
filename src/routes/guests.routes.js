@@ -60,7 +60,7 @@
 const express = require('express');
 const ExcelJS = require('exceljs');
 const { v4: uuidv4 } = require('uuid');
-const { db, getEventConnection, eventDatabaseExists } = require('../../database');
+const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { getIO: socketGetIO } = require('../socket');
@@ -69,40 +69,11 @@ const { sendPushToEventUsers } = require('./push.routes');
 const { logChange } = require('../utils/change-log');
 const QRCode = require('qrcode');
 const rateLimit = require('express-rate-limit');
+const { getEventDb } = require('../utils/event-db');
 
 const router = express.Router();
 
 let tempImport = {};
-
-// Función helper para obtener la BD correcta según el evento
-function getEventDb(eventId) {
-    console.log('[GET-EVENT-DB guests] ========== INICIO ==========');
-    console.log('[GET-EVENT-DB guests] eventId:', eventId);
-    
-    if (!eventId) {
-        console.log('[GET-EVENT-DB guests] eventId es null, retorno DB sistema');
-        return db;
-    }
-    
-    const event = db.prepare("SELECT id, has_own_db, name FROM events WHERE id = ?").get(eventId);
-    console.log('[GET-EVENT-DB guests] Evento encontrado:', event);
-    
-    if (!event) {
-        console.log('[GET-EVENT-DB guests] Evento no encontrado, retorno DB sistema');
-        return db;
-    }
-    
-    console.log('[GET-EVENT-DB guests] has_own_db:', event.has_own_db, 'exists:', eventDatabaseExists(eventId));
-    
-    if (event.has_own_db === 1 && eventDatabaseExists(eventId)) {
-        const eventDb = getEventConnection(eventId);
-        console.log('[GET-EVENT-DB guests] retorneando DB EVENTO:', eventDb ? 'SI' : 'NO');
-        if (eventDb) return eventDb;
-    }
-    
-    console.log('[GET-EVENT-DB guests] retorno DB sistema');
-    return db;
-}
 
 // Obtener invitado por ID (público - para tickets)
 router.get('/by-id/:guestId', (req, res) => {

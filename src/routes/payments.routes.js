@@ -1,9 +1,10 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const { db, getEventConnection, eventDatabaseExists } = require('../../database');
+const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
+const { getEventDb } = require('../utils/event-db');
 
 const router = express.Router();
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -220,15 +221,6 @@ router.post('/webhooks/stripe', (req, res) => {
 
     res.json({ received: true });
 });
-
-function getEventDb(eventId) {
-    var ev = db.prepare("SELECT has_own_db FROM events WHERE id = ?").get(eventId);
-    if (ev && ev.has_own_db === 1 && eventDatabaseExists(eventId)) {
-        var conn = getEventConnection(eventId);
-        if (conn) return conn;
-    }
-    return db;
-}
 
 // ── Listar transacciones ──
 

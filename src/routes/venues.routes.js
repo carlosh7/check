@@ -6,7 +6,6 @@ const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
-const { CACHE_KEYS, del } = require('../utils/cache');
 
 const router = express.Router();
 

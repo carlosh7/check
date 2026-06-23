@@ -3,20 +3,12 @@
  */
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const { db, getEventConnection, eventDatabaseExists } = require('../../database');
+const { db } = require('../../database');
 const { castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
+const { getEventDb } = require('../utils/event-db');
 
 const router = express.Router();
-
-function getEventDb(eventId) {
-    const event = db.prepare("SELECT has_own_db FROM events WHERE id = ?").get(eventId);
-    if (event && event.has_own_db === 1 && eventDatabaseExists(eventId)) {
-        const eventDb = getEventConnection(eventId);
-        if (eventDb) return eventDb;
-    }
-    return db;
-}
 
 // ─── CRUD Templates ───
 

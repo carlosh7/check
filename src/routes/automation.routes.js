@@ -2,7 +2,6 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
-const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 
 const router = express.Router();
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
-const { logAction, AUDIT_ACTIONS } = require('../security/audit');
+const { logAction } = require('../security/audit');
 
 const router = express.Router();
 
