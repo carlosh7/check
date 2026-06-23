@@ -69,7 +69,7 @@ const createClientSchema = z.object({
     name: z.string().min(1, 'Nombre requerido').max(200),
     email: z.string().email('Email inválido').optional().or(z.literal('')),
     phone: z.string().max(30).optional(),
-    group_id: z.union([z.string(), z.number()]).min(1, 'Empresa requerida')
+    group_id: z.string().min(1, 'Empresa requerida')
 });
 
 const updateClientSchema = z.object({
