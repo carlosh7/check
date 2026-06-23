@@ -31,6 +31,7 @@ const { schemas, validate } = require('../security/validation');
 const { generateToken, verifyToken } = require('../security/jwt');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { authMiddleware } = require('../middleware/auth');
+const { blacklistToken } = require('../security/jwt');
 
 const router = express.Router();
 
@@ -113,6 +114,27 @@ router.post('/login',
         console.error('[AUTH] Critical Error during login:', error);
         res.status(500).json({ success: false, message: 'Error interno del servidor' });
     }
+});
+
+/**
+ * @openapi
+ * /api/logout:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Cerrar sesión (revocar token)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200: { description: Sesión cerrada }
+ */
+router.post('/logout', authMiddleware(), (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        blacklistToken(token);
+    }
+    logAction(req, AUDIT_ACTIONS.LOGIN, { username: req.user?.username, action: 'logout' });
+    res.json({ success: true, message: 'Sesión cerrada' });
 });
 
 /**

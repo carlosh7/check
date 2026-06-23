@@ -359,6 +359,18 @@ try {
     console.warn('⚠️ Backup Scheduler no disponible:', e.message);
 }
 
+// Limpiar token blacklist cada 6 horas (junto con backups)
+try {
+    const { cleanBlacklist } = require('./src/security/jwt');
+    setInterval(() => {
+        const removed = cleanBlacklist();
+        if (removed > 0) console.log(`[BLACKLIST] ${removed} tokens expirados eliminados`);
+    }, 6 * 60 * 60 * 1000);
+    console.log('✓ Token Blacklist cleanup scheduler iniciado');
+} catch (e) {
+    console.warn('⚠️ Blacklist cleanup no disponible:', e.message);
+}
+
 // ═══ PLUGIN ENGINE (C11-09) ═══
 try {
     const { initPlugins, seedDefaultPlugins } = require('./src/engine/plugin-engine');

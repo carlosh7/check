@@ -1,0 +1,68 @@
+-- Migración: baseline_schema
+-- Fecha: 2026-06-23
+-- Descripción: Esquema base del sistema Check Pro
+-- NOTA: Esta migración documenta el estado actual del esquema.
+--       Las tablas ya existen gracias a database.js, pero esta migración
+--       sirve como referencia y punto de partida para futuras migraciones.
+
+-- ═══ TABLAS PRINCIPALES ═══
+
+-- Usuarios del sistema (RBAC)
+-- CREATE TABLE IF NOT EXISTS users (
+--     id TEXT PRIMARY KEY,
+--     username TEXT UNIQUE,
+--     password TEXT,
+--     role TEXT DEFAULT 'PRODUCTOR',
+--     role_detail TEXT DEFAULT 'STAFF',
+--     group_id TEXT,
+--     status TEXT DEFAULT 'PENDING',
+--     display_name TEXT,
+--     totp_secret TEXT,
+--     totp_enabled INTEGER DEFAULT 0,
+--     created_at TEXT
+-- );
+
+-- Eventos (multitenancy)
+-- CREATE TABLE IF NOT EXISTS events (
+--     id TEXT PRIMARY KEY,
+--     user_id TEXT,
+--     name TEXT,
+--     date TEXT,
+--     end_date TEXT,
+--     location TEXT,
+--     logo_url TEXT,
+--     group_id TEXT,
+--     description TEXT,
+--     status TEXT DEFAULT 'ACTIVE',
+--     has_wheel INTEGER DEFAULT 0,
+--     has_own_db INTEGER DEFAULT 0,
+--     -- ... más columnas en database.js
+--     created_at TEXT
+-- );
+
+-- Invitados
+-- CREATE TABLE IF NOT EXISTS guests (
+--     id TEXT PRIMARY KEY,
+--     event_id TEXT,
+--     name TEXT,
+--     email TEXT,
+--     phone TEXT,
+--     organization TEXT,
+--     position TEXT,
+--     cargo TEXT,
+--     gender TEXT DEFAULT 'O',
+--     dietary_notes TEXT,
+--     restricciones TEXT,
+--     vegano TEXT DEFAULT 'NO',
+--     status TEXT DEFAULT 'lead',
+--     category_id TEXT,
+--     checked_in INTEGER DEFAULT 0,
+--     qr_token TEXT UNIQUE,
+--     -- ... más columnas en database.js
+--     created_at TEXT DEFAULT CURRENT_TIMESTAMP
+-- );
+
+-- ═══ ESTA MIGRACIÓN NO EJECUTA NADA ═══
+-- El esquema es creado por database.js al iniciar.
+-- Esta migración solo documenta el estado base.
+SELECT 1;

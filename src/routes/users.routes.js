@@ -124,7 +124,7 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     res.json(usersWithDetails);
 });
 
-router.post('/', (req, res) => {
+router.post('/', authMiddleware(['ADMIN']), (req, res) => {
     // Validar solo los campos que nos interesan, ignorando campos extra
     const { username, password, role, display_name } = req.body;
     const { group_id, event_id } = req.body; // Campos opcionales para asignación automática

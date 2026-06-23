@@ -1,7 +1,6 @@
 /**
  * Middleware de autenticación
- * ⚠️ SEGURIDAD: Solo JWT soportado desde v12.3
- * Legacy x-user-id header DEPRECADO - será eliminado en próxima versión
+ * Solo JWT soportado. El header x-user-id ha sido eliminado por seguridad.
  */
 
 const { verifyToken } = require('../security/jwt');
@@ -41,13 +40,10 @@ try {
 function authMiddleware(roles = []) {
     return (req, res, next) => {
         const authHeader = req.headers.authorization;
-        
-        // Soporte para x-user-id header (legacy pero necesario para compatibilidad)
-        const userIdHeader = req.headers['x-user-id'];
 
         let userId = null;
 
-        // PRIMERO: Intentar JWT desde header o query param (para descargas directas)
+        // JWT desde header Authorization o query param (para descargas directas)
         let token = null;
         if (authHeader && authHeader.startsWith('Bearer ')) {
             token = authHeader.substring(7);
@@ -59,12 +55,6 @@ function authMiddleware(roles = []) {
             if (decoded) {
                 userId = decoded.userId;
             }
-        }
-
-        // SEGUNDO: Si no hay JWT válido, intentar x-user-id (fallback legacy)
-        if (!userId && userIdHeader) {
-            console.warn(`[AUTH] Usando x-user-id legacy para IP: ${req.ip}`);
-            userId = userIdHeader;
         }
 
         if (!userId) {

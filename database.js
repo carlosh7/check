@@ -1470,6 +1470,17 @@ try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_logs_status ON email_logs(st
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_queue_status ON email_queue(status)"); } catch (_) {}
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_queue_campaign ON email_queue(campaign_id)"); } catch (_) {}
 
+// ═══ TOKEN BLACKLIST (JWT revocation) ═══
+db.exec(`CREATE TABLE IF NOT EXISTS token_blacklist (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    token_jti TEXT NOT NULL,
+    user_id TEXT,
+    expires_at TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+)`);
+try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_token_blacklist_jti ON token_blacklist(token_jti)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_token_blacklist_expires ON token_blacklist(expires_at)"); } catch (_) {}
+
 // ═══ SEMILLA DE ADMIN POR DEFECTO ═══
 const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
 if (userCount.count === 0) {
