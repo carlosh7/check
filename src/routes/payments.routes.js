@@ -6,7 +6,11 @@ const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 
 const router = express.Router();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
+if (!process.env.STRIPE_SECRET_KEY) {
+    console.warn('⚠️ STRIPE_SECRET_KEY no configurada. Pagos con Stripe no disponibles.');
+}
+const stripeKey = process.env.STRIPE_SECRET_KEY || '';
+const stripe = stripeKey ? require('stripe')(stripeKey) : null;
 
 // ── Checkout Session (Stripe Checkout redirect) ──
 

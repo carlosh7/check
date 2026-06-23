@@ -7493,6 +7493,15 @@ navigate(viewName, params = {}, push = true) {
             groupSelect.value = currentVal;
         }
         
+        // Asegurar listener de submit
+        const form = document.getElementById('new-event-form');
+        if (form) {
+            form.onsubmit = (e) => {
+                e.preventDefault();
+                this.saveEventShort(e);
+            };
+        }
+        
         const modal = document.getElementById('modal-event');
         if (modal) {
             modal.classList.remove('hidden');

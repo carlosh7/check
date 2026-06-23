@@ -1473,11 +1473,13 @@ try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_queue_campaign ON email_queu
 // ═══ SEMILLA DE ADMIN POR DEFECTO ═══
 const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
 if (userCount.count === 0) {
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@check.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
     const adminId = uuidv4();
-    const adminHash = bcrypt.hashSync('admin123', 10);
+    const adminHash = bcrypt.hashSync(adminPassword, 10);
     db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-      .run(adminId, 'admin@check.com', adminHash, 'ADMIN', 'APPROVED', new Date().toISOString());
-    console.log("✓ Admin por defecto creado: admin@check.com / admin123");
+      .run(adminId, adminEmail, adminHash, 'ADMIN', 'APPROVED', new Date().toISOString());
+    console.log(`✓ Admin por defecto creado: ${adminEmail} / ${adminPassword}`);
 }
 
 // ─── Crear tabla de respaldo de configuracion de email (legacy, mantenido para compatibilidad) ───

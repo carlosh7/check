@@ -33,8 +33,20 @@ if (!fs.existsSync(envPath)) {
         console.log('✅ Archivo .env creado desde .env.example');
     } else {
         // Crear .env básico si no hay ejemplo
-        const vapidPublicKey = 'BL1xrfpMgEMMLpTS5ktElp_Nhhn4X-76OBSF4pWQoMrl2bwQgHuk5NThk6WH78PGd7Tusem8dUl2Bhd6SN58h6U';
-        const vapidPrivateKey = '0cmIn2igdzGFATBOklzIe_m18ZX5qX_J-9yxw37NoyM';
+        let vapidPublicKey = process.env.VAPID_PUBLIC_KEY || '';
+        let vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || '';
+        
+        if (!vapidPublicKey || !vapidPrivateKey) {
+            try {
+                const webpush = require('web-push');
+                const vapidKeys = webpush.generateVAPIDKeys();
+                vapidPublicKey = vapidKeys.publicKey;
+                vapidPrivateKey = vapidKeys.privateKey;
+                console.log('🔑 Claves VAPID generadas automáticamente');
+            } catch (e) {
+                console.warn('⚠️ No se pudieron generar claves VAPID. Las notificaciones push requerirán configuración manual.');
+            }
+        }
         
         const envContent = `# Check Pro - Configuración
 # Generated automatically
@@ -42,12 +54,12 @@ if (!fs.existsSync(envPath)) {
 # Puerto del servidor
 PORT=3000
 
-# JWT
-JWT_SECRET=check_pro_secret_key_change_in_production
+# JWT (generar con: openssl rand -hex 32)
+JWT_SECRET=${process.env.JWT_SECRET || ''}
 
-# Admin inicial
-ADMIN_EMAIL=admin@check.com
-ADMIN_PASSWORD=admin123
+# Admin inicial (configurar antes del primer uso)
+ADMIN_EMAIL=${process.env.ADMIN_EMAIL || 'admin@check.com'}
+ADMIN_PASSWORD=${process.env.ADMIN_PASSWORD || 'admin123'}
 
 # URL de la aplicación
 APP_URL=http://localhost:3000
@@ -58,7 +70,7 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
 # VAPID Keys for Push Notifications
 VAPID_PUBLIC_KEY=${vapidPublicKey}
 VAPID_PRIVATE_KEY=${vapidPrivateKey}
-VAPID_SUBJECT=mailto:admin@check.com
+VAPID_SUBJECT=${process.env.VAPID_SUBJECT || 'mailto:admin@check.com'}
 `;
         
         fs.writeFileSync(envPath, envContent);
