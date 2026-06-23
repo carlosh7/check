@@ -1,4 +1,5 @@
 const express = require('express');
+const { z } = require('zod');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
@@ -7,6 +8,24 @@ const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 const { getEventDb } = require('../utils/event-db');
 
 const router = express.Router();
+
+var checkoutSessionSchema = z.object({
+    name: z.string().min(1, 'Nombre requerido').max(200),
+    email: z.string().email('Email inválido'),
+    items: z.array(z.object({
+        category_id: z.string().min(1),
+        quantity: z.number().int().min(1).optional()
+    })).min(1, 'Se requiere al menos un item'),
+    coupon_code: z.string().max(50).optional(),
+    success_url: z.string().url().optional().or(z.literal('')),
+    cancel_url: z.string().url().optional().or(z.literal(''))
+});
+
+var checkoutSchema = z.object({
+    name: z.string().min(1, 'Nombre requerido').max(200),
+    email: z.string().email('Email inválido'),
+    category_id: z.string().min(1, 'Categoría requerida')
+});
 if (!process.env.STRIPE_SECRET_KEY) {
     console.warn('⚠️ STRIPE_SECRET_KEY no configurada. Pagos con Stripe no disponibles.');
 }
@@ -21,9 +40,11 @@ router.post('/events/:eventId/checkout-session', (req, res) => {
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         if (!event.payment_required) return res.status(400).json({ error: 'Este evento no requiere pago' });
 
-        var { name, email, items, coupon_code, success_url, cancel_url } = req.body;
-        if (!name || !email) return res.status(400).json({ error: 'Nombre y email requeridos' });
-        if (!items || !Array.isArray(items) || items.length === 0) return res.status(400).json({ error: 'Se requiere al menos un item en el carrito' });
+        var parsed = checkoutSessionSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
+        }
+        var { name, email, items, coupon_code, success_url, cancel_url } = parsed.data;
 
         // Validate all items and build line_items for Stripe
         var lineItems = [];
@@ -95,8 +116,11 @@ router.post('/events/:eventId/checkout', (req, res) => {
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         if (!event.payment_required) return res.status(400).json({ error: 'Este evento no requiere pago' });
 
-        var { name, email, category_id } = req.body;
-        if (!name || !email) return res.status(400).json({ error: 'Nombre y email requeridos' });
+        var parsed = checkoutSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
+        }
+        var { name, email, category_id } = parsed.data;
 
         var category = db.prepare("SELECT * FROM guest_categories WHERE id = ? AND event_id = ?").get(category_id, req.params.eventId);
         if (!category) return res.status(400).json({ error: 'Categoría no encontrada' });

@@ -2,18 +2,29 @@
  * Rutas de Networking entre Asistentes (C11-04)
  */
 const express = require('express');
+const { z } = require('zod');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { castId } = require('../utils/helpers');
 
 const router = express.Router();
 
+var connectSchema = z.object({
+    event_id: z.string().min(1, 'event_id requerido'),
+    from_guest_token: z.string().min(1, 'from_guest_token requerido'),
+    to_guest_token: z.string().min(1, 'to_guest_token requerido'),
+    notes: z.string().max(500).optional()
+});
+
 // ─── Registrar conexión (escaneo de QR) ───
 
 router.post('/connect', (req, res) => {
     try {
-        var { event_id, from_guest_token, to_guest_token, notes } = req.body;
-        if (!event_id || !from_guest_token || !to_guest_token) return res.status(400).json({ error: 'Datos incompletos' });
+        var parsed = connectSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
+        }
+        var { event_id, from_guest_token, to_guest_token, notes } = parsed.data;
         var fromGuest = db.prepare("SELECT id, name FROM guests WHERE qr_token = ? AND event_id = ?").get(from_guest_token, event_id);
         var toGuest = db.prepare("SELECT id, name FROM guests WHERE qr_token = ? AND event_id = ?").get(to_guest_token, event_id);
         if (!fromGuest || !toGuest) return res.status(404).json({ error: 'Invitado no encontrado' });

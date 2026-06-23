@@ -1,9 +1,33 @@
 const express = require('express');
+const { z } = require('zod');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+
+const createBusinessRuleSchema = z.object({
+    name: z.string().min(1, 'Nombre requerido').max(200),
+    event_id: z.string().optional(),
+    trigger_event: z.string().min(1, 'Evento trigger requerido'),
+    condition_expr: z.string().optional(),
+    action_type: z.string().min(1, 'Tipo de acción requerido'),
+    action_config: z.record(z.any()).optional()
+});
+
+const updateBusinessRuleSchema = z.object({
+    name: z.string().min(1).max(200).optional(),
+    is_active: z.boolean().optional(),
+    condition_expr: z.string().optional(),
+    action_config: z.record(z.any()).optional()
+});
+
+const createWorkflowSchema = z.object({
+    name: z.string().min(1, 'Nombre requerido').max(200),
+    description: z.string().max(1000).optional(),
+    steps: z.array(z.any()).min(1, 'Steps requeridos'),
+    trigger_event: z.string().optional()
+});
 
 // ─── BUSINESS RULES (C9-07) ───
 router.get('/rules', authMiddleware(['ADMIN']), (req, res) => {
@@ -15,8 +39,11 @@ router.get('/rules', authMiddleware(['ADMIN']), (req, res) => {
 
 router.post('/rules', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        const { name, event_id, trigger_event, condition_expr, action_type, action_config } = req.body;
-        if (!name || !trigger_event || !action_type) return res.status(400).json({ error: 'name, trigger_event y action_type requeridos' });
+        var parsed = createBusinessRuleSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
+        }
+        var { name, event_id, trigger_event, condition_expr, action_type, action_config } = parsed.data;
         const id = uuidv4();
         db.prepare("INSERT INTO business_rules (id, name, event_id, trigger_event, condition_expr, action_type, action_config, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)")
             .run(id, name, event_id || null, trigger_event, condition_expr || null, action_type, action_config || null, new Date().toISOString());
@@ -26,7 +53,11 @@ router.post('/rules', authMiddleware(['ADMIN']), (req, res) => {
 
 router.put('/rules/:id', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        const { name, is_active, condition_expr, action_config } = req.body;
+        var parsed = updateBusinessRuleSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
+        }
+        var { name, is_active, condition_expr, action_config } = parsed.data;
         db.prepare("UPDATE business_rules SET name=COALESCE(?,name), is_active=COALESCE(?,is_active), condition_expr=COALESCE(?,condition_expr), action_config=COALESCE(?,action_config) WHERE id=?")
             .run(name, is_active != null ? (is_active ? 1 : 0) : null, condition_expr, action_config, req.params.id);
         res.json({ success: true });
@@ -47,8 +78,11 @@ router.get('/workflows', authMiddleware(['ADMIN']), (req, res) => {
 
 router.post('/workflows', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        const { name, description, steps, trigger_event } = req.body;
-        if (!name || !steps) return res.status(400).json({ error: 'name y steps requeridos' });
+        var parsed = createWorkflowSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
+        }
+        var { name, description, steps, trigger_event } = parsed.data;
         const id = uuidv4();
         db.prepare("INSERT INTO workflows (id, name, description, steps, trigger_event, is_active, created_at) VALUES (?, ?, ?, ?, ?, 1, ?)")
             .run(id, name, description || '', JSON.stringify(steps), trigger_event || 'manual', new Date().toISOString());

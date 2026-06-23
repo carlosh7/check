@@ -53,31 +53,27 @@ if ('caches' in window) {
     }
 }
 
+// Proxy para unificar App.state con AppStateManager
+// Permite que App.state.xxx y AppStateManager.get('xxx') compartan el mismo estado
+const _stateProxy = new Proxy({}, {
+    get(_, key) {
+        return AppStateManager.get(key);
+    },
+    set(_, key, value) {
+        AppStateManager.set(key, value);
+        return true;
+    }
+});
+
 const App = window.App = {
 
     stateManager: AppStateManager,
-    
 
-    state: {
-        event: null,
-        events: [],
-        guests: [],
-        user: null,
-        socket: null,
-        chart: null,
-        version: Config.VERSION,
-        groups: [],
-        _navigating: false,
-        quillEditor: null,
-        editingTemplate: null,
-        emailTemplates: [],
-        columnConfig: Constants.COLUMNS,
-        importSession: null,
-        eventsViewMode: 'grid', // 'grid' o 'list'
-    },
+    state: _stateProxy,
 
     constants: { API_URL: Config.API_URL },
     fetchAPI(endpoint, options) { return API.fetchAPI(endpoint, options); },
+    esc: window.escapeHtml,
     
 
     router: RouterManager,
@@ -315,7 +311,7 @@ const App = window.App = {
                     }
                     const clients = this.state.clients || [];
                     clientSelect.innerHTML = '<option value="">Seleccionar cliente</option>' + 
-                        clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                        clients.map(c => `<option value="${c.id}">${App.esc(c.name)}</option>`).join('');
                 }
 
                 // Poblar selector de venues
@@ -325,7 +321,7 @@ const App = window.App = {
                         const venues = await this.fetchAPI('/venues');
                         if (Array.isArray(venues)) {
                             venueSelect.innerHTML = '<option value="">-- Sin espacio --</option>' +
-                                venues.map(v => '<option value="' + v.id + '">' + v.name + '</option>').join('');
+                                venues.map(v => '<option value="' + v.id + '">' + App.esc(v.name) + '</option>').join('');
                         }
                     } catch(e) {}
                 }
@@ -654,7 +650,7 @@ const App = window.App = {
                 if (data.errors && data.errors.length > 0) {
                     const details = document.getElementById('import-details');
                     details.classList.remove('hidden');
-                    details.innerHTML = data.errors.slice(0, 10).map(e => `<p class="text-red-400">• ${e}</p>`).join('');
+                    details.innerHTML = data.errors.slice(0, 10).map(e => `<p class="text-red-400">• ${App.esc(e)}</p>`).join('');
                     if (data.errors.length > 10) {
                         details.innerHTML += `<p class="text-[var(--text-muted)]">... y ${data.errors.length - 10} más</p>`;
                     }
@@ -1460,7 +1456,7 @@ const App = window.App = {
                     const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(u.display_name || u.username)}</span>
                         </div>
                     `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
                     
@@ -1468,7 +1464,7 @@ const App = window.App = {
                     const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name)}</span>
                         </div>
                     `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
                     
@@ -1476,7 +1472,7 @@ const App = window.App = {
                     const clientRows = groupClients.length > 0 ? groupClients.map(c => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name}</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name)}</span>
                         </div>
                     `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
                     
@@ -1489,8 +1485,8 @@ const App = window.App = {
                             <div class="flex items-center gap-3">
                                 <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">business</span>
                                 <div class="flex flex-col">
-                                    <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
-                                    <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
+                                    <div class="font-bold text-sm text-[var(--text-main)]">${App.esc(g.name)}</div>
+                                    <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${App.esc(g.email || '-')}</div>
                                 </div>
                             </div>
                         </td>
@@ -1540,7 +1536,7 @@ const App = window.App = {
                     const eventRows = clientEvents.length > 0 ? clientEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name)}</span>
                         </div>
                     `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`;
                     
@@ -1549,7 +1545,7 @@ const App = window.App = {
                     const staffRows = clientStaff.length > 0 ? clientStaff.map(u => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">badge</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(u.display_name || u.username)}</span>
                         </div>
                     `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">badge</span><span class="text-xs text-slate-500 italic">Sin staff</span></div>`;
                     
@@ -1562,16 +1558,16 @@ const App = window.App = {
                             <div class="flex items-center gap-3">
                                 <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                                 <div>
-                                    <div class="font-bold text-sm text-[var(--text-main)]">${c.name}</div>
-                                    <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
-                                    ${c.phone ? `<div class="text-[10px] text-[var(--text-muted)]">${c.phone}</div>` : ''}
+                                    <div class="font-bold text-sm text-[var(--text-main)]">${App.esc(c.name)}</div>
+                                    <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${App.esc(c.email || '-')}</div>
+                                    ${c.phone ? `<div class="text-[10px] text-[var(--text-muted)]">${App.esc(c.phone)}</div>` : ''}
                                 </div>
                             </div>
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                                 <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">domain</span>
-                                <span class="text-xs font-medium text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
+                                <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(c.company_name || 'Sin empresa')}</span>
                             </div>
                         </td>
                         <td class="px-4 py-3">
@@ -1601,7 +1597,7 @@ const App = window.App = {
             const currentVal = companySelect.value;
             companySelect.innerHTML = '<option value="">Empresa</option>';
             this.state.groups.forEach(g => {
-                companySelect.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+                companySelect.innerHTML += `<option value="${g.id}">${App.esc(g.name)}</option>`;
             });
             companySelect.value = currentVal;
         }
@@ -1610,7 +1606,7 @@ const App = window.App = {
             const currentVal = staffSelect.value;
             staffSelect.innerHTML = '<option value="">Staff</option>';
             this.state.allUsers.forEach(u => {
-                staffSelect.innerHTML += `<option value="${u.id}">${u.display_name || u.username}</option>`;
+                staffSelect.innerHTML += `<option value="${u.id}">${App.esc(u.display_name || u.username)}</option>`;
             });
             staffSelect.value = currentVal;
         }
@@ -1619,7 +1615,7 @@ const App = window.App = {
             const currentVal = eventSelect.value;
             eventSelect.innerHTML = '<option value="">Evento</option>';
             this.state.events.forEach(e => {
-                eventSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`;
+                eventSelect.innerHTML += `<option value="${e.id}">${App.esc(e.name)}</option>`;
             });
             eventSelect.value = currentVal;
         }
@@ -1665,14 +1661,14 @@ const App = window.App = {
                 const clientEvents = c.events || [];
                 const eventChips = clientEvents.map(e => `
                     <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                        ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                        ${App.esc(e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name)}
                     </span>
                 `).join('');
                 
                 const clientStaff = c.staff || [];
                 const staffChips = clientStaff.map(u => `
                     <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                        ${u.display_name || u.username}
+                        ${App.esc(u.display_name || u.username)}
                     </span>
                 `).join('');
                 
@@ -1685,8 +1681,8 @@ const App = window.App = {
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                             <div class="flex flex-col">
-                                <div class="font-bold text-sm text-[var(--text-main)]">${c.name}</div>
-                                <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
+                                <div class="font-bold text-sm text-[var(--text-main)]">${App.esc(c.name)}</div>
+                                <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${App.esc(c.email || '-')}</div>
                             </div>
                         </div>
                     </td>
@@ -1694,7 +1690,7 @@ const App = window.App = {
                         ${c.company_name ? `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">corporate_fare</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${c.company_name.length > 15 ? c.company_name.substring(0, 15) + '...' : c.company_name}</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(c.company_name.length > 15 ? c.company_name.substring(0, 15) + '...' : c.company_name)}</span>
                         </div>` : `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">corporate_fare</span>
@@ -1705,14 +1701,14 @@ const App = window.App = {
                         ${clientStaff.length > 0 ? clientStaff.map(u => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${(u.display_name || u.username).length > 15 ? (u.display_name || u.username).substring(0, 15) + '...' : (u.display_name || u.username)}</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${App.esc((u.display_name || u.username).length > 15 ? (u.display_name || u.username).substring(0, 15) + '...' : (u.display_name || u.username))}</span>
                         </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-slate-500 italic">Sin staff</span></div>`}
                     </td>
                     <td class="px-4 py-3">
                         ${clientEvents.length > 0 ? clientEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name)}</span>
                         </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`}
                     </td>
                     <td class="px-4 py-3 text-left">
@@ -1867,8 +1863,10 @@ const App = window.App = {
             return;
         }
 
-        container.innerHTML = top.map((s, i) => `
-            <div onclick="App.selectSuggestion('${s.text.replace(/'/g, "\\'")}')" 
+        container.innerHTML = top.map((s, i) => {
+            const safeText = s.text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            return `
+            <div onclick="App.selectSuggestion('${safeText}')" 
                  class="group-suggestion-item" 
                  style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
                  onmouseover="this.style.background='rgba(124,58,237,0.15)'" 
@@ -1876,30 +1874,31 @@ const App = window.App = {
                 <span class="material-symbols-outlined" style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
                 <div class="flex-1 min-w-0">
                     <div style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this._highlightMatch(s.text, raw)}</div>
-                    <div style="font-size: 11px; color: #64748b; margin-top: 1px;">${s.subtext}</div>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 1px;">${App.esc(s.subtext)}</div>
                 </div>
-                <span style="font-size: 10px; color: #475569; text-transform: uppercase; font-weight: 600; flex-shrink: 0;">${s.type}</span>
+                <span style="font-size: 10px; color: #475569; text-transform: uppercase; font-weight: 600; flex-shrink: 0;">${App.esc(s.type)}</span>
             </div>
-        `).join('');
+        `}).join('');
 
         App.dropdown.showById('group-suggestions');
     },
 
     // Resaltar coincidencia en el texto
     _highlightMatch: function(text, raw) {
-        if (!raw) return text;
-        const normalized = this._normalize(text);
+        if (!raw) return App.esc(text || '');
+        const escaped = App.esc(text || '');
+        const normalized = this._normalize(text || '');
         const searchNorm = this._normalize(raw);
         const words = searchNorm.split(' ').filter(w => w.length > 0);
-        let result = text;
+        let result = escaped;
         words.forEach(word => {
             const regex = new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-            // Buscar en texto normalizado
-            const normText = this._normalize(result);
-            const idx = normText.indexOf(word);
+            const normResult = this._normalize(text || '');
+            const idx = normResult.indexOf(word);
             if (idx >= 0) {
-                const original = result.substring(idx, idx + word.length);
-                result = result.replace(original, `<mark style="background: rgba(124,58,237,0.3); color: #c4b5fd; border-radius: 2px; padding: 0 2px;">${original}</mark>`);
+                const origSub = text.substring(idx, idx + word.length);
+                const escSub = App.esc(origSub);
+                result = result.replace(escSub, `<mark style="background: rgba(124,58,237,0.3); color: #c4b5fd; border-radius: 2px; padding: 0 2px;">${escSub}</mark>`);
             }
         });
         return result;
@@ -1990,7 +1989,7 @@ const App = window.App = {
                 const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                         <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
-                        <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(u.display_name || u.username)}</span>
                     </div>
                 `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
 
@@ -1998,7 +1997,7 @@ const App = window.App = {
                 const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
-                        <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name)}</span>
                     </div>
                 `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
 
@@ -2006,7 +2005,7 @@ const App = window.App = {
                 const clientRows = groupClients.length > 0 ? groupClients.map(c => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                         <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
-                        <span class="text-xs font-medium text-[var(--text-main)]">${c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name}</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name)}</span>
                     </div>
                 `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
 
@@ -2019,8 +2018,8 @@ const App = window.App = {
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">business</span>
                             <div class="flex flex-col">
-                                <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
-                                <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
+                                <div class="font-bold text-sm text-[var(--text-main)]">${App.esc(g.name)}</div>
+                                <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${App.esc(g.email || '-')}</div>
                             </div>
                         </div>
                     </td>
@@ -3121,7 +3120,7 @@ const App = window.App = {
         const groups = this.state.groups || [];
         const select = document.getElementById('create-client-company');
         if (select) {
-            select.innerHTML = '<option value="">Sin empresa</option>' + groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            select.innerHTML = '<option value="">Sin empresa</option>' + groups.map(g => `<option value="${g.id}">${App.esc(g.name)}</option>`).join('');
         }
         document.getElementById('create-client-name').value = '';
         document.getElementById('create-client-email').value = '';
@@ -3140,7 +3139,7 @@ const App = window.App = {
         const groups = this.state.groups || [];
         const select = document.getElementById('create-staff-company');
         if (select) {
-            select.innerHTML = '<option value="">Sin empresa</option>' + groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            select.innerHTML = '<option value="">Sin empresa</option>' + groups.map(g => `<option value="${g.id}">${App.esc(g.name)}</option>`).join('');
         }
         document.getElementById('create-staff-name').value = '';
         document.getElementById('create-staff-email').value = '';
@@ -3333,7 +3332,7 @@ const App = window.App = {
             const currentVal = eventSelect.value;
             eventSelect.innerHTML = '<option value="">Eventos</option>';
             this.state.allEvents.forEach(e => {
-                eventSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`;
+                eventSelect.innerHTML += `<option value="${e.id}">${App.esc(e.name)}</option>`;
             });
             eventSelect.value = currentVal;
         }
@@ -3342,7 +3341,7 @@ const App = window.App = {
             const currentVal = userSelect.value;
             userSelect.innerHTML = '<option value="">Staff</option>';
             this.state.allUsers.forEach(u => {
-                userSelect.innerHTML += `<option value="${u.id}">${u.display_name || u.username}</option>`;
+                userSelect.innerHTML += `<option value="${u.id}">${App.esc(u.display_name || u.username)}</option>`;
             });
             userSelect.value = currentVal;
         }
@@ -3351,7 +3350,7 @@ const App = window.App = {
             const currentVal = clientSelect.value;
             clientSelect.innerHTML = '<option value="">Clientes</option>';
             this.state.clients.forEach(c => {
-                clientSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                clientSelect.innerHTML += `<option value="${c.id}">${App.esc(c.name)}</option>`;
             });
             clientSelect.value = currentVal;
         }
@@ -4184,8 +4183,8 @@ const App = window.App = {
                             <span class="material-symbols-outlined">person_add</span>
                         </div>
                         <div>
-                            <p class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</p>
-                            <p class="text-[10px] text-[var(--text-secondary)] font-mono">${u.username}</p>
+                            <p class="font-bold text-sm text-[var(--text-main)]">${App.esc(u.display_name || u.username)}</p>
+                            <p class="text-[10px] text-[var(--text-secondary)] font-mono">${App.esc(u.username)}</p>
                         </div>
                     </div>
                     <div class="flex gap-2">
@@ -4394,19 +4393,21 @@ const App = window.App = {
         const top = suggestions.slice(0, 8);
         if (top.length === 0) { this.hideUserSuggestions(); return; }
 
-        container.innerHTML = top.map((s, i) => `
-            <div onclick="App.selectUserSuggestion('${s.text.replace(/'/g, "\\'")}')" 
+        container.innerHTML = top.map((s, i) => {
+            const safeText = s.text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            return `
+            <div onclick="App.selectUserSuggestion('${safeText}')" 
                  style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
                  onmouseover="this.style.background='rgba(59,130,246,0.15)'" 
                  onmouseout="this.style.background='transparent'">
                 <span class="material-symbols-outlined" style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
                 <div class="flex-1 min-w-0">
-                    <div style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${s.text}</div>
-                    <div style="font-size: 11px; color: #64748b; margin-top: 1px;">${s.subtext}</div>
+                    <div style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${App.esc(s.text)}</div>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 1px;">${App.esc(s.subtext)}</div>
                 </div>
-                <span style="font-size: 10px; color: #475569; text-transform: uppercase; font-weight: 600; flex-shrink: 0;">${s.type}</span>
+                <span style="font-size: 10px; color: #475569; text-transform: uppercase; font-weight: 600; flex-shrink: 0;">${App.esc(s.type)}</span>
             </div>
-        `).join('');
+        `}).join('');
             App.dropdown.showById('user-suggestions');
     },
 
@@ -6090,8 +6091,8 @@ const App = window.App = {
             const logs = res.data || []; 
             list.innerHTML = logs.map(l => `
                 <tr class="hover:bg-white/5 transition-colors">
-                    <td class="px-4 py-3 text-xs text-[var(--text-main)] font-medium">${l.sender || 'Sistema'}</td>
-                    <td class="px-4 py-3 text-xs text-[var(--text-secondary)] truncate max-w-xs">${l.subject}</td>
+                    <td class="px-4 py-3 text-xs text-[var(--text-main)] font-medium">${App.esc(l.sender || 'Sistema')}</td>
+                    <td class="px-4 py-3 text-xs text-[var(--text-secondary)] truncate max-w-xs">${App.esc(l.subject)}</td>
                     <td class="px-4 py-3 text-[10px] text-slate-500">${new Date(l.created_at).toLocaleString()}</td>
                     <td class="px-4 py-3 text-right">
                         <button class="text-[var(--primary)] hover:underline text-[10px] font-bold">Ver DETALLES</button>
@@ -6160,8 +6161,8 @@ const App = window.App = {
                     value="${g.email}" ${g.selected ? 'checked' : ''} 
                     onchange="App.updateGuestSelection('${g.id}', this.checked)">
                 <div class="flex flex-col flex-1 min-w-0">
-                    <span class="text-[11px] font-bold text-white truncate">${g.name}</span>
-                    <span class="text-[9px] text-slate-500 truncate">${g.email}</span>
+                    <span class="text-[11px] font-bold text-white truncate">${App.esc(g.name)}</span>
+                    <span class="text-[9px] text-slate-500 truncate">${App.esc(g.email)}</span>
                 </div>
             </label>
         `).join('');
@@ -6362,8 +6363,8 @@ const App = window.App = {
                 <div class="flex-1 grid grid-cols-4 gap-2">
                     <input type="time" value="${item.start_time || ''}" data-field="start_time" class="w-28">
                     <input type="time" value="${item.end_time || ''}" data-field="end_time" class="w-28">
-                    <input type="text" value="${item.title || ''}" data-field="title" placeholder="Título" class="flex-1">
-                    <input type="text" value="${item.speaker || ''}" data-field="speaker" placeholder="Ponente" class="flex-1">
+                    <input type="text" value="${App.esc(item.title || '')}" data-field="title" placeholder="Título" class="flex-1">
+                    <input type="text" value="${App.esc(item.speaker || '')}" data-field="speaker" placeholder="Ponente" class="flex-1">
                 </div>
                 <button data-action="removeParent" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
                     <span class="material-symbols-outlined text-sm">delete</span>
@@ -7360,12 +7361,12 @@ navigate(viewName, params = {}, push = true) {
                 tbody.innerHTML = data.map(pr => `
                     <tr class="hover:bg-white/2 transition-colors">
                         <td class="px-6 py-4">
-                            <div class="font-bold text-white">${pr.full_name}</div>
-                            <div class="text-[10px] text-slate-500 font-mono">${pr.email}</div>
+                            <div class="font-bold text-white">${App.esc(pr.full_name)}</div>
+                            <div class="text-[10px] text-slate-500 font-mono">${App.esc(pr.email)}</div>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-white text-xs">${pr.organization || '-'}</div>
-                            <div class="text-[9px] text-slate-500 uppercase font-black">${pr.position || '-'}</div>
+                            <div class="text-white text-xs">${App.esc(pr.organization || '-')}</div>
+                            <div class="text-[9px] text-slate-500 uppercase font-black">${App.esc(pr.position || '-')}</div>
                         </td>
                         <td class="px-6 py-4 text-xs text-slate-400">
                             ${new Date(pr.created_at).toLocaleString()}
@@ -7430,7 +7431,7 @@ navigate(viewName, params = {}, push = true) {
                                     </span>
                                 </div>
                                 <div>
-                                    <h5 class="text-sm font-bold text-white">${q.title}</h5>
+                                    <h5 class="text-sm font-bold text-white">${App.esc(q.title)}</h5>
                                     <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest">
                                         Tipo: ${q.type === 'text' ? 'Abierta' : q.type === 'binary' ? 'Booleana' : q.type === 'rating' ? 'Calificación' : 'Opción Múltiple'}
                                     </p>
@@ -11624,7 +11625,7 @@ navigate(viewName, params = {}, push = true) {
                 this.fetchAPI('/seat-layouts/' + eId).then(function(layouts) {
                     if (layouts && layoutSel) {
                         var curId = session?.layout_id || '';
-                        layoutSel.innerHTML = '<option value="">Sin plano</option>' + layouts.map(function(l) { return '<option value="' + l.id + '" ' + (l.id === curId ? 'selected' : '') + '>' + (l.name || '') + '</option>'; }).join('');
+                        layoutSel.innerHTML = '<option value="">Sin plano</option>' + layouts.map(function(l) { return '<option value="' + l.id + '" ' + (l.id === curId ? 'selected' : '') + '>' + App.esc(l.name || '') + '</option>'; }).join('');
                     }
                 }).catch(function() {});
             } else {
@@ -13407,13 +13408,13 @@ navigate(viewName, params = {}, push = true) {
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                             <div class="flex flex-col">
-                                <div class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</div>
-                                <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${u.username}</div>
+                                <div class="font-bold text-sm text-[var(--text-main)]">${App.esc(u.display_name || u.username)}</div>
+                                <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${App.esc(u.username)}</div>
                             </div>
                         </div>
                     </td>
                     <td class="px-4 py-3">
-                        <span class="text-xs font-bold" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px 8px;">${u.role}</span>
+                        <span class="text-xs font-bold" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px 8px;">${App.esc(u.role)}</span>
                     </td>
                 </tr>
             `).join('');
@@ -14094,13 +14095,13 @@ navigate(viewName, params = {}, push = true) {
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                         <div class="flex flex-col">
-                            <div class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</div>
-                            <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${u.username}</div>
+                            <div class="font-bold text-sm text-[var(--text-main)]">${App.esc(u.display_name || u.username)}</div>
+                            <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${App.esc(u.username)}</div>
                         </div>
                     </div>
                 </td>
                 <td class="px-4 py-3">
-                    <span class="text-xs font-bold" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px 8px;">${u.role}</span>
+                    <span class="text-xs font-bold" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px 8px;">${App.esc(u.role)}</span>
                 </td>
             </tr>
         `).join('');
@@ -14186,7 +14187,7 @@ navigate(viewName, params = {}, push = true) {
             var disconnectBtn = document.getElementById('btn-disconnect-google');
             if (!statusEl) return;
             if (status && status.connected) {
-                statusEl.innerHTML = '<p class="text-sm"><span class="text-green-400 font-bold">✅ Conectada:</span> <span class="text-white">' + (status.email || '') + '</span></p><p class="text-xs text-slate-500 mt-1">Vinculada desde ' + (status.connectedAt ? new Date(status.connectedAt).toLocaleDateString() : 'siempre') + '</p>';
+                statusEl.innerHTML = '<p class="text-sm"><span class="text-green-400 font-bold">✅ Conectada:</span> <span class="text-white">' + App.esc(status.email || '') + '</span></p><p class="text-xs text-slate-500 mt-1">Vinculada desde ' + (status.connectedAt ? new Date(status.connectedAt).toLocaleDateString() : 'siempre') + '</p>';
                 if (connectBtn) connectBtn.classList.add('hidden');
                 if (disconnectBtn) disconnectBtn.classList.remove('hidden');
             } else {
@@ -14812,8 +14813,8 @@ navigate(viewName, params = {}, push = true) {
                             <span class="material-symbols-outlined text-xl ${acc.is_active ? 'text-violet-400' : 'text-slate-500'}">mail</span>
                         </div>
                         <div>
-                            <h4 class="font-bold text-white">${acc.name}</h4>
-                            <p class="text-xs text-slate-500">${acc.smtp_host || 'Sin SMTP'} ${acc.is_default ? '<span class="text-violet-400 ml-1">[Default]</span>' : ''}</p>
+                            <h4 class="font-bold text-white">${App.esc(acc.name)}</h4>
+                            <p class="text-xs text-slate-500">${App.esc(acc.smtp_host || 'Sin SMTP')} ${acc.is_default ? '<span class="text-violet-400 ml-1">[Default]</span>' : ''}</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -15242,7 +15243,7 @@ navigate(viewName, params = {}, push = true) {
             
         } catch (e) {
             console.error('[MAILBOX] Error loading folders:', e);
-            container.innerHTML = `<p class="text-xs text-[var(--error)] p-2">Error: ${e.message}</p>`;
+            container.innerHTML = `<p class="text-xs text-[var(--error)] p-2">Error: ${App.esc(e.message)}</p>`;
             if (progress) progress.classList.add('hidden');
         }
     },
@@ -15417,7 +15418,7 @@ navigate(viewName, params = {}, push = true) {
                 container.innerHTML = '<div class="col-span-3 text-center py-12 text-slate-500"><span class="material-symbols-outlined text-5xl mb-3 text-slate-600">description</span><p class="text-sm">No hay plantillas</p><p class="text-xs mt-1">Crea plantillas para tus comunicaciones</p></div>';
                 return;
             }
-            container.innerHTML = templates.map(t => '<div class="card p-4 hover:border-violet-500/30 transition-all cursor-pointer" onclick="App.viewEmailTemplate(\'' + t.id + '\')"><div class="flex items-center justify-between mb-2"><h4 class="font-bold text-white text-sm">' + t.name + '</h4><span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">' + (t.category || 'general') + '</span></div><p class="text-xs text-slate-500 truncate">' + (t.subject || 'Sin asunto') + '</p>' + (t.is_system ? '<span class="text-[10px] text-violet-400 mt-2 block">Sistema</span>' : '') + '</div>').join('');
+            container.innerHTML = templates.map(t => '<div class="card p-4 hover:border-violet-500/30 transition-all cursor-pointer" onclick="App.viewEmailTemplate(\'' + t.id + '\')"><div class="flex items-center justify-between mb-2"><h4 class="font-bold text-white text-sm">' + App.esc(t.name) + '</h4><span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">' + App.esc(t.category || 'general') + '</span></div><p class="text-xs text-slate-500 truncate">' + App.esc(t.subject || 'Sin asunto') + '</p>' + (t.is_system ? '<span class="text-[10px] text-violet-400 mt-2 block">Sistema</span>' : '') + '</div>').join('');
             this.updateEmailTemplateSelects(templates);
         } catch (e) {
             console.error('[EMAIL] Error loading templates:', e);
@@ -15427,7 +15428,7 @@ navigate(viewName, params = {}, push = true) {
     updateEmailTemplateSelects: function(templates) {
         const sel = document.getElementById('mailing-template-select');
         if (!sel) return;
-        sel.innerHTML = '<option value="">-- Sin plantilla --</option>' + templates.map(t => '<option value="' + t.id + '">' + t.name + '</option>').join('');
+        sel.innerHTML = '<option value="">-- Sin plantilla --</option>' + templates.map(t => '<option value="' + t.id + '">' + App.esc(t.name) + '</option>').join('');
     },
 
     viewEmailTemplate: async function(templateId) {
@@ -15831,8 +15832,8 @@ navigate(viewName, params = {}, push = true) {
                             <span class="material-symbols-outlined text-lg ${c.status === 'SENDING' ? 'text-blue-400' : 'text-violet-400'}">campaign</span>
                         </div>
                         <div>
-                            <h4 class="font-bold text-white">${c.name}</h4>
-                            <p class="text-xs text-slate-500 truncate max-w-[200px]">${c.subject || 'Sin asunto'}</p>
+                            <h4 class="font-bold text-white">${App.esc(c.name)}</h4>
+                            <p class="text-xs text-slate-500 truncate max-w-[200px]">${App.esc(c.subject || 'Sin asunto')}</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
@@ -15842,7 +15843,7 @@ navigate(viewName, params = {}, push = true) {
                                 <div class="h-full bg-violet-500" style="width: ${c.total_recipients > 0 ? Math.round((c.sent_count / c.total_recipients) * 100) : 0}%"></div>
                             </div>
                         </div>
-                        <span class="text-xs px-2 py-1 rounded-full ${statusColors[c.status] || 'bg-slate-500/20 text-slate-400'}">${c.status}</span>
+                        <span class="text-xs px-2 py-1 rounded-full ${statusColors[c.status] || 'bg-slate-500/20 text-slate-400'}">${App.esc(c.status)}</span>
                         ${c.status === 'SENDING' || c.status === 'PAUSED' || c.status === 'SENT' ? `
                             <button onclick="App.openCampaignMonitor('${c.id}')" class="p-2 hover:bg-white/10 rounded-lg" title="Monitorear">
                                 <span class="material-symbols-outlined text-slate-400">monitoring</span>
@@ -15872,8 +15873,8 @@ navigate(viewName, params = {}, push = true) {
             
             container.innerHTML = templates.map(t => `
                 <div class="card p-4 cursor-pointer hover:border-violet-500/30" onclick="App.selectMailingTemplate('${t.id}')">
-                    <h4 class="font-bold text-white text-sm">${t.name}</h4>
-                    <p class="text-xs text-slate-500 truncate">${t.subject || 'Sin asunto'}</p>
+                    <h4 class="font-bold text-white text-sm">${App.esc(t.name)}</h4>
+                    <p class="text-xs text-slate-500 truncate">${App.esc(t.subject || 'Sin asunto')}</p>
                 </div>
             `).join('');
             

@@ -171,10 +171,19 @@ router.get('/public/:eventId/active', (req, res) => {
 
 // ─── Público: votar ───
 
+var votePollSchema = z.object({
+    guest_token: z.string().min(1, 'Token de invitado requerido'),
+    option_id: z.string().optional(),
+    answer_text: z.string().max(5000).optional()
+});
+
 router.post('/public/:pollId/vote', (req, res) => {
     try {
-        var { guest_token, option_id, answer_text } = req.body;
-        if (!guest_token) return res.status(400).json({ error: 'Token de invitado requerido' });
+        var parsed = votePollSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
+        }
+        var { guest_token, option_id, answer_text } = parsed.data;
         var guest = db.prepare("SELECT id, event_id FROM guests WHERE qr_token = ?").get(guest_token);
         if (!guest) return res.status(401).json({ error: 'Invitado no encontrado' });
         var poll = db.prepare("SELECT * FROM polls WHERE id = ? AND status = 'active'").get(req.params.pollId);

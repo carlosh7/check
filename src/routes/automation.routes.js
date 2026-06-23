@@ -1,9 +1,25 @@
 const express = require('express');
+const { z } = require('zod');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+
+const createAutomationRuleSchema = z.object({
+    name: z.string().min(1, 'Nombre requerido').max(200),
+    trigger_event: z.string().min(1, 'Evento trigger requerido'),
+    conditions: z.record(z.any()).optional(),
+    actions: z.array(z.any()).min(1, 'Acciones requeridas')
+});
+
+const updateAutomationRuleSchema = z.object({
+    name: z.string().min(1).max(200).optional(),
+    trigger_event: z.string().optional(),
+    conditions: z.record(z.any()).optional(),
+    actions: z.array(z.any()).optional(),
+    enabled: z.boolean().optional()
+});
 
 // List rules
 router.get('/events/:eventId/automation', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
@@ -16,8 +32,11 @@ router.get('/events/:eventId/automation', authMiddleware(['ADMIN', 'PRODUCTOR'])
 // Create rule
 router.post('/events/:eventId/automation', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { name, trigger_event, conditions, actions } = req.body;
-        if (!name || !trigger_event || !actions) return res.status(400).json({ error: 'Nombre, evento y acciones requeridos' });
+        var parsed = createAutomationRuleSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
+        }
+        var { name, trigger_event, conditions, actions } = parsed.data;
         var id = uuidv4();
         db.prepare("INSERT INTO automation_rules (id, event_id, name, trigger_event, conditions_json, actions_json) VALUES (?, ?, ?, ?, ?, ?)").run(
             id, req.params.eventId, name, trigger_event, JSON.stringify(conditions || {}), JSON.stringify(actions)
@@ -29,7 +48,11 @@ router.post('/events/:eventId/automation', authMiddleware(['ADMIN', 'PRODUCTOR']
 // Update rule
 router.put('/events/:eventId/automation/:ruleId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { name, trigger_event, conditions, actions, enabled } = req.body;
+        var parsed = updateAutomationRuleSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
+        }
+        var { name, trigger_event, conditions, actions, enabled } = parsed.data;
         db.prepare("UPDATE automation_rules SET name = COALESCE(?, name), trigger_event = COALESCE(?, trigger_event), conditions_json = COALESCE(?, conditions_json), actions_json = COALESCE(?, actions_json), enabled = COALESCE(?, enabled) WHERE id = ? AND event_id = ?").run(
             name || null, trigger_event || null, conditions ? JSON.stringify(conditions) : null, actions ? JSON.stringify(actions) : null, enabled !== undefined ? (enabled ? 1 : 0) : null, req.params.ruleId, req.params.eventId
         );

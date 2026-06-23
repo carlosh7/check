@@ -92,8 +92,23 @@ router.get('/templates/:templateId/questions', authMiddleware(['ADMIN', 'PRODUCT
 
 router.post('/templates/:templateId/questions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { type, title, description, options, required, order_index, section, image_url, has_other, conditional } = req.body;
-        if (!title) return res.status(400).json({ error: 'Título requerido' });
+        var questionSchema = z.object({
+            type: z.enum(['short_text', 'long_text', 'single_choice', 'multiple_choice', 'rating', 'dropdown', 'date', 'email']).optional(),
+            title: z.string().min(1, 'Título requerido').max(500),
+            description: z.string().max(1000).optional(),
+            options: z.array(z.object({ label: z.string().min(1) })).optional(),
+            required: z.boolean().optional(),
+            order_index: z.number().int().optional(),
+            section: z.string().max(200).optional(),
+            image_url: z.string().url().optional().or(z.literal('')),
+            has_other: z.boolean().optional(),
+            conditional: z.record(z.any()).optional()
+        });
+        var parsed = questionSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
+        }
+        var { type, title, description, options, required, order_index, section, image_url, has_other, conditional } = parsed.data;
         var id = uuidv4();
         var maxOrder = db.prepare("SELECT COALESCE(MAX(order_index), -1) + 1 as next FROM survey_questions WHERE template_id = ?").get(req.params.templateId);
         db.prepare("INSERT INTO survey_questions (id, template_id, type, title, description, options_json, required, order_index, section, image_url, has_other, conditional_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").run(
