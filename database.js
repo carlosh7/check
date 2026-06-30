@@ -1244,6 +1244,25 @@ try {
     console.error('[MIGRATION] Error en migración de clientes:', e.message);
 }
 
+// Migración: Agregar columnas extendidas a clients (organización, cargo, dieta, vegano)
+try {
+    const clientCols = db.prepare("PRAGMA table_info(clients)").all().map(function(c) { return c.name; });
+    const newCols = [
+        ['organization', 'TEXT'],
+        ['position', 'TEXT'],
+        ['dietary_notes', 'TEXT'],
+        ['vegano', 'TEXT DEFAULT \'NO\'']
+    ];
+    newCols.forEach(function(col) {
+        if (!clientCols.includes(col[0])) {
+            db.exec("ALTER TABLE clients ADD COLUMN " + col[0] + " " + col[1]);
+            console.log('[MIGRATION] Columna ' + col[0] + ' agregada a clients');
+        }
+    });
+} catch (e) {
+    console.error('[MIGRATION] Error agregando columnas a clients:', e.message);
+}
+
     // Relación Cliente-Evento (muchos a muchos)
 db.exec(`CREATE TABLE IF NOT EXISTS client_events (
     id TEXT PRIMARY KEY,

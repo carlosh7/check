@@ -209,7 +209,7 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         const data = { groups: [], events: [], users: [], clients: [] };
         
         // Headers that indicate a header row (case insensitive)
-        const headerValues = ['nombre', 'name', 'email', 'telefono', 'phone', 'estado', 'status', 'descripcion', 'description', 'ubicacion', 'location', 'fecha', 'date', 'display', 'username', 'rol', 'role', 'empresa', 'company'];
+        const headerValues = ['id', 'nombre', 'nombre completo', 'name', 'email', 'correo', 'telefono', 'phone', 'teléfono', 'estado', 'status', 'descripcion', 'description', 'ubicacion', 'location', 'fecha', 'date', 'display', 'username', 'rol', 'role', 'empresa', 'company', 'organización', 'organizacion', 'restricciones', 'vegano', 'cargo', 'grupo', 'grupo de clientes', 'localidad', 'código postal', 'codigo postal', 'fecha de nacimiento', 'fecha de alta'];
 
         // ─── PROCESAR EMPRESAS ───
         const empresasSheet = workbook.getWorksheet('Empresas') || workbook.getWorksheet('empresas');
@@ -334,44 +334,141 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
             });
         }
 
-        // ─── PROCESAR CLIENTES ───
-        const clientesSheet = workbook.getWorksheet('Clientes') || workbook.getWorksheet('clientes');
+        // ─── PROCESAR CLIENTES (con detección inteligente de columnas) ───
+        // Aceptar cualquier hoja que tenga datos (no solo "Clientes")
+        const clientesSheet = workbook.getWorksheet('Clientes') || workbook.getWorksheet('clientes') || workbook.worksheets[0];
         if (clientesSheet) {
-            const sheet = workbook.getWorksheet('Clientes');
-            const existingClients = db.prepare("SELECT name, email FROM clients").all();
+            const sheet = clientesSheet;
             
+            // Smart field detection keywords (igual que attendance)
+            const clientFieldKeywords = {
+                name: ['nombre', 'name', 'apellido', 'names', 'nombres', 'invitado', 'guest', 'attendee', 'nombre completo', 'full name', 'fullname'],
+                email: ['email', 'correo', 'mail', 'e-mail', 'e_mail', 'correo electrónico', 'correo electronico'],
+                phone: ['telefono', 'phone', 'teléfono', 'tel', 'celular', 'cel', 'movil', 'whatsapp', 'móvil'],
+                organization: ['organizacion', 'organization', 'empresa', 'company', 'compañia', 'compania', 'entidad', 'organización', 'grupo', 'grupo de clientes'],
+                position: ['cargo', 'position', 'puesto', 'rol', 'role', 'titulo', 'title', 'cargo'],
+                dietary: ['dietary', 'dieta', 'restricciones', 'restriccion', 'alergia', 'alergias', 'notas', 'notes', 'restricciones alimenticias'],
+                vegan: ['vegano', 'vegan', 'vegetariano', 'vegetarian'],
+                address: ['direccion', 'address', 'dirección', 'ubicacion', 'location', 'domicilio'],
+                city: ['ciudad', 'city', 'localidad', 'municipio', 'poblacion']
+            };
+
+            function detectClientCol(headerName, sampleValues) {
+                var h = (headerName || '').toLowerCase().trim();
+                // Excluir columnas de fecha explícitamente
+                if (h.includes('fecha') || h.includes('date') || h.includes('nacimiento') || h.includes('alta')) {
+                    return null;
+                }
+                // Keyword match
+                for (var field in clientFieldKeywords) {
+                    if (clientFieldKeywords[field].some(function(kw) { return h.includes(kw); })) {
+                        return field;
+                    }
+                }
+                // Content sampling
+                if (sampleValues && sampleValues.length > 0) {
+                    var atCount = 0, phoneCount = 0;
+                    sampleValues.forEach(function(v) {
+                        var s = (v || '').toString().trim();
+                        if (s.includes('@') && s.includes('.')) atCount++;
+                        if (s.replace(/[^0-9]/g,'').length >= 7) phoneCount++;
+                    });
+                    if (atCount >= sampleValues.length * 0.3) return 'email';
+                    if (phoneCount >= sampleValues.length * 0.3) return 'phone';
+                }
+                return null;
+            }
+
+            // Leer encabezados y detectar columnas
+            var headerRow = sheet.getRow(1);
+            var colMap = {};  // { fieldName: columnIndex }
+            var colHeaders = [];  // [{ index, name, detectedField }]
+            
+            headerRow.eachCell(function(cell, colNumber) {
+                var headerName = cell.text?.trim() || 'Columna ' + colNumber;
+                var sampleValues = [];
+                
+                // Recoger muestras de las primeras 5 filas
+                for (var r = 2; r <= Math.min(6, sheet.rowCount); r++) {
+                    var val = sheet.getRow(r).getCell(colNumber).text?.trim() || '';
+                    if (val) sampleValues.push(val);
+                }
+                
+                var detectedField = detectClientCol(headerName, sampleValues);
+                colHeaders.push({ index: colNumber - 1, name: headerName, detectedField: detectedField });
+                
+                if (detectedField) {
+                    colMap[detectedField] = colNumber - 1;  // 0-indexed
+                }
+            });
+            
+            console.log('[IMPORT] Column detection:', colMap);
+            console.log('[IMPORT] Headers:', colHeaders.map(function(h) { return h.name + ' -> ' + (h.detectedField || '?'); }));
+            
+            const existingClients = db.prepare("SELECT id, name, email, phone, organization, position, dietary_notes, vegano FROM clients").all();
+            
+            // Procesar filas de datos
             sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
                 try {
-                    const name = row.getCell(1).text?.trim();
-                    const email = row.getCell(2).text?.trim();
-                    const phone = row.getCell(3).text?.trim() || '';
-                    const company_name = row.getCell(4).text?.trim() || '';
-                    const event_name = row.getCell(5).text?.trim() || '';
-
+                    // Obtener valores usando el mapeo de columnas detectado
+                    var vals = {};
+                    for (var field in colMap) {
+                        vals[field] = row.getCell(colMap[field] + 1).text?.trim() || '';
+                    }
+                    
+                    // Saltar si no hay nombre ni email
+                    var name = vals.name || '';
+                    var email = vals.email || '';
                     if (!name && !email) return;
                     
-                    // Skip header rows
-                    const firstCell = (name || '').toLowerCase();
-                    const secondCell = (email || '').toLowerCase();
-                    if (headerValues.includes(firstCell) || headerValues.includes(secondCell)) {
+                    // Saltar filas de encabezado
+                    var nameLower = (name || '').toLowerCase();
+                    var emailLower = (email || '').toLowerCase();
+                    if (headerValues.includes(nameLower) || headerValues.includes(emailLower)) {
                         return;
                     }
-
-                    const exists = existingClients.find(c => 
-                        (c.name && c.name.toLowerCase() === name.toLowerCase()) ||
-                        (c.email && c.email.toLowerCase() === email.toLowerCase())
-                    );
-
+                    
+                    // Buscar cliente existente por nombre o email
+                    var exists = existingClients.find(function(c) { 
+                        return (c.name && c.name.toLowerCase() === nameLower) ||
+                               (c.email && c.email.toLowerCase() === emailLower);
+                    });
+                    
                     if (exists) {
+                        // Actualizar solo campos vacíos/existentes
                         stats.update++;
-                        data.clients.push({ name, email, phone, company_name, event_name, action: 'update', existing: exists });
+                        data.clients.push({
+                            id: exists.id,
+                            name: name || exists.name,
+                            email: email || exists.email,
+                            phone: vals.phone || exists.phone || '',
+                            company_name: vals.organization || exists.organization || '',
+                            position: vals.position || exists.position || '',
+                            dietary: vals.dietary || exists.dietary_notes || '',
+                            vegan: vals.vegan || exists.vegano || '',
+                            address: vals.address || '',
+                            city: vals.city || '',
+                            action: 'update',
+                            existing: exists
+                        });
                     } else {
                         stats.new++;
-                        data.clients.push({ name, email, phone, company_name, event_name, action: 'create' });
+                        data.clients.push({
+                            name: name,
+                            email: email,
+                            phone: vals.phone || '',
+                            company_name: vals.organization || '',
+                            position: vals.position || '',
+                            dietary: vals.dietary || '',
+                            vegan: vals.vegan || '',
+                            address: vals.address || '',
+                            city: vals.city || '',
+                            action: 'create'
+                        });
                     }
                 } catch(e) {
                     stats.errors++;
-                    errors.push(`Fila ${rowNumber}: Error procesando cliente`);
+                    errors.push('Fila ' + rowNumber + ': ' + e.message);
                 }
             });
         }
@@ -784,7 +881,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         console.log('[IMPORT] Result - imported:', imported, 'updated:', updated);
 
         // ════════════════════════════════════════════════════════════
-        // PASO 4: Importar/Crear CLIENTES (usando mapas de empresas y eventos)
+        // PASO 4: Importar/Crear CLIENTES (con detección inteligente de columnas)
         // ════════════════════════════════════════════════════════════
         if (data.clients && data.clients.length > 0) {
             console.log('[IMPORT] Step 4 - Processing clients:', data.clients.length);
@@ -804,8 +901,12 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 }
             }
             
+            // Verificar si las columnas de extended fields existen en la BD
+            const clientCols = db.prepare("PRAGMA table_info(clients)").all().map(function(c) { return c.name; });
+            const hasExtendedFields = clientCols.includes('position') || clientCols.includes('dietary_notes') || clientCols.includes('vegano');
+            
             for (const c of data.clients) {
-                console.log('[IMPORT] Client:', c.name, 'email:', c.email, 'company:', c.company_name, 'event:', c.event_name);
+                console.log('[IMPORT] Client:', c.name, 'email:', c.email, 'org:', c.company_name, 'phone:', c.phone);
                 
                 // Resolver company_name a group_id
                 let resolvedGroupId = null;
@@ -813,59 +914,71 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     const companyLower = c.company_name.toLowerCase();
                     if (createdGroupsMap[companyLower]) {
                         resolvedGroupId = createdGroupsMap[companyLower];
-                        console.log('[IMPORT] Resolved company for client from map:', c.company_name, '->', resolvedGroupId);
                     }
                 }
                 
                 // Buscar por name o email
                 let existingClient = null;
                 if (c.name) {
-                    existingClient = db.prepare("SELECT id FROM clients WHERE LOWER(name) = LOWER(?)").get(c.name);
+                    existingClient = db.prepare("SELECT id, email, phone, organization, position, dietary_notes, vegano FROM clients WHERE LOWER(name) = LOWER(?)").get(c.name);
                 }
                 if (!existingClient && c.email) {
-                    existingClient = db.prepare("SELECT id FROM clients WHERE email IS NOT NULL AND LOWER(email) = LOWER(?)").get(c.email);
+                    existingClient = db.prepare("SELECT id, email, phone, organization, position, dietary_notes, vegano FROM clients WHERE email IS NOT NULL AND LOWER(email) = LOWER(?)").get(c.email);
                 }
                 
                 let clientId;
                 
                 if (existingClient) {
-                    console.log('[IMPORT] Updating client:', c.name);
-                    db.prepare("UPDATE clients SET email = ?, phone = ?, group_id = ? WHERE id = ?")
-                        .run(c.email, c.phone, resolvedGroupId || null, existingClient.id);
+                    // Actualización inteligente: solo actualizar campos que están vacíos o son diferentes
+                    var updates = [];
+                    var params = [];
+                    
+                    if (c.email && (!existingClient.email || existingClient.email === '')) {
+                        updates.push('email = ?'); params.push(c.email);
+                    }
+                    if (c.phone && (!existingClient.phone || existingClient.phone === '')) {
+                        updates.push('phone = ?'); params.push(c.phone);
+                    }
+                    if (c.company_name && (!existingClient.organization || existingClient.organization === '')) {
+                        updates.push('organization = ?'); params.push(c.company_name);
+                    }
+                    if (resolvedGroupId && !existingClient.group_id) {
+                        updates.push('group_id = ?'); params.push(resolvedGroupId);
+                    }
+                    
+                    // Extended fields (si existen en la BD)
+                    if (hasExtendedFields) {
+                        if (c.position && (!existingClient.position || existingClient.position === '')) {
+                            updates.push('position = ?'); params.push(c.position);
+                        }
+                        if (c.dietary && (!existingClient.dietary_notes || existingClient.dietary_notes === '')) {
+                            updates.push('dietary_notes = ?'); params.push(c.dietary);
+                        }
+                        if (c.vegan && (!existingClient.vegano || existingClient.vegano === '')) {
+                            updates.push('vegano = ?'); params.push(c.vegan);
+                        }
+                    }
+                    
+                    if (updates.length > 0) {
+                        params.push(existingClient.id);
+                        db.prepare("UPDATE clients SET " + updates.join(', ') + " WHERE id = ?").apply(params);
+                        console.log('[IMPORT] Updated client:', c.name, '- fields:', updates.join(', '));
+                    }
+                    
                     clientId = existingClient.id;
                     updated++;
                 } else {
-                    console.log('[IMPORT] Creating new client:', c.name);
+                    // Crear nuevo cliente con todos los campos disponibles
                     clientId = getValidId('clients');
-                    db.prepare("INSERT INTO clients (id, name, email, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)")
-                        .run(clientId, c.name, c.email, c.phone, resolvedGroupId || null, new Date().toISOString());
+                    if (hasExtendedFields) {
+                        db.prepare("INSERT INTO clients (id, name, email, phone, group_id, organization, position, dietary_notes, vegano, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)")
+                            .run(clientId, c.name, c.email, c.phone, resolvedGroupId || null, c.company_name || null, c.position || null, c.dietary || null, c.vegan || null, new Date().toISOString());
+                    } else {
+                        db.prepare("INSERT INTO clients (id, name, email, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)")
+                            .run(clientId, c.name, c.email, c.phone, resolvedGroupId || null, new Date().toISOString());
+                    }
+                    console.log('[IMPORT] Created client:', c.name);
                     imported++;
-                }
-                
-                // Vincular a eventos (soporta múltiples eventos separados por coma)
-                if (c.event_name && clientId) {
-                    const eventNames = c.event_name.split(',').map(e => e.trim()).filter(e => e);
-                    let linkedCount = 0;
-                    for (const eventName of eventNames) {
-                        const eventLower = eventName.toLowerCase();
-                        const eventId = createdEventsMap[eventLower];
-                        
-                        if (eventId) {
-                            console.log('[IMPORT] Linking client to event:', c.name, '->', eventName, '(', eventId, ')');
-                            try {
-                                db.prepare("INSERT OR IGNORE INTO client_events (id, client_id, event_id, created_at) VALUES (?, ?, ?, ?)")
-                                    .run(getValidId('client_events'), clientId, eventId, new Date().toISOString());
-                                linkedCount++;
-                            } catch(linkErr) {
-                                console.log('[IMPORT] Warning: Could not link client to event:', linkErr.message);
-                            }
-                        } else {
-                            console.log('[IMPORT] Warning: Event not found for client:', eventName);
-                        }
-                    }
-                    if (linkedCount > 0) {
-                        console.log('[IMPORT] Client', c.name, 'linked to', linkedCount, 'events');
-                    }
                 }
             }
         }
