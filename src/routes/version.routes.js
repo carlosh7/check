@@ -8,6 +8,7 @@ const path = require('path');
 const { db } = require('../../database');
 const { getStats } = require('../utils/cache');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 router.get('/app-version', (req, res) => {
@@ -15,7 +16,7 @@ router.get('/app-version', (req, res) => {
         const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'));
         res.json({ version: pkg.version });
     } catch (err) {
-        console.error('[VERSION] Error:', err.message);
+        logger.error('[VERSION] Error:', err.message);
         res.status(500).json({ error: 'Version no disponible' });
     }
 });

@@ -62,41 +62,42 @@ const fs = require('fs');
 
 // Función helper para obtener la BD correcta según el evento (V12.44.345)
 function getEventDbForAttendance(eventId) {
-    console.log('[GET-EVENT-DB] ========== INICIO ==========');
-    console.log('[GET-EVENT-DB] eventId:', eventId);
+    logger.info('[GET-EVENT-DB] ========== INICIO ==========');
+    logger.info('[GET-EVENT-DB] eventId:', eventId);
     
     if (!eventId) {
-        console.log('[GET-EVENT-DB] eventId es null, retorno DB sistema');
+        logger.info('[GET-EVENT-DB] eventId es null, retorno DB sistema');
         return db;
     }
     
     // Consultar evento en DB sistema
     const event = db.prepare("SELECT id, has_own_db, name FROM events WHERE id = ?").get(eventId);
-    console.log('[GET-EVENT-DB] Evento encontrado:', event);
+    logger.info('[GET-EVENT-DB] Evento encontrado:', event);
     
     if (!event) {
-        console.log('[GET-EVENT-DB] Evento no encontrado en DB sistema, retorno DB sistema');
+        logger.info('[GET-EVENT-DB] Evento no encontrado en DB sistema, retorno DB sistema');
         return db;
     }
     
-    console.log('[GET-EVENT-DB] has_own_db del evento:', event.has_own_db);
-    console.log('[GET-EVENT-DB] eventDatabaseExists(eventId):', eventDatabaseExists(eventId));
+    logger.info('[GET-EVENT-DB] has_own_db del evento:', event.has_own_db);
+    logger.info('[GET-EVENT-DB] eventDatabaseExists(eventId):', eventDatabaseExists(eventId));
     
     if (event.has_own_db === 1 && eventDatabaseExists(eventId)) {
         const eventDb = getEventConnection(eventId);
-        console.log('[GET-EVENT-DB] Conexión a DB evento exitosa:', eventDb ? 'SI' : 'NO');
+        logger.info('[GET-EVENT-DB] Conexión a DB evento exitosa:', eventDb ? 'SI' : 'NO');
         if (eventDb) {
-            console.log('[GET-EVENT-DB] >>> RETORNANDO DB DEL EVENTO <<<');
+            logger.info('[GET-EVENT-DB] >>> RETORNANDO DB DEL EVENTO <<<');
             return eventDb;
         }
     } else {
-        console.log('[GET-EVENT-DB] Condiciones NO cumplidas: has_own_db=' + event.has_own_db + ', exists=' + eventDatabaseExists(eventId));
+        logger.info('[GET-EVENT-DB] Condiciones NO cumplidas: has_own_db=' + event.has_own_db + ', exists=' + eventDatabaseExists(eventId));
     }
     
-    console.log('[GET-EVENT-DB] >>> RETORNANDO DB SISTEMA <<<');
+    logger.info('[GET-EVENT-DB] >>> RETORNANDO DB SISTEMA <<<');
     return db;
 }
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 router.get('/', authMiddleware(), async (req, res) => {
@@ -134,7 +135,7 @@ router.get('/', authMiddleware(), async (req, res) => {
             return events;
         }, 60);
         res.json(rows);
-    } catch(err) { console.error('[EVENTS] Error listing:', err.message); res.status(500).json({ error: 'Error al listar eventos' }); }
+    } catch(err) { logger.error('[EVENTS] Error listing:', err.message); res.status(500).json({ error: 'Error al listar eventos' }); }
 });
 
 router.get('/:id', authMiddleware(), async (req, res) => {
@@ -145,14 +146,14 @@ router.get('/:id', authMiddleware(), async (req, res) => {
         }, 300);
         if (!row) return res.status(404).json({ error: 'Evento no encontrado' });
         res.json(row);
-    } catch(err) { console.error('[EVENTS] Error getting event:', err.message); res.status(500).json({ error: 'Error al obtener evento' }); }
+    } catch(err) { logger.error('[EVENTS] Error getting event:', err.message); res.status(500).json({ error: 'Error al obtener evento' }); }
 });
 
 router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const v = validate(schemas.createEvent, req.body);
     if (!v.valid) {
-        console.error('[EVENT CREATE VALIDATION ERROR]', v.errors);
-        console.error('[EVENT CREATE REQUEST BODY]', req.body);
+        logger.error('[EVENT CREATE VALIDATION ERROR]', v.errors);
+        logger.error('[EVENT CREATE REQUEST BODY]', req.body);
         return res.status(400).json({ errors: v.errors });
     }
 
@@ -197,10 +198,10 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         try {
             const eventDb = createEventDatabase(id);
             if (eventDb) {
-                console.log('✓ Base de datos independiente creada para evento:', id);
+                logger.info('✓ Base de datos independiente creada para evento:', id);
             }
         } catch (error) {
-            console.error('✗ Error al crear base de datos del evento:', error.message);
+            logger.error('✗ Error al crear base de datos del evento:', error.message);
         }
     }
 
@@ -217,7 +218,7 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     logAction(req, AUDIT_ACTIONS.EVENT_CREATED, { eventId: id, name });
     try { triggerWebhooks(WEBHOOK_EVENTS.EVENT_CREATED, { eventId: id, name, date }, id).catch(() => {}); } catch(e) {}
 
-    console.log('[EVENT CREATE SERVER] ID generado:', id, 'tipo:', typeof id);
+    logger.info('[EVENT CREATE SERVER] ID generado:', id, 'tipo:', typeof id);
     res.json({ success: true, eventId: id });
 });
 
@@ -350,7 +351,7 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
         logAction(req, AUDIT_ACTIONS.EVENT_DELETED, { eventId: targetId });
         res.json({ success: true });
     } catch (err) {
-        console.error('[DELETE EVENT] Error:', err.message);
+        logger.error('[DELETE EVENT] Error:', err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 });
@@ -365,7 +366,7 @@ router.get('/:id/guests', authMiddleware(), (req, res) => {
         const { total } = db.prepare("SELECT COUNT(*) as total FROM guests WHERE event_id = ?").get(eId);
         const rows = db.prepare("SELECT id, name, email, phone, organization, position, gender, checked_in, checkin_time, qr_token, dietary_notes, created_at FROM guests WHERE event_id = ? ORDER BY name ASC LIMIT ? OFFSET ?").all(eId, limit, offset);
         res.json({ guests: rows, total, limit, offset });
-    } catch(err) { console.error('[EVENTS] Error listing guests:', err.message); res.status(500).json({ error: 'Error al listar invitados' }); }
+    } catch(err) { logger.error('[EVENTS] Error listing guests:', err.message); res.status(500).json({ error: 'Error al listar invitados' }); }
 });
 
 // Obtener pre-registros de evento
@@ -374,7 +375,7 @@ router.get('/:id/pre-registrations', authMiddleware(['ADMIN', 'PRODUCTOR']), (re
         const eId = castId('events', req.params.id);
         const rows = db.prepare("SELECT id, name, email, phone, organization, position, gender, status, registered_at FROM pre_registrations WHERE event_id = ? AND status = 'PENDING' ORDER BY registered_at DESC").all(eId);
         res.json(rows);
-    } catch(err) { console.error('[EVENTS] Error listing pre-regs:', err.message); res.status(500).json({ error: 'Error al listar pre-registros' }); }
+    } catch(err) { logger.error('[EVENTS] Error listing pre-regs:', err.message); res.status(500).json({ error: 'Error al listar pre-registros' }); }
 });
 
 // Aprobar o rechazar pre-registro
@@ -410,7 +411,7 @@ router.put('/pre-registrations/:id/status', authMiddleware(['ADMIN', 'PRODUCTOR'
             
             // Trigger webhooks for guest creation
             triggerWebhooks(WEBHOOK_EVENTS.GUEST_CREATED, guestData, pre.event_id).catch(err => 
-                console.error(`Error triggering webhook for guest ${guestId}:`, err.message)
+                logger.error(`Error triggering webhook for guest ${guestId}:`, err.message)
             );
             
             // Trigger webhook for pre-registration confirmation
@@ -419,14 +420,14 @@ router.put('/pre-registrations/:id/status', authMiddleware(['ADMIN', 'PRODUCTOR'
                 guest_id: guestId,
                 ...guestData
             }, pre.event_id).catch(err => 
-                console.error(`Error triggering webhook for pre-registration ${pre.id}:`, err.message)
+                logger.error(`Error triggering webhook for pre-registration ${pre.id}:`, err.message)
             );
         }
     }
     
     db.prepare("UPDATE pre_registrations SET status = ? WHERE id = ?").run(status, id);
     res.json({ success: true });
-    } catch(err) { console.error('[EVENTS] Error updating pre-reg:', err.message); res.status(500).json({ error: 'Error al actualizar pre-registro' }); }
+    } catch(err) { logger.error('[EVENTS] Error updating pre-reg:', err.message); res.status(500).json({ error: 'Error al actualizar pre-registro' }); }
 });
 
 // Obtener usuarios asignados a un evento
@@ -455,7 +456,7 @@ router.post('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
     const { user_id } = req.body;
     const eventId = castId('events', req.params.eventId);
     
-    console.log('[DEBUG EVENT POST] user_id:', user_id, 'eventId:', eventId, 'castEventId:', eventId);
+    logger.info('[DEBUG EVENT POST] user_id:', user_id, 'eventId:', eventId, 'castEventId:', eventId);
     
     if (!user_id) {
         return res.status(400).json({ error: 'user_id es requerido' });
@@ -466,14 +467,14 @@ router.post('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
     }
     
     const id = getValidId('user_events');
-    console.log('[DEBUG EVENT POST] Insert id:', id, 'user_id:', user_id, 'event_id:', eventId);
+    logger.info('[DEBUG EVENT POST] Insert id:', id, 'user_id:', user_id, 'event_id:', eventId);
     const result = db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
       .run(id, user_id, eventId, new Date().toISOString());
-    console.log('[DEBUG EVENT POST] Insert result:', result);
+    logger.info('[DEBUG EVENT POST] Insert result:', result);
     
     // Verificar inserción
     const check = db.prepare("SELECT * FROM user_events WHERE event_id = ? AND user_id = ?").get(eventId, user_id);
-    console.log('[DEBUG EVENT POST] Check after insert:', check);
+    logger.info('[DEBUG EVENT POST] Check after insert:', check);
     
     res.json({ success: true });
 });
@@ -523,7 +524,7 @@ router.post('/:id/database', authMiddleware(['ADMIN']), async (req, res) => {
             return res.status(500).json({ success: false, error: 'Error al crear base de datos' });
         }
     } catch (error) {
-        console.error('Error creando base de datos del evento:', error);
+        logger.error('Error creando base de datos del evento:', error);
         return res.status(500).json({ success: false, error: error.message });
     }
 });
@@ -558,7 +559,7 @@ router.delete('/:id/database', authMiddleware(['ADMIN']), async (req, res) => {
             return res.status(500).json({ success: false, error: 'Error al eliminar base de datos' });
         }
     } catch (error) {
-        console.error('Error eliminando base de datos del evento:', error);
+        logger.error('Error eliminando base de datos del evento:', error);
         return res.status(500).json({ success: false, error: error.message });
     }
 });
@@ -599,8 +600,8 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
         // V12.44.342: Usar getEventDbForAttendance para consistency con guests.routes
         const targetDb = getEventDbForAttendance(eventId);
         
-        console.log('[ATTENDANCE DEBUG] eventId:', eventId);
-        console.log('[ATTENDANCE DEBUG] targetDb es DB sistema?:', targetDb === db);
+        logger.info('[ATTENDANCE DEBUG] eventId:', eventId);
+        logger.info('[ATTENDANCE DEBUG] targetDb es DB sistema?:', targetDb === db);
         
         const attendance = targetDb.prepare(`
             SELECT 
@@ -624,11 +625,11 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
             ORDER BY g.name ASC
         `).all(eventId);
         
-        console.log('[ATTENDANCE DEBUG] Registros encontrados:', attendance.length);
+        logger.info('[ATTENDANCE DEBUG] Registros encontrados:', attendance.length);
         
         res.json(attendance);
     } catch (e) {
-        console.error('[ATTENDANCE] Error obteniendo asistencia:', e.message);
+        logger.error('[ATTENDANCE] Error obteniendo asistencia:', e.message);
         res.status(500).json({ error: 'Error obteniendo asistencia desde guests' });
     }
 });
@@ -682,7 +683,7 @@ router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER'
         if (e.message.includes('UNIQUE constraint failed')) {
             return res.status(400).json({ error: 'El email ya está registrado para este evento' });
         }
-        console.error('[ATTENDANCE] Error al agregar:', e.message);
+        logger.error('[ATTENDANCE] Error al agregar:', e.message);
         res.status(500).json({ error: 'Error agregando invitado' });
     }
 });
@@ -730,7 +731,7 @@ router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) =
         
         res.json({ success: true });
     } catch (e) {
-        console.error('[ATTENDANCE] Error actualizando:', e.message);
+        logger.error('[ATTENDANCE] Error actualizando:', e.message);
         res.status(500).json({ error: 'Error actualizando datos de invitado' });
     }
 });
@@ -769,7 +770,7 @@ router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCT
         
         res.json({ success: true });
     } catch (e) {
-        console.error('[ATTENDANCE] Error eliminando:', e.message);
+        logger.error('[ATTENDANCE] Error eliminando:', e.message);
         res.status(500).json({ error: 'Error eliminando invitado' });
     }
 });
@@ -835,11 +836,11 @@ router.post('/:id/clone', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
                             );
                             copied++;
                         }
-                        console.log(`[CLONE] ${copied} invitados copiados al evento ${newId}`);
+                        logger.info(`[CLONE] ${copied} invitados copiados al evento ${newId}`);
                     }
                 }
             } catch (guestErr) {
-                console.error('[CLONE] Error copiando invitados:', guestErr.message);
+                logger.error('[CLONE] Error copiando invitados:', guestErr.message);
             }
         }
 
@@ -852,7 +853,7 @@ router.post('/:id/clone', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
 
         res.json({ success: true, eventId: newId, name: newName });
     } catch (e) {
-        console.error('[CLONE] Error clonando evento:', e);
+        logger.error('[CLONE] Error clonando evento:', e);
         res.status(500).json({ error: 'Error al clonar el evento: ' + e.message });
     }
 });
@@ -884,7 +885,7 @@ router.get('/:id/badge-config', authMiddleware(), (req, res) => {
         if (event.badge_config) { try { badgeCfg = JSON.parse(event.badge_config); } catch(e) { badgeCfg = {}; } }
         res.json({ badgeConfig: badgeCfg });
     } catch (err) {
-        console.error('[BADGE_CONFIG] Error:', err.message);
+        logger.error('[BADGE_CONFIG] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener config' });
     }
 });
@@ -896,7 +897,7 @@ router.put('/:id/badge-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
         db.prepare("UPDATE events SET badge_config = ? WHERE id = ?").run(config, req.params.id);
         res.json({ success: true });
     } catch (err) {
-        console.error('[BADGE_CONFIG] Error:', err.message);
+        logger.error('[BADGE_CONFIG] Error:', err.message);
         res.status(500).json({ error: 'Error al guardar config' });
     }
 });
@@ -930,7 +931,7 @@ router.delete('/:id/badge-logo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, r
         }
         res.json({ success: true });
     } catch (err) {
-        console.error('[BADGE_CONFIG] Error:', err.message);
+        logger.error('[BADGE_CONFIG] Error:', err.message);
         res.status(500).json({ error: 'Error al eliminar logo' });
     }
 });

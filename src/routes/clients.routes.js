@@ -9,6 +9,7 @@ const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { CACHE_KEYS, del } = require('../utils/cache');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 // ============================================================================
@@ -133,7 +134,7 @@ router.put('/unassign-from-company', authMiddleware(['ADMIN']), (req, res) => {
         
         res.json({ success: true });
     } catch (err) {
-        console.error('[ERROR] unassign-from-company:', err.message);
+        logger.error('[ERROR] unassign-from-company:', err.message);
         res.status(500).json({ error: err.message });
     }
 });

@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const { db, getEventConnection } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 // GET /api/compliance/classification — Listar clasificaciones de datos
@@ -19,7 +20,7 @@ router.get('/classification', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res)
         const items = db.prepare(sql).all(...params);
         res.json(items);
     } catch (err) {
-        console.error('[COMPLIANCE] Error:', err.message);
+        logger.error('[COMPLIANCE] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener clasificaciones' });
     }
 });
@@ -39,7 +40,7 @@ router.post('/classification', authMiddleware(['ADMIN']), (req, res) => {
         );
         res.json({ success: true, id });
     } catch (err) {
-        console.error('[COMPLIANCE] Error:', err.message);
+        logger.error('[COMPLIANCE] Error:', err.message);
         res.status(500).json({ error: 'Error al crear clasificación' });
     }
 });
@@ -56,7 +57,7 @@ router.put('/classification/:id', authMiddleware(['ADMIN']), (req, res) => {
         );
         res.json({ success: true });
     } catch (err) {
-        console.error('[COMPLIANCE] Error:', err.message);
+        logger.error('[COMPLIANCE] Error:', err.message);
         res.status(500).json({ error: 'Error al actualizar clasificación' });
     }
 });
@@ -67,7 +68,7 @@ router.delete('/classification/:id', authMiddleware(['ADMIN']), (req, res) => {
         db.prepare("DELETE FROM data_classification WHERE id = ?").run(req.params.id);
         res.json({ success: true });
     } catch (err) {
-        console.error('[COMPLIANCE] Error:', err.message);
+        logger.error('[COMPLIANCE] Error:', err.message);
         res.status(500).json({ error: 'Error al eliminar clasificación' });
     }
 });
@@ -102,7 +103,7 @@ router.get('/events/:eventId/guests/:guestId/export', authMiddleware(['ADMIN', '
 
         res.json(exportData);
     } catch (err) {
-        console.error('[COMPLIANCE] Export error:', err.message);
+        logger.error('[COMPLIANCE] Export error:', err.message);
         res.status(500).json({ error: 'Error al exportar datos' });
     }
 });
@@ -132,7 +133,7 @@ router.delete('/events/:eventId/guests/:guestId/personal-data', authMiddleware([
 
         res.json({ success: true, message: 'Datos personales eliminados exitosamente' });
     } catch (err) {
-        console.error('[COMPLIANCE] Erasure error:', err.message);
+        logger.error('[COMPLIANCE] Erasure error:', err.message);
         res.status(500).json({ error: 'Error al eliminar datos personales' });
     }
 });
@@ -155,7 +156,7 @@ router.get('/access-logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
         var rows = db.prepare("SELECT * FROM data_access_log" + where + " ORDER BY created_at DESC LIMIT ? OFFSET ?").all(...params, limit, offset);
         res.json({ data: rows, pagination: { page, limit, total } });
     } catch (err) {
-        console.error('[COMPLIANCE] Access logs error:', err.message);
+        logger.error('[COMPLIANCE] Access logs error:', err.message);
         res.status(500).json({ error: 'Error al obtener logs de acceso' });
     }
 });

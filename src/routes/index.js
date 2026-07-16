@@ -10,7 +10,7 @@ try {
     const imgOpt = require('../middleware/imageOptimizer');
     imageUploadMiddleware = imgOpt.imageUploadMiddleware;
 } catch (e) {
-    console.warn('⚠️ Optimización de imágenes no disponible (sharp no instalado)');
+    logger.warn('⚠️ Optimización de imágenes no disponible (sharp no instalado)');
     imageUploadMiddleware = (req, res, next) => next();
 }
 const authRoutes = require('./auth.routes');
@@ -101,7 +101,7 @@ function preventPathTraversal(req, res, next) {
     const filePath = req.path;
     // Verificar si contiene sequences de path traversal
     if (filePath.includes('..') || filePath.includes('%2e%2e') || filePath.includes('//')) {
-        console.warn(`[SECURITY] Path traversal attempt detected: ${filePath}`);
+        logger.warn(`[SECURITY] Path traversal attempt detected: ${filePath}`);
         return res.status(403).json({ error: 'Acceso denegado' });
     }
     next();
@@ -109,6 +109,7 @@ function preventPathTraversal(req, res, next) {
 
 function registerRoutes(app, rootDir) {
     const path = require('path');
+const logger = require("../utils/logger");
     rootDir = rootDir || __dirname + '/../..';
     
     // SPA Routes (index.html, registro.html)
@@ -286,7 +287,7 @@ app.use('/api/compliance', complianceRoutes);
         res.sendFile(path.join(rootDir, 'index.html'));
     });
 
-    console.log('✓ Rutas registradas (modulares)');
+    logger.info('✓ Rutas registradas (modulares)');
 }
 
 module.exports = { registerRoutes };

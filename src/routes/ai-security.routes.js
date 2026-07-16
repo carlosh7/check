@@ -6,6 +6,7 @@ const { validatePrompt, maskSensitiveData } = require('../middleware/ai-validati
 const { AUDIT_ACTIONS, logAction } = require('../security/audit');
 const https = require('https');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 // GET /api/security/ai/inventory — Listar sistemas de IA detectados
@@ -17,7 +18,7 @@ router.get('/ai/inventory', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =
         });
         res.json(items);
     } catch (err) {
-        console.error('[AI_SECURITY] Error:', err.message);
+        logger.error('[AI_SECURITY] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener inventario' });
     }
 });
@@ -34,7 +35,7 @@ router.post('/ai/inventory', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) 
         );
         res.json({ success: true, id });
     } catch (err) {
-        console.error('[AI_SECURITY] Error:', err.message);
+        logger.error('[AI_SECURITY] Error:', err.message);
         res.status(500).json({ error: 'Error al agregar sistema' });
     }
 });
@@ -45,7 +46,7 @@ router.delete('/ai/inventory/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
         db.prepare("DELETE FROM ai_inventory WHERE id = ?").run(req.params.id);
         res.json({ success: true });
     } catch (err) {
-        console.error('[AI_SECURITY] Error:', err.message);
+        logger.error('[AI_SECURITY] Error:', err.message);
         res.status(500).json({ error: 'Error al eliminar' });
     }
 });
@@ -59,7 +60,7 @@ router.put('/ai/inventory/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
         );
         res.json({ success: true });
     } catch (err) {
-        console.error('[AI_SECURITY] Error:', err.message);
+        logger.error('[AI_SECURITY] Error:', err.message);
         res.status(500).json({ error: 'Error al actualizar' });
     }
 });
@@ -70,7 +71,7 @@ router.get('/ai/policies', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
         const policies = db.prepare("SELECT * FROM ai_policies ORDER BY created_at DESC").all();
         res.json(policies);
     } catch (err) {
-        console.error('[AI_SECURITY] Error:', err.message);
+        logger.error('[AI_SECURITY] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener politicas' });
     }
 });
@@ -85,7 +86,7 @@ router.post('/ai/policies', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =
         db.prepare("INSERT INTO ai_policies (id, name, description, content, is_active, updated_at) VALUES (?, ?, ?, ?, ?, ?)").run(id, name.trim(), description || '', content || '', is_active !== false ? 1 : 0, now);
         res.json({ success: true, id });
     } catch (err) {
-        console.error('[AI_SECURITY] Error:', err.message);
+        logger.error('[AI_SECURITY] Error:', err.message);
         res.status(500).json({ error: 'Error al crear politica' });
     }
 });
@@ -100,7 +101,7 @@ router.put('/ai/policies/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
         );
         res.json({ success: true });
     } catch (err) {
-        console.error('[AI_SECURITY] Error:', err.message);
+        logger.error('[AI_SECURITY] Error:', err.message);
         res.status(500).json({ error: 'Error al actualizar politica' });
     }
 });
@@ -111,7 +112,7 @@ router.delete('/ai/policies/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, 
         db.prepare("DELETE FROM ai_policies WHERE id = ?").run(req.params.id);
         res.json({ success: true });
     } catch (err) {
-        console.error('[AI_SECURITY] Error:', err.message);
+        logger.error('[AI_SECURITY] Error:', err.message);
         res.status(500).json({ error: 'Error al eliminar politica' });
     }
 });
@@ -233,7 +234,7 @@ router.post('/ai/chat', authMiddleware(['ADMIN', 'PRODUCTOR', 'STAFF', 'ORGANIZE
             durationMs: duration
         });
     } catch (err) {
-        console.error('[AI_CHAT] Error:', err.message);
+        logger.error('[AI_CHAT] Error:', err.message);
         res.status(500).json({ error: 'Error al procesar consulta IA' });
     }
 });
@@ -260,7 +261,7 @@ router.get('/ai/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 
         res.json({ data: logs, pagination: { page: page, limit: limit, total: total } });
     } catch (err) {
-        console.error('[AI_LOGS] Error:', err.message);
+        logger.error('[AI_LOGS] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener logs' });
     }
 });
@@ -272,7 +273,7 @@ router.get('/ai/logs/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
         if (!log) return res.status(404).json({ error: 'Log no encontrado' });
         res.json(log);
     } catch (err) {
-        console.error('[AI_LOGS] Error:', err.message);
+        logger.error('[AI_LOGS] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener log' });
     }
 });
@@ -298,7 +299,7 @@ router.get('/ai/alerts', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 
         res.json({ data: alerts, pagination: { page: page, limit: limit, total: total } });
     } catch (err) {
-        console.error('[AI_ALERTS] Error:', err.message);
+        logger.error('[AI_ALERTS] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener alertas' });
     }
 });
@@ -312,7 +313,7 @@ router.post('/ai/alerts/:id/acknowledge', authMiddleware(['ADMIN', 'PRODUCTOR'])
         try { logAction(req, AUDIT_ACTIONS.AI_ALERT_ACKNOWLEDGED, { alertId: req.params.id, type: alert.type, severity: alert.severity }); } catch(e) {}
         res.json({ success: true });
     } catch (err) {
-        console.error('[AI_ALERTS] Error:', err.message);
+        logger.error('[AI_ALERTS] Error:', err.message);
         res.status(500).json({ error: 'Error al acusar alerta' });
     }
 });
@@ -341,7 +342,7 @@ router.get('/ai/stats', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
             dailyTrend: dailyTrend
         });
     } catch (err) {
-        console.error('[AI_STATS] Error:', err.message);
+        logger.error('[AI_STATS] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener estadisticas' });
     }
 });
@@ -357,7 +358,7 @@ router.get('/ai/settings', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
         });
         res.json(settings);
     } catch (err) {
-        console.error('[AI_SETTINGS] Error:', err.message);
+        logger.error('[AI_SETTINGS] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener configuracion' });
     }
 });
@@ -373,7 +374,7 @@ router.put('/ai/settings', authMiddleware(['ADMIN']), (req, res) => {
         });
         res.json({ success: true });
     } catch (err) {
-        console.error('[AI_SETTINGS] Error:', err.message);
+        logger.error('[AI_SETTINGS] Error:', err.message);
         res.status(500).json({ error: 'Error al actualizar configuracion' });
     }
 });

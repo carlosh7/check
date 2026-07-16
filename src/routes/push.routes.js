@@ -13,9 +13,10 @@ let webpush = null;
 try {
     webpush = require('web-push');
 } catch (e) {
-    console.warn('⚠️ web-push no disponible. Notificaciones push deshabilitadas.');
+    logger.warn('⚠️ web-push no disponible. Notificaciones push deshabilitadas.');
 }
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 // Función para obtener VAPID keys desde base de datos o variables de entorno
@@ -33,7 +34,7 @@ function getVapidKeys() {
             if (dbPublicKey) publicKey = dbPublicKey.setting_value;
             if (dbPrivateKey) privateKey = dbPrivateKey.setting_value;
         } catch(e) {
-            console.warn('[PUSH] Error leyendo VAPID de DB:', e.message);
+            logger.warn('[PUSH] Error leyendo VAPID de DB:', e.message);
         }
     }
     
@@ -50,8 +51,8 @@ function initWebPush() {
     const isValidKey = (key) => key && key.length > 20 && !key.includes('tu_') && !key.includes('change');
     
     if (!isValidKey(publicKey) || !isValidKey(privateKey)) {
-        console.warn('⚠️  VAPID keys no configuradas. Notificaciones push no funcionarán.');
-        console.warn('   Configura en panel de administración o variables de entorno.');
+        logger.warn('⚠️  VAPID keys no configuradas. Notificaciones push no funcionarán.');
+        logger.warn('   Configura en panel de administración o variables de entorno.');
         return false;
     }
     
@@ -60,7 +61,7 @@ function initWebPush() {
         publicKey,
         privateKey
     );
-    console.log('✅ Web Push configurado con clave pública:', publicKey.substring(0, 20) + '...');
+    logger.info('✅ Web Push configurado con clave pública:', publicKey.substring(0, 20) + '...');
     return true;
 }
 
@@ -159,7 +160,7 @@ router.post('/subscribe', async (req, res) => {
                 action: 'updated'
             });
             
-            console.log(`📱 Suscripción push actualizada para usuario: ${userId || 'anonymous'}`);
+            logger.info(`📱 Suscripción push actualizada para usuario: ${userId || 'anonymous'}`);
         } else {
             // Crear nueva suscripción
             db.prepare(`
@@ -172,12 +173,12 @@ router.post('/subscribe', async (req, res) => {
                 action: 'created'
             });
             
-            console.log(`📱 Nueva suscripción push creada para usuario: ${userId || 'anonymous'}`);
+            logger.info(`📱 Nueva suscripción push creada para usuario: ${userId || 'anonymous'}`);
         }
         
         res.json({ success: true, id: existing ? existing.id : id });
     } catch (error) {
-        console.error('Error al guardar suscripción push:', error);
+        logger.error('Error al guardar suscripción push:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -203,12 +204,12 @@ router.post('/unsubscribe', async (req, res) => {
                 userId: subscription.user_id
             });
             
-            console.log(`📱 Suscripción push eliminada: ${endpoint.substring(0, 50)}...`);
+            logger.info(`📱 Suscripción push eliminada: ${endpoint.substring(0, 50)}...`);
         }
         
         res.json({ success: true });
     } catch (error) {
-        console.error('Error al eliminar suscripción push:', error);
+        logger.error('Error al eliminar suscripción push:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -268,7 +269,7 @@ router.post('/send-test', authMiddleware(['ADMIN']), async (req, res) => {
             failed
         });
         
-        console.log(`📤 Notificación de prueba enviada: ${successful} exitosas, ${failed} fallidas`);
+        logger.info(`📤 Notificación de prueba enviada: ${successful} exitosas, ${failed} fallidas`);
         
         res.json({
             success: true,
@@ -278,7 +279,7 @@ router.post('/send-test', authMiddleware(['ADMIN']), async (req, res) => {
             results: results.map(r => r.status === 'fulfilled' ? r.value : { error: r.reason })
         });
     } catch (error) {
-        console.error('Error al enviar notificación de prueba:', error);
+        logger.error('Error al enviar notificación de prueba:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -331,7 +332,7 @@ async function sendPushToUser(userId, notification) {
             failed: subscriptions.length - successful
         };
     } catch (error) {
-        console.error('Error al enviar notificación push a usuario:', error);
+        logger.error('Error al enviar notificación push a usuario:', error);
         return { success: false, error: error.message };
     }
 }
@@ -366,7 +367,7 @@ async function sendPushToEventUsers(eventId, notification) {
             failed: users.length - successful
         };
     } catch (error) {
-        console.error('Error al enviar notificación push a usuarios del evento:', error);
+        logger.error('Error al enviar notificación push a usuarios del evento:', error);
         return { success: false, error: error.message };
     }
 }
@@ -491,7 +492,7 @@ function startPushScheduler() {
                     db.prepare("UPDATE scheduled_notifications SET status = 'error', error = ? WHERE id = ?").run(err.message, notif.id);
                 });
             }
-        } catch (e) { console.error('[PushScheduler] Error:', e.message); }
+        } catch (e) { logger.error('[PushScheduler] Error:', e.message); }
     }, 30000);
 }
 

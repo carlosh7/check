@@ -57,6 +57,7 @@ const { db, getEventConnection, eventDatabaseExists } = require('../../database'
 const { generateCaptcha, verifyCaptcha } = require('../security/captcha');
 const { AuditLog } = require('../security/audit');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 const { castId } = require('../utils/helpers');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
@@ -390,7 +391,7 @@ router.post('/public-register', async (req, res) => {
         try { triggerWebhooks(WEBHOOK_EVENTS.PRE_REGISTRATION_CREATED, { guestId, event_id: eId, name, email }, eId).catch(() => {}); } catch(_) {}
         res.json({ success: true, message: isWaitlisted ? 'Registrado en lista de espera' : 'Registro exitoso', guestId, qrToken, waitlisted: isWaitlisted, waitlistPosition });
     } catch (err) {
-        console.error('[public-register] CRITICAL ERROR:', err);
+        logger.error('[public-register] CRITICAL ERROR:', err);
         res.status(500).json({ success: false, error: 'Error al procesar registro: ' + err.message });
     }
 });

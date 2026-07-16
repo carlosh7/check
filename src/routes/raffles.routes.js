@@ -64,6 +64,7 @@ const { db, getEventConnection, eventDatabaseExists } = require('../../database'
 const { authMiddleware } = require('../middleware/auth');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 function getEventGuestDb(eventId) {
@@ -402,7 +403,7 @@ router.get('/:id/report', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
         res.setHeader('Content-Disposition', 'attachment; filename=' + raffle.name.replace(/\s+/g, '_') + '_reporte.pdf');
         res.send(Buffer.from(doc.output('arraybuffer')));
     } catch (err) {
-        console.error('[RAFFLE] Report error:', err.message);
+        logger.error('[RAFFLE] Report error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -433,7 +434,7 @@ router.get('/:id/public', (req, res) => {
             results: results
         });
     } catch (err) {
-        console.error('[RAFFLE] Public error:', err.message);
+        logger.error('[RAFFLE] Public error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });

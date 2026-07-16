@@ -7,6 +7,7 @@ const { z } = require('zod');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 const updateLegalSchema = z.object({
@@ -69,7 +70,7 @@ router.post('/purge', authMiddleware(['ADMIN']), (req, res) => {
         return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
     }
 
-    console.warn(`[ADMIN] PURGE requested by user: ${req.userId}`);
+    logger.warn(`[ADMIN] PURGE requested by user: ${req.userId}`);
 
     try {
         // Disable foreign keys temporarily
@@ -87,11 +88,11 @@ router.post('/purge', authMiddleware(['ADMIN']), (req, res) => {
         // Re-enable foreign keys
         db.prepare("PRAGMA foreign_keys = ON").run();
 
-        console.warn(`[ADMIN] Database purged by user: ${req.userId}`);
+        logger.warn(`[ADMIN] Database purged by user: ${req.userId}`);
         res.json({ success: true, message: 'Base de datos limpiada' });
     } catch (e) {
         db.prepare("PRAGMA foreign_keys = ON").run();
-        console.error('[ADMIN] Purge failed:', e);
+        logger.error('[ADMIN] Purge failed:', e);
         res.status(500).json({ error: 'Error al purgar la base de datos' });
     }
 });

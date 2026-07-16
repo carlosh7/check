@@ -16,9 +16,10 @@ try {
     jsPDF = require('jspdf');
     autoTable = require('jspdf-autotable').default;
 } catch (e) {
-    console.warn('⚠️ jspdf/jspdf-autotable no disponible. Export PDF deshabilitado.');
+    logger.warn('⚠️ jspdf/jspdf-autotable no disponible. Export PDF deshabilitado.');
 }
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 // ══════════════════════════════════════════════════════════════
@@ -131,7 +132,7 @@ router.get('/template', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         res.setHeader('Content-Disposition', 'attachment; filename=plantilla_importacion_check.xlsx');
         res.send(buffer);
     } catch(e) {
-        console.error('Error generando plantilla:', e);
+        logger.error('Error generando plantilla:', e);
         res.status(500).json({ success: false, message: 'Error generando plantilla' });
     }
 });
@@ -177,7 +178,7 @@ router.get('/template/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async
         res.setHeader('Content-Disposition', 'attachment; filename=plantilla_asistentes.xlsx');
         res.send(buffer);
     } catch(e) {
-        console.error('Error generando plantilla de asistentes:', e);
+        logger.error('Error generando plantilla de asistentes:', e);
         res.status(500).json({ success: false, message: 'Error generando plantilla' });
     }
 });
@@ -188,7 +189,7 @@ router.get('/template/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async
 router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     // Manejar archivo como base64
     const { file, filename, type } = req.body;
-    console.log('[IMPORT] file received, length:', file?.length, 'filename:', filename);
+    logger.info('[IMPORT] file received, length:', file?.length, 'filename:', filename);
     if (!file) {
         return res.status(400).json({ success: false, message: 'No se envió archivo' });
     }
@@ -197,12 +198,12 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         const workbook = new ExcelJS.Workbook();
         // Decodificar base64 a buffer
         const buffer = Buffer.from(file, 'base64');
-        console.log('[IMPORT] buffer created, size:', buffer.length);
+        logger.info('[IMPORT] buffer created, size:', buffer.length);
         await workbook.xlsx.load(buffer);
         
         // Debug: Listar todas las hojas del workbook
         const sheetNames = workbook.worksheets.map(ws => ws.name);
-        console.log('[IMPORT] Hojas encontradas:', sheetNames);
+        logger.info('[IMPORT] Hojas encontradas:', sheetNames);
 
         const stats = { new: 0, update: 0, errors: 0 };
         const errors = [];
@@ -214,7 +215,7 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         // ─── PROCESAR EMPRESAS ───
         const empresasSheet = workbook.getWorksheet('Empresas') || workbook.getWorksheet('empresas');
         if (empresasSheet) {
-            console.log('[IMPORT] Hoja Empresas encontrada');
+            logger.info('[IMPORT] Hoja Empresas encontrada');
             const sheet = empresasSheet;
             const existingGroups = db.prepare("SELECT name, email FROM groups").all();
             
@@ -253,10 +254,10 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         }
 
         // ─── PROCESAR EVENTOS ───
-        console.log('[IMPORT] Buscando hoja Eventos/eventos...');
+        logger.info('[IMPORT] Buscando hoja Eventos/eventos...');
         const eventosSheet = workbook.getWorksheet('Eventos') || workbook.getWorksheet('eventos');
         if (eventosSheet) {
-            console.log('[IMPORT] Hoja Eventos encontrada, procesando...');
+            logger.info('[IMPORT] Hoja Eventos encontrada, procesando...');
             const sheet = eventosSheet;
             const existingEvents = db.prepare("SELECT name, date FROM events").all();
             
@@ -402,8 +403,8 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                 }
             });
             
-            console.log('[IMPORT] Column detection:', colMap);
-            console.log('[IMPORT] Headers:', colHeaders.map(function(h) { return h.name + ' -> ' + (h.detectedField || '?'); }));
+            logger.info('[IMPORT] Column detection:', colMap);
+            logger.info('[IMPORT] Headers:', colHeaders.map(function(h) { return h.name + ' -> ' + (h.detectedField || '?'); }));
             
             const existingClients = db.prepare("SELECT id, name, email, phone, organization, position, dietary_notes, vegano FROM clients").all();
             
@@ -650,7 +651,7 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
 
         res.json({ success: true, data, stats, errors });
     } catch(e) {
-        console.error('Error validando archivo:', e);
+        logger.error('Error validando archivo:', e);
         res.status(500).json({ success: false, message: 'Error validando archivo: ' + e.message });
     }
 });
@@ -663,10 +664,10 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         const { type } = req.body;
         const data = req.body.data || {}; // Protección contra undefined
         
-        console.log('[IMPORT EXECUTE] Type:', type);
-        console.log('[IMPORT EXECUTE] Groups:', data.groups?.length || 0);
-        console.log('[IMPORT EXECUTE] Events:', data.events?.length || 0);
-        console.log('[IMPORT EXECUTE] Users:', data.users?.length || 0);
+        logger.info('[IMPORT EXECUTE] Type:', type);
+        logger.info('[IMPORT EXECUTE] Groups:', data.groups?.length || 0);
+        logger.info('[IMPORT EXECUTE] Events:', data.events?.length || 0);
+        logger.info('[IMPORT EXECUTE] Users:', data.users?.length || 0);
         
         let imported = 0;
         let updated = 0;
@@ -680,10 +681,10 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         // PASO 1: Importar/Crear GRUPOS/EMPRESAS primero
         // ════════════════════════════════════════════════════════════
         if (data.groups && data.groups.length > 0) {
-            console.log('[IMPORT] Step 1 - Processing groups:', data.groups.length);
+            logger.info('[IMPORT] Step 1 - Processing groups:', data.groups.length);
             
             for (const g of data.groups) {
-                console.log('[IMPORT] Group:', g.name, 'email:', g.email);
+                logger.info('[IMPORT] Group:', g.name, 'email:', g.email);
                 
                 // Buscar por nombre O email
                 let existing = null;
@@ -695,14 +696,14 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 }
                 
                 if (existing) {
-                    console.log('[IMPORT] Updating group:', existing.name, 'id:', existing.id);
+                    logger.info('[IMPORT] Updating group:', existing.name, 'id:', existing.id);
                     db.prepare("UPDATE groups SET email = ?, phone = ?, status = ?, description = ? WHERE id = ?")
                         .run(g.email, g.phone, g.status, g.description, existing.id);
                     updated++;
                     // Registrar en mapa para siguientes pasos
                     createdGroupsMap[g.name.trim().toLowerCase()] = existing.id;
                 } else {
-                    console.log('[IMPORT] Creating new group:', g.name);
+                    logger.info('[IMPORT] Creating new group:', g.name);
                     const newId = getValidId('groups');
                     db.prepare("INSERT INTO groups (id, name, email, phone, status, description, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
                         .run(newId, g.name, g.email, g.phone, g.status, g.description, new Date().toISOString());
@@ -717,7 +718,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         // PASO 2: Importar/Crear EVENTOS (usando mapa de empresas)
         // ════════════════════════════════════════════════════════════
         if (data.events && data.events.length > 0) {
-            console.log('[IMPORT] Step 2 - Processing events:', data.events.length);
+            logger.info('[IMPORT] Step 2 - Processing events:', data.events.length);
             
             // Obtener empresas existentes de BD para complementar el mapa
             const allGroups = db.prepare("SELECT id, name FROM groups").all();
@@ -728,7 +729,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             }
             
             for (const e of data.events) {
-                console.log('[IMPORT] Event:', e.name, 'date:', e.date, 'group:', e.group_name);
+                logger.info('[IMPORT] Event:', e.name, 'date:', e.date, 'group:', e.group_name);
                 
                 // Resolver nombre de empresa a ID (primero mapa local, luego BD)
                 let resolvedGroupId = null;
@@ -736,13 +737,13 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     const groupNameLower = e.group_name.trim().toLowerCase();
                     if (createdGroupsMap[groupNameLower]) {
                         resolvedGroupId = createdGroupsMap[groupNameLower];
-                        console.log('[IMPORT] Resolved group from created:', e.group_name, '->', resolvedGroupId);
+                        logger.info('[IMPORT] Resolved group from created:', e.group_name, '->', resolvedGroupId);
                     } else {
                         // Buscar en BD
                         const foundGroup = db.prepare("SELECT id FROM groups WHERE LOWER(name) = LOWER(?)").get(e.group_name);
                         if (foundGroup) {
                             resolvedGroupId = foundGroup.id;
-                            console.log('[IMPORT] Resolved group from DB:', e.group_name, '->', resolvedGroupId);
+                            logger.info('[IMPORT] Resolved group from DB:', e.group_name, '->', resolvedGroupId);
                         }
                     }
                 }
@@ -754,7 +755,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 }
                 
                 if (existing) {
-                    console.log('[IMPORT] Updating event:', existing.name);
+                    logger.info('[IMPORT] Updating event:', existing.name);
                     db.prepare("UPDATE events SET location = ?, description = ?, group_id = ?, has_own_db = 1 WHERE id = ?")
                         .run(e.location, e.description, resolvedGroupId || null, existing.id);
                     // Crear DB del evento si no existe
@@ -763,7 +764,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     // Registrar en mapa
                     createdEventsMap[e.name.toLowerCase()] = existing.id;
                 } else {
-                    console.log('[IMPORT] Creating new event:', e.name);
+                    logger.info('[IMPORT] Creating new event:', e.name);
                     const newId = getValidId('events');
                     db.prepare("INSERT INTO events (id, user_id, name, date, location, description, group_id, status, created_at, has_own_db) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, 1)")
                         .run(newId, req.userId, e.name, e.date, e.location, e.description, resolvedGroupId || null, new Date().toISOString());
@@ -780,7 +781,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         // PASO 3: Importar/Crear STAFF (usando mapas de empresas y eventos)
         // ════════════════════════════════════════════════════════════
         if (data.users && data.users.length > 0) {
-            console.log('[IMPORT] Step 3 - Processing users:', data.users.length);
+            logger.info('[IMPORT] Step 3 - Processing users:', data.users.length);
             const bcrypt = require('bcryptjs');
             
             // Complementar mapas con datos de BD
@@ -799,7 +800,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             }
             
             for (const u of data.users) {
-                console.log('[IMPORT] User:', u.username, 'display_name:', u.display_name, 'company:', u.company_name, 'event:', u.event_name);
+                logger.info('[IMPORT] User:', u.username, 'display_name:', u.display_name, 'company:', u.company_name, 'event:', u.event_name);
                 
                 // Resolver company_name a group_id (usar mapa local primero, luego BD)
                 let resolvedGroupId = null;
@@ -807,7 +808,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     const companyLower = u.company_name.toLowerCase();
                     if (createdGroupsMap[companyLower]) {
                         resolvedGroupId = createdGroupsMap[companyLower];
-                        console.log('[IMPORT] Resolved company from map:', u.company_name, '->', resolvedGroupId);
+                        logger.info('[IMPORT] Resolved company from map:', u.company_name, '->', resolvedGroupId);
                     }
                 }
                 
@@ -820,13 +821,13 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 let userId;
                 
                 if (existingUser) {
-                    console.log('[IMPORT] Updating user:', existingUser.username);
+                    logger.info('[IMPORT] Updating user:', existingUser.username);
                     db.prepare("UPDATE users SET display_name = ?, phone = ?, role = ?, group_id = ? WHERE id = ?")
                         .run(u.display_name, u.phone, u.role, resolvedGroupId || null, existingUser.id);
                     userId = existingUser.id;
                     updated++;
                 } else {
-                    console.log('[IMPORT] Creating new user (APPROVED):', u.username);
+                    logger.info('[IMPORT] Creating new user (APPROVED):', u.username);
                     try {
                         const hashedPassword = u.password ? bcrypt.hashSync(u.password, 10) : bcrypt.hashSync(require('crypto').randomBytes(12).toString('base64url'), 10);
                         userId = getValidId('users');
@@ -835,12 +836,12 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         imported++;
                     } catch(createErr) {
                         if (createErr.message.includes('UNIQUE constraint failed')) {
-                            console.log('[IMPORT] User already exists (skipping):', u.username);
+                            logger.info('[IMPORT] User already exists (skipping):', u.username);
                             // Buscar el usuario existente y usarlo
                             const existing = db.prepare("SELECT id FROM users WHERE LOWER(username) = LOWER(?)").get(u.username);
                             if (existing) {
                                 userId = existing.id;
-                                console.log('[IMPORT] Using existing user ID:', userId);
+                                logger.info('[IMPORT] Using existing user ID:', userId);
                             } else {
                                 continue; // Saltar este usuario
                             }
@@ -859,32 +860,32 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         const eventId = createdEventsMap[eventLower];
                         
                         if (eventId) {
-                            console.log('[IMPORT] Linking user to event:', u.username, '->', eventName, '(', eventId, ')');
+                            logger.info('[IMPORT] Linking user to event:', u.username, '->', eventName, '(', eventId, ')');
                             try {
                                 db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
                                     .run(getValidId('user_events'), userId, eventId, new Date().toISOString());
                                 linkedCount++;
                             } catch(linkErr) {
-                                console.log('[IMPORT] Warning: Could not link user to event:', linkErr.message);
+                                logger.info('[IMPORT] Warning: Could not link user to event:', linkErr.message);
                             }
                         } else {
-                            console.log('[IMPORT] Warning: Event not found:', eventName);
+                            logger.info('[IMPORT] Warning: Event not found:', eventName);
                         }
                     }
                     if (linkedCount > 0) {
-                        console.log('[IMPORT] User', u.username, 'linked to', linkedCount, 'events');
+                        logger.info('[IMPORT] User', u.username, 'linked to', linkedCount, 'events');
                     }
                 }
             }
         }
 
-        console.log('[IMPORT] Result - imported:', imported, 'updated:', updated);
+        logger.info('[IMPORT] Result - imported:', imported, 'updated:', updated);
 
         // ════════════════════════════════════════════════════════════
         // PASO 4: Importar/Crear CLIENTES (con detección inteligente de columnas)
         // ════════════════════════════════════════════════════════════
         if (data.clients && data.clients.length > 0) {
-            console.log('[IMPORT] Step 4 - Processing clients:', data.clients.length);
+            logger.info('[IMPORT] Step 4 - Processing clients:', data.clients.length);
             
             // Complementar mapas con datos de BD
             const allGroups = db.prepare("SELECT id, name FROM groups").all();
@@ -906,7 +907,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             const hasExtendedFields = clientCols.includes('position') || clientCols.includes('dietary_notes') || clientCols.includes('vegano');
             
             for (const c of data.clients) {
-                console.log('[IMPORT] Client:', c.name, 'email:', c.email, 'org:', c.company_name, 'phone:', c.phone);
+                logger.info('[IMPORT] Client:', c.name, 'email:', c.email, 'org:', c.company_name, 'phone:', c.phone);
                 
                 // Resolver company_name a group_id
                 let resolvedGroupId = null;
@@ -962,7 +963,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     if (updates.length > 0) {
                         params.push(existingClient.id);
                         db.prepare("UPDATE clients SET " + updates.join(', ') + " WHERE id = ?").apply(params);
-                        console.log('[IMPORT] Updated client:', c.name, '- fields:', updates.join(', '));
+                        logger.info('[IMPORT] Updated client:', c.name, '- fields:', updates.join(', '));
                     }
                     
                     clientId = existingClient.id;
@@ -977,7 +978,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         db.prepare("INSERT INTO clients (id, name, email, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)")
                             .run(clientId, c.name, c.email, c.phone, resolvedGroupId || null, new Date().toISOString());
                     }
-                    console.log('[IMPORT] Created client:', c.name);
+                    logger.info('[IMPORT] Created client:', c.name);
                     imported++;
                 }
             }
@@ -1035,7 +1036,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 throw new Error('No se encontraron asistentes válidos para procesar');
             }
 
-            console.log(`[IMPORT] Step 5 - Processing ${attendeesToProcess.length} attendees for event:`, eventId);
+            logger.info(`[IMPORT] Step 5 - Processing ${attendeesToProcess.length} attendees for event:`, eventId);
             
             // Obtener la base de datos correcta
             const targetDb = createEventDatabase(eventId);
@@ -1052,11 +1053,11 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     if (col === 'validated') def = "INTEGER DEFAULT 0";
                     if (col === 'created_at') def = "TEXT DEFAULT CURRENT_TIMESTAMP";
                     targetDb.exec(`ALTER TABLE guests ADD COLUMN ${col} ${def}`);
-                    console.log(`[MIGRATION-EVENT] Columna ${col} añadida a guests del evento ${eventId}`);
+                    logger.info(`[MIGRATION-EVENT] Columna ${col} añadida a guests del evento ${eventId}`);
                 }
             });
         } catch (migErr) {
-            console.error('[MIGRATION-EVENT] Error migrando DB del evento:', migErr.message);
+            logger.error('[MIGRATION-EVENT] Error migrando DB del evento:', migErr.message);
         }
             
             // Contadores ya inicializados al inicio del manejador
@@ -1104,7 +1105,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     );
                     updated++;
                 } else {
-                    console.log('[IMPORT] Creating new guest:', emailLower);
+                    logger.info('[IMPORT] Creating new guest:', emailLower);
                     const guestId = getValidId('guests');
                     const qrToken = require('uuid').v4();
                     
@@ -1127,7 +1128,7 @@ imported++;
 
         res.json({ success: true, imported, updated, duplicates, total: imported + updated });
     } catch(e) {
-        console.error('Error ejecutando importacion:', e);
+        logger.error('Error ejecutando importacion:', e);
         res.status(500).json({ success: false, message: 'Error en importacion: ' + e.message });
     }
 });
@@ -1364,12 +1365,12 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
                 res.setHeader('Content-Disposition', `attachment; filename=export_${type}_${new Date().toISOString().split('T')[0]}.pdf`);
                 res.send(Buffer.from(doc.output('arraybuffer')));
             } catch(pdfError) {
-                console.error('Error generando PDF:', pdfError);
+                logger.error('Error generando PDF:', pdfError);
                 res.status(500).json({ success: false, message: 'Error generando PDF: ' + pdfError.message });
             }
         }
     } catch(e) {
-        console.error('Error exportando:', e);
+        logger.error('Error exportando:', e);
         res.status(500).json({ success: false, message: 'Error generando exportación' });
     }
 });

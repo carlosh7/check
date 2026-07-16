@@ -27,6 +27,7 @@ function requestCounterMiddleware(req, res, next) {
     next();
 }
 
+const logger = require("../utils/logger");
 const router = express.Router();
 const statsCache = new Map();
 const CACHE_TTL = 30000; // 30 segundos
@@ -180,7 +181,7 @@ router.get('/stats/:eventId', authMiddleware(), (req, res) => {
         });
         logPerformance('stats_event', 0, undefined, { eventId: eId });
     } catch (err) {
-        console.error('[STATS] Error:', err.message);
+        logger.error('[STATS] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener estadísticas' });
     }
 });
@@ -341,7 +342,7 @@ router.get('/bi/dashboard', authMiddleware(['ADMIN']), (req, res) => {
             period,
             generatedAt: new Date().toISOString()
         });
-    } catch(err) { console.error('[BI] Error:', err.message); res.status(500).json({ error: err.message }); }
+    } catch(err) { logger.error('[BI] Error:', err.message); res.status(500).json({ error: err.message }); }
 });
 
 // ─── Export BI (C5-02) ───
@@ -503,7 +504,7 @@ router.get('/metrics', authMiddleware(['ADMIN']), requestCounterMiddleware, (req
             lastBackup
         });
     } catch (err) {
-        console.error('[METRICS] Error:', err.message);
+        logger.error('[METRICS] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener métricas' });
     }
 });

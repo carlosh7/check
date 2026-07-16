@@ -34,6 +34,7 @@ const { authMiddleware } = require('../middleware/auth');
 const { blacklistToken } = require('../security/jwt');
 const { limiters } = require('../middleware/rate-limiter');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 /**
@@ -71,25 +72,25 @@ router.post('/login', limiters.authLimiter,
         let { username, password } = v.data;
         username = username ? username.toLowerCase() : '';
         
-        console.log(`[AUTH] Intento de login: ${username}`);
+        logger.info(`[AUTH] Intento de login: ${username}`);
         
         const row = db.prepare("SELECT * FROM users WHERE username = ?").get(username);
         
         if (!row) {
-            console.warn(`[AUTH] Usuario no encontrado: ${username}`);
+            logger.warn(`[AUTH] Usuario no encontrado: ${username}`);
             logAction(req, AUDIT_ACTIONS.LOGIN_FAILED, { username, reason: 'user_not_found' });
             return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
         }
         
-        console.log(`[AUTH] Usuario encontrado: ${row.username}, status: ${row.status}`);
+        logger.info(`[AUTH] Usuario encontrado: ${row.username}, status: ${row.status}`);
         
         if (row.status !== 'APPROVED') {
-            console.warn(`[AUTH] Usuario no aprobado: ${username}`);
+            logger.warn(`[AUTH] Usuario no aprobado: ${username}`);
             return res.status(401).json({ success: false, message: 'Cuenta no aprobada' });
         }
         
         const passwordMatch = bcrypt.compareSync(password, row.password);
-        console.log(`[AUTH] Password match: ${passwordMatch}`);
+        logger.info(`[AUTH] Password match: ${passwordMatch}`);
 
         if (passwordMatch) {
             const token = generateToken({
@@ -112,7 +113,7 @@ router.post('/login', limiters.authLimiter,
             res.status(401).json({ success: false, message: 'Credenciales inválidas' });
         }
     } catch (error) {
-        console.error('[AUTH] Critical Error during login:', error);
+        logger.error('[AUTH] Critical Error during login:', error);
         res.status(500).json({ success: false, message: 'Error interno del servidor' });
     }
 });
@@ -204,13 +205,13 @@ router.post('/password-reset-request', (req, res) => {
                     '<p style="font-size:12px;opacity:0.7;margin:0">Válido por 30 minutos</p>' +
                     '<div style="margin-top:20px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.2);font-size:10px;opacity:0.5">Check Pro - Smart Eventos</div></div>';
                 emailService.sendEmail({ to: user.username, subject: 'Código de recuperación - Check Pro', html: html, eventId: null })
-                    .then(function() { emailSent = true; }).catch(function(err) { console.error('[PASSWORD_RESET] Error email:', err.message); });
+                    .then(function() { emailSent = true; }).catch(function(err) { logger.error('[PASSWORD_RESET] Error email:', err.message); });
                 emailSent = true;
             }
-        } catch(e) { console.error('[PASSWORD_RESET] Error sending email:', e.message); }
+        } catch(e) { logger.error('[PASSWORD_RESET] Error sending email:', e.message); }
 
         res.json({ success: true, message: emailSent ? 'Código enviado por email' : 'Código generado (configura SMTP para envio automatico)' });
-    } catch(err) { console.error('[PASSWORD_RESET] Error:', err.message); res.status(500).json({ error: 'Error al procesar solicitud' }); }
+    } catch(err) { logger.error('[PASSWORD_RESET] Error:', err.message); res.status(500).json({ error: 'Error al procesar solicitud' }); }
 });
 
 router.post('/verify-reset-code', (req, res) => {

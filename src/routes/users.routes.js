@@ -11,6 +11,7 @@ const { authMiddleware } = require('../middleware/auth');
 const { schemas, validate } = require('../security/validation');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 // Obtener usuario por ID
@@ -169,7 +170,7 @@ router.post('/', authMiddleware(['ADMIN']), (req, res) => {
         
         res.json({ success: true, userId: id, status });
     } catch (err) {
-        console.error('Error creating user:', err);
+        logger.error('Error creating user:', err);
         res.status(400).json({ success: false, error: err.message });
     }
 });
@@ -255,20 +256,20 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
     }
     const targetId = castId('users', req.params.id);
-    console.log('[PUT USER] userId:', req.userId, 'targetId:', targetId, 'userRole:', req.userRole);
+    logger.info('[PUT USER] userId:', req.userId, 'targetId:', targetId, 'userRole:', req.userRole);
     
     // Permisos: ADMIN puede editar cualquier usuario, PRODUCTOR solo puede editar usuarios que no sean ADMIN
     // EXCEPCIÓN: cualquier usuario puede editar su propio perfil
     if (req.userId !== targetId && req.userRole !== 'ADMIN') {
         const targetUser = db.prepare("SELECT role FROM users WHERE id = ?").get(targetId);
-        console.log('[PUT USER] targetUser:', targetUser);
+        logger.info('[PUT USER] targetUser:', targetUser);
         if (!targetUser || targetUser.role === 'ADMIN') {
             return res.status(403).json({ error: 'No tienes permiso para editar este usuario' });
         }
     }
     
     const { username, display_name, role, password } = result.data;
-    console.log('[PUT USER] body:', result.data);
+    logger.info('[PUT USER] body:', result.data);
     
     // Verificar que el username no esté en uso por otro usuario
     if (username) {
@@ -279,7 +280,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     }
     
     // Validar role si se proporciona (PRODUCTOR puede cambiar rol, pero no a ADMIN)
-    console.log('[PUT USER] role provided:', role, 'userRole:', req.userRole);
+    logger.info('[PUT USER] role provided:', role, 'userRole:', req.userRole);
     if (role && req.userRole !== 'ADMIN' && role === 'ADMIN') {
         return res.status(403).json({ error: 'No puedes asignar rol ADMIN' });
     }
@@ -320,7 +321,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 // Eliminar usuario (ADMIN y PRODUCTOR)
 router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const targetId = castId('users', req.params.id);
-    console.log('[DELETE USER] userRole:', req.userRole, 'targetId:', targetId);
+    logger.info('[DELETE USER] userRole:', req.userRole, 'targetId:', targetId);
     
     // No puede eliminarse a sí mismo
     if (targetId === req.userId) {
@@ -340,7 +341,7 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     // Verificar si es PRODUCTOR tratando de eliminar un ADMIN
     if (req.userRole === 'PRODUCTOR') {
         const targetUser = db.prepare("SELECT role FROM users WHERE id = ?").get(targetId);
-        console.log('[DELETE USER] targetUser:', targetUser);
+        logger.info('[DELETE USER] targetUser:', targetUser);
         if (!targetUser) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }

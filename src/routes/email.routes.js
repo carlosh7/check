@@ -5,6 +5,7 @@
 
 const express = require('express');
 const { z } = require('zod');
+const logger = require("../utils/logger");
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
@@ -129,7 +130,7 @@ router.get('/accounts', (req, res) => {
         
         res.json(safeAccounts);
     } catch (error) {
-        console.error('Error listing accounts:', error);
+        logger.error('Error listing accounts:', error);
         res.status(500).json({ error: 'Error al listar cuentas' });
     }
 });
@@ -148,7 +149,7 @@ router.get('/accounts/:id', (req, res) => {
         
         res.json(account);
     } catch (error) {
-        console.error('Error getting account:', error);
+        logger.error('Error getting account:', error);
         res.status(500).json({ error: 'Error al obtener cuenta' });
     }
 });
@@ -208,7 +209,7 @@ router.post('/accounts', (req, res) => {
         
         res.status(201).json(account);
     } catch (error) {
-        console.error('Error creating account:', error);
+        logger.error('Error creating account:', error);
         res.status(500).json({ error: 'Error al crear cuenta' });
     }
 });
@@ -291,7 +292,7 @@ router.put('/accounts/:id', (req, res) => {
         
         res.json(account);
     } catch (error) {
-        console.error('Error updating account:', error);
+        logger.error('Error updating account:', error);
         res.status(500).json({ error: 'Error al actualizar cuenta' });
     }
 });
@@ -307,7 +308,7 @@ router.delete('/accounts/:id', (req, res) => {
         getEmailDb().prepare('DELETE FROM email_accounts WHERE id = ?').run(req.params.id);
         res.json({ success: true });
     } catch (error) {
-        console.error('Error deleting account:', error);
+        logger.error('Error deleting account:', error);
         res.status(500).json({ error: 'Error al eliminar cuenta' });
     }
 });
@@ -331,7 +332,7 @@ router.post('/accounts/:id/test-smtp', async (req, res) => {
         
         res.json({ success: true, message: 'Conexión SMTP exitosa' });
     } catch (error) {
-        console.error('SMTP test error:', error);
+        logger.error('SMTP test error:', error);
         res.json({ success: false, error: error.message });
     }
 });
@@ -363,7 +364,7 @@ router.post('/accounts/:id/test-imap', async (req, res) => {
             res.json({ success: false, error: err.message });
         }
     } catch (error) {
-        console.error('IMAP test error:', error);
+        logger.error('IMAP test error:', error);
         res.json({ success: false, error: error.message });
     }
 });
@@ -394,7 +395,7 @@ router.get('/templates', (req, res) => {
         
         res.json(templates);
     } catch (error) {
-        console.error('Error listing templates:', error);
+        logger.error('Error listing templates:', error);
         res.status(500).json({ error: 'Error al listar plantillas' });
     }
 });
@@ -408,7 +409,7 @@ router.get('/templates/:id', (req, res) => {
         }
         res.json(template);
     } catch (error) {
-        console.error('Error getting template:', error);
+        logger.error('Error getting template:', error);
         res.status(500).json({ error: 'Error al obtener plantilla' });
     }
 });
@@ -441,7 +442,7 @@ router.post('/templates', (req, res) => {
         const template = getEmailDb().prepare('SELECT * FROM email_templates WHERE id = ?').get(id);
         res.status(201).json(template);
     } catch (error) {
-        console.error('Error creating template:', error);
+        logger.error('Error creating template:', error);
         res.status(500).json({ error: 'Error al crear plantilla' });
     }
 });
@@ -475,7 +476,7 @@ router.put('/templates/:id', (req, res) => {
         const template = getEmailDb().prepare('SELECT * FROM email_templates WHERE id = ?').get(req.params.id);
         res.json(template);
     } catch (error) {
-        console.error('Error updating template:', error);
+        logger.error('Error updating template:', error);
         res.status(500).json({ error: 'Error al actualizar plantilla' });
     }
 });
@@ -495,7 +496,7 @@ router.delete('/templates/:id', (req, res) => {
         getEmailDb().prepare('DELETE FROM email_templates WHERE id = ?').run(req.params.id);
         res.json({ success: true });
     } catch (error) {
-        console.error('Error deleting template:', error);
+        logger.error('Error deleting template:', error);
         res.status(500).json({ error: 'Error al eliminar plantilla' });
     }
 });
@@ -682,7 +683,7 @@ router.post('/templates/seed', (req, res) => {
         
         res.json({ success: true, count: baseTemplates.length });
     } catch (error) {
-        console.error('Error seeding templates:', error);
+        logger.error('Error seeding templates:', error);
         res.status(500).json({ error: 'Error al crear plantillas base' });
     }
 });
@@ -713,7 +714,7 @@ router.get('/campaigns', (req, res) => {
         
         res.json(campaigns);
     } catch (error) {
-        console.error('Error listing campaigns:', error);
+        logger.error('Error listing campaigns:', error);
         res.status(500).json({ error: 'Error al listar campañas' });
     }
 });
@@ -727,7 +728,7 @@ router.get('/campaigns/:id', (req, res) => {
         }
         res.json(campaign);
     } catch (error) {
-        console.error('Error getting campaign:', error);
+        logger.error('Error getting campaign:', error);
         res.status(500).json({ error: 'Error al obtener campaña' });
     }
 });
@@ -765,7 +766,7 @@ router.post('/campaigns', (req, res) => {
         const campaign = getEmailDb().prepare('SELECT * FROM email_campaigns WHERE id = ?').get(id);
         res.status(201).json(campaign);
     } catch (error) {
-        console.error('Error creating campaign:', error);
+        logger.error('Error creating campaign:', error);
         res.status(500).json({ error: 'Error al crear campaña' });
     }
 });
@@ -800,7 +801,7 @@ router.put('/campaigns/:id', (req, res) => {
         const campaign = getEmailDb().prepare('SELECT * FROM email_campaigns WHERE id = ?').get(req.params.id);
         res.json(campaign);
     } catch (error) {
-        console.error('Error updating campaign:', error);
+        logger.error('Error updating campaign:', error);
         res.status(500).json({ error: 'Error al actualizar campaña' });
     }
 });
@@ -824,7 +825,7 @@ router.delete('/campaigns/:id', (req, res) => {
         
         res.json({ success: true });
     } catch (error) {
-        console.error('Error deleting campaign:', error);
+        logger.error('Error deleting campaign:', error);
         res.status(500).json({ error: 'Error al eliminar campaña' });
     }
 });
@@ -897,7 +898,7 @@ router.post('/campaigns/:id/send', async (req, res) => {
         
         res.json({ success: true, message: `Envío iniciado a ${recipients.length} destinatarios` });
     } catch (error) {
-        console.error('Error starting campaign:', error);
+        logger.error('Error starting campaign:', error);
         res.status(500).json({ error: 'Error al iniciar envío' });
     }
 });
@@ -925,7 +926,7 @@ router.post('/campaigns/:id/pause', (req, res) => {
         
         res.json({ success: true });
     } catch (error) {
-        console.error('Error pausing campaign:', error);
+        logger.error('Error pausing campaign:', error);
         res.status(500).json({ error: 'Error al pausar campaña' });
     }
 });
@@ -953,7 +954,7 @@ router.post('/campaigns/:id/resume', async (req, res) => {
         
         res.json({ success: true });
     } catch (error) {
-        console.error('Error resuming campaign:', error);
+        logger.error('Error resuming campaign:', error);
         res.status(500).json({ error: 'Error al reanudar campaña' });
     }
 });
@@ -982,7 +983,7 @@ router.post('/campaigns/:id/cancel', (req, res) => {
         
         res.json({ success: true });
     } catch (error) {
-        console.error('Error cancelling campaign:', error);
+        logger.error('Error cancelling campaign:', error);
         res.status(500).json({ error: 'Error al cancelar campaña' });
     }
 });
@@ -1005,7 +1006,7 @@ router.get('/campaigns/:id/logs', (req, res) => {
         const logs = getEmailDb().prepare(query).all(...params);
         res.json(logs);
     } catch (error) {
-        console.error('Error getting campaign logs:', error);
+        logger.error('Error getting campaign logs:', error);
         res.status(500).json({ error: 'Error al obtener logs' });
     }
 });
@@ -1028,7 +1029,7 @@ router.get('/campaigns/:id/stats', (req, res) => {
         
         res.json(stats);
     } catch (error) {
-        console.error('Error getting campaign stats:', error);
+        logger.error('Error getting campaign stats:', error);
         res.status(500).json({ error: 'Error al obtener estadísticas' });
     }
 });
@@ -1046,7 +1047,7 @@ let schedulerInterval = null;
 function startCampaignScheduler() {
     if (schedulerInterval) return; // Ya está corriendo
     
-    console.log('[SCHEDULER] Campaign scheduler started (checking every 30s)');
+    logger.info('[SCHEDULER] Campaign scheduler started (checking every 30s)');
     
     schedulerInterval = setInterval(async () => {
         try {
@@ -1056,12 +1057,12 @@ function startCampaignScheduler() {
             ).all(now);
             
             for (const campaign of scheduledCampaigns) {
-                console.log(`[SCHEDULER] Auto-starting campaign: ${campaign.name} (${campaign.id})`);
+                logger.info(`[SCHEDULER] Auto-starting campaign: ${campaign.name} (${campaign.id})`);
                 getEmailDb().prepare("UPDATE email_campaigns SET status = 'SENDING', updated_at = ? WHERE id = ?").run(now, campaign.id);
                 processEmailQueue(campaign.id, campaign);
             }
         } catch (err) {
-            console.error('[SCHEDULER] Error:', err.message);
+            logger.error('[SCHEDULER] Error:', err.message);
         }
     }, 30000); // Cada 30 segundos
 }
@@ -1132,7 +1133,7 @@ router.post('/send', limiters.emailLimiter, async (req, res) => {
         
         res.json({ success: true, messageId: result.messageId });
     } catch (error) {
-        console.error('Error sending email:', error);
+        logger.error('Error sending email:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -1179,7 +1180,7 @@ router.get('/mailbox/folders', async (req, res) => {
             res.json({ success: false, error: err.message });
         }
     } catch (error) {
-        console.error('Error getting mailbox folders:', error);
+        logger.error('Error getting mailbox folders:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -1249,7 +1250,7 @@ router.get('/mailbox/messages', async (req, res) => {
             res.json({ success: false, error: err.message });
         }
     } catch (error) {
-        console.error('Error getting mailbox messages:', error);
+        logger.error('Error getting mailbox messages:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -1315,11 +1316,11 @@ router.get('/mailbox/message/:uid', async (req, res) => {
             
             res.json({ success: true, message: msgData });
         } catch (err) {
-            console.error('[MAILBOX] Error:', err.message);
+            logger.error('[MAILBOX] Error:', err.message);
             res.json({ success: false, error: err.message });
         }
     } catch (error) {
-        console.error('Error getting mailbox message:', error);
+        logger.error('Error getting mailbox message:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -1333,7 +1334,7 @@ async function processEmailQueue(campaignId, account) {
         // Verificar si la campaña sigue en envío
         const campaign = getEmailDb().prepare('SELECT * FROM email_campaigns WHERE id = ?').get(campaignId);
         if (!campaign || campaign.status !== 'SENDING') {
-            console.log(`[EMAIL] Campaign ${campaignId} stopped`);
+            logger.info(`[EMAIL] Campaign ${campaignId} stopped`);
             return;
         }
         
@@ -1350,7 +1351,7 @@ async function processEmailQueue(campaignId, account) {
             getEmailDb().prepare(`
                 UPDATE email_campaigns SET status = 'SENT', completed_at = ?, updated_at = ? WHERE id = ?
             `).run(now, now, campaignId);
-            console.log(`[EMAIL] Campaign ${campaignId} completed`);
+            logger.info(`[EMAIL] Campaign ${campaignId} completed`);
             return;
         }
         
@@ -1400,7 +1401,7 @@ async function processEmailQueue(campaignId, account) {
             setTimeout(processNext, 1000);
             
         } catch (error) {
-            console.error(`[EMAIL] Error sending to ${item.recipient_email}:`, error.message);
+            logger.error(`[EMAIL] Error sending to ${item.recipient_email}:`, error.message);
             
             // Incrementar intentos
             const newAttempts = item.attempts + 1;
@@ -1487,7 +1488,7 @@ router.get('/mailbox/attachment/:uid', async (req, res) => {
             res.json({ success: false, error: err.message });
         }
     } catch (error) {
-        console.error('Error downloading attachment:', error);
+        logger.error('Error downloading attachment:', error);
         res.status(500).json({ error: error.message });
     }
 });

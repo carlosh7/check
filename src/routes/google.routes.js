@@ -6,6 +6,7 @@ const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { getValidId } = require('../utils/helpers');
 const { google } = require('googleapis');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 function escapeHtml(str) {
@@ -18,7 +19,7 @@ function getSetting(key) {
         var row = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").get(key);
         return row ? row.setting_value : '';
     } catch (e) {
-        console.error('[GOOGLE] getSetting error:', e.message);
+        logger.error('[GOOGLE] getSetting error:', e.message);
         return '';
     }
 }
@@ -163,7 +164,7 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         var clientId = getSetting('google_client_id');
         res.json({ configured: !!clientId });
     } catch (err) {
-        console.error('[GOOGLE] Status error:', err.message);
+        logger.error('[GOOGLE] Status error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -188,7 +189,7 @@ router.get('/auth', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         });
         res.json({ url: authUrl });
     } catch (err) {
-        console.error('[GOOGLE] Auth error:', err.message);
+        logger.error('[GOOGLE] Auth error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -209,7 +210,7 @@ router.get('/user/auth', authMiddleware(), (req, res) => {
         });
         res.json({ url: authUrl });
     } catch (err) {
-        console.error('[GOOGLE] User auth error:', err.message);
+        logger.error('[GOOGLE] User auth error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -285,7 +286,7 @@ router.get('/callback', async (req, res) => {
             res.send('<html><body style="background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif"><div style="text-align:center"><h2 style="color:#10b981">✅ Cuenta conectada</h2><p>Cuenta ' + escapeHtml(googleEmail) + ' vinculada al grupo.</p><p>Puedes cerrar esta ventana.</p></div></body></html>');
         }
     } catch (err) {
-        console.error('[GOOGLE] Callback error:', err.message);
+        logger.error('[GOOGLE] Callback error:', err.message);
         res.status(500).send('Error al conectar: ' + err.message);
     }
 });
@@ -297,7 +298,7 @@ router.get('/groups/:groupId/accounts', authMiddleware(['ADMIN', 'PRODUCTOR']), 
         var accounts = db.prepare("SELECT id, group_id, label, google_email, created_at, updated_at FROM group_google_accounts WHERE group_id = ? ORDER BY created_at DESC").all(req.params.groupId);
         res.json(accounts);
     } catch (err) {
-        console.error('[GOOGLE] Error:', err.message);
+        logger.error('[GOOGLE] Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -340,7 +341,7 @@ router.delete('/groups/:groupId/accounts/:id', authMiddleware(['ADMIN', 'PRODUCT
 
         res.json({ success: true });
     } catch (err) {
-        console.error('[GOOGLE] Delete error:', err.message);
+        logger.error('[GOOGLE] Delete error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -486,7 +487,7 @@ router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
 
             await uploadPdfToDrive(drive, folderId, eventName + ' - Reporte.pdf', Buffer.from(doc.output('arraybuffer')));
         } catch(pdfErr) {
-            console.error('[GOOGLE] PDF report error:', pdfErr.message);
+            logger.error('[GOOGLE] PDF report error:', pdfErr.message);
         }
 
         // ── 3. Exportar gafetes PDF ──
@@ -526,7 +527,7 @@ router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
 
             await uploadPdfToDrive(drive, folderId, eventName + ' - Gafetes.pdf', Buffer.from(doc2.output('arraybuffer')));
         } catch(badgeErr) {
-            console.error('[GOOGLE] Badges PDF error:', badgeErr.message);
+            logger.error('[GOOGLE] Badges PDF error:', badgeErr.message);
         }
 
         // Actualizar sync
@@ -535,7 +536,7 @@ router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
 
         res.json({ success: true, folderUrl: 'https://drive.google.com/drive/folders/' + folderId, guestCount: guests.length });
     } catch (err) {
-        console.error('[GOOGLE] Export error:', err.message);
+        logger.error('[GOOGLE] Export error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -624,7 +625,7 @@ router.post('/events/:eventId/import', authMiddleware(['ADMIN', 'PRODUCTOR']), a
             if (acc) db.prepare("UPDATE group_google_accounts SET refresh_token = NULL WHERE id = ?").run(acc.id);
             return res.status(401).json({ error: 'Token expirado. Reconecta la cuenta.' });
         }
-        console.error('[GOOGLE] Import error:', err.message);
+        logger.error('[GOOGLE] Import error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -654,11 +655,11 @@ function runSyncWorker() {
                 // Trigger export via fetch internal
                 triggerExport(event.id);
             } catch(e) {
-                console.error('[GOOGLE] Sync error for event ' + event.id + ':', e.message);
+                logger.error('[GOOGLE] Sync error for event ' + event.id + ':', e.message);
             }
         });
     } catch(e) {
-        console.error('[GOOGLE] Sync worker error:', e.message);
+        logger.error('[GOOGLE] Sync worker error:', e.message);
     }
 }
 
@@ -684,11 +685,11 @@ function triggerExport(eventId) {
 
     var req = http.request(options, function(res) {
         if (res.statusCode !== 200) {
-            console.error('[GOOGLE] Sync failed for event ' + eventId + ': HTTP ' + res.statusCode);
+            logger.error('[GOOGLE] Sync failed for event ' + eventId + ': HTTP ' + res.statusCode);
         }
     });
     req.on('error', function(e) {
-        console.error('[GOOGLE] Sync request error for event ' + eventId + ':', e.message);
+        logger.error('[GOOGLE] Sync request error for event ' + eventId + ':', e.message);
     });
     req.write(postData);
     req.end();
@@ -699,14 +700,14 @@ var syncInterval = null;
 function startSyncWorker() {
     if (syncInterval) clearInterval(syncInterval);
     syncInterval = setInterval(runSyncWorker, 60000);
-    console.log('[GOOGLE] Sync worker started (interval: 60s)');
+    logger.info('[GOOGLE] Sync worker started (interval: 60s)');
 }
 
 function stopSyncWorker() {
     if (syncInterval) {
         clearInterval(syncInterval);
         syncInterval = null;
-        console.log('[GOOGLE] Sync worker stopped');
+        logger.info('[GOOGLE] Sync worker stopped');
     }
 }
 
@@ -763,7 +764,7 @@ router.post('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTO
             upsert('gcal_event_' + eventId, result.data.id);
         }
         res.json({ success: true, calendarEventId: result.data.id, htmlLink: result.data.htmlLink });
-    } catch(err) { console.error('[GCAL] Error:', err.message); res.status(500).json({ error: err.message }); }
+    } catch(err) { logger.error('[GCAL] Error:', err.message); res.status(500).json({ error: err.message }); }
 });
 
 router.delete('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {

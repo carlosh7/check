@@ -5,6 +5,7 @@ const { castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { getEventDb } = require('../utils/event-db');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 // GET /api/seat-layouts/:eventId
@@ -19,7 +20,7 @@ router.get('/:eventId', authMiddleware(), (req, res) => {
         });
         res.json(layouts);
     } catch (err) {
-        console.error('[SEAT_LAYOUTS] Error:', err.message);
+        logger.error('[SEAT_LAYOUTS] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener planos' });
     }
 });
@@ -36,7 +37,7 @@ router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         targetDb.prepare("INSERT INTO seat_layouts (id, event_id, name, config) VALUES (?, ?, ?, ?)").run(id, eId, name.trim(), JSON.stringify(config || {}));
         res.json({ success: true, id });
     } catch (err) {
-        console.error('[SEAT_LAYOUTS] Error:', err.message);
+        logger.error('[SEAT_LAYOUTS] Error:', err.message);
         res.status(500).json({ error: 'Error al crear plano' });
     }
 });
@@ -52,7 +53,7 @@ router.put('/:eventId/:layoutId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, 
             .run(name || null, config ? JSON.stringify(config) : null, lId, eId);
         res.json({ success: true });
     } catch (err) {
-        console.error('[SEAT_LAYOUTS] Error:', err.message);
+        logger.error('[SEAT_LAYOUTS] Error:', err.message);
         res.status(500).json({ error: 'Error al actualizar plano' });
     }
 });
@@ -66,7 +67,7 @@ router.delete('/:eventId/:layoutId', authMiddleware(['ADMIN', 'PRODUCTOR']), (re
         targetDb.prepare("DELETE FROM seat_layouts WHERE id = ? AND event_id = ?").run(lId, eId);
         res.json({ success: true });
     } catch (err) {
-        console.error('[SEAT_LAYOUTS] Error:', err.message);
+        logger.error('[SEAT_LAYOUTS] Error:', err.message);
         res.status(500).json({ error: 'Error al eliminar plano' });
     }
 });
@@ -83,7 +84,7 @@ router.get('/:eventId/:layoutId/render', authMiddleware(), (req, res) => {
         const seats = generateSeats(cfg);
         res.json({ layout: { id: layout.id, name: layout.name, config: cfg }, seats });
     } catch (err) {
-        console.error('[SEAT_LAYOUTS] Error:', err.message);
+        logger.error('[SEAT_LAYOUTS] Error:', err.message);
         res.status(500).json({ error: 'Error al renderizar plano' });
     }
 });

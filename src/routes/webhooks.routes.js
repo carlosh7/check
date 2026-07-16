@@ -85,6 +85,7 @@ const {
     getWebhookLogs
 } = require('../utils/webhooks');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 // Get all webhooks (admin only or filtered by event access)
@@ -127,7 +128,7 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         const webhooks = listWebhooks();
         res.json(webhooks);
     } catch (error) {
-        console.error('Error fetching webhooks:', error);
+        logger.error('Error fetching webhooks:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -150,7 +151,7 @@ router.get('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         
         res.json(webhook);
     } catch (error) {
-        console.error('Error fetching webhook:', error);
+        logger.error('Error fetching webhook:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -200,7 +201,7 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         
         res.status(201).json(webhook);
     } catch (error) {
-        console.error('Error creating webhook:', error);
+        logger.error('Error creating webhook:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -256,7 +257,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         
         res.json(updated);
     } catch (error) {
-        console.error('Error updating webhook:', error);
+        logger.error('Error updating webhook:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -286,7 +287,7 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
         
         res.status(204).send();
     } catch (error) {
-        console.error('Error deleting webhook:', error);
+        logger.error('Error deleting webhook:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -322,7 +323,7 @@ router.post('/:id/test', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
             message: 'Webhook enviado exitosamente'
         });
     } catch (error) {
-        console.error('Error testing webhook:', error);
+        logger.error('Error testing webhook:', error);
         res.status(500).json({ 
             success: false, 
             error: error.message,
@@ -343,7 +344,7 @@ router.get('/:id/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         const logs = getWebhookLogs(req.params.id, parseInt(req.query.limit) || 50);
         res.json(logs);
     } catch (error) {
-        console.error('Error fetching webhook logs:', error);
+        logger.error('Error fetching webhook logs:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });

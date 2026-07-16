@@ -73,6 +73,7 @@ const rateLimit = require('express-rate-limit');
 const { getEventDb } = require('../utils/event-db');
 const { limiters } = require('../middleware/rate-limiter');
 
+const logger = require("../utils/logger");
 const router = express.Router();
 
 let tempImport = {};
@@ -177,7 +178,7 @@ const importConfirmSchema = z.object({
 
 // Importar confirmados
 router.post('/import-confirm', limiters.importLimiter, authMiddleware(), async (req, res) => {
-    console.log('[IMPORT-CONFIRM] ========== INICIO IMPORT ==========');
+    logger.info('[IMPORT-CONFIRM] ========== INICIO IMPORT ==========');
 
     const parseResult = importConfirmSchema.safeParse(req.body);
     if (!parseResult.success) {
@@ -194,10 +195,10 @@ router.post('/import-confirm', limiters.importLimiter, authMiddleware(), async (
     const ExcelJS = require('exceljs');
 
     const { mapping, event_id } = parseResult.data;
-    console.log('[IMPORT-CONFIRM] event_id:', event_id);
+    logger.info('[IMPORT-CONFIRM] event_id:', event_id);
     
     const eId = castId('events', event_id);
-    console.log('[IMPORT-CONFIRM] eId:', eId);
+    logger.info('[IMPORT-CONFIRM] eId:', eId);
     const guests = [];
     
     // Usar BD del evento si existe
@@ -275,7 +276,7 @@ router.post('/import-confirm', limiters.importLimiter, authMiddleware(), async (
         // Trigger webhooks for each new guest
         for (const guest of insertedGuests) {
             triggerWebhooks(WEBHOOK_EVENTS.GUEST_CREATED, guest, eId).catch(err => 
-                console.error(`Error triggering webhook for guest ${guest.id}:`, err.message)
+                logger.error(`Error triggering webhook for guest ${guest.id}:`, err.message)
             );
         }
         if (fs.existsSync(session.filePath)) fs.unlinkSync(session.filePath);
@@ -364,7 +365,7 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
             email: guest.email,
             checked_in: false,
             checkin_time: null
-        }, guest.event_id).catch(err => console.error(`Error triggering webhook for guest ${guest.id}:`, err.message));
+        }, guest.event_id).catch(err => logger.error(`Error triggering webhook for guest ${guest.id}:`, err.message));
         
         // Send push notification to event organizers (optional)
         sendPushToEventUsers(guest.event_id, {
@@ -373,7 +374,7 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
             icon: '/icon-192.png',
             data: { url: `/events/${guest.event_id}/guests` },
             tag: 'guest-uncheckin'
-        }).catch(err => console.error(`Error sending push notification for guest ${guest.id}:`, err.message));
+        }).catch(err => logger.error(`Error sending push notification for guest ${guest.id}:`, err.message));
         
         logChange(guest.event_id, 'guest', guest.id, 'unchecked_in', 'checked_in', '1', '0', req.userId);
         
@@ -400,7 +401,7 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
         email: guest.email,
         checked_in: true,
         checkin_time: new Date().toISOString()
-    }, guest.event_id).catch(err => console.error(`Error triggering webhook for guest ${guest.id}:`, err.message));
+    }, guest.event_id).catch(err => logger.error(`Error triggering webhook for guest ${guest.id}:`, err.message));
     
     // Send push notification to event organizers
     sendPushToEventUsers(guest.event_id, {
@@ -409,7 +410,7 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
         icon: '/icon-192.png',
         data: { url: `/events/${guest.event_id}/guests` },
         tag: 'guest-checkin'
-    }).catch(err => console.error(`Error sending push notification for guest ${guest.id}:`, err.message));
+    }).catch(err => logger.error(`Error sending push notification for guest ${guest.id}:`, err.message));
     
     logChange(guest.event_id, 'guest', guest.id, 'checked_in', 'checked_in', '0', '1', req.userId);
     
@@ -455,7 +456,7 @@ router.patch('/:eventId/guest-status/:guestId', authMiddleware(['ADMIN', 'PRODUC
         
         res.json({ success: true, fromStatus, toStatus: status });
     } catch (err) {
-        console.error('[PIPELINE] Error cambiando estado:', err.message);
+        logger.error('[PIPELINE] Error cambiando estado:', err.message);
         res.status(500).json({ error: 'Error al cambiar estado' });
     }
 });
@@ -488,7 +489,7 @@ router.get('/:eventId/pipeline', authMiddleware(), (req, res) => {
         
         res.json({ pipeline, total });
     } catch (err) {
-        console.error('[PIPELINE] Error:', err.message);
+        logger.error('[PIPELINE] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener pipeline' });
     }
 });
@@ -503,7 +504,7 @@ router.get('/:eventId/categories', authMiddleware(), (req, res) => {
         const cats = targetDb.prepare("SELECT * FROM guest_categories WHERE event_id = ? ORDER BY sort_order ASC, name ASC").all(eId);
         res.json(cats);
     } catch (err) {
-        console.error('[CATEGORIES] Error:', err.message);
+        logger.error('[CATEGORIES] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener categorias' });
     }
 });
@@ -540,7 +541,7 @@ router.post('/:eventId/categories', authMiddleware(['ADMIN', 'PRODUCTOR']), (req
         );
         res.json({ success: true, id });
     } catch (err) {
-        console.error('[CATEGORIES] Error:', err.message);
+        logger.error('[CATEGORIES] Error:', err.message);
         res.status(500).json({ error: 'Error al crear categoria' });
     }
 });
@@ -561,7 +562,7 @@ router.put('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR'])
         );
         res.json({ success: true });
     } catch (err) {
-        console.error('[CATEGORIES] Error:', err.message);
+        logger.error('[CATEGORIES] Error:', err.message);
         res.status(500).json({ error: 'Error al actualizar categoria' });
     }
 });
@@ -575,7 +576,7 @@ router.delete('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR
         targetDb.prepare("DELETE FROM guest_categories WHERE id = ? AND event_id = ?").run(catId, eId);
         res.json({ success: true });
     } catch (err) {
-        console.error('[CATEGORIES] Error:', err.message);
+        logger.error('[CATEGORIES] Error:', err.message);
         res.status(500).json({ error: 'Error al eliminar categoria' });
     }
 });
@@ -592,7 +593,7 @@ router.patch('/:eventId/guest-category/:guestId', authMiddleware(['ADMIN', 'PROD
         logChange(eId, 'guest', gId, 'category_changed', 'category_id', oldGuest ? oldGuest.category_id : '', category_id, req.userId);
         res.json({ success: true });
     } catch (err) {
-        console.error('[CATEGORIES] Error:', err.message);
+        logger.error('[CATEGORIES] Error:', err.message);
         res.status(500).json({ error: 'Error al cambiar categoria' });
     }
 });
@@ -613,7 +614,7 @@ router.get('/:eventId/availability', authMiddleware(), (req, res) => {
         const totalWaitlist = targetDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND status = 'waitlisted'").get(eId);
         res.json({ categories, totalActive: totalActive.c, totalWaitlist: totalWaitlist.c });
     } catch (err) {
-        console.error('[AVAILABILITY] Error:', err.message);
+        logger.error('[AVAILABILITY] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener disponibilidad' });
     }
 });
@@ -688,7 +689,7 @@ router.get('/:eventId/badges', authMiddleware(), async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename=Gafetes_${event.name.replace(/\s+/g, '_')}.pdf`);
         res.send(Buffer.from(doc.output('arraybuffer')));
     } catch (err) {
-        console.error('[BADGES] Error:', err.message);
+        logger.error('[BADGES] Error:', err.message);
         res.status(500).json({ error: 'Error generando gafetes' });
     }
 });
@@ -726,7 +727,7 @@ router.get('/:eventId/badges/zpl', authMiddleware(), (req, res) => {
         res.setHeader('Content-Disposition', 'attachment; filename=gafetes_' + eId.slice(0, 8) + '.zpl');
         res.send(zpl);
     } catch (err) {
-        console.error('[ZPL] Error:', err.message);
+        logger.error('[ZPL] Error:', err.message);
         res.status(500).json({ error: 'Error generando ZPL' });
     }
 });
@@ -762,7 +763,7 @@ router.get('/:eventId/badges/escpos', authMiddleware(), (req, res) => {
         res.setHeader('Content-Disposition', 'attachment; filename=gafetes_' + eId.slice(0, 8) + '.bin');
         res.send(escpos);
     } catch (err) {
-        console.error('[ESCPOS] Error:', err.message);
+        logger.error('[ESCPOS] Error:', err.message);
         res.status(500).json({ error: 'Error generando ESC/POS' });
     }
 });
@@ -847,7 +848,7 @@ router.get('/:eventId/report', authMiddleware(), (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename=Reporte_${event.name.replace(/\s+/g, '_')}.pdf`);
         res.send(Buffer.from(doc.output('arraybuffer')));
     } catch (err) {
-        console.error('[REPORT] Error:', err.message);
+        logger.error('[REPORT] Error:', err.message);
         res.status(500).json({ error: 'Error generando reporte' });
     }
 });
