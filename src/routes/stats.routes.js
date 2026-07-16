@@ -466,7 +466,7 @@ router.get('/metrics', authMiddleware(['ADMIN']), requestCounterMiddleware, (req
         // Backup info
         const BACKUP_DIR = process.env.DATA_PATH
             ? path.join(process.env.DATA_PATH, 'system', 'backups')
-            : '/usr/src/app/persistence/system/backups';
+            : path.join(__dirname, '../../data/system/backups');
 
         let backupCount = 0;
         let lastBackup = null;

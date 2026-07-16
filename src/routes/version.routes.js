@@ -101,7 +101,7 @@ router.get('/health/full', async (req, res) => {
     
     // Check Disk
     try {
-        var dataPath = process.env.DATA_PATH || '/usr/src/app/persistence';
+        var dataPath = process.env.DATA_PATH || path.join(__dirname, '../../data');
         if (fs.existsSync(dataPath)) {
             var diskStats = {};
             try {

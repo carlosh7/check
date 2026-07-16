@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.774",
+  "version": "12.44.775",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "script.js",
   "scripts": {
@@ -48,6 +48,7 @@
     "nodemailer": "^8.0.7",
     "pdf-parse": "^1.1.1",
     "qrcode": "^1.5.4",
+    "redis": "^6.1.0",
     "sharp": "^0.33.5",
     "socket.io": "^4.7.5",
     "speakeasy": "^2.0.0",
@@ -60,6 +61,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.5",
+    "@eslint/js": "^10.0.1",
     "babel-jest": "^30.3.0",
     "eslint": "^10.3.0",
     "husky": "^9.1.7",

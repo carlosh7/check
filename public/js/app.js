@@ -11938,15 +11938,17 @@ navigate(viewName, params = {}, push = true) {
         var status = document.getElementById('editor-3d-status');
         if (!overlay || !iframe) return;
 
-        // Auto-detectar entorno
+        // Auto-detectar entorno para 3D Planner
         var loc = window.location;
         var editorHost;
         if (loc.protocol === 'https:') {
-            editorHost = 'https://planner.tudominio.com';
+            // En producción, usar el mismo dominio con puerto 3001
+            editorHost = 'https://' + loc.hostname + ':3001';
         } else if (loc.hostname === 'localhost' || loc.hostname === '127.0.0.1') {
             editorHost = 'http://localhost:3001';
         } else {
-            editorHost = 'http://192.168.2.17:3001';
+            // Usar la misma IP del host con puerto 3001
+            editorHost = loc.protocol + '//' + loc.hostname + ':3001';
         }
         var url = editorHost + '/editor?eventId=' + eId + '&jwt=' + (this.state.token || '');
         if (layoutId) url += '&layoutId=' + encodeURIComponent(layoutId);

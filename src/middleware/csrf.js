@@ -7,7 +7,7 @@
  * 2. Bloqueo de requests sin origin ni referer en ciertos endpoints
  */
 
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:8080').split(',');
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || `http://localhost:${process.env.PORT || 3000}`).split(',');
 
 // Función para verificar si es IP local (192.168.x.x o 10.x.x.x o 172.16-31.x.x)
 function isLocalIP(origin) {

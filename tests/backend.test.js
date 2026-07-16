@@ -2,10 +2,12 @@
  * Tests integrales del backend de Check Pro
  * Cubre: auth, events, guests, public, webhooks, payments
  */
+require('dotenv').config();
 const request = require('supertest');
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../database');
+const { generateToken } = require('../src/security/jwt');
 
 // ─── HELPERS ───
 
@@ -17,10 +19,14 @@ function createTestApp(routeModule, path = '/api') {
 }
 
 function getAdminToken() {
-    const admin = db.prepare("SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1").get();
+    const admin = db.prepare("SELECT id, username, role FROM users WHERE role = 'ADMIN' LIMIT 1").get();
     if (!admin) return null;
-    // For middleware testing we use x-user-id header
-    return admin.id;
+    return generateToken({ userId: admin.id, username: admin.username, role: admin.role });
+}
+
+function getAdminUserId() {
+    const admin = db.prepare("SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1").get();
+    return admin ? admin.id : null;
 }
 
 // ─── AUTH ───
@@ -29,7 +35,7 @@ describe('Auth Middleware', () => {
     const { authMiddleware } = require('../src/middleware/auth');
 
     test('should reject requests without credentials', () => {
-        const req = { headers: {} };
+        const req = { headers: {}, query: {} };
         let statusCode;
         const res = { status: (c) => { statusCode = c; return res; }, json: () => {} };
         authMiddleware()(req, res, () => {});
@@ -37,26 +43,27 @@ describe('Auth Middleware', () => {
     });
 
     test('should reject requests with invalid token', () => {
-        const req = { headers: { authorization: 'Bearer invalid_token_xyz' } };
+        const req = { headers: { authorization: 'Bearer invalid_token_xyz' }, query: {} };
         let statusCode;
         const res = { status: (c) => { statusCode = c; return res; }, json: () => {} };
         authMiddleware()(req, res, () => {});
         expect(statusCode).toBe(401);
     });
 
-    test('should accept admin x-user-id', () => {
-        const adminId = getAdminToken();
-        if (!adminId) return;
-        const req = { headers: { 'x-user-id': adminId } };
+    test('should accept admin with valid JWT', () => {
+        const token = getAdminToken();
+        if (!token) return;
+        const req = { headers: { authorization: 'Bearer ' + token } };
         let nextCalled = false;
         authMiddleware(['ADMIN'])(req, { status: () => ({ json: () => {} }) }, () => { nextCalled = true; });
         expect(nextCalled).toBe(true);
     });
 
     test('should reject non-admin for admin-only route', () => {
-        const productor = db.prepare("SELECT id FROM users WHERE role = 'PRODUCTOR' LIMIT 1").get();
+        const productor = db.prepare("SELECT id, username, role FROM users WHERE role = 'PRODUCTOR' LIMIT 1").get();
         if (!productor) return;
-        const req = { headers: { 'x-user-id': productor.id } };
+        const token = generateToken({ userId: productor.id, username: productor.username, role: productor.role });
+        const req = { headers: { authorization: 'Bearer ' + token } };
         let statusCode;
         const res = { status: (c) => { statusCode = c; return res; }, json: () => {} };
         authMiddleware(['ADMIN'])(req, res, () => {});
@@ -127,9 +134,9 @@ describe('Events Routes', () => {
     });
 
     test('GET /api/events returns list for admin', async () => {
-        const adminId = getAdminToken();
-        if (!adminId) return;
-        const res = await request(app).get('/api/events').set('x-user-id', adminId);
+        const adminToken = getAdminToken();
+        if (!adminToken) return;
+        const res = await request(app).get('/api/events').set('Authorization', 'Bearer ' + adminToken);
         expect(res.status).toBe(200);
         expect(Array.isArray(res.body)).toBe(true);
     });
@@ -181,27 +188,27 @@ describe('Webhooks Routes', () => {
     });
 
     test('GET /api/webhooks/events/available returns events list', async () => {
-        const adminId = getAdminToken();
-        if (!adminId) return;
-        const res = await request(app).get('/api/webhooks/events/available').set('x-user-id', adminId);
+        const adminToken = getAdminToken();
+        if (!adminToken) return;
+        const res = await request(app).get('/api/webhooks/events/available').set('Authorization', 'Bearer ' + adminToken);
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty('events');
         expect(typeof res.body.events).toBe('object');
     });
 
     test('POST /api/webhooks validates required fields', async () => {
-        const adminId = getAdminToken();
-        if (!adminId) return;
-        const res = await request(app).post('/api/webhooks').set('x-user-id', adminId).send({ name: 'test' });
+        const adminToken = getAdminToken();
+        if (!adminToken) return;
+        const res = await request(app).post('/api/webhooks').set('Authorization', 'Bearer ' + adminToken).send({ name: 'test' });
         expect(res.status).toBe(400);
     });
 
     test('full webhook CRUD flow', async () => {
-        const adminId = getAdminToken();
-        if (!adminId) return;
+        const adminToken = getAdminToken();
+        if (!adminToken) return;
 
         // Create
-        const createRes = await request(app).post('/api/webhooks').set('x-user-id', adminId).send({
+        const createRes = await request(app).post('/api/webhooks').set('Authorization', 'Bearer ' + adminToken).send({
             name: 'Test Webhook',
             url: 'https://example.com/webhook',
             events: ['guest.created', 'guest.checked_in']
@@ -211,22 +218,22 @@ describe('Webhooks Routes', () => {
         const webhookId = createRes.body.id;
 
         // Get by ID
-        const getRes = await request(app).get('/api/webhooks/' + webhookId).set('x-user-id', adminId);
+        const getRes = await request(app).get('/api/webhooks/' + webhookId).set('Authorization', 'Bearer ' + adminToken);
         expect(getRes.status).toBe(200);
         expect(getRes.body.name).toBe('Test Webhook');
 
         // Update
-        const putRes = await request(app).put('/api/webhooks/' + webhookId).set('x-user-id', adminId).send({ name: 'Updated Webhook' });
+        const putRes = await request(app).put('/api/webhooks/' + webhookId).set('Authorization', 'Bearer ' + adminToken).send({ name: 'Updated Webhook' });
         expect(putRes.status).toBe(200);
         expect(putRes.body.name).toBe('Updated Webhook');
 
         // List all
-        const listRes = await request(app).get('/api/webhooks').set('x-user-id', adminId);
+        const listRes = await request(app).get('/api/webhooks').set('Authorization', 'Bearer ' + adminToken);
         expect(listRes.status).toBe(200);
         expect(Array.isArray(listRes.body)).toBe(true);
 
         // Delete
-        const delRes = await request(app).delete('/api/webhooks/' + webhookId).set('x-user-id', adminId);
+        const delRes = await request(app).delete('/api/webhooks/' + webhookId).set('Authorization', 'Bearer ' + adminToken);
         expect(delRes.status).toBe(204);
     });
 });
@@ -410,7 +417,7 @@ describe('Auth Routes', () => {
     test('POST /api/login rejects empty body', async () => {
         const res = await request(app).post('/api/login').send({});
         expect(res.status).toBe(400);
-        expect(res.body).toHaveProperty('errors');
+        expect(res.body).toHaveProperty('error');
     });
 
     test('POST /api/login rejects invalid credentials', async () => {
@@ -586,9 +593,9 @@ describe('Automation Routes', () => {
     });
 
     test('GET /api/automation/options returns available triggers', async () => {
-        const adminId = getAdminToken();
-        if (!adminId) return;
-        const res = await request(app).get('/api/automation/options').set('x-user-id', adminId);
+        const adminToken = getAdminToken();
+        if (!adminToken) return;
+        const res = await request(app).get('/api/automation/options').set('Authorization', 'Bearer ' + adminToken);
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty('triggers');
         expect(res.body).toHaveProperty('actions');
@@ -818,8 +825,10 @@ describe('Encryption Status Endpoint', () => {
 
     test('GET /api/deploy/encryption-status returns status', async () => {
         process.env.ENCRYPTION_KEY = 'test-encryption-key-32bytes!';
+        const adminToken = getAdminToken();
+        if (!adminToken) return;
         const app = createApp();
-        const res = await request(app).get('/api/deploy/encryption-status');
+        const res = await request(app).get('/api/deploy/encryption-status').set('Authorization', 'Bearer ' + adminToken);
         expect(res.status).toBe(200);
         expect(res.body.enabled).toBe(true);
         expect(res.body.algorithm).toBe('aes-256-gcm');
@@ -893,14 +902,14 @@ describe('Integration: Full Event Flow', () => {
     }
 
     test('create event then add guest then check-in', async () => {
-        const adminId = getAdminToken();
-        if (!adminId) return;
+        const adminToken = getAdminToken();
+        if (!adminToken) return;
 
         // Create event
         const evApp = createApp(eventsRoutes, '/api/events');
         const evRes = await request(evApp)
             .post('/api/events')
-            .set('x-user-id', adminId)
+            .set('Authorization', 'Bearer ' + adminToken)
             .send({ name: 'Integration Test Event', date: '2026-12-31', location: 'Test Location' });
         expect([200, 201]).toContain(evRes.status);
         const eventId = evRes.body.eventId || evRes.body.id;
@@ -909,14 +918,14 @@ describe('Integration: Full Event Flow', () => {
         // Add guest via attendance endpoint
         const attRes = await request(evApp)
             .post(`/api/events/${eventId}/attendance`)
-            .set('x-user-id', adminId)
+            .set('Authorization', 'Bearer ' + adminToken)
             .send({ name: 'Integration Guest', email: 'integration@test.com' });
         expect([200, 201]).toContain(attRes.status);
 
         // List guests to verify
         const listRes = await request(evApp)
             .get(`/api/events/${eventId}/attendance`)
-            .set('x-user-id', adminId);
+            .set('Authorization', 'Bearer ' + adminToken);
         expect(listRes.status).toBe(200);
         expect(Array.isArray(listRes.body)).toBe(true);
 
@@ -938,14 +947,14 @@ describe('Integration: API Key Flow', () => {
     }
 
     test('create API key then use it to access public API', async () => {
-        const adminId = getAdminToken();
-        if (!adminId) return;
+        const adminToken = getAdminToken();
+        if (!adminToken) return;
 
         // Create API key
         const app = createApp();
         const createRes = await request(app)
             .post('/api/api-keys')
-            .set('x-user-id', adminId)
+            .set('Authorization', 'Bearer ' + adminToken)
             .send({ name: 'Integration Test Key', permissions: 'read' });
         expect(createRes.status).toBe(200);
         expect(createRes.body.key).toMatch(/^ck_/);
@@ -962,7 +971,7 @@ describe('Integration: API Key Flow', () => {
         // Cleanup: delete key
         const delRes = await request(app)
             .delete('/api/api-keys/' + createRes.body.id)
-            .set('x-user-id', adminId);
+            .set('Authorization', 'Bearer ' + adminToken);
         expect(delRes.status).toBe(200);
     });
 });

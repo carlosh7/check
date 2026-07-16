@@ -13,7 +13,7 @@ try {
 
 const BACKUP_DIR = process.env.DATA_PATH
     ? path.join(process.env.DATA_PATH, 'system', 'backups')
-    : '/usr/src/app/persistence/system/backups';
+    : path.join(__dirname, '../../data/system/backups');
 
 if (!fs.existsSync(BACKUP_DIR)) {
     fs.mkdirSync(BACKUP_DIR, { recursive: true });

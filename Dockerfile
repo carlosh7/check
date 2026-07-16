@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libvips-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar package.json y package-lock.jsonpar
+# Copiar package.json y package-lock.json
 COPY package*.json ./
 
 # Copiar .env.example para automatización
@@ -29,7 +29,7 @@ RUN node -e "try { require('web-push'); console.log('✅ web-push OK'); } catch(
 RUN node -e "try { require('jspdf'); console.log('✅ jspdf OK'); } catch(e) { console.warn('⚠️ jspdf no disponible'); }" || true
 
 # Crear carpeta data automáticamente
-RUN if [ ! -d "data" ]; then mkdir data; fi
+RUN if [ ! -d "data" ]; then mkdir -p data/system data/events data/uploads; fi
 
 # Copiar script de entrada
 COPY docker-entrypoint.sh ./
@@ -38,12 +38,13 @@ RUN chmod +x docker-entrypoint.sh
 # Copiar el resto de la aplicación
 COPY . .
 
-# Exponer el puerto
-EXPOSE 3000
+# Exponer puerto (variable de entorno)
+ARG PORT=3000
+EXPOSE $PORT
 
-# Health check — verifica que la app responda cada 30s (usa node en vez de curl)
+# Health check — verifica que la app responda cada 30s
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
+    CMD node -e "require('http').get('http://localhost:${PORT:-3000}/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
 
 # Usar script de entrada para inicialización automática
 ENTRYPOINT ["./docker-entrypoint.sh"]

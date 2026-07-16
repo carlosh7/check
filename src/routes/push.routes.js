@@ -41,7 +41,7 @@ function getVapidKeys() {
 }
 
 // Inicializar web-push
-const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@check.com';
+const vapidSubject = process.env.VAPID_SUBJECT || `mailto:${process.env.ADMIN_EMAIL || 'admin@localhost'}`;
 
 function initWebPush() {
     const { publicKey, privateKey } = getVapidKeys();

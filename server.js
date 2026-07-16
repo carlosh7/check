@@ -1,14 +1,53 @@
-// server.js — Check Pro v12.34.1
+// server.js — Check Pro v12.44.775
 // Regla de Oro V12 - Sistema Modular con Deep Dark Mode
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
 const path = require('path');
+const net = require('net');
 const { db } = require('./database');
 const fs = require('fs');
 const helmet = require('helmet');
 const logger = require('./src/utils/logger');
+
+// ═══ AUTO-PORT DETECTION ═══
+// Si el puerto configurado está ocupado, busca el siguiente libre
+function isPortFree(port) {
+    return new Promise((resolve) => {
+        const server = net.createServer();
+        server.once('error', () => resolve(false));
+        server.once('listening', () => { server.close(); resolve(true); });
+        server.listen(port, '0.0.0.0');
+    });
+}
+
+async function findAvailablePort(preferredPort, maxAttempts = 20) {
+    for (let i = 0; i < maxAttempts; i++) {
+        const candidatePort = preferredPort + i;
+        if (await isPortFree(candidatePort)) {
+            if (i > 0) {
+                logger.warn(`Puerto ${preferredPort} ocupado. Usando puerto ${candidatePort} en su lugar.`);
+                // Actualizar .env con el puerto encontrado
+                try {
+                    const envPath = path.join(__dirname, '.env');
+                    let envContent = fs.readFileSync(envPath, 'utf8');
+                    envContent = envContent.replace(/^PORT=.*/m, `PORT=${candidatePort}`);
+                    envContent = envContent.replace(/^APP_URL=.*/m, `APP_URL=http://localhost:${candidatePort}`);
+                    envContent = envContent.replace(/ALLOWED_ORIGINS=.*$/m, `ALLOWED_ORIGINS=http://localhost:${candidatePort}`);
+                    fs.writeFileSync(envPath, envContent);
+                    process.env.PORT = String(candidatePort);
+                    logger.info(`.env actualizado con PORT=${candidatePort}`);
+                } catch (e) {
+                    logger.warn('No se pudo actualizar .env: ' + e.message);
+                }
+            }
+            return candidatePort;
+        }
+    }
+    logger.error(`No se encontró puerto libre después de ${maxAttempts} intentos始于 ${preferredPort}`);
+    return preferredPort;
+}
 
 // Middleware de seguridad
 const { csrfMiddleware, securityHeaders } = require('./src/middleware/csrf');
@@ -34,11 +73,13 @@ const APP_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.jso
 const app = express();
 const server = http.createServer(app);
 
-// CORS whitelist desde variable de entorno
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:8080').split(',');
+// Puerto detectado dinámicamente (se resuelve en async startup)
+let detectedPort = parseInt(process.env.PORT) || 3000;
 
-const io = initSocket(server, { cors: { origin: ALLOWED_ORIGINS, methods: ['GET', 'POST'] } });
-const port = process.env.PORT || 3000;
+// CORS whitelist — se inicializa después de detectar puerto
+let ALLOWED_ORIGINS = [];
+
+const io = initSocket(server, { cors: { origin: '*', methods: ['GET', 'POST'] } });
 
 // --- EMAIL SERVICE (Delegado al módulo email.routes.js) ---
 global.emailService = null;
@@ -386,5 +427,22 @@ try {
     logger.warn('Plugin Engine no disponible: ' + e.message);
 }
 
-// ═══ ARRANQUE DEL SERVIDOR ═══
-server.listen(port, '0.0.0.0', () => logger.info(`CHECK PRO V${APP_VERSION} (Enterprise Grade + Backups + Rate Limiting): Puerto ${port}`));
+// ═══ ARRANQUE DEL SERVIDOR (Auto-Port Detection) ═══
+(async () => {
+    const preferredPort = parseInt(process.env.PORT) || 3000;
+    detectedPort = await findAvailablePort(preferredPort);
+    
+    // Configurar CORS con el puerto detectado
+    ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || `http://localhost:${detectedPort}`).split(',');
+    
+    // Reconectar Socket.io con CORS correcto
+    io.engine.opts.cors.origin = ALLOWED_ORIGINS;
+
+    server.listen(detectedPort, '0.0.0.0', () => {
+        logger.info(`CHECK PRO V${APP_VERSION} (Enterprise Grade + Backups + Rate Limiting): Puerto ${detectedPort}`);
+        logger.info(`URL: http://localhost:${detectedPort}`);
+        if (detectedPort !== preferredPort) {
+            logger.warn(`Puerto original ${preferredPort} estaba ocupado. App disponible en ${detectedPort}`);
+        }
+    });
+})();

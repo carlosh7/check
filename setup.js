@@ -51,7 +51,7 @@ if (!fs.existsSync(envPath)) {
         const envContent = `# Check Pro - Configuración
 # Generated automatically
 
-# Puerto del servidor
+# Puerto del servidor (auto-detectado si está ocupado)
 PORT=3000
 
 # JWT (generar con: openssl rand -hex 32)
@@ -64,7 +64,7 @@ ADMIN_PASSWORD=${process.env.ADMIN_PASSWORD || 'admin123'}
 # URL de la aplicación
 APP_URL=http://localhost:3000
 
-# Dominios permitidos para CORS
+# Dominios permitidos para CORS (se auto-actualiza con el puerto detectado)
 ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
 
 # VAPID Keys for Push Notifications

@@ -10,8 +10,7 @@ const options = {
             contact: { name: 'Check Pro Support' }
         },
         servers: [
-            { url: 'http://localhost:3000', description: 'Local' },
-            { url: 'http://192.168.2.17:3000', description: 'Producción' }
+            { url: process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`, description: 'Servidor activo' }
         ],
         tags: [
             { name: 'Auth', description: 'Autenticación, registro y recuperación de contraseña' },

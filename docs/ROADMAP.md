@@ -2049,7 +2049,7 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 | H-04 | Validación schemas express-validator | ✅ | v12.44.753 | 2026-05-11 |
 | H-05 | Logging estructurado | ✅ | v12.44.753 | 2026-05-11 |
 | H-06 | Tests de carga (k6/autocannon) | ✅ | v12.44.753 | 2026-05-11 |
-| P-01 | Redis cache real | ⏳ Pendiente | — | — |
+| P-01 | Redis cache real | ✅ | v12.44.775 | 2026-07-16 |
 | P-02 | Índices compuestos BD | ✅ | v12.44.754 | 2026-05-11 |
 | P-03 | Code splitting app.js | ✅ | — | — |
 | P-04 | Compresión Brotli nginx | ✅ | v12.44.753 | 2026-05-11 |

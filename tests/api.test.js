@@ -3,8 +3,17 @@
  * Usar: npm test
  */
 
+require('dotenv').config();
 const request = require('supertest');
 const express = require('express');
+const { db } = require('../database');
+const { generateToken } = require('../src/security/jwt');
+
+function getAdminToken() {
+    const admin = db.prepare("SELECT id, username, role FROM users WHERE role = 'ADMIN' LIMIT 1").get();
+    if (!admin) return null;
+    return generateToken({ userId: admin.id, username: admin.username, role: admin.role });
+}
 
 describe('Check Pro API - Auth Middleware', () => {
     test('should export authMiddleware function', () => {
@@ -14,7 +23,7 @@ describe('Check Pro API - Auth Middleware', () => {
     
     test('should reject requests without token', () => {
         const { authMiddleware } = require('../src/middleware/auth');
-        const req = { headers: {} };
+        const req = { headers: {}, query: {} };
         let statusCode;
         const res = {
             status: (code) => { statusCode = code; return res; },
@@ -27,13 +36,12 @@ describe('Check Pro API - Auth Middleware', () => {
     });
     
     test('should call next with valid admin token', () => {
-        const { db } = require('../database');
         const { authMiddleware } = require('../src/middleware/auth');
-        
         const admin = db.prepare('SELECT id FROM users WHERE role = ?').get('ADMIN');
         expect(admin).toBeDefined();
         
-        const req = { headers: { 'x-user-id': admin.id } };
+        const token = getAdminToken();
+        const req = { headers: { authorization: 'Bearer ' + token }, query: {} };
         let nextCalled = false;
         const res = {
             status: () => res,

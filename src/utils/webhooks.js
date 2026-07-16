@@ -330,7 +330,7 @@ async function createBackup() {
     let backupFile = path.join(backupDir, 'checkpro_backup_' + dateStr + '.db');
 
     try {
-        let srcDb = db.name || (process.env.DATA_PATH ? path.join(process.env.DATA_PATH, 'system', 'database.db') : '/usr/src/app/persistence/system/database.db');
+        let srcDb = db.name || (process.env.DATA_PATH ? path.join(process.env.DATA_PATH, 'system', 'database.db') : path.join(__dirname, '../../data/system/database.db'));
         if (fs.existsSync(srcDb)) {
             fs.copyFileSync(srcDb, backupFile);
             // Keep only last 7 backups
