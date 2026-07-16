@@ -1,22 +1,22 @@
-<div id="app-container" class="app-container hidden">
-    <button id="hamburger-btn" class="hamburger-btn" onclick="document.getElementById('global-sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('active')" aria-label="Abrir menú">☰</button>
-    <div id="sidebar-overlay" class="sidebar-overlay" onclick="document.getElementById('global-sidebar').classList.remove('open');this.classList.remove('active')"></div>
-    <aside id="global-sidebar" class="app-sidebar">
+<div id="app-container" class="app-container hidden" role="application" aria-label="Check Pro - Panel de administración">
+    <button id="hamburger-btn" class="hamburger-btn" onclick="document.getElementById('global-sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('active')" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="global-sidebar">☰</button>
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="document.getElementById('global-sidebar').classList.remove('open');this.classList.remove('active')" role="presentation"></div>
+    <aside id="global-sidebar" class="app-sidebar" role="navigation" aria-label="Menú principal">
         <div class="app-sidebar-brand">
             <div class="app-sidebar-brand-left">
                 <div class="app-sidebar-brand-icon">
-                    <span class="material-symbols-outlined">verified_user</span>
+                    <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
                 </div>
                 <div class="app-sidebar-brand-text">
-                    <span class="app-sidebar-brand-title">Check<span>.</span>Pro</span>
+                    <span class="app-sidebar-brand-title">Check<span aria-hidden="true">.</span>Pro</span>
                     <span class="app-sidebar-brand-subtitle">Ecosistema Elite</span>
                     </div>
                     </div>
                     </div>
         
-        <div id="premium-toast-container" class="toast-container"></div>
+        <div id="premium-toast-container" class="toast-container" role="status" aria-live="polite" aria-label="Notificaciones"></div>
 
-        <nav class="app-nav">
+        <nav class="app-nav" aria-label="Navegación principal">
             <button id="nav-btn-my-events" class="nav-item app-nav-item" data-tab="my-events" aria-label="Mis Eventos">
                 <span class="material-symbols-outlined">event</span>
                 <span class="app-nav-item-text">Mis Eventos</span>
@@ -59,7 +59,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.779</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.780</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -68,11 +68,11 @@
         </nav>
     </aside>
 
-    <main id="app-main-content" class="app-main-content">
+    <main id="app-main-content" class="app-main-content" role="main" aria-label="Contenido principal">
         <div class="app-scroll-area">
 
             <!-- VIEW: MIS EVENTOS -->
-            <section id="view-my-events" class="view-section hidden" data-section="my-events">
+            <section id="view-my-events" class="view-section hidden" data-section="my-events" role="region" aria-label="Mis Eventos">
                 <div class="w-full">
                     <div class="sticky-header">
                         <div class="action-bar">
@@ -159,7 +159,7 @@
             </section>
 
             <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
-            <section id="view-admin" class="view-section hidden">
+            <section id="view-admin" class="view-section hidden" role="region" aria-label="Panel de administración">
                 <div class="sticky-header">
                     <div class="action-bar">
                         <button class="btn-primary" onclick="App.toggleAddAttendanceModal()">
@@ -444,7 +444,7 @@
             </section>
 
             <!-- VIEW: CONFIGURACIÓN DEL EVENTO -->
-            <section id="view-event-config" class="view-section hidden">
+            <section id="view-event-config" class="view-section hidden" role="region" aria-label="Configuración del evento">
                 <div class="config-tabs">
                     <button class="btn-secondary sub-nav-btn" data-tab="staff" onclick="App.switchConfigTab('staff')">
                         <span class="material-symbols-outlined">person</span> Personal
@@ -1957,7 +1957,7 @@
             </section>
 
             <!-- VIEW: SISTEMA (UNIFIED HUB) -->
-            <section id="view-system" class="hidden space-y-6 animate-fade-in">
+            <section id="view-system" class="hidden space-y-6 animate-fade-in" role="region" aria-label="Configuración del sistema">
                     <div class="sticky-header-container sticky-header-custom">
                     <div class="flex flex-wrap items-center gap-2">
                         <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="groups" onclick="App.switchSystemTab('groups')">

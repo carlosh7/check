@@ -70,12 +70,22 @@ node -e "try { require('better-sqlite3'); console.log('  ✅ better-sqlite3 OK')
 node -e "try { require('express'); console.log('  ✅ express OK'); } catch(e) { console.error('  ❌ express MISSING'); process.exit(1); }"
 node -e "try { require('jsonwebtoken'); console.log('  ✅ jsonwebtoken OK'); } catch(e) { console.warn('  ⚠️  jsonwebtoken no disponible'); }" || true
 
-# 4. Verificar que JWT_SECRET exista
-if ! grep -q "JWT_SECRET" .env 2>/dev/null || grep -q "JWT_SECRET=$" .env 2>/dev/null; then
-    echo "⚠️  JWT_SECRET no configurado. Generando uno nuevo..."
-    NEW_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
-    echo "JWT_SECRET=$NEW_SECRET" >> .env
-    echo "✅ JWT_SECRET generado y guardado en .env"
+# 4. Auto-generar secrets si faltan
+echo "🔑 Verificando secrets..."
+if ! grep -q "JWT_SECRET=.\{32,\}" .env 2>/dev/null; then
+    NEW_JWT=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+    sed -i "s/^JWT_SECRET=.*/JWT_SECRET=$NEW_JWT/" .env 2>/dev/null || echo "JWT_SECRET=$NEW_JWT" >> .env
+    echo "✅ JWT_SECRET auto-generado"
+fi
+if ! grep -q "ENCRYPTION_KEY=.\{32,\}" .env 2>/dev/null; then
+    NEW_KEY=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+    sed -i "s/^ENCRYPTION_KEY=.*/ENCRYPTION_KEY=$NEW_KEY/" .env 2>/dev/null || echo "ENCRYPTION_KEY=$NEW_KEY" >> .env
+    echo "✅ ENCRYPTION_KEY auto-generado"
+fi
+if ! grep -q "DEPLOY_WEBHOOK_SECRET=.\{32,\}" .env 2>/dev/null; then
+    NEW_DEPLOY=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+    sed -i "s/^DEPLOY_WEBHOOK_SECRET=.*/DEPLOY_WEBHOOK_SECRET=$NEW_DEPLOY/" .env 2>/dev/null || echo "DEPLOY_WEBHOOK_SECRET=$NEW_DEPLOY" >> .env
+    echo "✅ DEPLOY_WEBHOOK_SECRET auto-generado"
 fi
 
 # 5. Verificar base de datos
