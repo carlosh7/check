@@ -130,10 +130,10 @@ router.get('/health/full', async (req, res) => {
             heapUsed: Math.round(mem.heapUsed / 1024 / 1024) + 'MB',
             heapPercent: Math.round((mem.heapUsed / mem.heapTotal) * 100) + '%'
         };
-        if (mem.heapUsed / mem.heapTotal > 0.9) {
+        if (mem.heapUsed / mem.heapTotal > 0.95) {
             checks.memory.status = 'critical';
             allHealthy = false;
-        } else if (mem.heapUsed / mem.heapTotal > 0.75) {
+        } else if (mem.heapUsed / mem.heapTotal > 0.85) {
             checks.memory.status = 'warning';
         }
     } catch (err) {
