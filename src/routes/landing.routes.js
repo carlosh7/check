@@ -38,10 +38,10 @@ router.get('/:eventId/public', (req, res) => {
     try {
         var eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID inválido' });
-        var event = db.prepare("SELECT id, name, date, end_date, location, description, logo_url, banner_url, landing_config, sessions FROM events WHERE id = ?").get(eId);
+        var event = db.prepare("SELECT id, name, date, end_date, location, description, logo_url, landing_config, video_conference_url, latitude, longitude FROM events WHERE id = ?").get(eId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         var config = {};
-        try { config = JSON.parse(event.landing_config); } catch(e) {}
+        try { config = JSON.parse(event.landing_config || '{}'); } catch(e) {}
         // Merge config with event data
         var landing = {
             eventName: event.name,
@@ -50,7 +50,7 @@ router.get('/:eventId/public', (req, res) => {
             eventLocation: event.location,
             eventDescription: event.description,
             logoUrl: config.logo_url || event.logo_url || '',
-            bannerUrl: config.banner_url || event.banner_url || '',
+            bannerUrl: config.banner_url || '',
             primaryColor: config.primary_color || '#7c3aed',
             showCountdown: config.show_countdown !== false,
             showMap: config.show_map !== false,
@@ -60,7 +60,10 @@ router.get('/:eventId/public', (req, res) => {
             aboutText: config.about_text || event.description || '',
             ctaText: config.cta_text || 'Registrarse',
             ctaLink: config.cta_link || '',
-            blocks: config.blocks || []
+            blocks: config.blocks || [],
+            latitude: event.latitude || null,
+            longitude: event.longitude || null,
+            videoConferenceUrl: event.video_conference_url || ''
         };
         // Get sessions for schedule
         if (landing.showSchedule) {

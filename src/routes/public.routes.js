@@ -169,7 +169,7 @@ router.get('/kiosk/:eventId/event', (req, res) => {
     try {
         var eId = require('../utils/helpers').castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'Evento inválido' });
-        var event = db.prepare("SELECT id, name, date, location, logo_url, banner_url, primary_color FROM events WHERE id = ?").get(eId);
+        var event = db.prepare("SELECT id, name, date, location, logo_url, brand_primary_color as primary_color FROM events WHERE id = ?").get(eId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         // Obtener stats
         var targetDb = require('../../database');
