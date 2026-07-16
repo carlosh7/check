@@ -1,21 +1,22 @@
 /**
- * Redis Cache Utility
- * Redis client wrapper with same interface as node-cache
+ * Redis Cache Utility (v12.44.777)
+ * Redis client wrapper with auto-reconnect and same interface as node-cache
  */
 
 let createClient;
 try {
     createClient = require('redis').createClient;
 } catch (e) {
-    // Redis no disponible, usar node-cache como fallback
     createClient = null;
 }
 
 let redisClient = null;
 let isConnected = false;
+let reconnectTimer = null;
+const RECONNECT_INTERVAL = 30000; // 30 segundos
 
 async function initRedis() {
-    if (redisClient) return redisClient;
+    if (redisClient && isConnected) return redisClient;
     
     const host = process.env.REDIS_HOST || 'localhost';
     const port = process.env.REDIS_PORT || 6379;
@@ -24,27 +25,65 @@ async function initRedis() {
     try {
         redisClient = createClient({
             url: `redis://${host}:${port}`,
-            password: password || undefined
+            password: password || undefined,
+            socket: {
+                reconnectStrategy: (retries) => {
+                    if (retries > 10) {
+                        console.warn('[Redis] Max reconnect attempts reached. Falling back to NodeCache.');
+                        return false; // Stop reconnecting
+                    }
+                    return Math.min(retries * 200, 5000); // Exponential backoff
+                }
+            }
         });
         
         redisClient.on('error', (err) => {
-            // Silenciar errores de Redis - es opcional
+            if (isConnected) {
+                console.warn('[Redis] Connection lost:', err.message);
+            }
             isConnected = false;
+            scheduleReconnect();
         });
         
         redisClient.on('connect', () => {
-            console.log('Redis connected');
+            console.log('[Redis] Connected');
             isConnected = true;
+            if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+        });
+        
+        redisClient.on('ready', () => {
+            isConnected = true;
+        });
+        
+        redisClient.on('end', () => {
+            isConnected = false;
+            scheduleReconnect();
         });
         
         await redisClient.connect();
         return redisClient;
     } catch (err) {
-        // Silenciar error - Redis es opcional
+        console.warn('[Redis] Connection failed:', err.message, '- Using NodeCache fallback');
         redisClient = null;
         isConnected = false;
+        scheduleReconnect();
         return null;
     }
+}
+
+function scheduleReconnect() {
+    if (reconnectTimer) return; // Ya hay un timer programado
+    reconnectTimer = setTimeout(async () => {
+        reconnectTimer = null;
+        if (isConnected) return; // Ya reconectó
+        console.log('[Redis] Attempting reconnect...');
+        try {
+            redisClient = null;
+            await initRedis();
+        } catch(e) {
+            // Silenciar - el handler de error reprogramará
+        }
+    }, RECONNECT_INTERVAL);
 }
 
 async function get(key) {

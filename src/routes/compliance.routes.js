@@ -160,4 +160,101 @@ router.get('/access-logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
     }
 });
 
+// ─── CONSENT TRACKING (GDPR) ───
+
+// Ensure consent_logs table exists
+try {
+    db.exec(`CREATE TABLE IF NOT EXISTS consent_logs (
+        id TEXT PRIMARY KEY,
+        guest_id TEXT NOT NULL,
+        event_id TEXT NOT NULL,
+        consent_type TEXT NOT NULL,
+        consent_given INTEGER NOT NULL DEFAULT 0,
+        consent_text TEXT,
+        ip_address TEXT,
+        user_agent TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+    )`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_consent_guest ON consent_logs(guest_id)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_consent_event ON consent_logs(event_id)`);
+} catch(e) {}
+
+// POST /api/compliance/consent — Record consent
+router.post('/consent', (req, res) => {
+    try {
+        const { guest_id, event_id, consent_type, consent_given, consent_text } = req.body;
+        if (!guest_id || !event_id || !consent_type) {
+            return res.status(400).json({ error: 'guest_id, event_id, consent_type requeridos' });
+        }
+        const id = uuidv4();
+        db.prepare(`INSERT INTO consent_logs (id, guest_id, event_id, consent_type, consent_given, consent_text, ip_address, user_agent)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
+            id, guest_id, event_id, consent_type, consent_given ? 1 : 0,
+            consent_text || null, req.ip, req.get('User-Agent') || null
+        );
+        res.json({ success: true, id });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// GET /api/compliance/consent/:eventId — Get consent status for event
+router.get('/consent/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        const logs = db.prepare(`
+            SELECT cl.*, g.name as guest_name, g.email as guest_email
+            FROM consent_logs cl
+            LEFT JOIN guests g ON g.id = cl.guest_id
+            WHERE cl.event_id = ?
+            ORDER BY cl.created_at DESC
+        `).all(req.params.eventId);
+        res.json(logs);
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// GET /api/compliance/consent/:eventId/stats — Consent stats
+router.get('/consent/:eventId/stats', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        const stats = db.prepare(`
+            SELECT consent_type, 
+                COUNT(*) as total,
+                SUM(consent_given) as given,
+                COUNT(*) - SUM(consent_given) as denied
+            FROM consent_logs
+            WHERE event_id = ?
+            GROUP BY consent_type
+        `).all(req.params.eventId);
+        res.json(stats);
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// GET /api/compliance/retention — Data retention policy check
+router.get('/retention', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        const retentionDays = parseInt(req.query.days) || 365;
+        const cutoff = new Date(Date.now() - retentionDays * 86400000).toISOString();
+        const oldGuests = db.prepare("SELECT COUNT(*) as c FROM guests WHERE created_at < ?").get(cutoff).c;
+        const oldLogs = db.prepare("SELECT COUNT(*) as c FROM audit_logs WHERE created_at < ?").get(cutoff).c;
+        const oldConsents = db.prepare("SELECT COUNT(*) as c FROM consent_logs WHERE created_at < ?").get(cutoff).c;
+        res.json({
+            retention_days: retentionDays,
+            cutoff_date: cutoff,
+            old_data: {
+                guests: oldGuests,
+                audit_logs: oldLogs,
+                consent_logs: oldConsents
+            }
+        });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// DELETE /api/compliance/retention/clean — Clean old data
+router.delete('/retention/clean', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        const retentionDays = parseInt(req.body.days) || 365;
+        const cutoff = new Date(Date.now() - retentionDays * 86400000).toISOString();
+        const deletedConsents = db.prepare("DELETE FROM consent_logs WHERE created_at < ?").run(cutoff).changes;
+        const deletedLogs = db.prepare("DELETE FROM audit_logs WHERE created_at < ?").run(cutoff).changes;
+        res.json({ success: true, deleted: { consent_logs: deletedConsents, audit_logs: deletedLogs } });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

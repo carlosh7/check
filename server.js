@@ -445,4 +445,44 @@ try {
             logger.warn(`Puerto original ${preferredPort} estaba ocupado. App disponible en ${detectedPort}`);
         }
     });
+
+    // ═══ GRACEFUL SHUTDOWN ═══
+    const gracefulShutdown = (signal) => {
+        logger.info(`${signal} recibido. Cerrando servidor...`);
+        
+        // Detener接受ir nuevas conexiones
+        server.close(() => {
+            logger.info('Servidor HTTP cerrado.');
+            
+            // Cerrar Socket.io
+            try { io.close(); } catch(e) {}
+            
+            // Cerrar conexiones de BD
+            try { const { db } = require('./database'); db.close(); } catch(e) {}
+            
+            // Cerrar Redis si está activo
+            try { const redis = require('./src/utils/redis-cache'); if (redis.isRedisAvailable()) redis.flush(); } catch(e) {}
+            
+            // Flush de logs
+            logger.info('Cleanup completado. Saliendo...');
+            process.exit(0);
+        });
+        
+        // Forzar salida después de 10s si no cierra limpiamente
+        setTimeout(() => {
+            logger.error('Forzando salida después de timeout');
+            process.exit(1);
+        }, 10000);
+    };
+    
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    
+    // Capturar errores no manejados
+    process.on('uncaughtException', (err) => {
+        logger.error('Uncaught Exception:', { message: err.message, stack: err.stack });
+    });
+    process.on('unhandledRejection', (reason) => {
+        logger.error('Unhandled Rejection:', { reason: String(reason) });
+    });
 })();
