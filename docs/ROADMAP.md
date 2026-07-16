@@ -2038,6 +2038,12 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 | ID | Tarea | Estado | Versión | Fecha |
 |----|-------|--------|---------|-------|
 | — | **Post-Ciclo 11 iniciado** | ✅ | v12.44.751 | 2026-05-11 |
+| — | Fix: landing.routes.js query con columna inexistente | ✅ | v12.44.776 | 2026-07-16 |
+| — | Fix: public.routes.js kiosk query con columna inexistente | ✅ | v12.44.776 | 2026-07-16 |
+| — | Fix: auto-detección de puerto | ✅ | v12.44.775 | 2026-07-16 |
+| — | Fix: tests dotenv + JWT real | ✅ | v12.44.775 | 2026-07-16 |
+| — | Fix: Plugin Engine is_system column | ✅ | v12.44.775 | 2026-07-16 |
+| — | Fix: 3D Planner IP hardcodeada | ✅ | v12.44.775 | 2026-07-16 |
 | H-02 | Healthcheck endpoint comprehensivo | ✅ | v12.44.753 | 2026-05-11 |
 | H-03 | Rate limiting por IP + usuario | ✅ | v12.44.753 | 2026-05-11 |
 | H-04 | Validación schemas express-validator | ✅ | v12.44.753 | 2026-05-11 |
