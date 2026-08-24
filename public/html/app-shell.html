@@ -1,11 +1,12 @@
 <!-- FIX v12.44.786: links de estilos también en el fragmento (cubre acceso directo a /app-shell.html
      y la inyección en body — los navegadores aplican <link> presente en body) -->
-<link rel="stylesheet" href="/css/modules/base.css?v=12.44.787">
-<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.787">
-<link rel="stylesheet" href="/css/modules/components.css?v=12.44.787">
-<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.787">
-<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.787">
-<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.787">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5"></script>
+<link rel="stylesheet" href="/css/modules/base.css?v=12.44.788">
+<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.788">
+<link rel="stylesheet" href="/css/modules/components.css?v=12.44.788">
+<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.788">
+<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.788">
+<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.788">
 <div id="app-container" class="app-container hidden" role="application" aria-label="Check Pro - Panel de administración">
     <a href="#app-main-content" class="skip-to-content">Saltar al contenido principal</a>
     <button id="hamburger-btn" class="hamburger-btn" onclick="document.getElementById('global-sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('active')" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="global-sidebar">☰</button>
@@ -68,7 +69,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.787</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.788</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -1284,7 +1285,7 @@
                             
                             <!-- Link de Registro -->
                             <div class="bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl p-4">
-                                <h3 class=text-sm font-bold text-#0ba5ec mb-3 flex items-center gap-2>
+                                <h3 class="text-sm font-bold" #0ba5ec mb-3 flex items-center gap-2>
                                     <span class="material-symbols-outlined text-sm">link</span> Enlace de Registro Público
                                 </h3>
                                 <div class="flex gap-2">
@@ -1300,16 +1301,16 @@
                             
                             <!-- Información del Evento -->
                             <div>
-                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
                                     <span class="material-symbols-outlined text-sm">info</span> Información del Evento
                                 </h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="space-y-2 md:col-span-2">
-                                        <label class="text-xs font-bold uppercase text-">Nombre del Evento</label>
+                                        <label class="text-xs font-bold uppercase ">Nombre del Evento</label>
                                         <input type="text" id="evs-name" class="input-field w-full" placeholder="Nombre del evento">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">Ubicaci&oacute;n</label>
+                                        <label class="text-xs font-bold uppercase ">Ubicaci&oacute;n</label>
                                         <input type="text" id="evs-location" class="input-field w-full" placeholder="Ciudad, Hotel o Virtual">
                                     </div>
                                     <div class="space-y-2">
@@ -1327,15 +1328,15 @@
                                         <p class="text-[10px] text-slate-500">Ej: 19.4326, -99.1332 (opcional, para mostrar mapa en la landing)</p>
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">Descripción</label>
+                                        <label class="text-xs font-bold uppercase ">Descripción</label>
                                         <input type="text" id="evs-desc" class="input-field w-full" placeholder="Breve descripción">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">Fecha Inicio</label>
+                                        <label class="text-xs font-bold uppercase ">Fecha Inicio</label>
                                         <input type="datetime-local" id="evs-date" class="input-field w-full">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">Fecha Fin</label>
+                                        <label class="text-xs font-bold uppercase ">Fecha Fin</label>
                                         <input type="datetime-local" id="evs-end-date" class="input-field w-full">
                                     </div>
                                 </div>
@@ -1343,24 +1344,24 @@
                             
                             <!-- Configuración de Registro -->
                             <div>
-                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
                                     <span class="material-symbols-outlined text-sm">how_to_reg</span> Configuración de Registro
                                 </h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">Título del Formulario</label>
+                                        <label class="text-xs font-bold uppercase ">Título del Formulario</label>
                                         <input type="text" id="evs-reg-title" class="input-field w-full" placeholder="Registro de Asistencia">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">Mensaje Bienvenida</label>
+                                        <label class="text-xs font-bold uppercase ">Mensaje Bienvenida</label>
                                         <input type="text" id="evs-reg-welcome" class="input-field w-full" placeholder="¡Bienvenido!">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">Mensaje de Éxito</label>
+                                        <label class="text-xs font-bold uppercase ">Mensaje de Éxito</label>
                                         <input type="text" id="evs-reg-success" class="input-field w-full" placeholder="¡Registrado exitosamente!">
                                     </div>
                                     <div class="space-y-2 md:col-span-2">
-                                        <label class="text-xs font-bold uppercase text-">Política de Privacidad</label>
+                                        <label class="text-xs font-bold uppercase ">Política de Privacidad</label>
                                         <textarea id="evs-reg-policy" class="input-field w-full" rows="2" placeholder="Política de privacidad..."></textarea>
                                     </div>
                                 </div>
@@ -1399,28 +1400,28 @@
                             
                             <!-- Personalización Visual -->
                             <div>
-                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
                                     <span class="material-symbols-outlined text-sm">palette</span> Personalización Visual
                                 </h3>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">QR Oscuro</label>
+                                        <label class="text-xs font-bold uppercase ">QR Oscuro</label>
                                         <input type="color" id="evs-qr-dark" class="w-full h-10 rounded-lg cursor-pointer" value="#000000">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">QR Claro</label>
+                                        <label class="text-xs font-bold uppercase ">QR Claro</label>
                                         <input type="color" id="evs-qr-light" class="w-full h-10 rounded-lg cursor-pointer" value="#ffffff">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">Color Acento Ticket</label>
+                                        <label class="text-xs font-bold uppercase ">Color Acento Ticket</label>
                                         <input type="color" id="evs-ticket-accent" class="w-full h-10 rounded-lg cursor-pointer" value="#7c3aed">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">Logo QR (URL)</label>
+                                        <label class="text-xs font-bold uppercase ">Logo QR (URL)</label>
                                         <input type="text" id="evs-qr-logo" class="input-field w-full" placeholder="https://...">
                                     </div>
                                     <div class="space-y-2 md:col-span-2">
-                                        <label class="text-xs font-bold uppercase text-">Logo Ticket (URL)</label>
+                                        <label class="text-xs font-bold uppercase ">Logo Ticket (URL)</label>
                                         <input type="text" id="evs-ticket-bg" class="input-field w-full" placeholder="https://...">
                                     </div>
                                     <div class="space-y-2">
@@ -1438,16 +1439,16 @@
 
                             <!-- Restricciones de Email -->
                             <div>
-                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
                                     <span class="material-symbols-outlined text-sm">email</span> Restricciones de Registro
                                 </h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">Emails Permitidos (whitelist)</label>
+                                        <label class="text-xs font-bold uppercase ">Emails Permitidos (whitelist)</label>
                                         <textarea id="evs-reg-whitelist" class="input-field w-full" rows="2" placeholder="uno@email.com, dos@email.com (vacío = todos)"></textarea>
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">Emails Bloqueados (blacklist)</label>
+                                        <label class="text-xs font-bold uppercase ">Emails Bloqueados (blacklist)</label>
                                         <textarea id="evs-reg-blacklist" class="input-field w-full" rows="2" placeholder="spam@email.com, etc."></textarea>
                                     </div>
                                 </div>
@@ -1455,7 +1456,7 @@
 
                             <!-- PAGOS (F3-07) -->
                             <div>
-                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
                                     <span class="material-symbols-outlined text-sm">payments</span> Pasarela de Pagos
                                 </h3>
                                 <div class="space-y-4">
@@ -1465,7 +1466,7 @@
                                     </label>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div class="space-y-2">
-                                            <label class="text-xs font-bold uppercase text-">Moneda</label>
+                                            <label class="text-xs font-bold uppercase ">Moneda</label>
                                             <select id="evs-currency" class="input-field w-full">
                                                 <option value="USD">USD ($)</option>
                                                 <option value="EUR">EUR (€)</option>
@@ -1477,11 +1478,11 @@
                                             </select>
                                         </div>
                                         <div class="space-y-2">
-                                            <label class="text-xs font-bold uppercase text-">Stripe Account ID</label>
+                                            <label class="text-xs font-bold uppercase ">Stripe Account ID</label>
                                             <input type="text" id="evs-stripe-account" class="input-field w-full" placeholder="acct_... (opcional)">
                                         </div>
                                         <div class="space-y-2">
-                                            <label class="text-xs font-bold uppercase text-">PayPal Email</label>
+                                            <label class="text-xs font-bold uppercase ">PayPal Email</label>
                                             <input type="text" id="evs-paypal-email" class="input-field w-full" placeholder="email@paypal.com (opcional)">
                                         </div>
                                     </div>
@@ -3025,6 +3026,7 @@
             <h3 class="text-sm font-black uppercase tracking-widest text-slate-400">Plantillas</h3>
             <div id="push-templates-list" class="flex flex-col gap-2 max-h-48 overflow-y-auto"><p class="text-xs text-slate-500">Cargando...</p></div>
             <div class="flex gap-2">
+                <input type="text" id="push-tpl-name" placeholder="Nombre interno" class="input-field !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs" style="max-width:120px">
                 <input type="text" id="push-tpl-title" placeholder="Título" class="input-field flex-1 !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs">
                 <input type="text" id="push-tpl-body" placeholder="Mensaje" class="input-field flex-1 !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs">
             </div>
@@ -3230,8 +3232,8 @@
                 <span class="material-symbols-outlined text-[var(--text-main)] text-xl">event</span>
                 <h3 id="modal-event-title" class="text-sm font-bold uppercase tracking-wider">Nuevo Evento</h3>
             </div>
-            <button id="btn-close-event-modal" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button id="btn-close-event-modal" class="w-8 h-8 rounded-lg  flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <form id="new-event-form" class="p-5 overflow-y-auto flex-1 space-y-4">
@@ -3276,19 +3278,19 @@
                 <textarea id="ev-desc" rows="3" placeholder="Descripción del evento" class="input-field w-full"></textarea>
             </div>
 
-            <div class="p-3 bg-[var(--primary)]/5 rounded-xl border border-/20>
+            <div class="p-3 bg-[var(--primary)]/5 rounded-xl border ">
                 <label class="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" id="ev-has-own-db" checked name="has_own_db" class="w-5 h-5 rounded accent->
+                    <input type="checkbox" id="ev-has-own-db" checked name="has_own_db" class="w-5 h-5 rounded accent-[var(--primary)]">
                     <div>
                         <p class="text-sm font-bold text-white">Base de Datos Propia</p>
-                        <p class="text-10 text-">Aislamiento total de datos para este evento (Recomendado)</p>
+                        <p class="text-10 ">Aislamiento total de datos para este evento (Recomendado)</p>
                     </div>
                 </label>
             </div>
 
             
             <div class="flex justify-end gap-3 pt-3">
-                <button type="button" id="btn-cancel-event" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
+                <button type="button" id="btn-cancel-event" class="px-4 py-2 rounded-lg  text-sm font-medium">Cancelar</button>
                 <button type="submit" class="btn-primary !px-5 btn-py2">Guardar</button>
             </div>
         </form>
@@ -3303,8 +3305,8 @@
                 <span class="material-symbols-outlined text-[var(--text-main)] text-xl">corporate_fare</span>
                 <h3 id="modal-company-title" class="text-sm font-bold uppercase tracking-wider">Nueva Organización</h3>
             </div>
-            <button id="btn-close-company" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button id="btn-close-company" class="w-8 h-8 rounded-lg  flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <form id="company-form" class="p-5 overflow-y-auto flex-1 space-y-4">
@@ -3334,7 +3336,7 @@
                 <textarea id="company-description" rows="3" placeholder="Breve descripción de la empresa o grupo..." class="input-field w-full"></textarea>
             </div>
             <div class="flex justify-end gap-3 pt-3">
-                <button type="button" id="btn-cancel-company" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
+                <button type="button" id="btn-cancel-company" class="px-4 py-2 rounded-lg  text-sm font-medium">Cancelar</button>
                 <button type="submit" class="btn-primary !px-5 btn-py2">Guardar Organización</button>
             </div>
         </form>
@@ -3349,8 +3351,8 @@
                 <span class="material-symbols-outlined text-emerald-500 text-xl">person</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Cliente</h3>
             </div>
-            <button id="btn-close-create-client" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button id="btn-close-create-client" class="w-8 h-8 rounded-lg  flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <form id="create-client-form" class="p-5 overflow-y-auto flex-1 space-y-4">
@@ -3387,8 +3389,8 @@
                 <span class="material-symbols-outlined text-blue-500 text-xl">badge</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Staff</h3>
             </div>
-            <button id="btn-close-create-staff" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button id="btn-close-create-staff" class="w-8 h-8 rounded-lg  flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <form id="create-staff-form" class="p-5 overflow-y-auto flex-1 space-y-4">
@@ -3436,8 +3438,8 @@
                 <span class="material-symbols-outlined text-purple-500 text-xl">event</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Asignar Evento a Staff</h3>
             </div>
-            <button id="btn-close-assign-event" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button id="btn-close-assign-event" class="w-8 h-8 rounded-lg  flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <div class="p-5 overflow-y-auto flex-1">
@@ -3462,8 +3464,8 @@
                 <span class="material-symbols-outlined text-[var(--text-main)] text-xl">person_add</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Añadir Colaborador</h3>
             </div>
-            <button id="btn-close-invite" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button id="btn-close-invite" class="w-8 h-8 rounded-lg  flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <form id="invite-user-form" class="p-5 space-y-4">
@@ -3477,7 +3479,7 @@
             </div>
             <div class="relative">
                 <input type="password" id="invite-password" required placeholder="Contraseña" class="input-field w-full pr-10">
-                <button type="button" id="btn-toggle-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text->
+                <button type="button" id="btn-toggle-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] ">
                     <span class="material-symbols-outlined text-lg">visibility</span>
                 </button>
             </div>
@@ -3494,7 +3496,7 @@
                 <p class="text-xs text-[var(--text-main)] mt-1 ml-1">Selecciona el rol según el acceso necesario</p>
             </div>
             <div class="flex justify-end gap-3 pt-3">
-                <button type="button" id="btn-cancel-invite" class="px-4 py-2 rounded-lg bg-">Cancelar</button>
+                <button type="button" id="btn-cancel-invite" class="px-4 py-2 rounded-lg ">Cancelar</button>
                 <button type="submit" class="btn-primary !px-5 btn-py2">Crear</button>
             </div>
         </form>
@@ -3509,8 +3511,8 @@
                 <span class="material-symbols-outlined text-[var(--text-main)] text-xl">quiz</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Nueva Pregunta</h3>
             </div>
-            <button id="btn-close-survey-editor" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button id="btn-close-survey-editor" class="w-8 h-8 rounded-lg  flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <form id="survey-question-form" class="p-5 space-y-4">
@@ -3533,7 +3535,7 @@
                 <input type="text" id="survey-question-options" placeholder="Opción 1, Opción 2, Opción 3" class="input-field w-full">
             </div>
             <div class="flex justify-end gap-3 pt-3">
-                <button type="button" id="btn-cancel-survey" class="px-4 py-2 rounded-lg bg-">Cancelar</button>
+                <button type="button" id="btn-cancel-survey" class="px-4 py-2 rounded-lg ">Cancelar</button>
                 <button type="submit" class="btn-primary !px-5 btn-py2">Guardar</button>
             </div>
         </form>
@@ -3548,8 +3550,8 @@
                 <span class="material-symbols-outlined text-cyan-400 text-xl">person</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Contacto</h3>
             </div>
-            <button onclick="document.getElementById('modal-contact-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button onclick="document.getElementById('modal-contact-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg  flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <div class="p-5 space-y-4 overflow-y-auto flex-1">
@@ -3590,7 +3592,7 @@
                 <label for="contact-active" class="text-xs">Activo</label>
             </div>
             
-            <div class="flex gap-2 pt-4 border-t border->
+            <div class="flex gap-2 pt-4 border-t ">
                 <button onclick="App.saveContact()" class="btn-primary flex-1">💾 Guardar</button>
                 <button onclick="document.getElementById('modal-contact-editor').classList.add('hidden')" class="btn-secondary">Cancelar</button>
             </div>
@@ -3606,8 +3608,8 @@
                 <span class="material-symbols-outlined text-cyan-400 text-xl">group</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Grupo de Contactos</h3>
             </div>
-            <button onclick="document.getElementById('modal-group-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button onclick="document.getElementById('modal-group-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg  flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <div class="p-5 space-y-4">
@@ -3623,7 +3625,7 @@
                 <textarea id="group-description" rows="2" placeholder="Descripción del grupo..." class="input-field w-full"></textarea>
             </div>
             
-            <div class="flex gap-2 pt-4 border-t border->
+            <div class="flex gap-2 pt-4 border-t ">
                 <button onclick="App.saveContactGroup()" class="btn-primary flex-1">💾 Guardar</button>
                 <button onclick="document.getElementById('modal-group-editor').classList.add('hidden')" class="btn-secondary">Cancelar</button>
             </div>
@@ -3669,7 +3671,7 @@
     <div class="bg-slate-900 rounded-2xl border border-white-10 w-full max-w-4xl max-h-[90vh] flex flex-col">
         <div class="p-6 border-b border-white-10 flex justify-between items-center shrink-0">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-#0ba5ec text-xl">campaign</span>
+                <span class="material-symbols-outlined #0ba5ec text-xl">campaign</span>
                 <h3 class="text-lg font-bold text-white">Nueva Campaña de Email</h3>
             </div>
             <button onclick="App.closeCampaignWizard()" class="w-8 h-8 rounded-lg hover:bg-white-10 flex items-center justify-center">
@@ -3782,7 +3784,7 @@
                             <div id="wizard-quill-editor" style="min-height: 200px;"></div>
                         </div>
                         <div class="flex items-center gap-2 mb-2">
-                            <button onclick="App.toggleWizardMode('visual')" id="btn-wizard-visual" class="px-3 py-1 rounded text-xs font-medium bg-#0ba5ec text-white">Visual</button>
+                            <button onclick="App.toggleWizardMode('visual')" id="btn-wizard-visual" class="px-3 py-1 rounded text-xs font-medium #0ba5ec text-white">Visual</button>
                             <button onclick="App.toggleWizardMode('html')" id="btn-wizard-html" class="px-3 py-1 rounded text-xs font-medium bg-slate-700 text-slate-300">HTML</button>
                         </div>
                         
@@ -3835,8 +3837,8 @@
                     </div>
                     
                     <!-- Resumen -->
-                    <div class="bg-#0ba5ec-10 border border-#0ba5ec-20 rounded-xl p-4 space-y-2>
-                        <h5 class=text-sm font-bold text-#0ba5ec>Resumen de la Campaña</h5>
+                    <div class="bg-[rgba(11,165,236,0.1)] border border-[rgba(11,165,236,0.2)] rounded-xl p-4 space-y-2">
+                        <h5 class="text-sm font-bold" style="color:#0ba5ec">Resumen de la Campaña</h5">
                         <div class="grid grid-cols-2 gap-2 text-xs">
                             <div class="text-slate-400">Campaña:</div>
                             <div class="text-white font-medium" id="wizard-summary-name">-</div>
@@ -3868,7 +3870,7 @@
     <div class="bg-slate-900 rounded-2xl border border-white-10 w-full max-w-2xl max-h-[90vh] flex flex-col">
         <div class="p-6 border-b border-white-10 flex justify-between items-center shrink-0">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-#0ba5ec text-xl">monitoring</span>
+                <span class="material-symbols-outlined #0ba5ec text-xl">monitoring</span>
                 <h3 class="text-lg font-bold text-white">Monitorear Campaña</h3>
             </div>
             <button onclick="App.closeCampaignMonitor()" class="w-8 h-8 rounded-lg hover:bg-white-10 flex items-center justify-center">
@@ -3918,7 +3920,7 @@
             <!-- Logs -->
             <div>
                 <h5 class="text-sm font-bold text-white mb-3">Últimos Envíos</h5>
-                <div id="monitor-logs" class="space-y-2 max-h-h-200 overflow-y-auto>
+                <div id="monitor-logs" class="space-y-2 max-h-h-200 overflow-y-auto">
                     <p class="text-xs text-slate-500 text-center py-4">Cargando logs...</p>
                 </div>
             </div>
@@ -3934,21 +3936,21 @@
 <div id="modal-legal" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-70 backdrop-blur-sm">
     <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl border border-[var(--border)] w-full max-w-3xl max-h-[85vh] flex flex-col mx-4 my-8"
         <!-- Header -->
-        <div class="p-6 border-b border- flex justify-between items-center shrink-0>
+        <div class="p-6 border-b  flex justify-between items-center shrink-0">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-#0ba5ec text-xl">gavel</span>
-                <h3 id="modal-legal-title" class="text-lg font-bold text-">Documento Legal</h3>
+                <span class="material-symbols-outlined #0ba5ec text-xl">gavel</span>
+                <h3 id="modal-legal-title" class="text-lg font-bold ">Documento Legal</h3>
             </div>
-            <button id="btn-close-legal" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button id="btn-close-legal" class="w-8 h-8 rounded-lg  flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <!-- Content -->
-        <div id="modal-legal-content" class="p-6 overflow-y-auto flex-1 text- prose prose-invert max-w-none>
+        <div id="modal-legal-content" class="p-6 overflow-y-auto flex-1  prose prose-invert max-w-none">
             <p class="text-">Cargando documento...</p>
         </div>
         <!-- Footer -->
-        <div class="p-4 border-t border- shrink-0 flex justify-end>
+        <div class="p-4 border-t  shrink-0 flex justify-end">
             <button id="btn-close-legal-footer" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text-[var(--text-main)] text-sm font-medium hover:bg-white-10 transition-colors">Cerrar</button>
         </div>
     </div>
@@ -3962,8 +3964,8 @@
                 <span class="material-symbols-outlined text-[var(--text-main)] text-xl">upload</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Importar Datos</h3>
             </div>
-            <button id="btn-close-import" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button id="btn-close-import" class="w-8 h-8 rounded-lg  flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1 min-h-0">
@@ -4026,39 +4028,39 @@
                 <span class="material-symbols-outlined text-cyan-400 text-xl">download</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Exportar Datos</h3>
             </div>
-            <button onclick="document.getElementById('modal-export').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button onclick="document.getElementById('modal-export').classList.add('hidden')" class="w-8 h-8 rounded-lg  flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1 min-h-0">
             <p class="text-sm text-[var(--text-main)] mb-4">Selecciona el formato de exportación:</p>
             <div class="space-y-3">
-                <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border- cursor-pointer transition-colors export-format-option data-format="excel">
-                    <input type="radio" name="export-format" value="excel" checked class="w-5 h-5 accent->
+                <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)]  cursor-pointer transition-colors export-format-option data-format="excel">
+                    <input type="radio" name="export-format" value="excel" checked class="w-5 h-5 ">
                     <span class="material-symbols-outlined text-green-400 text-xl">table_chart</span>
                     <div>
                         <p class="font-medium text-sm">Archivo Excel (.xlsx)</p>
-                        <p class="text-xs text-">Ideal para editar y analizar datos</p>
+                        <p class="text-xs ">Ideal para editar y analizar datos</p>
                     </div>
                 </label>
-                <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border- cursor-pointer transition-colors export-format-option data-format="pdf">
-                    <input type="radio" name="export-format" value="pdf" class="w-5 h-5 accent->
+                <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)]  cursor-pointer transition-colors export-format-option data-format="pdf">
+                    <input type="radio" name="export-format" value="pdf" class="w-5 h-5 ">
                     <span class="material-symbols-outlined text-red-400 text-xl">picture_as_pdf</span>
                     <div>
                         <p class="font-medium text-sm">Archivo PDF (.pdf)</p>
-                        <p class="text-xs text-">Ideal para imprimir y compartir</p>
+                        <p class="text-xs ">Ideal para imprimir y compartir</p>
                     </div>
                 </label>
             </div>
             <div id="export-progress-container" class="hidden mt-4">
-                <div class="w-full bg- rounded-full h-2 overflow-hidden>
-                    <div id="export-progress-fill" class="h-full bg-#0ba5ec rounded-full animate-pulse style="width: 100%"></div>
+                <div class="w-full  rounded-full h-2 overflow-hidden">
+                    <div id="export-progress-fill" class="h-full #0ba5ec rounded-full animate-pulse style="width: 100%"></div>
                 </div>
                 <p class="text-xs text-[var(--text-main)] mt-2 text-center">Generando archivo...</p>
             </div>
         </div>
-        <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button id="btn-cancel-export" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cerrar</button>
+        <div class="p-4 border-t  shrink-0 flex justify-end gap-3">
+            <button id="btn-cancel-export" class="px-4 py-2 rounded-lg  text-sm font-medium">Cerrar</button>
             <button id="btn-confirm-export" class="btn-primary !px-5 btn-py2">
                 <span class="material-symbols-outlined text-sm mr-1">download</span> Exportar
             </button>
@@ -4084,7 +4086,7 @@
                 <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">description</span> Descargar Plantilla
                 </h4>
-                <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border->
+                <div class="bg-[var(--bg-hover)] rounded-xl p-4 border ">
                     <p class="text-xs text-[var(--text-main)] mb-3">Descarga la plantilla Excel con los campos a completar:</p>
                     <div class="space-y-2">
                         <div class="flex items-center gap-2 text-sm">
@@ -4129,10 +4131,10 @@
 
             <!-- CONTENEDOR DE MAPEO DE COLUMNAS (NUEVO V12.44.298) -->
             <div id="import-attendance-mapping-container" class="hidden mb-6 animate-fade-in">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)] mb-3 flex items-center gap-2>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)] mb-3 flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">Alt_Route</span> Mapeo de Columnas
                 </h4>
-                <div class="bg-[var(--bg-hover)] rounded-xl p-5 border border-/30>
+                <div class="bg-[var(--bg-hover)] rounded-xl p-5 border ">
                     <p class="text-xs text-[var(--text-main)] mb-4">Asocia las columnas de tu archivo con los campos del sistema:</p>
                     <div id="mapping-fields-list" class="space-y-4">
                         <!-- Se poblará dinámicamente desde JS -->
@@ -4142,7 +4144,7 @@
             
             <!-- Progreso de validación -->
             <div id="import-attendance-progress-container" class="hidden">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)] mb-3 flex items-center gap-2>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)] mb-3 flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">fact_check</span> Validación de Datos
                 </h4>
                 <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border-[var(--border)]">
@@ -4192,15 +4194,15 @@
                     </div>
                     
                     <!-- Detalles de errores -->
-                    <div id="import-attendance-details" class="hidden mt-4 pt-4 border-t border->
+                    <div id="import-attendance-details" class="hidden mt-4 pt-4 border-t ">
                         <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)] mb-2">Errores encontrados:</p>
                         <div class="text-xs text-[var(--text-main)] max-h-24 overflow-y-auto"></div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button onclick="document.getElementById('modal-import-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
+        <div class="p-4 border-t  shrink-0 flex justify-end gap-3">
+            <button onclick="document.getElementById('modal-import-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg  text-sm font-medium">Cancelar</button>
             <button id="btn-confirm-import-attendance" class="btn-primary !px-5 btn-py2" disabled>
                 <span class="material-symbols-outlined text-sm mr-1">check</span> Importar
             </button>
@@ -4216,8 +4218,8 @@
                 <span class="material-symbols-outlined text-[var(--text-main)] text-xl">download</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Exportar Asistentes</h3>
             </div>
-            <button onclick="document.getElementById('modal-export-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button onclick="document.getElementById('modal-export-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg  flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1 min-h-0">
@@ -4237,8 +4239,8 @@
                 </label>
             </div>
         </div>
-        <div class="p-6 border-t border- shrink-0 flex justify-end gap-3>
-            <button onclick="document.getElementById('modal-export-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
+        <div class="p-6 border-t  shrink-0 flex justify-end gap-3">
+            <button onclick="document.getElementById('modal-export-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg  text-sm font-medium">Cancelar</button>
             <button onclick="App.confirmExportAttendance()" class="btn-primary !px-5 btn-py2">
                 <span class="material-symbols-outlined text-sm mr-1">download</span> Exportar
             </button>
@@ -4337,8 +4339,8 @@
                 <span class="material-symbols-outlined text-[var(--text-main)] text-xl">settings</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Gestionar Asistente</h3>
             </div>
-            <button onclick="document.getElementById('modal-manage-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button onclick="document.getElementById('modal-manage-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg  flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1 min-h-0 space-y-6">
@@ -4347,17 +4349,17 @@
             <div>
                 <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)] mb-3 block">Cambiar Estado</label>
                 <div class="space-y-2">
-                    <label class="flex items-center gap-3 p-3 rounded-xl border border- hover:border-amber-500 cursor-pointer transition-colors manage-status-option data-status="PENDIENTE">
+                    <label class="flex items-center gap-3 p-3 rounded-xl border  hover:border-amber-500 cursor-pointer transition-colors manage-status-option data-status="PENDIENTE">
                         <input type="radio" name="manage-attendance-status" value="PENDIENTE" class="w-5 h-5 accent-amber-500">
                         <span class="material-symbols-outlined text-amber-400 text-lg">schedule</span>
                         <span class="text-sm">Pendiente</span>
                     </label>
-                    <label class="flex items-center gap-3 p-3 rounded-xl border border- hover:border-green-500 cursor-pointer transition-colors manage-status-option data-status="CONFIRMADO">
+                    <label class="flex items-center gap-3 p-3 rounded-xl border  hover:border-green-500 cursor-pointer transition-colors manage-status-option data-status="CONFIRMADO">
                         <input type="radio" name="manage-attendance-status" value="CONFIRMADO" class="w-5 h-5 accent-green-500">
                         <span class="material-symbols-outlined text-green-400 text-lg">check_circle</span>
                         <span class="text-sm">Confirmado</span>
                     </label>
-                    <label class="flex items-center gap-3 p-3 rounded-xl border border- hover:border-red-500 cursor-pointer transition-colors manage-status-option data-status="CANCELADO">
+                    <label class="flex items-center gap-3 p-3 rounded-xl border  hover:border-red-500 cursor-pointer transition-colors manage-status-option data-status="CANCELADO">
                         <input type="radio" name="manage-attendance-status" value="CANCELADO" class="w-5 h-5 accent-red-500">
                         <span class="material-symbols-outlined text-red-400 text-lg">cancel</span>
                         <span class="text-sm">Cancelado</span>
@@ -4366,21 +4368,21 @@
             </div>
             
             <!-- Información del asistente -->
-            <div id="manage-attendance-info" class="bg-[var(--bg-hover)] rounded-xl p-4 border border->
+            <div id="manage-attendance-info" class="bg-[var(--bg-hover)] rounded-xl p-4 border ">
                 <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)] mb-2">Asistente</p>
                 <p id="manage-attendance-name" class="text-sm font-medium text-white">-</p>
-                <p id="manage-attendance-email" class="text-xs text-">-</p>
+                <p id="manage-attendance-email" class="text-xs ">-</p>
             </div>
             
             <!-- Eliminar -->
-            <div class="pt-4 border-t border->
+            <div class="pt-4 border-t ">
                 <button onclick="App.deleteAttendance()" class="w-full px-4 py-3 rounded-lg bg-red-10 border border-red-30 text-red-400 text-sm font-medium hover:bg-red-20 transition-colors flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined text-lg">delete</span> Eliminar Asistente
                 </button>
             </div>
         </div>
-        <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button onclick="document.getElementById('modal-manage-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cerrar</button>
+        <div class="p-4 border-t  shrink-0 flex justify-end gap-3">
+            <button onclick="document.getElementById('modal-manage-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg  text-sm font-medium">Cerrar</button>
             <button onclick="App.saveManageAttendance()" class="btn-primary !px-5 btn-py2">
                 <span class="material-symbols-outlined text-sm mr-1">save</span> Guardar Cambios
             </button>
@@ -4396,8 +4398,8 @@
                 <span class="material-symbols-outlined text-[var(--text-main)] text-xl">person_add</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Asistente</h3>
             </div>
-            <button onclick="document.getElementById('modal-add-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button onclick="document.getElementById('modal-add-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg  flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm ">close</span>
             </button>
         </div>
         <div class="p-5 overflow-y-auto flex-1 space-y-4">
@@ -4439,8 +4441,8 @@
                 </select>
             </div>
         </div>
-        <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button onclick="document.getElementById('modal-add-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
+        <div class="p-4 border-t  shrink-0 flex justify-end gap-3">
+            <button onclick="document.getElementById('modal-add-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg  text-sm font-medium">Cancelar</button>
             <button onclick="App.saveAddAttendance()" class="btn-primary !px-5 btn-py2">
                 <span class="material-symbols-outlined text-sm mr-1">add</span> Agregar
             </button>

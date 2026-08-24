@@ -423,7 +423,10 @@ const App = window.App = {
                 return;
             }
             
-            hideModal('modal-event');
+            // Cierre defensivo (F-UX): hideModal + reset inline, inmune a estados raros del manager
+            try { hideModal('modal-event'); } catch (_) {}
+            const me = document.getElementById('modal-event');
+            if (me) { me.classList.add('hidden'); me.style.display = ''; me.setAttribute('aria-hidden', 'true'); }
             await this.loadEvents(true);
             
             if (eventId) {
@@ -7112,8 +7115,9 @@ navigate(viewName, params = {}, push = true) {
         cl('btn-logout', () => this.logout());
         
         // Mis Eventos - Acciones
-        cl('btn-new-event-full', () => this.navigateToCreateEvent('full'));
-        cl('btn-new-event-full-empty', () => this.navigateToCreateEvent('full'));
+        // F-UX: binding eliminado — el botón ya tiene onclick="App.openCreateEventModal()" en el HTML.
+        // Duplicarlo aquí causaba doble apertura/reset del modal (navigateToCreateEvent re-abría a los 100ms).
+        // navigateToCreateEvent() sigue disponible para sus otros llamadores (botones renderizados en JS).
         
         // Cerrar sugerencias al hacer click fuera
         document.addEventListener('click', (e) => {
@@ -11007,6 +11011,12 @@ navigate(viewName, params = {}, push = true) {
                 }
             }
             Swal.fire({ icon: 'success', title: 'Encuesta guardada', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+            // F-UX: refrescar lista de plantillas y volver del builder
+            await this.loadSurveyTemplates();
+            var lb2 = document.getElementById('survey-builder');
+            if (lb2) lb2.classList.add('hidden');
+            var ld2 = document.getElementById('survey-dashboard');
+            if (ld2) ld2.classList.remove('hidden');
         } catch(e) { console.error('[SURVEY] Error saving:', e.message); }
     },
 
@@ -13139,9 +13149,11 @@ navigate(viewName, params = {}, push = true) {
     createPushTemplate: async function() {
         const title = document.getElementById('push-tpl-title')?.value.trim();
         const body = document.getElementById('push-tpl-body')?.value.trim();
+        const name = document.getElementById('push-tpl-name')?.value.trim() || title;
         if (!title || !body) return this._notifyAction('Error', 'Título y mensaje requeridos', 'error');
         try {
-            await this.fetchAPI('/push/templates', { method: 'POST', body: JSON.stringify({ title, body }) });
+            await this.fetchAPI('/push/templates', { method: 'POST', body: JSON.stringify({ name, title, body }) });
+            document.getElementById('push-tpl-name').value = '';
             document.getElementById('push-tpl-title').value = '';
             document.getElementById('push-tpl-body').value = '';
             this._notifyAction('Plantilla guardada', '', 'success');
