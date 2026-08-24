@@ -980,11 +980,28 @@ const App = window.App = {
 
     // ═══ BI Dashboard (C5-01) ═══
     _biCharts: [],
+    exportBi: function(format) {
+        const period = document.getElementById('bi-period')?.value || 30;
+        window.open(`/api/bi/export/${format}?period=${period}`, '_blank');
+    },
+
     loadBiDashboard: async function() {
         var period = document.getElementById('bi-period')?.value || 30;
         try {
             var data = await this.fetchAPI('/bi/dashboard?period=' + period);
             if (!data) return;
+            // A3: tendencias vs periodo anterior
+            try {
+                const tr = await this.fetchAPI('/bi/trends?period=' + period);
+                const box = document.getElementById('bi-trends');
+                if (box) {
+                    const arrow = v => (v >= 0 ? '▲ +' : '▼ ') + v + '%';
+                    const color = v => v >= 0 ? 'text-green-400' : 'text-red-400';
+                    box.innerHTML = `
+                        <div class="card p-4 flex items-center justify-between"><div><p class="text-[10px] uppercase text-slate-500 font-black tracking-widest">Nuevos invitados</p><p class="text-2xl font-black text-white">${tr.current?.guests ?? 0}</p></div><span class="${color(tr.growth?.guests)} text-sm font-bold">${arrow(tr.growth?.guests)}</span></div>
+                        <div class="card p-4 flex items-center justify-between"><div><p class="text-[10px] uppercase text-slate-500 font-black tracking-widest">Check-ins</p><p class="text-2xl font-black text-white">${tr.current?.checkedIn ?? 0}</p></div><span class="${color(tr.growth?.checkedIn)} text-sm font-bold">${arrow(tr.growth?.checkedIn)}</span></div>`;
+                }
+            } catch (_) {}
 
             document.getElementById('bi-events').textContent = data.system?.totalEvents || 0;
             document.getElementById('bi-guests').textContent = data.system?.totalGuests || 0;
@@ -10260,6 +10277,7 @@ navigate(viewName, params = {}, push = true) {
         // F5: ecosistema
         if (tabName === 'api-keys') this.loadApiKeys();
         if (tabName === 'crm-sync') this.loadCrmConnections();
+        if (tabName === 'ecommerce') this.loadEcomConnections();
         if (tabName === 'ai-security') this.loadAiSecurity();
         if (tabName === 'compliance') this.loadCompliance();
         if (tabName === 'google') this.loadGoogleTab();
@@ -10382,10 +10400,61 @@ navigate(viewName, params = {}, push = true) {
         this.switchComplianceSubTab('classification');
         this.loadComplianceClassification();
         this.loadComplianceAccessLogs();
+        // A3: poblar selector de eventos para consentimientos
+        this.fetchAPI('/events').then(evs => {
+            const sel = document.getElementById('compliance-consent-event');
+            if (sel && Array.isArray(evs)) {
+                sel.innerHTML = '<option value="">Seleccionar evento…</option>' + evs.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+            }
+        }).catch(() => {});
+    },
+
+    loadConsentData: async function() {
+        const eId = document.getElementById('compliance-consent-event')?.value;
+        const tbody = document.getElementById('compliance-consent-tbody');
+        if (!eId || !tbody) return;
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-slate-500">Cargando…</td></tr>';
+        try {
+            const logs = await this.fetchAPI('/compliance/consent/' + eId);
+            tbody.innerHTML = (logs.length ? logs : []).map(l =>
+                `<tr class="hover:bg-white/[0.02]"><td class="table-td text-xs">${App.esc(l.guest_name || l.guest_email || '—')}</td><td class="table-td text-xs text-slate-400">${App.esc(l.consent_type || 'consentimiento')}</td><td class="table-td text-xs text-slate-500">${l.created_at ? new Date(l.created_at).toLocaleString() : '—'}</td></tr>`
+            ).join('') || '<tr><td colspan="3" class="text-center py-6 text-slate-500">Sin consentimientos registrados</td></tr>';
+        } catch (e) { tbody.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-red-400 text-xs">${App.esc(e.message)}</td></tr>`; }
+    },
+
+    loadConsentStats: async function() {
+        const eId = document.getElementById('compliance-consent-event')?.value;
+        if (!eId) return this._notifyAction('Selecciona un evento', '', 'info');
+        try {
+            const st = await this.fetchAPI('/compliance/consent/' + eId + '/stats');
+            const box = document.getElementById('compliance-consent-stats');
+            const items = Array.isArray(st) ? st : Object.entries(st || {}).map(([k, v]) => ({ type: k, count: v }));
+            box.innerHTML = items.map(i => `<div class="card p-3 text-center"><p class="text-xl font-bold text-white">${i.count ?? i.total ?? 0}</p><p class="text-[10px] text-slate-500 uppercase">${App.esc(i.type || i.consent_type || 'total')}</p></div>`).join('');
+            this.loadConsentData();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    loadRetention: async function() {
+        const box = document.getElementById('compliance-retention-info');
+        if (!box) return;
+        try {
+            const r = await this.fetchAPI('/compliance/retention');
+            box.innerHTML = Object.entries(r || {}).map(([k, v]) => `<p>• <span class="text-white font-bold">${App.esc(k)}</span>: ${typeof v === 'object' ? JSON.stringify(v) : App.esc(String(v))}</p>`).join('') || '<p>Sin política configurada.</p>';
+        } catch (e) { box.innerHTML = `<p class="text-red-400">${App.esc(e.message)}</p>`; }
+    },
+
+    runRetentionClean: async function() {
+        if (!confirm('¿Ejecutar limpieza de datos según política de retención? Esta acción es irreversible.')) return;
+        try {
+            const r = await this.fetchAPI('/compliance/retention/clean', { method: 'DELETE' });
+            this._notifyAction('Limpieza ejecutada', JSON.stringify(r).slice(0, 80), 'success');
+            this.loadRetention();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
     switchComplianceSubTab: function(tab) {
-        var tabs = ['classification', 'access'];
+        if (tab === 'retention') this.loadRetention();
+        var tabs = ['classification', 'access', 'consent', 'retention'];
         tabs.forEach(function(t) {
             var btn = document.getElementById('compliance-tab-' + t);
             var content = document.getElementById('compliance-subtab-' + t);
@@ -10801,6 +10870,7 @@ navigate(viewName, params = {}, push = true) {
         // F2: módulos recién conectados
         if (tabName === 'intelligence') this.loadIntelligence();
         if (tabName === 'certificates') this.loadCertificates();
+        if (tabName === 'album') this.loadAlbum();
         // F4: builder de formulario + sponsors
         if (tabName === 'reg-fields') this.loadRegFields();
         if (tabName === 'sponsors') this.loadSponsors();
@@ -12854,6 +12924,71 @@ navigate(viewName, params = {}, push = true) {
         } catch (e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
+    // ═══ A2: Álbum del evento ═══
+    loadAlbum: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var photos = await this.fetchAPI('/album/' + eId + '/admin');
+            var grid = document.getElementById('album-grid');
+            if (!grid) return;
+            if (!photos.length) {
+                grid.innerHTML = '<div class="col-span-full empty-state"><span class="material-symbols-outlined icon">photo_library</span><h3>Álbum vacío</h3><p>Sube fotos del evento o aprueba las que envían los asistentes desde su portal.</p></div>';
+                return;
+            }
+            grid.innerHTML = photos.map(function(ph) {
+                const approved = ph.approved === 1 || ph.approved === true;
+                return '<div class="card overflow-hidden group relative">' +
+                    '<img src="' + (ph.url || ph.file_path || '') + '" class="w-full h-32 object-cover" onerror="this.style.display=\'none\'">' +
+                    '<div class="p-2 flex items-center justify-between gap-1">' +
+                    '<span class="text-[10px] text-slate-400 truncate">' + App.esc(ph.uploaded_by_name || ph.guest_name || 'organizador') + '</span>' +
+                    '<div class="flex gap-1">' +
+                    (approved ? '<span class="px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 text-[9px] font-black">OK</span>'
+                              : '<button class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[9px] font-black" onclick="App.approveAlbumPhoto(\'' + ph.id + '\')">Aprobar</button>') +
+                    '<button class="text-red-400 hover:text-red-300" onclick="App.deleteAlbumPhoto(\'' + ph.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button>' +
+                    '</div></div></div>';
+            }).join('');
+        } catch (e) {
+            this.uiState('album-grid', 'error', { message: e.message, retryFn: 'App.loadAlbum()' });
+        }
+    },
+
+    uploadAlbumPhoto: async function(input) {
+        var eId = this.state.event?.id;
+        var file = input?.files?.[0];
+        if (!file) return;
+        var fd = new FormData();
+        fd.append('photo', file);
+        fd.append('event_id', eId);
+        try {
+            this._notifyAction('Subiendo foto…', '', 'info');
+            const token = this.state.user?.token || LS.get('token');
+            const res = await fetch('/api/album/upload', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd });
+            const data = await res.json();
+            if (!res.ok || data.error) throw new Error(data.error || 'Error al subir');
+            this._notifyAction('Foto subida', '', 'success');
+            this.loadAlbum();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+        input.value = '';
+    },
+
+    approveAlbumPhoto: async function(photoId) {
+        var eId = this.state.event?.id;
+        try {
+            await this.fetchAPI('/album/' + eId + '/' + photoId + '/approve', { method: 'PATCH', body: JSON.stringify({ approved: true }) });
+            this.loadAlbum();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    deleteAlbumPhoto: async function(photoId) {
+        var eId = this.state.event?.id;
+        if (!confirm('¿Eliminar esta foto?')) return;
+        try {
+            await this.fetchAPI('/album/' + eId + '/' + photoId, { method: 'DELETE' });
+            this.loadAlbum();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
     // ═══ F4: Builder de formulario público + Sponsors/Leads ═══
 
     loadRegFields: async function() {
@@ -13025,6 +13160,71 @@ navigate(viewName, params = {}, push = true) {
     },
 
     // ═══ F2: Push avanzado (plantillas · programadas · segmentado) ═══
+
+    // ═══ A1: Ecommerce (conexiones de tiendas) ═══
+    loadEcomConnections: async function() {
+        const tbody = document.getElementById('ecom-tbody');
+        if (!tbody) return;
+        try {
+            const conns = await this.fetchAPI('/ecommerce/connections');
+            const list = Array.isArray(conns) ? conns : (conns.connections || []);
+            if (!list.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin tiendas conectadas. Conecta Shopify, WooCommerce o Tiendanube.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = list.map(c =>
+                '<tr class="hover:bg-white/[0.02]">' +
+                '<td class="table-td font-medium text-white">' + App.esc(c.name || '') + '</td>' +
+                '<td class="table-td text-xs uppercase text-[var(--primary)] font-black">' + App.esc(c.platform || '') + '</td>' +
+                '<td class="table-td text-xs text-slate-400">' + App.esc(c.store_url || c.url || '—') + '</td>' +
+                '<td class="table-td">' + (c.is_active !== 0 ? '<span class="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-[10px] font-black">ACTIVA</span>' : '<span class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 text-[10px] font-black">INACTIVA</span>') + '</td>' +
+                '<td class="table-td flex gap-1">' +
+                '<button class="btn-icon" title="Sincronizar productos" onclick="App.syncEcomProducts(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">sync</span></button>' +
+                '<button class="btn-icon text-red-400" title="Eliminar" onclick="App.deleteEcom(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
+            ).join('');
+        } catch (e) { this.uiState('ecom-tbody', 'error', { message: e.message, retryFn: 'App.loadEcomConnections()' }); }
+    },
+
+    openEcomModal: async function() {
+        const r = await Swal.fire({
+            title: 'Conectar tienda',
+            html:
+                '<select id="_ec-platform" class="swal2-input">' +
+                ['shopify', 'woocommerce', 'tiendanube', 'custom'].map(x => `<option value="${x}">${x.toUpperCase()}</option>`).join('') +
+                '</select>' +
+                '<input id="_ec-name" class="swal2-input" placeholder="Nombre de la tienda">' +
+                '<input id="_ec-url" class="swal2-input" placeholder="https://mitienda.com">' +
+                '<input id="_ec-key" class="swal2-input" placeholder="API key / token" type="password">',
+            focusConfirm: false,
+            preConfirm: () => ({
+                platform: document.getElementById('_ec-platform').value,
+                name: document.getElementById('_ec-name').value.trim(),
+                store_url: document.getElementById('_ec-url').value.trim(),
+                api_key: document.getElementById('_ec-key').value.trim()
+            }),
+            showCancelButton: true, background: '#0f172a', color: '#fff'
+        });
+        if (!r.isConfirmed || !r.value.name || !r.value.api_key) return;
+        try {
+            await this.fetchAPI('/ecommerce/connections', { method: 'POST', body: JSON.stringify(r.value) });
+            this.loadEcomConnections();
+            this._notifyAction('Tienda conectada', '', 'success');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    syncEcomProducts: async function(id) {
+        try {
+            const r = await this.fetchAPI('/ecommerce/connections/' + id + '/sync-products', { method: 'POST' });
+            this._notifyAction('Sincronización completada', (r.products || r.imported || 0) + ' producto(s)', 'success');
+            this.loadEcomConnections();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    deleteEcom: async function(id) {
+        if (!confirm('¿Eliminar esta conexión de tienda?')) return;
+        try { await this.fetchAPI('/ecommerce/connections/' + id, { method: 'DELETE' }); this.loadEcomConnections(); }
+        catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
 
     // ═══ F5: API Keys + CRM (ecosistema) ═══
 
@@ -13497,6 +13697,8 @@ navigate(viewName, params = {}, push = true) {
     },
 
     openCouponModal: function() {
+        const errEl = document.getElementById('coupon-error');
+        if (errEl) errEl.classList.add('hidden');
         document.getElementById('coupon-id').value = ''; document.getElementById('coupon-code').value = '';
         document.getElementById('coupon-type').value = 'percentage'; document.getElementById('coupon-value').value = '';
         document.getElementById('coupon-uses').value = ''; document.getElementById('coupon-expires').value = '';
@@ -13529,7 +13731,15 @@ navigate(viewName, params = {}, push = true) {
         var value = document.getElementById('coupon-value')?.value;
         if (!code || !value) { this._notifyAction('Error', 'Código y valor requeridos', 'error'); return; }
         var body = { code: code, discount_type: type, discount_value: parseFloat(value), max_uses: parseInt(document.getElementById('coupon-uses')?.value) || 0, expires_at: document.getElementById('coupon-expires')?.value || null, is_active: document.getElementById('coupon-active')?.checked };
-        try { await this.fetchAPI('/events/' + eId + '/coupons' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) }); this.closeCouponModal(); this.loadCoupons(); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+        try {
+            await this.fetchAPI('/events/' + eId + '/coupons' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) });
+            this.closeCouponModal(); this.loadCoupons();
+        } catch(e) {
+            // A7: error visible dentro del modal (no solo toast)
+            const errEl = document.getElementById('coupon-error');
+            if (errEl) { errEl.textContent = e.message; errEl.classList.remove('hidden'); }
+            this._notifyAction('Error', e.message, 'error');
+        }
     },
 
     deleteCoupon: async function(id) {
@@ -18665,6 +18875,10 @@ App.renderAttendanceTable = function(attendance) {
                     class="attendance-switch mx-auto ${a.validated ? 'validated' : ''}">
                 </div>
                 <button onclick="App.generateOtpCode('${a.client_id}')" title="Generar código OTP" class="text-[10px] mt-1 text-[var(--primary)] hover:underline">OTP</button>
+                    <div class="flex gap-1 mt-1">
+                        <button onclick="App.sendGuestMessage('sms','${a.client_id}','${(a.client_name || '').replace(/'/g, "\'")}')" title="Enviar SMS" class="w-6 h-6 rounded flex items-center justify-center hover:bg-green-500/20 text-green-400 transition-colors"><span class="material-symbols-outlined text-sm">sms</span></button>
+                        <button onclick="App.sendGuestMessage('whatsapp','${a.client_id}','${(a.client_name || '').replace(/'/g, "\'")}')" title="Enviar WhatsApp" class="w-6 h-6 rounded flex items-center justify-center hover:bg-emerald-500/20 text-emerald-400 transition-colors"><span class="material-symbols-outlined text-sm">chat</span></button>
+                    </div>
             </td>
             <td class="!py-3 !px-3 text-center">
                 <div class="flex items-center justify-center gap-0.5">
@@ -18736,6 +18950,28 @@ App.verifyOtpCheckin = async function() {
             resultDiv.innerHTML = '❌ ' + (res.error || 'Código inválido');
         }
     } catch(e) { App._notifyAction('Error', e.message, 'error'); }
+};
+
+// A5 (v12.44.790): envío individual SMS/WhatsApp desde la fila del asistente
+App.sendGuestMessage = async function(channel, guestId, guestName) {
+    const label = channel === 'sms' ? 'SMS' : 'WhatsApp';
+    const r = await Swal.fire({
+        title: `${label} para ${guestName || 'invitado'}`,
+        input: 'textarea',
+        inputPlaceholder: 'Escribe el mensaje…',
+        showCancelButton: true,
+        background: '#0f172a', color: '#fff'
+    });
+    if (!r.isConfirmed || !r.value?.trim()) return;
+    try {
+        const base = channel === 'sms' ? '/sms/send-to-guest/' : '/whatsapp/send-to-guest/';
+        const res = await App.fetchAPI(base + guestId, {
+            method: 'POST',
+            body: JSON.stringify({ message: r.value.trim() })
+        });
+        if (res && res.success === false) throw new Error(res.error || 'Fallo en el envío');
+        App._notifyAction(`✓ ${label} enviado`, guestName || '', 'success');
+    } catch (e) { App._notifyAction(`Error ${label}`, e.message, 'error'); }
 };
 
 App.generateOtpCode = async function(clientId) {

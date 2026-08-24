@@ -160,7 +160,7 @@ export const AiSecurity = {
     },
 
     switchAiSubTab(App, subTabName) {
-        var tabs = ['overview', 'logs', 'alerts', 'stats', 'settings'];
+        var tabs = ['overview', 'logs', 'alerts', 'stats', 'settings', 'chat'];
         tabs.forEach(function(t) {
             var btn = document.getElementById('ai-tab-' + t);
             var content = document.getElementById('ai-subtab-' + t);

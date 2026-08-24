@@ -337,7 +337,13 @@ router.post('/events/:eventId/coupons', authMiddleware(['ADMIN', 'PRODUCTOR']), 
         var id = require('uuid').v4();
         db.prepare("INSERT INTO coupons (id, event_id, code, discount_type, discount_value, max_uses, expires_at) VALUES (?, ?, UPPER(?), ?, ?, ?, ?)").run(id, req.params.eventId, code, discount_type || 'percentage', parseFloat(discount_value) || 0, parseInt(max_uses) || 0, expires_at || null);
         res.json({ success: true, id: id });
-    } catch(err) { res.status(500).json({ error: err.message }); }
+    } catch(err) {
+        // A7: código duplicado → respuesta clara en vez de 500 genérico
+        if (String(err.message).includes('UNIQUE')) {
+            return res.status(409).json({ error: 'Ya existe un cupón con ese código en este evento' });
+        }
+        res.status(500).json({ error: err.message });
+    }
 });
 
 router.put('/events/:eventId/coupons/:couponId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {

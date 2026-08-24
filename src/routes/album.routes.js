@@ -31,12 +31,27 @@ router.post('/upload', upload.single('photo'), (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
         var { guest_token, caption, event_id } = req.body;
-        if (!guest_token || !event_id) { fs.unlinkSync(req.file.path); return res.status(400).json({ error: 'guest_token y event_id requeridos' }); }
-        var guest = db.prepare("SELECT id FROM guests WHERE qr_token = ? AND event_id = ?").get(guest_token, event_id);
-        if (!guest) { fs.unlinkSync(req.file.path); return res.status(401).json({ error: 'Invitado no válido' }); }
+        if (!event_id) { fs.unlinkSync(req.file.path); return res.status(400).json({ error: 'event_id requerido' }); }
+
+        var guestId = null;
+        var approved = 0;
+
+        if (guest_token) {
+            // Flujo asistente (portal): queda pendiente de aprobación
+            var guest = db.prepare("SELECT id FROM guests WHERE qr_token = ? AND event_id = ?").get(guest_token, event_id);
+            if (!guest) { fs.unlinkSync(req.file.path); return res.status(401).json({ error: 'Invitado no válido' }); }
+            guestId = guest.id;
+        } else {
+            // A2 (v12.44.790): flujo organizador — JWT válido → foto publicada directamente
+            var auth = (req.headers.authorization || '').replace('Bearer ', '');
+            var payload = auth ? require('../security/jwt').verifyToken(auth) : null;
+            if (!payload) { fs.unlinkSync(req.file.path); return res.status(401).json({ error: 'Autenticación requerida' }); }
+            approved = 1;
+        }
+
         var id = uuidv4();
-        db.prepare("INSERT INTO event_photos (id, event_id, guest_id, filename, caption, approved) VALUES (?, ?, ?, ?, ?, 0)").run(
-            id, event_id, guest.id, req.file.filename, caption || ''
+        db.prepare("INSERT INTO event_photos (id, event_id, guest_id, filename, caption, approved) VALUES (?, ?, ?, ?, ?, ?)").run(
+            id, event_id, guestId, req.file.filename, caption || '', approved
         );
         res.json({ success: true, id: id, filename: req.file.filename });
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }

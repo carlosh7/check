@@ -44,3 +44,28 @@
 
 ## 09 — FAQ
 - [Preguntas frecuentes](09-faq.md)
+
+## 08b — Integraciones nuevas
+- [05b. API Keys](08-integraciones/05-api-keys.md)
+- [06b. CRM (HubSpot/Salesforce)](08-integraciones/06-crm.md)
+- [07b. Tiendas conectadas](08-integraciones/07-tiendas.md)
+- [08b. Push avanzado](08-integraciones/08-push-avanzado.md)
+
+## 10 — Seguridad
+- [01. 2FA y recuperación de contraseña](10-seguridad/01-dos-factores-y-recuperacion.md)
+
+## 11 — Crecimiento
+- [01. Sponsors y leads](11-crecimiento/01-sponsors-y-leads.md)
+- [02. Formulario de registro con campos condicionales](11-crecimiento/02-formulario-registro.md)
+- [03. Inteligencia del evento](11-crecimiento/03-inteligencia.md)
+
+## 12 — Contenido
+- [01. Certificados](12-contenido/01-certificados.md)
+- [02. Álbum del evento](12-contenido/02-album.md)
+- [03. BI: tendencias y exportación](12-contenido/03-bi-tendencias.md)
+
+## Extras
+- [Mensajería individual SMS/WhatsApp](02-invitados/05-mensajeria-individual.md)
+- [Compliance: consentimientos y retención](07-administracion/06-compliance-consentimientos.md)
+- [Asistente IA de Seguridad](07-administracion/07-asistente-ia-seguridad.md)
+- [Networking en el portal del asistente](06-webhooks/02-networking-portal.md)

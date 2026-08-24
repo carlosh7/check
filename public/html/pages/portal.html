@@ -378,6 +378,32 @@ function loadNetworking() {
         + '<span style="font-size:11px;color:rgba(255,255,255,0.4);display:block">' + escHtml(n.connected_email || n.connected_org || '') + '</span></div></div>';
     }).join('');
   }).catch(function() {});
+  // A4: Sugerencias de networking
+  fetch(API + '/networking/' + eventId + '/guest/' + guestId + '/suggestions').then(function(r) { return r.json(); }).then(function(sugs) {
+    var box = document.getElementById('net-suggestions-list');
+    if (!box) return;
+    if (!sugs || sugs.length === 0) { box.innerHTML = '<p style="font-size:12px;color:rgba(255,255,255,0.3);padding:10px;text-align:center">Aún no hay sugerencias. Conéctate con alguien para desbloquear recomendaciones.</p>'; return; }
+    box.innerHTML = sugs.slice(0, 5).map(function(sg) {
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0">'
+        + '<span style="font-size:18px">🤝</span>'
+        + '<div style="flex:1;min-width:0"><span style="font-size:13px;font-weight:600;color:#e2e8f0">' + escHtml(sg.name) + '</span>'
+        + '<span style="font-size:11px;color:rgba(255,255,255,0.4);display:block">' + escHtml(sg.organization || sg.position || '') + (sg.shared_connections ? ' · ' + sg.shared_connections + ' conexiones en común' : '') + '</span></div>'
+        + (sg.qr_token ? '<button onclick="connectSuggestion(\'' + sg.qr_token + '\',\'' + escHtml(sg.name).replace(/'/g,'') + '\')" style="padding:6px 12px;border-radius:8px;border:none;background:rgba(16,185,129,0.15);color:#34d399;font-size:11px;font-weight:700;cursor:pointer">Conectar</button>' : '')
+        + '</div>';
+    }).join('');
+  }).catch(function() {});
+}
+
+function connectSuggestion(toToken, name) {
+  if (!guestData) return;
+  var eventId = guestData.event?.id;
+  var myToken = guestData.guest?.qr_token;
+  fetch(API + '/networking/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_id: eventId, from_guest_token: myToken, to_guest_token: toToken })
+  }).then(function(r) { return r.json(); }).then(function(res) {
+    if (res && res.success) { alert('✅ ¡Conectado con ' + (name || 'el asistente') + '!'); loadNetworking(); }
+    else alert(res && res.error ? res.error : 'No se pudo conectar');
+  }).catch(function() { alert('Error de conexión'); });
 }
 
 function toggleNetQR() {

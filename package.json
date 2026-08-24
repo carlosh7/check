@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.789",
+  "version": "12.44.790",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "script.js",
   "scripts": {
@@ -44,13 +44,13 @@
     "jspdf": "^4.2.0",
     "jspdf-autotable": "^5.0.7",
     "mailparser": "^3.7.1",
-    "multer": "^1.4.5-lts.1",
+    "multer": "^2.2.0",
     "node-cache": "^5.1.2",
     "nodemailer": "^8.0.7",
     "pdf-parse": "^1.1.1",
     "qrcode": "^1.5.4",
     "redis": "^6.1.0",
-    "sharp": "^0.33.5",
+    "sharp": "^0.35.3",
     "socket.io": "^4.7.5",
     "speakeasy": "^2.0.0",
     "stripe": "^22.1.1",

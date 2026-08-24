@@ -4,8 +4,8 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
 
 ## Resumen
 - **Endpoints backend:** 426
-- **Con uso desde el frontend:** 352 (83%)
-- **Sin UI conectada:** 74 (17%)
+- **Con uso desde el frontend:** 368 (86%)
+- **Sin UI conectada:** 58 (14%)
 
 > Nota: un endpoint "sin UI" no es necesariamente un error — hay endpoints
 > para webhooks externos (Stripe/GitHub), API pública v1 (consumo externo),
@@ -21,7 +21,7 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
 | security | 16 | 15 | 1 | 94% |
 | users | 13 | 13 | 0 | 100% |
 | clients | 13 | 13 | 0 | 100% |
-| compliance | 12 | 7 | 5 | 58% |
+| compliance | 12 | 12 | 0 | 100% |
 | webhooks | 11 | 11 | 0 | 100% |
 | plugins | 10 | 10 | 0 | 100% |
 | polls | 10 | 10 | 0 | 100% |
@@ -35,10 +35,10 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
 | networking | 7 | 0 | 7 | 0% |
 | venues | 6 | 6 | 0 | 100% |
 | api-keys | 6 | 0 | 6 | 0% |
-| ecommerce | 6 | 0 | 6 | 0% |
+| ecommerce | 6 | 5 | 1 | 83% |
 | seat-layouts | 5 | 5 | 0 | 100% |
 | deploy | 5 | 0 | 5 | 0% |
-| album | 5 | 0 | 5 | 0% |
+| album | 5 | 5 | 0 | 100% |
 | export | 5 | 5 | 0 | 100% |
 | health | 4 | 0 | 4 | 0% |
 | sms | 4 | 3 | 1 | 75% |
@@ -49,7 +49,7 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
 | event | 3 | 0 | 3 | 0% |
 | kiosk | 3 | 0 | 3 | 0% |
 | landing | 3 | 3 | 0 | 100% |
-| bi | 3 | 1 | 2 | 33% |
+| bi | 3 | 2 | 1 | 67% |
 | captcha | 2 | 0 | 2 | 0% |
 | transactions | 2 | 0 | 2 | 0% |
 | tenant | 2 | 0 | 2 | 0% |
@@ -81,13 +81,6 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
 
 ## Endpoints sin UI (por módulo)
 
-### album
-- `POST /api/album/upload`
-- `GET /api/album/:eventId`
-- `GET /api/album/:eventId/admin`
-- `PATCH /api/album/:eventId/:photoId/approve`
-- `DELETE /api/album/:eventId/:photoId`
-
 ### api-keys
 - `GET /api/api-keys`
 - `GET /api/api-keys/scopes`
@@ -101,18 +94,10 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
 
 ### bi
 - `GET /api/bi/export/:format`
-- `GET /api/bi/trends`
 
 ### captcha
 - `GET /api/captcha`
 - `POST /api/captcha/verify`
-
-### compliance
-- `POST /api/compliance/consent`
-- `GET /api/compliance/consent/:eventId`
-- `GET /api/compliance/consent/:eventId/stats`
-- `GET /api/compliance/retention`
-- `DELETE /api/compliance/retention/clean`
 
 ### deploy
 - `POST /api/deploy/webhook`
@@ -122,11 +107,6 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
 - `GET /api/deploy/rate-limit-status`
 
 ### ecommerce
-- `GET /api/ecommerce/connections`
-- `POST /api/ecommerce/connections`
-- `PUT /api/ecommerce/connections/:id`
-- `DELETE /api/ecommerce/connections/:id`
-- `POST /api/ecommerce/connections/:id/sync-products`
 - `POST /api/ecommerce/webhook/:connectionId`
 
 ### event

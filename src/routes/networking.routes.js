@@ -85,7 +85,7 @@ router.get('/:eventId/guest/:guestId/suggestions', (req, res) => {
         if (connected.length > 0) {
             const placeholders = connected.map(() => '?').join(',');
             const suggestions = db.prepare(`
-                SELECT g.id, g.name, g.organization, g.position,
+                SELECT g.id, g.name, g.organization, g.position, g.qr_token,
                        COUNT(DISTINCT nc.from_guest_id) as shared_connections
                 FROM guests g
                 JOIN networking_connections nc ON nc.to_guest_id = g.id
@@ -100,7 +100,7 @@ router.get('/:eventId/guest/:guestId/suggestions', (req, res) => {
         
         // If no connections yet, suggest random guests from same event
         const suggestions = db.prepare(`
-            SELECT id, name, organization, position FROM guests 
+            SELECT id, name, organization, position, qr_token FROM guests 
             WHERE event_id = ? AND id != ? AND name IS NOT NULL
             ORDER BY RANDOM() LIMIT 10
         `).all(req.params.eventId, req.params.guestId);
