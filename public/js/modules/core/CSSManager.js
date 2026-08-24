@@ -13,7 +13,6 @@ export class CSSManager {
             tables: '/css/modules/tables.css',
             forms: '/css/modules/forms.css',
             survey: '/css/modules/survey.css',
-            wheel: '/css/modules/wheel.css',
             ticket: '/css/modules/ticket.css',
             registro: '/css/modules/registro.css'
         };
