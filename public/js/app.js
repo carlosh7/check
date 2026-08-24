@@ -6030,9 +6030,60 @@ const App = window.App = {
     },
     
     // --- PROFILE V10.6 ---
+    // ═══ F2: Verificación en dos pasos (TOTP) ═══
+    refreshTwoFactorStatus: async function() {
+        const badge = document.getElementById('twofa-status-badge');
+        const vOff = document.getElementById('twofa-disabled-view');
+        const vSetup = document.getElementById('twofa-setup-view');
+        const vOn = document.getElementById('twofa-enabled-view');
+        if (!badge || !vOff) return; // vista perfil no montada
+        try {
+            const st = await this.fetchAPI('/me/2fa/status');
+            if (st.enabled) {
+                badge.textContent = 'ACTIVADA';
+                badge.style.cssText = 'background:rgba(16,185,129,0.15);color:#34d399;';
+                vOff.classList.add('hidden'); vOn.classList.remove('hidden'); vSetup.classList.add('hidden');
+            } else {
+                badge.textContent = 'DESACTIVADA';
+                badge.style.cssText = 'background:rgba(100,116,139,0.15);color:#94a3b8;';
+                vOff.classList.remove('hidden'); vOn.classList.add('hidden'); vSetup.classList.add('hidden');
+            }
+        } catch (e) { badge.textContent = 'N/D'; }
+    },
+    setup2FA: async function() {
+        try {
+            const d = await this.fetchAPI('/me/2fa/setup', { method: 'POST' });
+            document.getElementById('twofa-qr').src = d.qrCode;
+            document.getElementById('twofa-secret').textContent = d.secret;
+            document.getElementById('twofa-disabled-view').classList.add('hidden');
+            document.getElementById('twofa-setup-view').classList.remove('hidden');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+    verify2FA: async function() {
+        const token = document.getElementById('twofa-verify-code')?.value.trim();
+        if (!token || token.length !== 6) return this._notifyAction('Error', 'Ingresa el código de 6 dígitos', 'error');
+        try {
+            await this.fetchAPI('/me/2fa/verify', { method: 'POST', body: JSON.stringify({ token }) });
+            this._notifyAction('2FA Activada', 'Tu cuenta ahora requiere código TOTP al iniciar sesión.', 'success');
+            document.getElementById('twofa-verify-code').value = '';
+            this.refreshTwoFactorStatus();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+    disable2FA: async function() {
+        if (!confirm('¿Desactivar la verificación en dos pasos?')) return;
+        try {
+            await this.fetchAPI('/me/2fa/disable', { method: 'POST' });
+            this._notifyAction('2FA Desactivada', '', 'info');
+            this.refreshTwoFactorStatus();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
     loadProfileData: async function() {
         if (!this.state.user) return;
-        
+
+        // F2: estado 2FA del usuario
+        this.refreshTwoFactorStatus().catch(e => console.warn('[2FA]', e.message));
+
         // Obtener datos actualizados del usuario desde la API /users/:id
         let currentUser = this.state.user;
         try {
@@ -6087,13 +6138,30 @@ const App = window.App = {
         const list = document.getElementById('inbox-list');
         if (!list) return;
         try {
-            const res = await this.fetchAPI('/email/email-logs?type=INBOX');
-            const logs = res.data || []; 
-            list.innerHTML = logs.map(l => `
+            // Fix F1 (2026-08): /email/email-logs?type=INBOX no existe en el backend.
+            // El endpoint real es /email/mailbox/messages?account_id=...&folder=INBOX
+            const accounts = await this.fetchAPI('/email/accounts');
+            const accountList = Array.isArray(accounts) ? accounts : (accounts.accounts || []);
+            if (accountList.length === 0) {
+                list.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-center text-xs text-slate-500">Configura una cuenta de correo para ver tu bandeja.</td></tr>';
+                return;
+            }
+            const acc = accountList.find(a => a.is_active !== 0) || accountList[0];
+            const res = await this.fetchAPI(`/email/mailbox/messages?account_id=${encodeURIComponent(acc.id)}&folder=INBOX&limit=50`);
+            if (!res || res.success === false) {
+                list.innerHTML = `<tr><td colspan="4" class="px-4 py-6 text-center text-xs text-red-400">${App.esc(res?.error || 'No se pudo conectar a la bandeja')}</td></tr>`;
+                return;
+            }
+            const msgs = res.messages || [];
+            if (msgs.length === 0) {
+                list.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-center text-xs text-slate-500">Bandeja vacía.</td></tr>';
+                return;
+            }
+            list.innerHTML = msgs.map(m => `
                 <tr class="hover:bg-white/5 transition-colors">
-                    <td class="px-4 py-3 text-xs text-[var(--text-main)] font-medium">${App.esc(l.sender || 'Sistema')}</td>
-                    <td class="px-4 py-3 text-xs text-[var(--text-secondary)] truncate max-w-xs">${App.esc(l.subject)}</td>
-                    <td class="px-4 py-3 text-[10px] text-slate-500">${new Date(l.created_at).toLocaleString()}</td>
+                    <td class="px-4 py-3 text-xs text-[var(--text-main)] font-medium">${App.esc(m.from_name || m.from || 'Desconocido')}</td>
+                    <td class="px-4 py-3 text-xs text-[var(--text-secondary)] truncate max-w-xs">${App.esc(m.subject || '(sin asunto)')}</td>
+                    <td class="px-4 py-3 text-[10px] text-slate-500">${m.date ? new Date(m.date).toLocaleString() : ''}</td>
                     <td class="px-4 py-3 text-right">
                         <button class="text-[var(--primary)] hover:underline text-[10px] font-bold">Ver DETALLES</button>
                     </td>
@@ -6284,13 +6352,15 @@ const App = window.App = {
         if (id) App.processGuestCheckin(id);
     },
 
-    async login(username, password) {
+    async login(username, password, totpToken) {
         try {
-            const data = await this.fetchAPI('/login', { 
-                method: 'POST', 
-                body: JSON.stringify({ username, password }) 
+            const body = { username, password };
+            if (totpToken) body.totp_token = totpToken;
+            const data = await this.fetchAPI('/login', {
+                method: 'POST',
+                body: JSON.stringify(body)
             });
-            
+
             if (data.success) {
                 this.state.user = data;
                 LS.set('user', JSON.stringify(data));
@@ -6325,6 +6395,16 @@ const App = window.App = {
 
                 return { success: true };
             } else {
+                // F2: si el backend pide código 2FA, mostrar el campo y avisar
+                if (data.requires2FA) {
+                    const grp = document.getElementById('login-2fa-group');
+                    if (grp && !document.getElementById('login-totp').value) {
+                        grp.classList.remove('hidden');
+                        document.getElementById('login-totp')?.focus();
+                    }
+                    this._notifyAction('Verificación 2FA', 'Ingresa el código de tu app autenticadora.', 'info');
+                    return { success: false, requires2FA: true };
+                }
                 this._notifyAction('Error de Acceso', data.message || 'Credenciales inválidas.', 'error');
                 return { success: false, message: data.message };
             }
@@ -7404,16 +7484,48 @@ navigate(viewName, params = {}, push = true) {
         } catch (e) { alert('Error al actualizar estado'); }
     },
 
-    // --- SURVEYS (NUEVO V11.6) ---
+    // --- SURVEYS (NUEVO V11.6 · realineado al builder API en F1 2026-08) ---
+    _surveyTypeToBackend(t, optionsText) {
+        if (t === 'stars') return { type: 'rating' };
+        if (t === 'yesno') return { type: 'single_choice', options: [{ label: 'Sí' }, { label: 'No' }] };
+        if (t === 'multiple') {
+            const opts = (optionsText || '').split(',').map(s => s.trim()).filter(Boolean).map(label => ({ label }));
+            return { type: 'multiple_choice', options: opts.length ? opts : [{ label: 'Opción 1' }] };
+        }
+        return { type: 'short_text' };
+    },
+    _surveyTypeFromBackend(q) {
+        const t = q.type;
+        if (t === 'rating') return 'stars';
+        if (t === 'single_choice' && Array.isArray(q.options) && q.options.length === 2) return 'yesno';
+        if (t === 'single_choice' || t === 'multiple_choice' || t === 'dropdown') return 'multiple';
+        return 'text';
+    },
+    async _ensureSurveyTemplate() {
+        if (this.state.surveyTemplateId) return this.state.surveyTemplateId;
+        const templates = await this.fetchAPI(`/events/${this.state.event.id}/templates`);
+        let tpl = Array.isArray(templates) && templates.length > 0 ? templates[0] : null;
+        if (!tpl) {
+            const created = await this.fetchAPI(`/events/${this.state.event.id}/templates`, {
+                method: 'POST',
+                body: JSON.stringify({ title: 'Encuesta del Evento' })
+            });
+            tpl = { id: created.id };
+        }
+        this.state.surveyTemplateId = tpl.id;
+        return tpl.id;
+    },
     async loadSurveyQuestions() {
         if (!this.state.event) return;
         const list = document.getElementById('survey-questions-list');
         if (list) list.innerHTML = '<div class="p-10 text-center text-slate-500 font-bold">Cargando encuesta...</div>';
-        
+
         try {
-            const data = await this.fetchAPI(`/events/${this.state.event.id}/surveys`);
+            const templateId = await this._ensureSurveyTemplate();
+            const data = await this.fetchAPI(`/events/templates/${templateId}/questions`);
+            const questions = Array.isArray(data) ? data : [];
             if (list) {
-                if (data.length === 0) {
+                if (questions.length === 0) {
                     list.innerHTML = `
                         <div class="glass-card p-12 rounded-[40px] border border-dashed border-white/10 text-center">
                             <span class="material-symbols-outlined text-6xl text-slate-800 mb-4">poll</span>
@@ -7422,18 +7534,20 @@ navigate(viewName, params = {}, push = true) {
                         </div>
                     `;
                 } else {
-                    list.innerHTML = data.map(q => `
+                    list.innerHTML = questions.map(raw => {
+                        const q = { id: raw.id, title: raw.title, uiType: this._surveyTypeFromBackend(raw), raw };
+                        return `
                         <div class="glass-card p-6 rounded-3xl border border-white/5 flex items-center justify-between group hover:border-primary/30 transition-all">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500">
                                     <span class="material-symbols-outlined text-sm">
-                                        ${q.type === 'text' ? 'description' : q.type === 'binary' ? 'thumbs_up_down' : q.type === 'rating' ? 'stars' : 'list'}
+                                        ${q.uiType === 'text' ? 'description' : q.uiType === 'yesno' ? 'thumbs_up_down' : q.uiType === 'stars' ? 'stars' : 'list'}
                                     </span>
                                 </div>
                                 <div>
                                     <h5 class="text-sm font-bold text-white">${App.esc(q.title)}</h5>
                                     <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest">
-                                        Tipo: ${q.type === 'text' ? 'Abierta' : q.type === 'binary' ? 'Booleana' : q.type === 'rating' ? 'Calificación' : 'Opción Múltiple'}
+                                        Tipo: ${q.uiType === 'text' ? 'Abierta' : q.uiType === 'yesno' ? 'Booleana' : q.uiType === 'stars' ? 'Calificación' : 'Opción Múltiple'}
                                     </p>
                                 </div>
                             </div>
@@ -7446,13 +7560,19 @@ navigate(viewName, params = {}, push = true) {
                                 </button>
                             </div>
                         </div>
-                    `).join('');
+                    `; }).join('');
                 }
             }
-            const resp = await this.fetchAPI(`/events/${this.state.event.id}/surveys/responses`);
-            const cEl = document.getElementById('survey-response-count');
-            if (cEl) cEl.innerText = resp.length;
-        } catch (e) { console.error("Error al cargar encuesta", e); }
+            // Contador de respuestas vía stats reales del builder
+            try {
+                const stats = await this.fetchAPI(`/events/templates/${this.state.surveyTemplateId}/stats`);
+                const cEl = document.getElementById('survey-response-count');
+                if (cEl) cEl.innerText = stats?.kpis?.total ?? 0;
+            } catch (_) { /* stats opcional */ }
+        } catch (e) {
+            console.error("Error al cargar encuesta", e);
+            if (list) list.innerHTML = `<div class="p-10 text-center text-red-400 text-xs">${App.esc(e.message || 'Error al cargar la encuesta')}</div>`;
+        }
     },
 
     openSurveyEditor(questionId = null) {
@@ -7461,7 +7581,45 @@ navigate(viewName, params = {}, push = true) {
         const f = document.getElementById('survey-question-form');
         f.reset();
         document.getElementById('survey-question-id').value = questionId || '';
+        // Si es edición, precargar datos de la pregunta
+        if (questionId) {
+            this._prefillSurveyQuestion(questionId).catch(() => {});
+        }
         m.classList.remove('hidden');
+    },
+
+    async _prefillSurveyQuestion(questionId) {
+        const templateId = await this._ensureSurveyTemplate();
+        const questions = await this.fetchAPI(`/events/templates/${templateId}/questions`);
+        const raw = (Array.isArray(questions) ? questions : []).find(q => q.id === questionId);
+        if (!raw) return;
+        document.getElementById('survey-question-title').value = raw.title || '';
+        const typeSel = document.getElementById('survey-question-type');
+        typeSel.value = this._surveyTypeFromBackend(raw);
+        this.toggleSurveyOptions();
+        const optsEl = document.getElementById('survey-question-options');
+        if (optsEl && Array.isArray(raw.options)) {
+            optsEl.value = raw.options.map(o => o.label).join(', ');
+        }
+    },
+
+    async saveSurveyQuestion() {
+        const id = document.getElementById('survey-question-id').value;
+        const title = document.getElementById('survey-question-title').value.trim();
+        const uiType = document.getElementById('survey-question-type').value;
+        const optionsText = document.getElementById('survey-question-options')?.value || '';
+        if (!title) return alert('Escribe la pregunta');
+        try {
+            const payload = { title, ...this._surveyTypeToBackend(uiType, optionsText) };
+            if (!this.state.surveyTemplateId) await this._ensureSurveyTemplate();
+            if (id) {
+                await this.fetchAPI(`/events/questions/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+            } else {
+                await this.fetchAPI(`/events/templates/${this.state.surveyTemplateId}/questions`, { method: 'POST', body: JSON.stringify(payload) });
+            }
+            document.getElementById('modal-survey-editor').classList.add('hidden');
+            this.loadSurveyQuestions();
+        } catch (e) { alert('Error al guardar: ' + e.message); }
     },
 
     toggleSurveyOptions() {
@@ -7473,9 +7631,10 @@ navigate(viewName, params = {}, push = true) {
     async deleteSurveyQuestion(id) {
         if (!confirm('¿Eliminar esta pregunta?')) return;
         try {
-            await this.fetchAPI(`/events/surveys/${id}`, { method: 'DELETE' });
+            // Fix F1 (2026-08): endpoint real del builder
+            await this.fetchAPI(`/events/questions/${id}`, { method: 'DELETE' });
             this.loadSurveyQuestions();
-        } catch (e) { alert('Error al eliminar'); }
+        } catch (e) { alert('Error al eliminar: ' + e.message); }
     },
 
     // --- DATA LOADERS ---
@@ -9552,7 +9711,7 @@ navigate(viewName, params = {}, push = true) {
                 const badge = document.getElementById('event-name-badge');
                 if (badge) badge.innerText = this.state.event.name;
             }
-        } catch (e) {}
+        } catch (e) { console.warn('[App] Carga opcional falló:', e); }
     },
     
     // --- PDF GENERATION (FASE 10) ---
@@ -10088,6 +10247,10 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'whatsapp') this.loadWaSettings();
         if (tabName === 'tenants') this.loadTenants();
         if (tabName === 'bi') this.loadBiDashboard();
+        if (tabName === 'push-adv') { this.loadPushTemplates(); this.loadScheduledPush(); this.fillPushSegmentEvents(); }
+        // F5: ecosistema
+        if (tabName === 'api-keys') this.loadApiKeys();
+        if (tabName === 'crm-sync') this.loadCrmConnections();
         if (tabName === 'ai-security') this.loadAiSecurity();
         if (tabName === 'compliance') this.loadCompliance();
         if (tabName === 'google') this.loadGoogleTab();
@@ -10412,7 +10575,7 @@ navigate(viewName, params = {}, push = true) {
                     venues.map(v => '<option value="' + v.id + '">' + v.name + (v.address ? ' - ' + v.address : '') + '</option>').join('');
                 if (current) sel.value = current;
             }
-        } catch(e) {}
+        } catch(e) { console.warn('[App] Carga opcional falló:', e); }
     },
 
     activityPage: 1,
@@ -10559,6 +10722,11 @@ navigate(viewName, params = {}, push = true) {
 
         const panel = document.getElementById('config-content-' + tabName);
         if (panel) { panel.classList.remove('hidden'); panel.style.display = ''; }
+        else {
+            // F2: tabs nuevos (intelligence/certificates/budget/etc.) usan IDs estándar
+            const altPanel = document.getElementById('config-content-' + tabName);
+            if (!altPanel) console.warn('[CONFIG] Sin contenido para tab:', tabName);
+        }
 
         // Guardar pestaña activa en sessionStorage
         sessionStorage.setItem('active_config_tab', tabName);
@@ -10597,8 +10765,14 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'speakers') this.loadSpeakers();
         if (tabName === 'proposals') this.loadProposals();
         if (tabName === 'automation') this.loadAutomationRules();
-        if (tabName === 'coupons') this.loadCoupons();
+        if (tabName === 'coupons') { this.loadCoupons(); this.loadTransactions(); }
         if (tabName === 'network') this.loadNetwork();
+        // F2: módulos recién conectados
+        if (tabName === 'intelligence') this.loadIntelligence();
+        if (tabName === 'certificates') this.loadCertificates();
+        // F4: builder de formulario + sponsors
+        if (tabName === 'reg-fields') this.loadRegFields();
+        if (tabName === 'sponsors') this.loadSponsors();
         
         // Mostrar action-bar solo en tab Personal
         const actionBar = document.getElementById('config-action-bar');
@@ -10698,7 +10872,7 @@ navigate(viewName, params = {}, push = true) {
                 }
                 var qRes = await this.fetchAPI('/events/templates/' + templateId + '/questions');
                 if (Array.isArray(qRes)) this.surveyBuilderQuestions = qRes;
-            } catch(e) {}
+            } catch(e) { console.warn('[App] Carga opcional falló:', e); }
         } else {
             if (titleInput) titleInput.value = '';
         }
@@ -10787,7 +10961,7 @@ navigate(viewName, params = {}, push = true) {
             if (q.id && !q.id.startsWith('tmp_')) {
                 try {
                     await App.fetchAPI('/events/questions/' + q.id, { method: 'PUT', body: JSON.stringify(data) });
-                } catch(e) {}
+                } catch(e) { console.warn('[App] Carga opcional falló:', e); }
             }
             App.renderSurveyBuilderQuestions();
         });
@@ -11665,7 +11839,8 @@ navigate(viewName, params = {}, push = true) {
             end_time: document.getElementById('session-end')?.value || '',
             capacity: parseInt(document.getElementById('session-capacity')?.value) || 0,
             location: document.getElementById('session-location')?.value || '',
-            layout_id: document.getElementById('session-layout-id')?.value || null
+            layout_id: document.getElementById('session-layout-id')?.value || null,
+            stream_url: document.getElementById('session-stream-url')?.value || null
         };
         try {
             if (sId) {
@@ -12412,6 +12587,619 @@ navigate(viewName, params = {}, push = true) {
             this.loadBudget();
         } catch(e) { console.error(e); }
     },
+
+    // ═══ F3: Estados UI estándar (loading / empty / error / ready) ═══
+    /**
+     * Renderiza un estado estándar dentro de un contenedor.
+     * @param {string} containerId id del elemento
+     * @param {'loading'|'empty'|'error'} state
+     * @param {object} opts {icon, title, message, retryFn} — retryFn: nombre de función App a reintentar
+     */
+    uiState: function(containerId, state, opts = {}) {
+        const el = document.getElementById(containerId);
+        if (!el || state === 'ready') return;
+        const wrap = (html) => el.tagName === 'TBODY'
+            ? `<tr><td colspan="${opts.colspan || 6}" style="padding:0">${html}</td></tr>`
+            : html;
+        if (state === 'loading') {
+            el.innerHTML = wrap(`
+                <div class="p-6 space-y-3">
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text" style="width:70%"></div>
+                </div>`);
+            return;
+        }
+        if (state === 'empty') {
+            el.innerHTML = wrap(`
+                <div class="empty-state">
+                    <span class="material-symbols-outlined icon">${opts.icon || 'inbox'}</span>
+                    <h3>${App.esc(opts.title || 'Nada por aquí todavía')}</h3>
+                    <p>${App.esc(opts.message || '')}</p>
+                    ${opts.actionLabel ? `<button class="retry-btn" style="background:var(--accent-light);color:var(--text-link);" onclick="${opts.retryFn}">${App.esc(opts.actionLabel)}</button>` : ''}
+                </div>`);
+            return;
+        }
+        // error
+        el.innerHTML = wrap(`
+            <div class="error-state">
+                <span class="material-symbols-outlined">error</span>
+                <p>${App.esc(opts.message || 'Ocurrió un error al cargar los datos.')}</p>
+                ${opts.retryFn ? `<button class="retry-btn" onclick="${opts.retryFn}">Reintentar</button>` : ''}
+            </div>`);
+    },
+
+    // ═══ F2 (2026-08): Transacciones · Intelligence · Certificados · Invitar usuario ═══
+
+    loadTransactions: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var data = await this.fetchAPI('/events/' + eId + '/transactions');
+            var tbody = document.getElementById('transactions-tbody');
+            if (!tbody) return;
+            var rows = Array.isArray(data) ? data : (data.transactions || []);
+            if (!rows.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin transacciones registradas</td></tr>';
+                return;
+            }
+            tbody.innerHTML = rows.map(function(t) {
+                var status = String(t.status || 'pending');
+                var badge = status === 'succeeded' || status === 'completed' ? 'bg-green-500/10 text-green-400'
+                    : status === 'failed' ? 'bg-red-500/10 text-red-400' : 'bg-yellow-500/10 text-yellow-400';
+                return '<tr class="hover:bg-white/[0.02]">' +
+                    '<td class="table-td text-xs text-slate-400">' + (t.created_at ? new Date(t.created_at).toLocaleString() : '-') + '</td>' +
+                    '<td class="table-td text-xs font-medium text-white">' + App.esc(t.guest_name || t.customer_name || t.email || '-') + '</td>' +
+                    '<td class="table-td text-xs text-slate-300">' + App.esc(t.description || t.concept || 'Boleto') + '</td>' +
+                    '<td class="table-td text-xs font-bold text-green-400">$' + parseFloat(t.amount || 0).toFixed(2) + '</td>' +
+                    '<td class="table-td"><span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase ' + badge + '">' + status + '</span></td></tr>';
+            }).join('');
+        } catch (e) {
+            console.warn('[TRANSACTIONS] Error:', e.message);
+            this.uiState('transactions-tbody', 'error', { message: e.message, retryFn: 'App.loadTransactions()' });
+        }
+    },
+
+    loadIntelligence: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var pred = await this.fetchAPI('/predict/' + eId);
+            document.getElementById('intel-predicted').textContent = pred.predictedAttendance ?? pred.predicted ?? '—';
+            document.getElementById('intel-analyzed').textContent = pred.totalGuests ?? pred.analyzed ?? '—';
+            var confEl = document.getElementById('intel-confidence');
+            if (confEl) confEl.textContent = pred.confidence != null ? Math.round(pred.confidence * 100) / 100 : '—';
+        } catch (e) { console.warn('[INTEL] predict:', e.message); }
+        try {
+            var recs = await this.fetchAPI('/recommendations/' + eId);
+            var list = Array.isArray(recs) ? recs : (recs.recommendations || []);
+            var wrap = document.getElementById('intel-recommendations');
+            if (wrap) {
+                wrap.innerHTML = list.length ? list.map(function(r) {
+                    var txt = typeof r === 'string' ? r : (r.title || r.message || JSON.stringify(r));
+                    var pri = (r.priority || 'info');
+                    var color = pri === 'high' ? 'text-red-400 bg-red-500/10' : pri === 'medium' ? 'text-yellow-400 bg-yellow-500/10' : 'text-blue-400 bg-blue-500/10';
+                    return '<div class="flex items-start gap-3 p-3 rounded-xl ' + color.replace(/text-\S+/, '') + '">' +
+                        '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase ' + color + '">' + pri + '</span>' +
+                        '<p class="text-xs text-slate-300 flex-1">' + App.esc(txt) + '</p></div>';
+                }).join('') : '<p class="text-xs text-slate-500">Sin recomendaciones por ahora.</p>';
+            }
+        } catch (e) { console.warn('[INTEL] recommendations:', e.message); }
+        try {
+            var tags = await this.fetchAPI('/intelligence/guests/' + eId + '/tags');
+            var tagWrap = document.getElementById('intel-tags');
+            if (tagWrap) {
+                var tagList = Array.isArray(tags) ? tags : (tags.tags || []);
+                tagWrap.innerHTML = tagList.length ? tagList.map(function(t) {
+                    var label = typeof t === 'string' ? t : (t.tag || t.name);
+                    var count = t.count != null ? ' <span class="opacity-60">(' + t.count + ')</span>' : '';
+                    return '<span class="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-slate-300">' + App.esc(label) + count + '</span>';
+                }).join('') : '<p class="text-xs text-slate-500">Sin etiquetas aún.</p>';
+            }
+        } catch (e) { console.warn('[INTEL] tags:', e.message); }
+    },
+
+    addIntelligenceTag: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var r = await Swal.fire({ title: 'Nueva etiqueta', input: 'text', inputPlaceholder: 'ej: VIP, Prensa...', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!r.isConfirmed || !r.value) return;
+        try {
+            await this.fetchAPI('/guests/' + eId + '/tags', { method: 'POST', body: JSON.stringify({ name: r.value.trim() }) });
+            this._notifyAction('Etiqueta creada', '', 'success');
+            this.loadIntelligence();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    loadCertificates: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var tbody0 = document.getElementById('certificates-tbody');
+        if (tbody0) this.uiState('certificates-tbody', 'loading');
+        try {
+            var templates = await this.fetchAPI('/certificates/' + eId + '/templates');
+            var tbody = document.getElementById('certificates-tbody');
+            if (!tbody) return;
+            if (!templates.length) {
+                this.uiState('certificates-tbody', 'empty', { icon: 'workspace_premium', title: 'Sin plantillas de certificado', message: 'Crea una plantilla para poder generar certificados de asistencia.' });
+                return;
+            }
+            tbody.innerHTML = templates.map(function(t) {
+                return '<tr class="hover:bg-white/[0.02]">' +
+                    '<td class="table-td font-medium text-white">' + App.esc(t.name || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-300">' + App.esc(t.title || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + (t.created_at ? new Date(t.created_at).toLocaleDateString() : '-') + '</td>' +
+                    '<td class="table-td"><button class="btn-icon" title="Generar certificados para asistentes" onclick="App.generateCertificates(\'' + t.id + '\')"><span class="material-symbols-outlined text-sm">bolt</span></button>' +
+                    '<button class="btn-icon" title="Ver generados" onclick="App.listGeneratedCertificates(\'' + t.id + '\')"><span class="material-symbols-outlined text-sm">visibility</span></button></td></tr>';
+            }).join('');
+        } catch (e) {
+            console.warn('[CERTS] templates:', e.message);
+            this.uiState('certificates-tbody', 'error', { message: e.message, retryFn: 'App.loadCertificates()' });
+        }
+    },
+
+    openCertificateTemplateModal: function() {
+        document.getElementById('cert-tpl-name').value = '';
+        document.getElementById('cert-tpl-title').value = '';
+        document.getElementById('cert-tpl-subtitle').value = '';
+        document.getElementById('modal-certificate-template')?.classList.remove('hidden');
+    },
+
+    saveCertificateTemplate: async function() {
+        var eId = this.state.event?.id;
+        var name = document.getElementById('cert-tpl-name').value.trim();
+        var title = document.getElementById('cert-tpl-title').value.trim();
+        var subtitle = document.getElementById('cert-tpl-subtitle').value.trim();
+        if (!name || !title) return this._notifyAction('Error', 'Nombre y título requeridos', 'error');
+        try {
+            await this.fetchAPI('/certificates/' + eId + '/templates', { method: 'POST', body: JSON.stringify({ name: name, title: title, subtitle: subtitle }) });
+            document.getElementById('modal-certificate-template').classList.add('hidden');
+            this.loadCertificates();
+            this._notifyAction('Plantilla creada', '', 'success');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    generateCertificates: async function(templateId) {
+        var eId = this.state.event?.id;
+        if (!confirm('¿Generar certificados para todos los asistentes con check-in?')) return;
+        try {
+            const res = await Swal.fire({ title: 'Generando certificados...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+            var d = await this.fetchAPI('/certificates/' + eId + '/templates/' + templateId + '/generate', { method: 'POST', body: '{}' });
+            Swal.close();
+            var certs = d.certificates || d.generated || [];
+            this._notifyAction('Certificados generados', certs.length + ' documento(s)', 'success');
+            this.renderGeneratedCertificates(certs);
+        } catch (e) { Swal.close(); this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    listGeneratedCertificates: async function(templateId) {
+        var eId = this.state.event?.id;
+        try {
+            var d = await this.fetchAPI('/certificates/' + eId + '/templates/' + templateId + '/certificates');
+            this.renderGeneratedCertificates(Array.isArray(d) ? d : (d.certificates || []));
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    renderGeneratedCertificates: function(certs) {
+        var wrap = document.getElementById('certificates-generated-wrap');
+        var box = document.getElementById('certificates-generated');
+        if (!wrap || !box) return;
+        wrap.classList.remove('hidden');
+        box.innerHTML = certs.length ? certs.map(function(c) {
+            return '<a href="/api/certificates/download/' + c.id + '" target="_blank" class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-all">' +
+                '<span class="material-symbols-outlined text-green-400 text-base">workspace_premium</span>' +
+                '<span class="text-xs text-slate-300 flex-1">' + App.esc(c.guest_name || c.recipient || c.id) + '</span>' +
+                '<span class="text-[10px] text-[var(--primary)] font-bold">Descargar PDF</span></a>';
+        }).join('') : '<p class="text-xs text-slate-500">Sin certificados aún. Usa ⚡ Generar.</p>';
+    },
+
+    openInviteUserModal: function() {
+        document.getElementById('invite-email').value = '';
+        document.getElementById('invite-pass').value = '';
+        document.getElementById('invite-role').value = 'PRODUCTOR';
+        document.getElementById('invite-name').value = '';
+        document.getElementById('modal-invite-user')?.classList.remove('hidden');
+    },
+
+    submitInviteUser: async function() {
+        var email = document.getElementById('invite-email').value.trim().toLowerCase();
+        var pass = document.getElementById('invite-pass').value;
+        var role = document.getElementById('invite-role').value;
+        var name = document.getElementById('invite-name').value.trim();
+        if (!email || !pass) return this._notifyAction('Error', 'Email y contraseña temporal requeridos', 'error');
+        if (pass.length < 8) return this._notifyAction('Error', 'La contraseña debe tener mínimo 8 caracteres', 'error');
+        try {
+            await this.fetchAPI('/users/invite', { method: 'POST', body: JSON.stringify({ username: email, password: pass, role: role, display_name: name || email }) });
+            document.getElementById('modal-invite-user').classList.add('hidden');
+            this._notifyAction('Usuario creado', email + ' ya puede iniciar sesión.', 'success');
+            if (typeof this.loadUsers === 'function') this.loadUsers();
+            if (typeof this.loadSystemUsers === 'function') this.loadSystemUsers();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    // ═══ F4: Builder de formulario público + Sponsors/Leads ═══
+
+    loadRegFields: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var fields = await this.fetchAPI('/events/' + eId + '/reg-fields');
+            var tbody = document.getElementById('regfields-tbody');
+            if (!tbody) return;
+            this.state._regFields = Array.isArray(fields) ? fields : [];
+            if (!fields.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin campos personalizados</td></tr>';
+            } else {
+                tbody.innerHTML = fields.map(f =>
+                    '<tr class="hover:bg-white/[0.02]">' +
+                    '<td class="table-td font-medium text-white">' + App.esc(f.label) + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + App.esc(f.field_type) + '</td>' +
+                    '<td class="table-td">' + (f.required ? '<span class="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-[10px] font-black">SÍ</span>' : '<span class="text-[10px] text-slate-500">no</span>') + '</td>' +
+                    '<td class="table-td text-xs text-slate-500">' + (f.show_if_field_id ? 'condicional' : '—') + '</td>' +
+                    '<td class="table-td"><button class="btn-icon text-red-400" onclick="App.deleteRegField(\'' + f.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
+                ).join('');
+            }
+            // Quota actual
+            try {
+                const ev = await this.fetchAPI('/events/' + eId);
+                const q = ev.plus_one_quota ?? (Array.isArray(ev) ? 0 : 0);
+                document.getElementById('plusone-quota-input').value = q;
+            } catch (_) {}
+        } catch (e) {
+            this.uiState('regfields-tbody', 'error', { message: e.message, retryFn: 'App.loadRegFields()' });
+        }
+    },
+
+    openRegFieldModal: async function() {
+        // Modal ligero via SweetAlert encadenado
+        var eId = this.state.event?.id;
+        var r = await Swal.fire({
+            title: 'Nuevo campo del formulario',
+            html:
+                '<input id="_rf-label" class="swal2-input" placeholder="Etiqueta (ej: Empresa)">' +
+                '<select id="_rf-type" class="swal2-input">' +
+                ['text', 'textarea', 'select', 'checkbox', 'radio', 'number', 'email', 'phone'].map(t => `<option value="${t}">${t}</option>`).join('') +
+                '</select>' +
+                '<label style="display:flex;gap:6px;align-items:center;font-size:12px;justify-content:center;"><input type="checkbox" id="_rf-req"> Obligatorio</label>' +
+                '<input id="_rf-options" class="swal2-input" placeholder="Opciones (select/radio, separadas por coma)">' +
+                '<select id="_rf-cond" class="swal2-input"><option value="">Mostrar siempre</option>' +
+                (this.state._regFields || []).map(f => `<option value="${f.id}">Solo si: ${f.label}</option>`).join('') +
+                '</select>',
+            focusConfirm: false,
+            preConfirm: () => ({
+                label: document.getElementById('_rf-label').value.trim(),
+                field_type: document.getElementById('_rf-type').value,
+                required: document.getElementById('_rf-req').checked,
+                options: document.getElementById('_rf-options').value.split(',').map(s => s.trim()).filter(Boolean),
+                show_if_field_id: document.getElementById('_rf-cond').value || null
+            }),
+            showCancelButton: true, background: '#0f172a', color: '#fff'
+        });
+        if (!r.isConfirmed || !r.value.label) return;
+        try {
+            await this.fetchAPI('/events/' + eId + '/reg-fields', { method: 'POST', body: JSON.stringify(r.value) });
+            this.loadRegFields();
+            this._notifyAction('Campo añadido', '', 'success');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    deleteRegField: async function(id) {
+        var eId = this.state.event?.id;
+        if (!confirm('¿Eliminar este campo y sus respuestas?')) return;
+        try {
+            await this.fetchAPI('/events/' + eId + '/reg-fields/' + id, { method: 'DELETE' });
+            this.loadRegFields();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    savePlusOneQuota: async function() {
+        var eId = this.state.event?.id;
+        var q = parseInt(document.getElementById('plusone-quota-input')?.value, 10);
+        if (isNaN(q) || q < 0) return this._notifyAction('Error', 'Cupo inválido', 'error');
+        try {
+            await this.fetchAPI('/events/' + eId, { method: 'PUT', body: JSON.stringify({ plus_one_quota: q }) });
+            this._notifyAction('Cupo guardado', q + ' acompañante(s) por invitado', 'success');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    loadSponsors: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var sponsors = await this.fetchAPI('/events/' + eId + '/sponsors');
+            var tbody = document.getElementById('sponsors-tbody');
+            if (!tbody) return;
+            if (!sponsors.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin patrocinadores registrados</td></tr>';
+            } else {
+                tbody.innerHTML = sponsors.map(s =>
+                    '<tr class="hover:bg-white/[0.02]">' +
+                    '<td class="table-td font-medium text-white">' + App.esc(s.name) + '</td>' +
+                    '<td class="table-td"><span class="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase">' + App.esc(s.tier || 'standard') + '</span></td>' +
+                    '<td class="table-td text-xs text-slate-400">' + App.esc(s.booth || '—') + '</td>' +
+                    '<td class="table-td text-xs font-bold text-green-400">' + (s.lead_count || 0) + '</td>' +
+                    '<td class="table-td flex gap-1">' +
+                    '<button class="btn-icon" title="Escanear lead" onclick="App.scanSponsorLead(\'' + s.id + '\')"><span class="material-symbols-outlined text-sm">qr_code_scanner</span></button>' +
+                    '<button class="btn-icon text-red-400" title="Eliminar" onclick="App.deleteSponsor(\'' + s.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
+                ).join('');
+            }
+            // ROI summary
+            try {
+                var roi = await this.fetchAPI('/events/' + eId + '/sponsors-roi/summary');
+                var wrap = document.getElementById('sponsors-roi');
+                if (wrap && Array.isArray(roi)) {
+                    wrap.innerHTML = roi.map(r =>
+                        '<div class="card px-4 py-3"><p class="text-[10px] uppercase tracking-widest text-slate-500 font-black">' + App.esc(r.tier) + '</p>' +
+                        '<p class="text-xl font-black text-white mt-1">' + r.total_leads + ' leads</p></div>').join('');
+                }
+            } catch (_) {}
+        } catch (e) {
+            this.uiState('sponsors-tbody', 'error', { message: e.message, retryFn: 'App.loadSponsors()' });
+        }
+    },
+
+    openSponsorModal: async function() {
+        var r = await Swal.fire({
+            title: 'Nuevo patrocinador',
+            html:
+                '<input id="_sp-name" class="swal2-input" placeholder="Nombre">' +
+                '<select id="_sp-tier" class="swal2-input">' +
+                ['standard', 'silver', 'gold', 'platinum', 'title'].map(t => `<option value="${t}">${t}</option>`).join('') +
+                '</select>' +
+                '<input id="_sp-booth" class="swal2-input" placeholder="Booth (ej: A12)">',
+            focusConfirm: false,
+            preConfirm: () => ({
+                name: document.getElementById('_sp-name').value.trim(),
+                tier: document.getElementById('_sp-tier').value,
+                booth: document.getElementById('_sp-booth').value.trim()
+            }),
+            showCancelButton: true, background: '#0f172a', color: '#fff'
+        });
+        if (!r.isConfirmed || !r.value.name) return;
+        try {
+            await this.fetchAPI('/events/' + this.state.event.id + '/sponsors', { method: 'POST', body: JSON.stringify(r.value) });
+            this.loadSponsors();
+            this._notifyAction('Patrocinador creado', '', 'success');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    deleteSponsor: async function(id) {
+        if (!confirm('¿Eliminar patrocinador y sus leads?')) return;
+        try {
+            await this.fetchAPI('/events/' + this.state.event.id + '/sponsors/' + id, { method: 'DELETE' });
+            this.loadSponsors();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    scanSponsorLead: async function(sponsorId) {
+        var r = await Swal.fire({
+            title: 'Escanear credencial del invitado',
+            input: 'text',
+            inputPlaceholder: 'QR token o ID del invitado',
+            showCancelButton: true, background: '#0f172a', color: '#fff'
+        });
+        if (!r.isConfirmed || !r.value) return;
+        try {
+            const d = await this.fetchAPI('/events/' + this.state.event.id + '/sponsors/' + sponsorId + '/scan', { method: 'POST', body: JSON.stringify({ guest_id: r.value.trim() }) });
+            if (d.duplicate) this._notifyAction('Lead duplicado', d.message || 'Ya registrado', 'info');
+            else this._notifyAction('✓ Lead capturado', (d.lead?.guest || '') + ' → ' + (d.lead?.sponsor || ''), 'success');
+            this.loadSponsors();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    // ═══ F2: Push avanzado (plantillas · programadas · segmentado) ═══
+
+    // ═══ F5: API Keys + CRM (ecosistema) ═══
+
+    loadApiKeys: async function() {
+        const tbody = document.getElementById('apikeys-tbody');
+        if (!tbody) return;
+        try {
+            const keys = await this.fetchAPI('/api-keys');
+            const list = Array.isArray(keys) ? keys : (keys.keys || []);
+            if (!list.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin API keys. Genera una para integrar sistemas externos.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = list.map(k =>
+                '<tr class="hover:bg-white/[0.02]">' +
+                '<td class="table-td font-medium text-white">' + App.esc(k.name) + '</td>' +
+                '<td class="table-td text-xs font-mono text-slate-400">' + App.esc((k.key || '').slice(0, 12)) + '…</td>' +
+                '<td class="table-td text-xs text-slate-400">' + App.esc(k.scopes || k.permissions || 'read') + '</td>' +
+                '<td class="table-td">' + (k.is_active ? '<span class="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-[10px] font-black">ACTIVA</span>' : '<span class="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-[10px] font-black">INACTIVA</span>') + '</td>' +
+                '<td class="table-td flex gap-1">' +
+                '<button class="btn-icon" title="Activar/Desactivar" onclick="App.toggleApiKey(\'' + k.id + '\')"><span class="material-symbols-outlined text-sm">toggle_on</span></button>' +
+                '<button class="btn-icon text-red-400" title="Revocar" onclick="App.deleteApiKey(\'' + k.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
+            ).join('');
+        } catch (e) { this.uiState('apikeys-tbody', 'error', { message: e.message, retryFn: 'App.loadApiKeys()' }); }
+    },
+
+    openApiKeyModal: async function() {
+        var scopes = await this.fetchAPI('/api-keys/scopes').catch(() => null);
+        var scopeList = Array.isArray(scopes) ? scopes : ['events:read', 'guests:read'];
+        var r = await Swal.fire({
+            title: 'Generar API key',
+            html:
+                '<input id="_ak-name" class="swal2-input" placeholder="Nombre (ej: Zapier)">' +
+                '<div style="text-align:left;padding:0 1em;font-size:12px;color:#94a3b8;">' +
+                scopeList.map(s => `<label style="display:block;margin:4px 0;"><input type="checkbox" class="_ak-scope" value="${s}" checked> ${s}</label>`).join('') +
+                '</div>',
+            focusConfirm: false,
+            preConfirm: () => ({
+                name: document.getElementById('_ak-name').value.trim(),
+                scopes: Array.from(document.querySelectorAll('._ak-scope:checked')).map(c => c.value)
+            }),
+            showCancelButton: true, background: '#0f172a', color: '#fff'
+        });
+        if (!r.isConfirmed || !r.value.name) return;
+        try {
+            const d = await this.fetchAPI('/api-keys', { method: 'POST', body: JSON.stringify(r.value) });
+            await Swal.fire({
+                icon: 'success', title: 'Key generada',
+                html: `<p style="font-size:12px;color:#94a3b8">Cópiala ahora, no volverá a mostrarse:</p><code style="word-break:break-all;background:#1e293b;padding:10px;border-radius:8px;display:block;margin-top:8px;font-size:11px">${d.key}</code>`,
+                background: '#0f172a', color: '#fff'
+            });
+            this.loadApiKeys();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    toggleApiKey: async function(id) {
+        try { await this.fetchAPI('/api-keys/' + id + '/toggle', { method: 'PATCH' }); this.loadApiKeys(); }
+        catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    deleteApiKey: async function(id) {
+        if (!confirm('¿Revocar esta API key permanentemente?')) return;
+        try { await this.fetchAPI('/api-keys/' + id, { method: 'DELETE' }); this.loadApiKeys(); }
+        catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    loadCrmConnections: async function() {
+        const tbody = document.getElementById('crm-tbody');
+        if (!tbody) return;
+        try {
+            const conns = await this.fetchAPI('/crm/connections');
+            if (!conns.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin conexiones CRM. Conecta HubSpot o Salesforce.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = conns.map(c =>
+                '<tr class="hover:bg-white/[0.02]">' +
+                '<td class="table-td font-medium text-white">' + App.esc(c.name) + '</td>' +
+                '<td class="table-td text-xs uppercase text-[var(--primary)] font-black">' + App.esc(c.platform) + '</td>' +
+                '<td class="table-td text-xs text-slate-400">' + (c.last_sync_at ? new Date(c.last_sync_at).toLocaleString() : 'nunca') + '</td>' +
+                '<td class="table-td">' + (c.is_active ? '<span class="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-[10px] font-black">ACTIVA</span>' : '') + '</td>' +
+                '<td class="table-td flex gap-1">' +
+                '<button class="btn-icon" title="Sincronizar contactos" onclick="App.syncCrm(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">sync</span></button>' +
+                '<button class="btn-icon text-red-400" title="Eliminar" onclick="App.deleteCrm(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
+            ).join('');
+        } catch (e) { this.uiState('crm-tbody', 'error', { message: e.message, retryFn: 'App.loadCrmConnections()' }); }
+    },
+
+    openCrmModal: async function() {
+        var r = await Swal.fire({
+            title: 'Conectar CRM',
+            html:
+                '<select id="_crm-platform" class="swal2-input">' +
+                ['hubspot', 'salesforce', 'zoho'].map(p => `<option value="${p}">${p.toUpperCase()}</option>`).join('') +
+                '</select>' +
+                '<input id="_crm-name" class="swal2-input" placeholder="Nombre de la conexión">' +
+                '<input id="_crm-key" class="swal2-input" placeholder="API key / token" type="password">',
+            focusConfirm: false,
+            preConfirm: () => ({
+                platform: document.getElementById('_crm-platform').value,
+                name: document.getElementById('_crm-name').value.trim(),
+                api_key: document.getElementById('_crm-key').value.trim()
+            }),
+            showCancelButton: true, background: '#0f172a', color: '#fff'
+        });
+        if (!r.isConfirmed || !r.value.name || !r.value.api_key) return;
+        try {
+            await this.fetchAPI('/crm/connections', { method: 'POST', body: JSON.stringify(r.value) });
+            this.loadCrmConnections();
+            this._notifyAction('CRM conectado', '', 'success');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    syncCrm: async function(id) {
+        try {
+            const d = await this.fetchAPI('/crm/connections/' + id + '/sync', { method: 'POST' });
+            this._notifyAction('Sync completado', d.imported + ' contacto(s) importados de ' + d.total, 'success');
+            this.loadCrmConnections();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    deleteCrm: async function(id) {
+        if (!confirm('¿Eliminar conexión CRM?')) return;
+        try { await this.fetchAPI('/crm/connections/' + id, { method: 'DELETE' }); this.loadCrmConnections(); }
+        catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    // ═══ F2: Push avanzado (plantillas · programadas · segmentado) ═══
+
+    loadPushTemplates: async function() {
+        const box = document.getElementById('push-templates-list');
+        if (!box) return;
+        try {
+            const tpls = await this.fetchAPI('/push/templates');
+            const list = Array.isArray(tpls) ? tpls : (tpls.templates || []);
+            box.innerHTML = list.length ? list.map(t =>
+                `<div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                    <span class="material-symbols-outlined text-sm text-[var(--primary)]">bookmark</span>
+                    <div class="flex-1 min-w-0"><p class="text-xs font-bold text-white truncate">${App.esc(t.title || '')}</p>
+                    <p class="text-[10px] text-slate-500 truncate">${App.esc(t.body || '')}</p></div>
+                </div>`).join('') : '<p class="text-xs text-slate-500">Sin plantillas guardadas.</p>';
+        } catch (e) { box.innerHTML = `<p class="text-xs text-red-400">${App.esc(e.message)}</p>`; }
+    },
+
+    createPushTemplate: async function() {
+        const title = document.getElementById('push-tpl-title')?.value.trim();
+        const body = document.getElementById('push-tpl-body')?.value.trim();
+        if (!title || !body) return this._notifyAction('Error', 'Título y mensaje requeridos', 'error');
+        try {
+            await this.fetchAPI('/push/templates', { method: 'POST', body: JSON.stringify({ title, body }) });
+            document.getElementById('push-tpl-title').value = '';
+            document.getElementById('push-tpl-body').value = '';
+            this._notifyAction('Plantilla guardada', '', 'success');
+            this.loadPushTemplates();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    fillPushSegmentEvents: async function() {
+        const sel = document.getElementById('push-seg-event');
+        if (!sel || sel.options.length > 1) return;
+        try {
+            const evs = await this.fetchAPI('/events');
+            const list = Array.isArray(evs) ? evs : [];
+            list.forEach(ev => {
+                const opt = document.createElement('option');
+                opt.value = ev.id; opt.textContent = ev.name || ev.id;
+                sel.appendChild(opt);
+            });
+        } catch (e) { console.warn('[PUSH] events:', e.message); }
+    },
+
+    sendSegmentedPush: async function() {
+        const eventId = document.getElementById('push-seg-event')?.value;
+        const filter = document.getElementById('push-seg-filter')?.value;
+        const title = document.getElementById('push-seg-title')?.value.trim();
+        const body = document.getElementById('push-seg-body')?.value.trim();
+        if (!eventId || !title || !body) return this._notifyAction('Error', 'Evento, título y mensaje requeridos', 'error');
+        try {
+            await this.fetchAPI('/push/send-segmented', { method: 'POST', body: JSON.stringify({ eventId, segment: filter, title, body }) });
+            this._notifyAction('Enviado', 'Notificación segmentada en cola de envío.', 'success');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    loadScheduledPush: async function() {
+        const box = document.getElementById('push-scheduled-list');
+        if (!box) return;
+        try {
+            const d = await this.fetchAPI('/push/scheduled');
+            const list = Array.isArray(d) ? d : (d.scheduled || []);
+            box.innerHTML = list.length ? list.map(s =>
+                `<div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                    <span class="material-symbols-outlined text-sm text-amber-400">schedule</span>
+                    <p class="text-xs text-white flex-1">${App.esc(s.title || '')}</p>
+                    <span class="text-[10px] text-slate-500">${s.send_at ? new Date(s.send_at).toLocaleString() : ''}</span>
+                </div>`).join('') : '<p class="text-xs text-slate-500">Sin envíos programados.</p>';
+        } catch (e) { box.innerHTML = `<p class="text-xs text-red-400">${App.esc(e.message)}</p>`; }
+    },
+
+    createScheduledPush: async function() {
+        const at = document.getElementById('push-sched-at')?.value;
+        const title = document.getElementById('push-sched-title')?.value.trim();
+        const body = document.getElementById('push-sched-body')?.value.trim();
+        if (!at || !title || !body) return this._notifyAction('Error', 'Fecha, título y mensaje requeridos', 'error');
+        try {
+            await this.fetchAPI('/push/scheduled', { method: 'POST', body: JSON.stringify({ scheduled_at: new Date(at).toISOString(), title, body }) });
+            document.getElementById('push-sched-title').value = '';
+            document.getElementById('push-sched-body').value = '';
+            this._notifyAction('Programado', '', 'success');
+            this.loadScheduledPush();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
 
     // ═══ Ponentes (BL-19) ═══
 
@@ -16200,7 +16988,7 @@ navigate(viewName, params = {}, push = true) {
                 sel.innerHTML = '<option value="">-- Seleccionar Cuenta --</option>' +
                     (accounts || []).map(a => `<option value="${a.id}">${a.name}</option>`).join('');
             }
-        } catch (e) {}
+        } catch (e) { console.warn('[App] Carga opcional falló:', e); }
         
         // Cargar plantillas
         try {
@@ -16210,7 +16998,7 @@ navigate(viewName, params = {}, push = true) {
                 sel.innerHTML = '<option value="">-- Sin plantilla (en blanco) --</option>' +
                     (templates || []).map(t => `<option value="${t.id}">${t.name}</option>`).join('');
             }
-        } catch (e) {}
+        } catch (e) { console.warn('[App] Carga opcional falló:', e); }
         
         // Cargar conteo de guests
         try {
@@ -16234,7 +17022,7 @@ navigate(viewName, params = {}, push = true) {
                 groupSel.innerHTML = '<option value="">-- Seleccionar grupo --</option>' +
                     groups.map(g => `<option value="${g}">${g}</option>`).join('');
             }
-        } catch (e) {}
+        } catch (e) { console.warn('[App] Carga opcional falló:', e); }
         
         // Handler para mostrar/ocultar selector de grupo
         document.querySelectorAll('input[name="wizard-recipient-type"]').forEach(radio => {
@@ -16341,7 +17129,7 @@ navigate(viewName, params = {}, push = true) {
                 if (current) sel.value = current;
                 if (current) this.loadGoogleAccounts();
             }
-        } catch(e) {}
+        } catch(e) { console.warn('[App] Carga opcional falló:', e); }
     },
 
     loadGoogleAccounts: async function() {
@@ -17155,6 +17943,21 @@ async function initApp() {
         window.App.state.socket.on('checkin_update', () => App.loadGuests());
         window.App.state.socket.on('live_checkin', function(data) { App.addLiveEvent(data); });
         window.App.state.socket.on('live_checkin', function(data) { App.filterAttendance(); });
+        // F1 2026-08: eventos que el servidor emitía sin listener en el cliente
+        window.App.state.socket.on('poll_updated', function(data) {
+            try {
+                if (App.state.event?.id && typeof App.loadPolls === 'function') App.loadPolls();
+                App.showToast('🗳️ Encuesta actualizada: ' + (data.pollTitle || ''), 'info');
+            } catch (e) { console.warn('[SOCKET] poll_updated:', e); }
+        });
+        window.App.state.socket.on('import_progress', function(data) {
+            try {
+                const bar = document.getElementById('import-progress-bar');
+                const label = document.getElementById('import-progress-label');
+                if (bar) bar.style.width = Math.round((data.current / data.total) * 100) + '%';
+                if (label) label.textContent = `Importando ${data.current}/${data.total}...`;
+            } catch (e) { console.warn('[SOCKET] import_progress:', e); }
+        });
         // Colaboracion en vivo (C6-05)
         window.App.state.socket.on('guest_updated', function(data) {
             if (App.state.event?.id && document.getElementById('page-guests')?.classList.contains('hidden') === false) {
@@ -17190,14 +17993,72 @@ async function initApp() {
     // Función centralizada de login
     async function handleLoginSubmit(e) {
         if (e) e.preventDefault();
-        const u = document.getElementById('login-email')?.value; 
+        const u = document.getElementById('login-email')?.value;
         const p = document.getElementById('login-password')?.value;
         if (!u || !p) {
             console.error('[DOM DEBUG] Email o password vacíos');
             return;
         }
-        await App.login(u, p);
+        const totpEl = document.getElementById('login-totp');
+        await App.login(u, p, totpEl && !document.getElementById('login-2fa-group').classList.contains('hidden') ? totpEl.value.trim() : undefined);
     }
+
+    // ── F2: Recuperación de contraseña + 2FA en login (2026-08) ──
+    function showRecoveryMessage(msg, isError) {
+        const el = document.getElementById('recovery-message');
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.remove('hidden');
+        el.style.color = isError ? '#f87171' : '#4ade80';
+    }
+    cl('forgot-password', (e) => {
+        e.preventDefault();
+        document.getElementById('login-form')?.parentElement?.classList.add('hidden');
+        document.querySelector('.login-footer a#forgot-password')?.closest('.login-footer')?.classList.add('hidden');
+        document.getElementById('recovery-form')?.classList.remove('hidden');
+        document.getElementById('recovery-step-request')?.classList.remove('hidden');
+        document.getElementById('recovery-step-reset')?.classList.add('hidden');
+        document.getElementById('recovery-message')?.classList.add('hidden');
+    });
+    cl('back-to-login-from-recovery', (e) => {
+        e.preventDefault();
+        document.getElementById('recovery-form')?.classList.add('hidden');
+        document.getElementById('login-form')?.parentElement?.classList.remove('hidden');
+        document.querySelector('.login-footer a#forgot-password')?.closest('.login-footer')?.classList.remove('hidden');
+    });
+    sf('form-recovery-request', async () => {
+        const email = document.getElementById('recovery-email')?.value.trim();
+        if (!email) return showRecoveryMessage('Ingresa tu email', true);
+        const btn = document.getElementById('recovery-request-btn');
+        btn.disabled = true; btn.textContent = 'Enviando...';
+        try {
+            const res = await fetch('/api/password-reset-request', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ username: email }) });
+            const data = await res.json();
+            if (data.errors) throw new Error(data.errors[0]);
+            showRecoveryMessage(data.message || 'Código enviado. Revisa tu correo.', false);
+            setTimeout(() => {
+                document.getElementById('recovery-step-request').classList.add('hidden');
+                document.getElementById('recovery-step-reset').classList.remove('hidden');
+            }, 1200);
+        } catch (err) { showRecoveryMessage(err.message || 'Error de conexión', true); }
+        finally { btn.disabled = false; btn.textContent = 'Enviar Código'; }
+    });
+    sf('form-recovery-reset', async () => {
+        const code = document.getElementById('recovery-code')?.value.trim();
+        const pass = document.getElementById('recovery-new-pass')?.value;
+        if (!code || code.length !== 6) return showRecoveryMessage('Código de 6 dígitos requerido', true);
+        if (!pass || pass.length < 8) return showRecoveryMessage('La contraseña debe tener mínimo 8 caracteres', true);
+        const btn = document.getElementById('recovery-reset-btn');
+        btn.disabled = true; btn.textContent = 'Procesando...';
+        try {
+            const res = await fetch('/api/reset-password', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ code, new_password: pass }) });
+            const data = await res.json();
+            if (!res.ok || data.error) throw new Error(data.error || data.message || 'No se pudo cambiar la contraseña');
+            showRecoveryMessage('✓ Contraseña actualizada. Volviendo al login...', false);
+            setTimeout(() => { document.getElementById('back-to-login-from-recovery')?.click(); }, 1500);
+        } catch (err) { showRecoveryMessage(err.message || 'Error', true); }
+        finally { btn.disabled = false; btn.textContent = 'Cambiar Contraseña'; }
+    });
     
     // Método 1: Submit del formulario
     sf('form-login', handleLoginSubmit);
@@ -17278,10 +18139,12 @@ async function initApp() {
         const orig = btn.innerText; btn.innerText = "Procesando..."; btn.disabled = true;
         const b = { event_id: App.state.event.id, name: document.getElementById('reg-name').value, email: document.getElementById('reg-email').value, phone: document.getElementById('reg-phone')?.value, organization: document.getElementById('reg-org')?.value, gender: 'O', dietary_notes: document.getElementById('reg-diet')?.value || '' };
         try {
-            const res = await fetch(`${App.constants.API_URL}/register`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(b) });
+            // Fix F1 (2026-08): App.constants no existía → fetch a literal "undefined/register".
+            // El endpoint real es /api/public-register (public.routes.js:305)
+            const res = await fetch('/api/public-register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(b) });
             const data = await res.json();
             if (data.success) { alert("✓ Registro Confirmado."); e.target.reset(); }
-            else alert("Error: " + data.error);
+            else alert("Error: " + (data.error || data.message || 'No se pudo registrar'));
         } catch { alert("Error de red."); }
         finally { btn.innerText = orig; btn.disabled = false; }
     });
@@ -17303,8 +18166,17 @@ async function initApp() {
 
 
 
-    // 6. Inicialización V10.5
-    // Init removido - se usa DOMContentLoaded
+    // Survey Question Form (F1 2026-08: binding faltante del modal editor)
+    sf('survey-question-form', async (e) => {
+        e.preventDefault();
+        await App.saveSurveyQuestion();
+    });
+
+    // F2: 2FA bindings
+    cl('btn-twofa-setup', () => App.setup2FA());
+    cl('btn-twofa-verify', () => App.verify2FA());
+    cl('btn-twofa-disable', () => App.disable2FA());
+
 
     // --- EVENT LISTERS FALTANTES (AGREGADOS V10.5.3) ---
     // Modal de Invitación

@@ -162,6 +162,43 @@ router.get('/public/:templateId', (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
+// ── Compatibilidad página pública POR EVENTO (F1 2026-08) ──
+// survey.html y el panel legacy llaman a /api/events/:eventId/surveys —
+// antes estas rutas no existían (404). Resuelven al PRIMER template del evento.
+
+function getFirstEventTemplate(eventId) {
+    return db.prepare("SELECT * FROM survey_templates WHERE event_id = ? ORDER BY created_at ASC LIMIT 1").get(eventId);
+}
+
+router.get('/:eventId/surveys', (req, res) => {
+    try {
+        var tpl = getFirstEventTemplate(req.params.eventId);
+        if (!tpl) return res.json([]);
+        var questions = getQuestionsWithType(tpl.id);
+        res.json({ templateId: tpl.id, title: tpl.title, questions: questions });
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
+});
+
+router.post('/:eventId/surveys/responses', (req, res) => {
+    try {
+        var tpl = getFirstEventTemplate(req.params.eventId);
+        if (!tpl) return res.status(404).json({ error: 'El evento no tiene encuesta configurada' });
+        var body = req.body || {};
+        var responses = body.responses || body.answers || {};
+        if (body.comment) responses._comment = body.comment;
+        if (!responses || Object.keys(responses).length === 0) {
+            return res.status(400).json({ error: 'Respuestas requeridas' });
+        }
+        var id = uuidv4();
+        db.prepare("INSERT INTO survey_responses (id, template_id, event_id, guest_id, answers_json, time_spent_seconds, device, ip_address, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(
+            id, tpl.id, tpl.event_id, body.guest_id || null, JSON.stringify(responses),
+            body.time_spent || null, req.headers['user-agent'] || null, req.ip || null, new Date().toISOString()
+        );
+        db.prepare("UPDATE survey_templates SET total_responses = total_responses + 1, updated_at = ? WHERE id = ?").run(new Date().toISOString(), tpl.id);
+        res.json({ success: true, id: id });
+    } catch (err) { res.status(500).json({ error: 'Error interno' }); }
+});
+
 // ── Enviar respuesta ──
 
 router.post('/public/:templateId/response', (req, res) => {

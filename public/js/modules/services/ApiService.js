@@ -78,17 +78,20 @@ class ApiService {
     async getGuests(eventId) {
         return this.get(`/guests/${eventId}`);
     }
-    
+
     async addGuest(eventId, guestData) {
-        return this.post(`/guests/${eventId}`, guestData);
+        // Endpoint real: POST /api/events/:id/attendance (events.routes.js)
+        return this.post(`/events/${eventId}/attendance`, guestData);
     }
-    
+
     async updateGuest(eventId, guestId, guestData) {
-        return this.put(`/guests/${eventId}/guests/${guestId}`, guestData);
+        // Endpoint real: PUT /api/events/:id/attendance/:attendanceId
+        return this.put(`/events/${eventId}/attendance/${guestId}`, guestData);
     }
-    
+
     async deleteGuest(eventId, guestId) {
-        return this.delete(`/guests/${eventId}/guests/${guestId}`);
+        // Endpoint real: DELETE /api/events/:id/attendance/:attendanceId
+        return this.delete(`/events/${eventId}/attendance/${guestId}`);
     }
     
     async checkInGuest(eventId, guestId) {

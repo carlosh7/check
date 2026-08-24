@@ -313,6 +313,60 @@ router.delete('/accounts/:id', (req, res) => {
     }
 });
 
+// POST /api/email/test-smtp - Probar SMTP con config SIN guardar (F1 2026-08)
+// Compatibilidad: el panel llama a /email/test-smtp con la config del formulario.
+router.post('/test-smtp', async (req, res) => {
+    try {
+        const b = req.body || {};
+        if (!b.smtp_host || !b.smtp_user || !b.smtp_password) {
+            return res.json({ success: false, error: 'Configuración SMTP incompleta' });
+        }
+        const transporter = nodemailer.createTransport({
+            host: b.smtp_host,
+            port: parseInt(b.smtp_port, 10) || 587,
+            secure: !!b.smtp_ssl,
+            auth: { user: b.smtp_user, pass: b.smtp_password },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000
+        });
+        await transporter.verify();
+        try { transporter.close(); } catch (_) {}
+        res.json({ success: true, message: 'Conexión SMTP exitosa' });
+    } catch (error) {
+        logger.error('SMTP raw test error:', error.message);
+        res.json({ success: false, error: error.message });
+    }
+});
+
+// POST /api/email/test-imap - Probar IMAP con config SIN guardar (F1 2026-08)
+router.post('/test-imap', async (req, res) => {
+    try {
+        const b = req.body || {};
+        if (!b.imap_host || !b.imap_user || !b.imap_password) {
+            return res.json({ success: false, error: 'Configuración IMAP incompleta' });
+        }
+        var client = new ImapFlow({
+            host: b.imap_host,
+            port: parseInt(b.imap_port, 10) || 993,
+            secure: !!b.imap_ssl,
+            auth: { user: b.imap_user, pass: b.imap_password },
+            logger: false,
+            connectionTimeout: 10000,
+            greetingTimeout: 10000
+        });
+        try {
+            await client.connect();
+            await client.logout();
+            res.json({ success: true, message: 'Conexión IMAP exitosa' });
+        } catch (err) {
+            res.json({ success: false, error: err.message });
+        }
+    } catch (error) {
+        logger.error('IMAP raw test error:', error.message);
+        res.json({ success: false, error: error.message });
+    }
+});
+
 // POST /api/email/accounts/:id/test-smtp - Probar conexión SMTP
 router.post('/accounts/:id/test-smtp', async (req, res) => {
     try {

@@ -285,6 +285,14 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         d.currency || null, d.stripe_account || null, d.paypal_email || null, eventId
     );
 
+    // F4: cupo de acompañantes (plus-ones) por evento
+    if ('plus_one_quota' in req.body) {
+        const quotaVal = parseInt(req.body.plus_one_quota, 10);
+        if (!isNaN(quotaVal) && quotaVal >= 0) {
+            db.prepare("UPDATE events SET plus_one_quota = ? WHERE id = ?").run(quotaVal, eventId);
+        }
+    }
+
     // Invalidate cache
     await del(CACHE_KEYS.EVENT_LIST);
     await del(CACHE_KEYS.EVENT(eventId));

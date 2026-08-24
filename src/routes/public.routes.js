@@ -377,7 +377,53 @@ router.post('/public-register', async (req, res) => {
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`)
           .run(guestId, eId, name, email, phone || '', organization || '', position || '', gender || 'O', dietary_notes || '', qrToken, catId,
                isWaitlisted ? 'waitlisted' : null, isWaitlisted ? waitlistPosition : null, isWaitlisted ? now : null);
-        
+
+        // ── F4: campos personalizados del formulario (valores junto al invitado) ──
+        try {
+            const cf = req.body.custom_fields || {};
+            const fieldIds = Object.keys(cf);
+            const fieldsDb = useEventDb ? targetDb : db;
+            for (const fid of fieldIds) {
+                const val = typeof cf[fid] === 'boolean' ? (cf[fid] ? 'true' : String(cf[fid])) : String(cf[fid] ?? '');
+                if (!val) continue;
+                fieldsDb.prepare("INSERT INTO registration_field_values (id, event_id, guest_id, field_id, value) VALUES (?, ?, ?, ?, ?)")
+                  .run(uuidv4(), eId, guestId, fid, val);
+            }
+            // Validar required de los campos definidos
+            const reqFields = db.prepare("SELECT id, label FROM registration_fields WHERE event_id = ? AND required = 1").all(eId);
+            const missing = reqFields.filter(f => !cf[f.id] || String(cf[f.id]).trim() === '');
+            if (missing.length > 0) {
+                return res.status(400).json({ success: false, error: `Campo obligatorio pendiente: ${missing[0].label}` });
+            }
+        } catch (cfErr) {
+            logger.warn('[public-register] custom_fields:', cfErr.message);
+        }
+
+        // ── F4: plus-ones / acompañantes con cupo por evento ──
+        let plusOnesCreated = 0;
+        try {
+            const plusOnes = Array.isArray(req.body.plus_ones) ? req.body.plus_ones.filter(p => p && p.name && p.name.trim()) : [];
+            if (plusOnes.length > 0) {
+                let quota = null;
+                try { quota = db.prepare("SELECT plus_one_quota FROM events WHERE id = ?").get(eId)?.plus_one_quota; } catch (_) {}
+                const allowed = quota == null || quota < 0 ? plusOnes.length : Math.min(quota, plusOnes.length);
+                for (let i = 0; i < allowed; i++) {
+                    const po = plusOnes[i];
+                    const poEmail = (po.email || '').trim().toLowerCase();
+                    if (poEmail) {
+                        const dupPo = targetDb.prepare("SELECT id FROM guests WHERE event_id = ? AND email = ?").get(eId, poEmail);
+                        if (dupPo) continue;
+                    }
+                    targetDb.prepare(`INSERT INTO guests (id, event_id, name, email, phone, gender, qr_token, parent_guest_id, guest_type, checked_in)
+                                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'plus_one', 0)`)
+                        .run(uuidv4(), eId, po.name.trim(), poEmail, po.phone || '', gender || 'O', uuidv4(), guestId);
+                    plusOnesCreated++;
+                }
+            }
+        } catch (poErr) {
+            logger.warn('[public-register] plus_ones:', poErr.message);
+        }
+
         // Si usa BD del evento, también registrar en BD maestra
         if (useEventDb && targetDb !== db) {
             try {
@@ -389,7 +435,7 @@ router.post('/public-register', async (req, res) => {
         }
         
         try { triggerWebhooks(WEBHOOK_EVENTS.PRE_REGISTRATION_CREATED, { guestId, event_id: eId, name, email }, eId).catch(() => {}); } catch(_) {}
-        res.json({ success: true, message: isWaitlisted ? 'Registrado en lista de espera' : 'Registro exitoso', guestId, qrToken, waitlisted: isWaitlisted, waitlistPosition });
+        res.json({ success: true, message: isWaitlisted ? 'Registrado en lista de espera' : 'Registro exitoso', guestId, qrToken, waitlisted: isWaitlisted, waitlistPosition, plusOnesCreated });
     } catch (err) {
         logger.error('[public-register] CRITICAL ERROR:', err);
         res.status(500).json({ success: false, error: 'Error al procesar registro: ' + err.message });

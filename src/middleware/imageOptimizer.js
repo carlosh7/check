@@ -1,4 +1,5 @@
 // imageOptimizer.js - Compresión automática de imágenes
+const logger = require('../utils/logger');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
@@ -52,7 +53,7 @@ async function optimizeImage(inputBuffer, options = {}) {
         const optimizedSize = optimizedBuffer.length;
         const savings = ((1 - optimizedSize / originalSize) * 100).toFixed(1);
 
-        console.log(`[IMAGE] Optimizada: ${(originalSize / 1024).toFixed(1)}KB → ${(optimizedSize / 1024).toFixed(1)}KB (${savings}% ahorro)`);
+        logger.info(`[IMAGE] Optimizada: ${(originalSize / 1024).toFixed(1)}KB → ${(optimizedSize / 1024).toFixed(1)}KB (${savings}% ahorro)`);
 
         return {
             buffer: optimizedBuffer,

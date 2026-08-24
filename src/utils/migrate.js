@@ -10,6 +10,7 @@
  * @version 12.44.765
  */
 
+const logger = require('./logger');
 const { db } = require('../../database');
 const path = require('path');
 const fs = require('fs');
@@ -53,7 +54,7 @@ function runPending() {
     if (pending.length === 0) {
         return;
     }
-    console.log(`[MIGRATE] Ejecutando ${pending.length} migración(es) pendiente(s)...`);
+    logger.info(`[MIGRATE] Ejecutando ${pending.length} migración(es) pendiente(s)...`);
     
     let successCount = 0;
     let errorCount = 0;
@@ -77,7 +78,7 @@ function runPending() {
             }
             
             markApplied(file);
-            console.log(`[MIGRATE] ✔ ${file}`);
+            logger.info(`[MIGRATE] ✔ ${file}`);
             successCount++;
         } catch (e) {
             console.error(`[MIGRATE] ✗ ${file} — ${e.message}`);
@@ -85,7 +86,7 @@ function runPending() {
         }
     });
     
-    console.log(`[MIGRATE] Completado: ${successCount} éxitos, ${errorCount} errores`);
+    logger.info(`[MIGRATE] Completado: ${successCount} éxitos, ${errorCount} errores`);
     return { success: successCount, errors: errorCount };
 }
 
@@ -96,26 +97,26 @@ function showStatus() {
         ? fs.readdirSync(MIGRATIONS_DIR).filter(f => f.endsWith('.sql') || f.endsWith('.js')).sort()
         : [];
     
-    console.log('\n═══ ESTADO DE MIGRACIONES ═══');
-    console.log(`Aplicadas: ${applied.length}`);
-    console.log(`Pendientes: ${pending.length}`);
-    console.log(`Total archivos: ${allFiles.length}`);
+    logger.info('\n═══ ESTADO DE MIGRACIONES ═══');
+    logger.info(`Aplicadas: ${applied.length}`);
+    logger.info(`Pendientes: ${pending.length}`);
+    logger.info(`Total archivos: ${allFiles.length}`);
     
     if (applied.length > 0) {
-        console.log('\n✅ Aplicadas:');
-        applied.forEach(name => console.log(`  • ${name}`));
+        logger.info('\n✅ Aplicadas:');
+        applied.forEach(name => logger.info(`  • ${name}`));
     }
     
     if (pending.length > 0) {
-        console.log('\n⏳ Pendientes:');
-        pending.forEach(name => console.log(`  • ${name}`));
+        logger.info('\n⏳ Pendientes:');
+        pending.forEach(name => logger.info(`  • ${name}`));
     }
     
     if (pending.length === 0 && applied.length > 0) {
-        console.log('\n🎉 Todas las migraciones están al día.');
+        logger.info('\n🎉 Todas las migraciones están al día.');
     }
     
-    console.log('');
+    logger.info('');
 }
 
 function createMigration(name) {
@@ -150,8 +151,8 @@ function createMigration(name) {
 `;
     
     fs.writeFileSync(filepath, template);
-    console.log(`✅ Migración creada: migrations/${filename}`);
-    console.log(`   Edita el archivo y ejecuta: node src/utils/migrate.js`);
+    logger.info(`✅ Migración creada: migrations/${filename}`);
+    logger.info(`   Edita el archivo y ejecuta: node src/utils/migrate.js`);
 }
 
 // CLI

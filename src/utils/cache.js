@@ -3,6 +3,7 @@
  * Supports Redis (primary) and NodeCache (fallback)
  */
 
+const logger = require('./logger');
 const { initRedis, get: redisGet, set: redisSet, del: redisDel, flush: redisFlush, keys: redisKeys, getStats: redisStats, isRedisAvailable } = require('./redis-cache');
 
 let nodeCacheInstance = null;
@@ -15,12 +16,12 @@ async function init(cache) {
         await initRedis();
         useRedis = isRedisAvailable();
         if (useRedis) {
-            console.log('Cache: Using Redis');
+            logger.info('Cache: Using Redis');
         } else {
-            console.log('Cache: Using NodeCache (fallback)');
+            logger.info('Cache: Using NodeCache (fallback)');
         }
     } catch (err) {
-        console.log('Cache: Redis init failed, using NodeCache');
+        logger.info('Cache: Redis init failed, using NodeCache');
         useRedis = false;
     }
 }

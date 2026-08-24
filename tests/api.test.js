@@ -4,6 +4,9 @@
  */
 
 require('dotenv').config();
+// Credenciales deterministas para el seed (no depender del .env ambiente)
+process.env.ADMIN_EMAIL = 'admin@check.com';
+process.env.ADMIN_PASSWORD = 'admin123';
 const request = require('supertest');
 const express = require('express');
 const { db } = require('../database');

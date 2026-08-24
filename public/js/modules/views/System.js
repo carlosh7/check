@@ -133,10 +133,12 @@ class SystemView {
     // Cargar clientes
     async loadClients() {
         try {
-            const res = await fetch('/api/clients');
-            if (res.ok) {
-                const clients = await res.json();
-                
+            // F1 2026-08: usar fetchAPI (incluye Authorization) — antes daba 401 garantizado
+            const clients = await window.App?.fetchAPI
+                ? await App.fetchAPI('/clients')
+                : await (await fetch('/api/clients')).json();
+            if (Array.isArray(clients)) {
+                // Procesamiento de clientes cuando se necesite renderizar
             }
         } catch (error) {
             console.error('[SYSTEM] Error cargando clientes:', error);

@@ -79,7 +79,7 @@ router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
-        const { title, description, date, start_time, end_time, capacity, location, sort_order, layout_id, speaker_ids } = req.body;
+        const { title, description, date, start_time, end_time, capacity, location, sort_order, layout_id, speaker_ids, stream_url } = req.body;
         if (!title || !title.trim()) return res.status(400).json({ error: 'Titulo requerido' });
         
         // Auto-check conflicts
@@ -98,10 +98,10 @@ router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         
         const id = uuidv4();
         const targetDb = getEventDb(eId);
-        targetDb.prepare(`INSERT INTO sessions (id, event_id, title, description, date, start_time, end_time, capacity, location, layout_id, sort_order)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+        targetDb.prepare(`INSERT INTO sessions (id, event_id, title, description, date, start_time, end_time, capacity, location, layout_id, stream_url, sort_order)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
             id, eId, title.trim(), description || null, date || null, start_time || null,
-            end_time || null, capacity || 0, location || null, layout_id || null, sort_order || 0
+            end_time || null, capacity || 0, location || null, layout_id || null, stream_url || null, sort_order || 0
         );
         
         // Assign speakers
@@ -144,11 +144,12 @@ router.put('/:eventId/:sessionId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
             title = COALESCE(?, title), description = COALESCE(?, description),
             date = COALESCE(?, date), start_time = COALESCE(?, start_time),
             end_time = COALESCE(?, end_time), capacity = COALESCE(?, capacity),
-            location = COALESCE(?, location), layout_id = COALESCE(?, layout_id), sort_order = COALESCE(?, sort_order)
+            location = COALESCE(?, location), layout_id = COALESCE(?, layout_id),
+            stream_url = COALESCE(?, stream_url), sort_order = COALESCE(?, sort_order)
             WHERE id = ? AND event_id = ?`).run(
             title || null, description || null, date || null, start_time || null,
             end_time || null, capacity != null ? capacity : null, location || null,
-            layout_id || null, sort_order != null ? sort_order : null, sId, eId
+            layout_id || null, stream_url !== undefined ? stream_url : null, sort_order != null ? sort_order : null, sId, eId
         );
         
         // Update speakers

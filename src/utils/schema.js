@@ -4,6 +4,10 @@
  * Extracted from database.js for maintainability
  */
 
+const logger = require('./logger');
+const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs');
+
 function initSchema(db) {
     // ═══ CREACIÓN DE TABLAS ═══
     
@@ -222,16 +226,19 @@ function initSchema(db) {
     try {
         const columns = db.prepare("PRAGMA table_info(guests)").all().map(c => c.name);
         const required = ['cargo', 'vegano', 'restricciones', 'validated', 'validated_at', 'validated_by', 'unsubscribed', 'unsubscribe_token', 'status', 'category_id', 'waitlist_position', 'promoted_at', 'waitlisted_at'];
+        // F4 2026-08: plus-ones
+        required.push('parent_guest_id', 'guest_type');
         required.forEach(col => {
             if (!columns.includes(col)) {
                 let def = "TEXT";
                 if (col === 'status') def = "TEXT DEFAULT 'lead'";
+                if (col === 'guest_type') def = "TEXT DEFAULT 'principal'";
                 if (col === 'vegano') def = "TEXT DEFAULT 'NO'";
                 if (col === 'validated') def = "INTEGER DEFAULT 0";
                 if (col.includes('unsubscribed')) def = "INTEGER DEFAULT 0";
                 
                 db.exec(`ALTER TABLE guests ADD COLUMN ${col} ${def}`);
-                console.log(`[MIGRATION] Columna ${col} añadida a guests`);
+                logger.info(`[MIGRATION] Columna ${col} añadida a guests`);
             }
         });
     } catch (e) {
@@ -884,7 +891,7 @@ function initSchema(db) {
                 var pId = uuidv4();
                 db.prepare("INSERT INTO ai_policies (id, name, description, content, created_at) VALUES (?, ?, ?, ?, ?)")
                   .run(pId, policy.name, policy.description, policy.content, new Date().toISOString());
-                console.log('[SEED] Politica IA creada:', policy.name);
+                logger.info('[SEED] Politica IA creada:', policy.name);
             }
         } catch(e) {
             console.error('[SEED] Error creando politica IA:', e.message);
@@ -1052,7 +1059,7 @@ function initSchema(db) {
             piiFields.forEach(function(f) {
                 insert.run(require('uuid').v4(), f[0], f[1], f[2], f[3], f[4], f[5], f[6]);
             });
-            console.log('[COMPLIANCE] Seed classifications: ' + piiFields.length + ' fields');
+            logger.info('[COMPLIANCE] Seed classifications: ' + piiFields.length + ' fields');
         }
     })();
     
@@ -1161,7 +1168,7 @@ function initSchema(db) {
         if (hasCompanyId && !hasGroupId) {
             db.exec('ALTER TABLE clients ADD COLUMN group_id TEXT');
             db.exec('UPDATE clients SET group_id = company_id WHERE company_id IS NOT NULL');
-            console.log('[MIGRATION] Columna company_id migrada a group_id');
+            logger.info('[MIGRATION] Columna company_id migrada a group_id');
         }
     } catch (e) {
         console.error('[MIGRATION] Error migrando company_id a group_id:', e.message);
@@ -1169,10 +1176,9 @@ function initSchema(db) {
     
     // Migración V12.44.67+: Asignar IDs a clientes que tienen id null
     try {
-        const { v4: uuidv4 } = require('uuid');
         const clientsWithNullId = db.prepare("SELECT rowid, id, name FROM clients WHERE id IS NULL OR id = ''").all();
         if (clientsWithNullId.length > 0) {
-            console.log('[MIGRATION] Corrigiendo ' + clientsWithNullId.length + ' clientes con id null...');
+            logger.info('[MIGRATION] Corrigiendo ' + clientsWithNullId.length + ' clientes con id null...');
             for (const client of clientsWithNullId) {
                 // Generar ID único que no exista
                 let newId;
@@ -1185,9 +1191,9 @@ function initSchema(db) {
                 } while (attempts < 10);
                 
                 db.prepare("UPDATE clients SET id = ? WHERE rowid = ?").run(newId, client.rowid);
-                console.log('[MIGRATION] Cliente ' + client.name + ' recibio nuevo id: ' + newId);
+                logger.info('[MIGRATION] Cliente ' + client.name + ' recibio nuevo id: ' + newId);
             }
-            console.log('[MIGRATION] Migración de clientes completada');
+            logger.info('[MIGRATION] Migración de clientes completada');
         }
     } catch (e) {
         console.error('[MIGRATION] Error en migración de clientes:', e.message);
@@ -1205,7 +1211,7 @@ function initSchema(db) {
         newCols.forEach(function(col) {
             if (!clientCols.includes(col[0])) {
                 db.exec("ALTER TABLE clients ADD COLUMN " + col[0] + " " + col[1]);
-                console.log('[MIGRATION] Columna ' + col[0] + ' agregada a clients');
+                logger.info('[MIGRATION] Columna ' + col[0] + ' agregada a clients');
             }
         });
     } catch (e) {
@@ -1319,7 +1325,7 @@ function initSchema(db) {
         const colNames = columns.map(c => c.name);
         // Si tiene columnas legacy (smtp_pass en vez de smtp_password), recrear
         if (colNames.includes('smtp_pass') && !colNames.includes('smtp_password')) {
-            console.log('[MIGRATION] Recreando email_accounts con esquema correcto...');
+            logger.info('[MIGRATION] Recreando email_accounts con esquema correcto...');
             db.exec(`ALTER TABLE email_accounts RENAME TO email_accounts_old`);
             db.exec(`CREATE TABLE email_accounts (
                 id TEXT PRIMARY KEY,
@@ -1351,12 +1357,12 @@ function initSchema(db) {
             try {
                 db.exec(`INSERT INTO email_accounts (id, event_id, name, smtp_host, smtp_port, smtp_user, smtp_password, smtp_ssl, imap_host, imap_port, imap_user, imap_password, imap_ssl, imap_folder, sender_name, sender_email, is_default, is_active, daily_limit, emails_sent_today, last_sent_date, created_at, updated_at)
                     SELECT id, event_id, name, smtp_host, smtp_port, smtp_user, smtp_pass, COALESCE(smtp_use_ssl, 0), imap_host, imap_port, imap_user, imap_pass, COALESCE(imap_use_ssl, 1), COALESCE(imap_folder, 'INBOX'), COALESCE(sender_name, ''), COALESCE(sender_email, ''), COALESCE(is_default, 0), COALESCE(is_active, 1), COALESCE(daily_limit, 500), COALESCE(emails_sent_today, 0), last_sent_date, created_at, updated_at FROM email_accounts_old`);
-            } catch(e) { console.log('[MIGRATION] No se pudieron copiar datos:', e.message); }
+            } catch(e) { logger.info('[MIGRATION] No se pudieron copiar datos:', e.message); }
             db.exec(`DROP TABLE email_accounts_old`);
-            console.log('[MIGRATION] email_accounts recreada exitosamente');
+            logger.info('[MIGRATION] email_accounts recreada exitosamente');
         }
     } catch(e) {
-        console.log('[MIGRATION email_accounts] Error o tabla no existe:', e.message);
+        logger.info('[MIGRATION email_accounts] Error o tabla no existe:', e.message);
     }
     
     // Migración: Agregar columnas faltantes a email_accounts (tablas existentes de versiones anteriores)
@@ -1473,6 +1479,57 @@ function initSchema(db) {
     try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_token_blacklist_jti ON token_blacklist(token_jti)"); } catch (_) {}
     try { db.exec("CREATE INDEX IF NOT EXISTS idx_token_blacklist_expires ON token_blacklist(expires_at)"); } catch (_) {}
     
+    // ═══ F4 2026-08: Features diferenciadoras (idempotente) ═══
+    try {
+        const evCols = db.prepare("PRAGMA table_info(events)").all().map(c => c.name);
+        if (!evCols.includes('plus_one_quota')) {
+            db.exec("ALTER TABLE events ADD COLUMN plus_one_quota INTEGER DEFAULT 0");
+        }
+    } catch (e) { console.warn('[SCHEMA] plus_one_quota:', e.message); }
+
+    db.exec(`CREATE TABLE IF NOT EXISTS registration_fields (
+        id TEXT PRIMARY KEY,
+        event_id TEXT NOT NULL,
+        label TEXT NOT NULL,
+        field_type TEXT NOT NULL DEFAULT 'text',
+        options_json TEXT,
+        required INTEGER DEFAULT 0,
+        show_if_field_id TEXT,
+        show_if_value TEXT,
+        sort_order INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT (datetime('now'))
+    )`);
+    db.exec(`CREATE TABLE IF NOT EXISTS registration_field_values (
+        id TEXT PRIMARY KEY,
+        event_id TEXT NOT NULL,
+        guest_id TEXT NOT NULL,
+        field_id TEXT NOT NULL,
+        value TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+    )`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_rfv_guest ON registration_field_values(guest_id)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_rfv_field ON registration_field_values(field_id)`);
+
+    db.exec(`CREATE TABLE IF NOT EXISTS sponsors (
+        id TEXT PRIMARY KEY,
+        event_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        tier TEXT DEFAULT 'standard',
+        booth TEXT,
+        contact_email TEXT,
+        logo_url TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+    )`);
+    db.exec(`CREATE TABLE IF NOT EXISTS sponsor_leads (
+        id TEXT PRIMARY KEY,
+        event_id TEXT NOT NULL,
+        sponsor_id TEXT NOT NULL,
+        guest_id TEXT NOT NULL,
+        notes TEXT,
+        scanned_at TEXT DEFAULT (datetime('now'))
+    )`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_sleads_sponsor ON sponsor_leads(sponsor_id)`);
+
     // ═══ SEMILLA DE ADMIN POR DEFECTO ═══
     const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
     if (userCount.count === 0) {
@@ -1480,9 +1537,9 @@ function initSchema(db) {
         const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
         const adminId = uuidv4();
         const adminHash = bcrypt.hashSync(adminPassword, 10);
-        db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+        db.prepare("INSERT OR IGNORE INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
           .run(adminId, adminEmail, adminHash, 'ADMIN', 'APPROVED', new Date().toISOString());
-        console.log(`✓ Admin por defecto creado: ${adminEmail} / ${adminPassword}`);
+        logger.info(`✓ Admin por defecto creado: ${adminEmail} / ${adminPassword}`);
     }
     
     // ─── Crear tabla de respaldo de configuracion de email (legacy, mantenido para compatibilidad) ───
@@ -1589,9 +1646,9 @@ function initSchema(db) {
     // Detectar y reparar registros con ID nulo que bloquean la UI
     (function repairNullIds() {
         try {
-            console.log("🔍 Iniciando auto-reparación de base de datos (v12.37.20)...");
+            logger.info("🔍 Iniciando auto-reparación de base de datos (v12.37.20)...");
             // Sistema de reparación genérico - solo para tablas principales
-            console.log("✨ Auto-reparación completada.");
+            logger.info("✨ Auto-reparación completada.");
         } catch (e) {
             console.error("❌ Error en auto-reparación:", e.message);
         }
@@ -1797,7 +1854,7 @@ function initSchema(db) {
                     db.prepare('UPDATE email_accounts SET imap_password = ? WHERE id = ?').run(encryptPassword(acc.imap_password), acc.id);
                 }
             }
-            console.log('✓ Passwords SMTP/IMAP encriptadas en reposo');
+            logger.info('✓ Passwords SMTP/IMAP encriptadas en reposo');
         }
     } catch (_) {}
     

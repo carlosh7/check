@@ -1,17 +1,18 @@
 {
   "name": "check",
-  "version": "12.44.783",
+  "version": "12.44.784",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "script.js",
   "scripts": {
-    "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
+    "postinstall": "node scripts/bootstrap-env.js",
     "setup": "node setup.js",
     "start": "node server.js",
     "dev": "node setup.js",
-    "test": "jest --passWithNoTests --testPathIgnorePatterns='/tests/e2e.test.js|/tests/load.test.js'",
+    "test": "jest --passWithNoTests --forceExit --testPathIgnorePatterns='/tests/e2e.test.js|/tests/load.test.js'",
     "test:watch": "jest --watch",
     "test:ai": "jest tests/ai/ --passWithNoTests",
     "test:e2e": "jest tests/e2e.test.js --passWithNoTests --forceExit --detectOpenHandles",
+    "test:visual": "node scripts/visual-check.js",
     "prepare": "npx husky || true"
   },
   "repository": {

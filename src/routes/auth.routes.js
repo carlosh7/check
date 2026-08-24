@@ -92,6 +92,19 @@ router.post('/login', limiters.authLimiter,
         const passwordMatch = bcrypt.compareSync(password, row.password);
         logger.info(`[AUTH] Password match: ${passwordMatch}`);
 
+        // F2 (2026-08): verificación TOTP obligatoria si el usuario activó 2FA
+        if (passwordMatch && row.totp_enabled === 1) {
+            const totpToken = String(req.body.totp_token || '').trim();
+            if (!totpToken) {
+                return res.status(401).json({ success: false, requires2FA: true, message: 'Código 2FA requerido' });
+            }
+            const totpOk = require('speakeasy').totp.verify({ secret: row.totp_secret, encoding: 'base32', token: totpToken, window: 1 });
+            if (!totpOk) {
+                logAction(req, AUDIT_ACTIONS.LOGIN_FAILED, { username, reason: 'invalid_2fa' });
+                return res.status(401).json({ success: false, requires2FA: true, message: 'Código 2FA inválido' });
+            }
+        }
+
         if (passwordMatch) {
             const token = generateToken({
                 userId: row.id,

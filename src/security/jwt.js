@@ -16,6 +16,14 @@ if (!JWT_SECRET) {
     process.exit(1);
 }
 
+// P1-2 auditoría 2026-08: detectar placeholder débil conocido (tokens falsificables)
+const WEAK_JWT_SECRETS = ['genera_una_clave_unica', 'changeme', 'secret', 'change_me'];
+if (WEAK_JWT_SECRETS.includes(String(JWT_SECRET).trim())) {
+    console.error('🔴 CRÍTICO: JWT_SECRET usa un valor débil público. Cualquiera puede falsificar tokens.');
+    console.error('   Solución inmediata: ejecuta "npm run postinstall" o genera uno con: openssl rand -hex 48');
+    console.error('   y colócalo en .env → JWT_SECRET=<valor>. Luego reinicia (las sesiones se invalidan).');
+}
+
 // Lazy-load de la BD para evitar circular dependency
 let _db = null;
 function getDb() {
@@ -38,7 +46,7 @@ function generateToken(payload) {
 }
 
 /**
- * Verifica un token JWT y检查a blacklist
+ * Verifica un token JWT y consulta la blacklist
  * @returns {Object|null} Payload decodificado o null si es inválido/blacklisted
  */
 function verifyToken(token) {

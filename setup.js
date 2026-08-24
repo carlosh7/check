@@ -80,6 +80,18 @@ VAPID_SUBJECT=${process.env.VAPID_SUBJECT || 'mailto:admin@check.com'}
     console.log('✅ Archivo .env ya existe');
 }
 
+// 1.b Endurecer secretos débiles (Fase 0 · auditoría 2026-08)
+try {
+    const { bootstrapEnv } = require('./scripts/bootstrap-env');
+    const secretChanges = bootstrapEnv();
+    if (secretChanges.length > 0) {
+        console.log('🔐 Secretos/entorno endurecidos automáticamente:');
+        secretChanges.forEach(c => console.log('   ✓ ' + c));
+    }
+} catch (e) {
+    console.warn('⚠️ No se pudo ejecutar bootstrap-env:', e.message);
+}
+
 // 2. Verificar node_modules
 const nodeModulesPath = path.join(__dirname, 'node_modules');
 if (!fs.existsSync(nodeModulesPath)) {

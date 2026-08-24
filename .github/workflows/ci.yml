@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Tests + Lint
+    runs-on: ubuntu-latest
+    env:
+      # Entorno aislado para que database.js nunca toque datos reales ni haga exit()
+      DATA_PATH: /tmp/check-ci-data
+      NODE_ENV: test
+      JWT_SECRET: ci-only-secret-not-for-production-use-000000000000
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Preparar entorno (bootstrap-env idempotente)
+        run: node scripts/bootstrap-env.js
+
+      - name: Suite de tests
+        run: npm test -- --runInBand
+
+      - name: Lint (baseline progresiva — bajar al limpiar código)
+        run: npx eslint . --max-warnings=2800
+
+  secrets:
+    name: Detección de secretos filtrados
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

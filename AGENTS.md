@@ -251,3 +251,9 @@ Se mantiene como referencia historica, pero **no es el entorno activo**.
 - **Comando:** `opencode-cli run "powershell.exe -ExecutionPolicy Bypass -File .\antigravity_bridge.ps1"`
 
 Para el flujo Windows completo, revisar el git historico de este archivo.
+
+## Auditoría 2026-08
+- `AUDIT_REPORT.md`: estado real, vulnerabilidades y bugs conocidos del proyecto.
+- `ACTION_PLAN.md`: plan priorizado P0→P3 pendiente de ejecutar.
+
+Al trabajar en este repo, consulta estos archivos antes de proponer cambios y actualízalos al cerrar hallazgos.

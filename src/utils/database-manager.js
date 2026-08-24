@@ -5,6 +5,7 @@
  * Cada evento puede tener su propia base de datos para aislar sus datos.
  */
 
+const logger = require('./logger');
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
@@ -13,7 +14,7 @@ const fs = require('fs');
 // DATA_PATH en portainer es /usr/src/app/persistence, entonces las BDs de eventos van en /usr/src/app/persistence/events
 const DATA_DIR = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH, 'events') : path.resolve(__dirname, '../../data/events');
 const EVENTS_DIR = DATA_DIR;
-console.log('[DB-MANAGER] Directorio de eventos configurado en:', EVENTS_DIR);
+logger.info('[DB-MANAGER] Directorio de eventos configurado en:', EVENTS_DIR);
 
 // Cache de conexiones activas (max 50, purge cada 10 min)
 const connectionCache = new Map();
@@ -36,7 +37,7 @@ function ensureEventsDir() {
     if (!fs.existsSync(EVENTS_DIR)) {
         try {
             fs.mkdirSync(EVENTS_DIR, { recursive: true });
-            console.log('✓ Directorio de eventos creado/verificado:', EVENTS_DIR);
+            logger.info('✓ Directorio de eventos creado/verificado:', EVENTS_DIR);
         } catch (e) {
             console.error('✗ ERROR CRÍTICO creando directorio de eventos:', EVENTS_DIR, e.message);
             // Si falla, intentamos usar una ruta local como último recurso para evitar crash, 
@@ -52,7 +53,7 @@ function ensureEventsDir() {
  */
 function getEventDbPath(eventId) {
     const dbPath = path.join(EVENTS_DIR, `${eventId}.db`);
-    // console.log(`[DB-MANAGER] Ruta calculada para ${eventId}: ${path.resolve(dbPath)}`);
+    // logger.info(`[DB-MANAGER] Ruta calculada para ${eventId}: ${path.resolve(dbPath)}`);
     return dbPath;
 }
 
@@ -64,9 +65,9 @@ function getEventDbPath(eventId) {
 function eventDatabaseExists(eventId) {
     const dbPath = getEventDbPath(eventId);
     const exists = fs.existsSync(dbPath);
-    console.log('[DB-EXISTS] Verificando DB para evento:', eventId);
-    console.log('[DB-EXISTS] Ruta:', dbPath);
-    console.log('[DB-EXISTS] Existe:', exists);
+    logger.info('[DB-EXISTS] Verificando DB para evento:', eventId);
+    logger.info('[DB-EXISTS] Ruta:', dbPath);
+    logger.info('[DB-EXISTS] Existe:', exists);
     return exists;
 }
 
@@ -151,6 +152,7 @@ function getEventConnection(eventId) {
             )`);
             db.exec("CREATE INDEX IF NOT EXISTS idx_sessions_event ON sessions(event_id)");
             try { db.exec("ALTER TABLE sessions ADD COLUMN layout_id TEXT"); } catch (_) {}
+            try { db.exec("ALTER TABLE sessions ADD COLUMN stream_url TEXT"); } catch (_) {}
         } catch (_) {}
         try {
             db.exec(`CREATE TABLE IF NOT EXISTS session_guests (
@@ -171,7 +173,7 @@ function getEventConnection(eventId) {
             db.exec("CREATE INDEX IF NOT EXISTS idx_seat_layouts_event ON seat_layouts(event_id)");
         } catch (_) {}
         
-        console.log('✓ Conexión a base de datos del evento:', eventId);
+        logger.info('✓ Conexión a base de datos del evento:', eventId);
         return db;
     } catch (error) {
         const errorMsg = `✗ Error al conectar con base de datos del evento ${eventId}: ${error.message}${error.code ? ' ('+error.code+')' : ''}`;
@@ -195,7 +197,7 @@ function createEventDatabase(eventId) {
     
     // Verificar si ya existe
     if (eventDatabaseExists(eventId)) {
-        console.log('⚠ La base de datos del evento ya existe:', eventId);
+        logger.info('⚠ La base de datos del evento ya existe:', eventId);
         return getEventConnection(eventId);
     }
     
@@ -219,7 +221,7 @@ function createEventDatabase(eventId) {
         // --- AUTO-REPARACIÓN (V12.44.335) ---
         repairEventDatabase(db, eventId);
         
-        console.log('✓ Base de datos del evento creada:', eventId);
+        logger.info('✓ Base de datos del evento creada:', eventId);
         return db;
     } catch (error) {
         const errorMsg = `✗ Error al crear base de datos del evento ${eventId}: ${error.message}${error.code ? ' ('+error.code+')' : ''}`;
@@ -272,7 +274,54 @@ function createEventTables(db, eventId) {
         if (!columns.includes('status')) {
             db.exec("ALTER TABLE guests ADD COLUMN status TEXT DEFAULT 'lead'");
         }
+        // F4 2026-08: plus-ones en event DBs
+        if (!columns.includes('parent_guest_id')) {
+            db.exec("ALTER TABLE guests ADD COLUMN parent_guest_id TEXT");
+        }
+        if (!columns.includes('guest_type')) {
+            db.exec("ALTER TABLE guests ADD COLUMN guest_type TEXT DEFAULT 'principal'");
+        }
+        // F4 2026-08: campos personalizados + sponsors/leads también viven en el event DB
+        db.exec(`CREATE TABLE IF NOT EXISTS registration_fields (
+            id TEXT PRIMARY KEY,
+            event_id TEXT NOT NULL,
+            label TEXT NOT NULL,
+            field_type TEXT NOT NULL DEFAULT 'text',
+            options_json TEXT,
+            required INTEGER DEFAULT 0,
+            show_if_field_id TEXT,
+            show_if_value TEXT,
+            sort_order INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now'))
+        )`);
+        db.exec(`CREATE TABLE IF NOT EXISTS registration_field_values (
+            id TEXT PRIMARY KEY,
+            event_id TEXT NOT NULL,
+            guest_id TEXT NOT NULL,
+            field_id TEXT NOT NULL,
+            value TEXT,
+            created_at TEXT DEFAULT (datetime('now'))
+        )`);
+        db.exec(`CREATE TABLE IF NOT EXISTS sponsors (
+            id TEXT PRIMARY KEY,
+            event_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            tier TEXT DEFAULT 'standard',
+            booth TEXT,
+            contact_email TEXT,
+            logo_url TEXT,
+            created_at TEXT DEFAULT (datetime('now'))
+        )`);
+        db.exec(`CREATE TABLE IF NOT EXISTS sponsor_leads (
+            id TEXT PRIMARY KEY,
+            event_id TEXT NOT NULL,
+            sponsor_id TEXT NOT NULL,
+            guest_id TEXT NOT NULL,
+            notes TEXT,
+            scanned_at TEXT DEFAULT (datetime('now'))
+        )`);
     } catch (_) {}
+
     
     // Tabla de log de cambios de estado del pipeline
     db.exec(`
@@ -316,6 +365,7 @@ function createEventTables(db, eventId) {
             capacity INTEGER DEFAULT 0,
             location TEXT,
             layout_id TEXT,
+            stream_url TEXT,
             sort_order INTEGER DEFAULT 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
@@ -720,7 +770,7 @@ function createEventTables(db, eventId) {
         try { db.exec(sql); } catch (_) {}
     }
     
-    console.log('✓ Tablas del evento creadas:', eventId);
+    logger.info('✓ Tablas del evento creadas:', eventId);
 }
 
 /**
@@ -734,7 +784,7 @@ function repairEventDatabase(db, eventId) {
         // Esto evita que el sistema intente reparar en cada recarga.
         const currentVersion = db.pragma('user_version', { simple: true });
         if (currentVersion >= 337) {
-            // console.log(`[MIGRATION] Saltando reparación de ${eventId}, esquema ya validado (v${currentVersion})`);
+            // logger.info(`[MIGRATION] Saltando reparación de ${eventId}, esquema ya validado (v${currentVersion})`);
             return;
         }
 
@@ -756,7 +806,7 @@ function repairEventDatabase(db, eventId) {
 
                 for (const row of poisonedTables) {
                     const table = row.name;
-                    console.log(`🔧 [REPAIR] Reconstruyendo tabla: ${table}`);
+                    logger.info(`🔧 [REPAIR] Reconstruyendo tabla: ${table}`);
                     
                     // 1. Renombrar tabla vieja
                     db.exec(`ALTER TABLE ${table} RENAME TO ${table}_old`);
@@ -774,7 +824,7 @@ function repairEventDatabase(db, eventId) {
                     if (commonCols.length > 0) {
                         const colsStr = commonCols.join(', ');
                         db.exec(`INSERT INTO ${table} (${colsStr}) SELECT ${colsStr} FROM ${table}_old`);
-                        console.log(`✅ [REPAIR] Migrados ${commonCols.length} campos en tabla ${table}`);
+                        logger.info(`✅ [REPAIR] Migrados ${commonCols.length} campos en tabla ${table}`);
                     }
                     
                     // 4. ELIMINAR tabla vieja
@@ -788,7 +838,7 @@ function repairEventDatabase(db, eventId) {
                 db.pragma('foreign_keys = ON');
             })();
 
-            console.log(`✅ [REPAIR] Auto-sanación completada para evento ${eventId}. Las restricciones rotas han sido eliminadas.`);
+            logger.info(`✅ [REPAIR] Auto-sanación completada para evento ${eventId}. Las restricciones rotas han sido eliminadas.`);
         } else {
             // Si no estaba envenenada pero no tenía versión, marcarla para el futuro
             db.pragma('user_version = 337');
@@ -821,13 +871,13 @@ function deleteEventDatabase(eventId) {
     const dbPath = getEventDbPath(eventId);
     
     if (!fs.existsSync(dbPath)) {
-        console.log('⚠ La base de datos del evento no existe:', eventId);
+        logger.info('⚠ La base de datos del evento no existe:', eventId);
         return false;
     }
     
     try {
         fs.unlinkSync(dbPath);
-        console.log('✓ Base de datos del evento eliminada:', eventId);
+        logger.info('✓ Base de datos del evento eliminada:', eventId);
         return true;
     } catch (error) {
         console.error('✗ Error al eliminar base de datos del evento:', eventId, error.message);
@@ -855,7 +905,7 @@ function closeAllConnections() {
     for (const [eventId, db] of connectionCache) {
         try {
             db.close();
-            console.log('✓ Conexión cerrada:', eventId);
+            logger.info('✓ Conexión cerrada:', eventId);
         } catch (_) {}
     }
     connectionCache.clear();

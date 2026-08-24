@@ -3,6 +3,7 @@
  * Usa las cuentas configuradas en el sistema
  */
 
+const logger = require('./logger');
 const nodemailer = require('nodemailer');
 const db = require('../../database');
 const { v4: uuidv4 } = require('uuid');
@@ -88,7 +89,7 @@ class EmailService {
         const account = this.getAccount(eventId);
         
         if (!account) {
-            console.log('[EmailService] No account available for:', eventId || 'global');
+            logger.info('[EmailService] No account available for:', eventId || 'global');
             return { success: false, error: 'No hay cuenta de email configurada' };
         }
         

@@ -36,6 +36,17 @@ try {
     console.error('❌ ERROR FATAL DE PERSISTENCIA:', error.message);
     console.error('La aplicación se detendrá para evitar pérdida de datos en carpetas temporales.');
     console.error('Ruta intentada:', dbPath);
+    console.error('');
+    console.error('Cómo resolverlo:');
+    console.error('  1) Verifica que el directorio padre exista y tengas permisos de escritura.');
+    console.error('  2) Edita .env y define una ruta escribible, ej: DATA_PATH=./data');
+    console.error('  3) En Docker/Portainer monta un volumen sobre esa ruta.');
+    // P0-3 auditoría 2026-08: process.exit() mata al runner completo de Jest cuando
+    // tests/backend.test.js requiere este módulo. En entorno de test lanzamos Error
+    // normal (Jest lo reporta sin autodestruirse) y solo salimos en ejecución real.
+    if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID) {
+        throw new Error(`Persistencia BD no escribible en ${dbPath}: ${error.message}`);
+    }
     process.exit(1);
 }
 

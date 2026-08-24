@@ -161,6 +161,14 @@ const logger = require("../utils/logger");
     
     // Surveys (encuestas, sugerencias, agenda - montadas en /api/events/:eventId/...)
     app.use('/api/events', surveysRoutes);
+
+    // F4 2026-08: reg-fields, sponsors/leads (montadas en /api/events/:eventId/...)
+    try {
+        const f4Routes = require('./f4.routes');
+        app.use('/api/events', f4Routes);
+    } catch (e) {
+        logger.error('[F4] Rutas no disponibles: ' + e.message);
+    }
     
     // Guests
     app.use('/api/guests', guestsRoutes);

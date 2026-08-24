@@ -45,7 +45,7 @@ async function findAvailablePort(preferredPort, maxAttempts = 20) {
             return candidatePort;
         }
     }
-    logger.error(`No se encontró puerto libre después de ${maxAttempts} intentos始于 ${preferredPort}`);
+    logger.error(`No se encontró puerto libre después de ${maxAttempts} intentos desde ${preferredPort}`);
     return preferredPort;
 }
 
@@ -270,18 +270,28 @@ app.use('/html', express.static(path.join(__dirname, 'public/html'), {
 // Archivos subidos (logos, etc.)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Archivos estáticos raíz (imágenes, favicon, etc.)
-app.use(express.static(path.join(__dirname, '/'), {
-    maxAge: '1h',
-    etag: true,
-    lastModified: true,
-    setHeaders: (res, reqPath) => {
-        // HTML nunca se cachea
-        if (reqPath.endsWith('.html')) {
-            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-        }
-    }
-}));
+// Archivos estáticos raíz — WHITELIST EXPLÍCITA (P0-2 auditoría 2026-08)
+// NUNCA servir el directorio raíz del proyecto: expone server.js, package.json,
+// docker-compose.yml y (sin DATA_PATH externo) la base de datos completa.
+// Solo se sirven los assets públicos declarados aquí. Todo lo demás → 404.
+const ROOT_PUBLIC_FILES = {
+    'manifest.json': path.join(__dirname, 'manifest.json'),
+    'favicon.ico': path.join(__dirname, 'public/favicon.ico'),
+    'icon-192.png': path.join(__dirname, 'public/icon-192.png'),
+    'icon-512.png': path.join(__dirname, 'public/icon-512.png'),
+    'robots.txt': path.join(__dirname, 'public/robots.txt'),
+    'sw.js': path.join(__dirname, 'public/js/sw.js')
+};
+Object.entries(ROOT_PUBLIC_FILES).forEach(([routeName, filePath]) => {
+    if (!fs.existsSync(filePath)) return;
+    app.get('/' + routeName, (req, res) => {
+        // El service worker debe revalidar siempre para que el versionado funcione
+        res.setHeader('Cache-Control', routeName === 'sw.js'
+            ? 'no-cache, no-store, must-revalidate'
+            : 'public, max-age=3600');
+        res.sendFile(filePath);
+    });
+});
 
 // Uploads y middleware de validación se manejan en registerRoutes
 
@@ -450,7 +460,7 @@ try {
     const gracefulShutdown = (signal) => {
         logger.info(`${signal} recibido. Cerrando servidor...`);
         
-        // Detener接受ir nuevas conexiones
+        // Detener la llegada de nuevas conexiones
         server.close(() => {
             logger.info('Servidor HTTP cerrado.');
             

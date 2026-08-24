@@ -3,6 +3,7 @@
  * Redis client wrapper with auto-reconnect and same interface as node-cache
  */
 
+const logger = require('./logger');
 let createClient;
 try {
     createClient = require('redis').createClient;
@@ -46,7 +47,7 @@ async function initRedis() {
         });
         
         redisClient.on('connect', () => {
-            console.log('[Redis] Connected');
+            logger.info('[Redis] Connected');
             isConnected = true;
             if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
         });
@@ -76,7 +77,7 @@ function scheduleReconnect() {
     reconnectTimer = setTimeout(async () => {
         reconnectTimer = null;
         if (isConnected) return; // Ya reconectó
-        console.log('[Redis] Attempting reconnect...');
+        logger.info('[Redis] Attempting reconnect...');
         try {
             redisClient = null;
             await initRedis();

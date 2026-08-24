@@ -1,4 +1,5 @@
 <div id="app-container" class="app-container hidden" role="application" aria-label="Check Pro - Panel de administración">
+    <a href="#app-main-content" class="skip-to-content">Saltar al contenido principal</a>
     <button id="hamburger-btn" class="hamburger-btn" onclick="document.getElementById('global-sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('active')" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="global-sidebar">☰</button>
     <div id="sidebar-overlay" class="sidebar-overlay" onclick="document.getElementById('global-sidebar').classList.remove('open');this.classList.remove('active')" role="presentation"></div>
     <aside id="global-sidebar" class="app-sidebar" role="navigation" aria-label="Menú principal">
@@ -59,7 +60,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.783</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.784</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -508,6 +509,19 @@
                         </button>
                         <button class="btn-secondary sub-nav-btn" data-tab="network" onclick="App.switchConfigTab('network')">
                             <span class="material-symbols-outlined">diversity_3</span> Networking
+                        </button>
+                        <!-- F2: módulos conectados al backend huérfano -->
+                        <button class="btn-secondary sub-nav-btn" data-tab="intelligence" onclick="App.switchConfigTab('intelligence')">
+                            <span class="material-symbols-outlined">psychology</span> Inteligencia
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="certificates" onclick="App.switchConfigTab('certificates')">
+                            <span class="material-symbols-outlined">workspace_premium</span> Certificados
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="reg-fields" onclick="App.switchConfigTab('reg-fields')">
+                            <span class="material-symbols-outlined">dynamic_form</span> Formulario
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="sponsors" onclick="App.switchConfigTab('sponsors')">
+                            <span class="material-symbols-outlined">storefront</span> Sponsors
                         </button>
                     </div>
 
@@ -1934,6 +1948,16 @@
                                 </table>
                             </div>
                         </div>
+                        <!-- F2: Transacciones de pago -->
+                        <h3 class="text-lg font-bold text-white mt-2">Transacciones</h3>
+                        <div class="card overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead><tr class="table-header-row"><th class="table-th">Fecha</th><th class="table-th">Invitado</th><th class="table-th">Concepto</th><th class="table-th">Monto</th><th class="table-th">Estado</th></tr></thead>
+                                    <tbody id="transactions-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Sin transacciones</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- NETWORKING (C5-05) -->
@@ -1952,6 +1976,85 @@
                                     <tbody id="network-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Cargando...</td></tr></tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- F2: INTELIGENCIA (conecta /api/intelligence) -->
+                    <div id="config-content-intelligence" class="config-tab-content hidden space-y-6">
+                        <h2 class="text-xl font-bold text-white">Inteligencia <span class="text-[var(--primary)]">del evento</span></h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="intelligence-kpis">
+                            <div class="card p-5"><p class="text-[10px] uppercase text-slate-500 font-black tracking-widest">Asistencia prevista</p><p id="intel-predicted" class="text-3xl font-black text-white mt-2">—</p></div>
+                            <div class="card p-5"><p class="text-[10px] uppercase text-slate-500 font-black tracking-widest">Invitados analizados</p><p id="intel-analyzed" class="text-3xl font-black text-white mt-2">—</p></div>
+                            <div class="card p-5"><p class="text-[10px] uppercase text-slate-500 font-black tracking-widest">Nivel de confianza</p><p id="intel-confidence" class="text-3xl font-black text-white mt-2">—</p></div>
+                        </div>
+                        <div class="card p-6">
+                            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">Recomendaciones IA</h3>
+                            <div id="intel-recommendations" class="space-y-2"><p class="text-xs text-slate-500">Cargando...</p></div>
+                        </div>
+                        <div class="card p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-sm font-black uppercase tracking-widest text-slate-400">Etiquetas automáticas de invitados</h3>
+                                <button class="btn-secondary text-xs" onclick="App.addIntelligenceTag()">➕ Añadir etiqueta</button>
+                            </div>
+                            <div id="intel-tags" class="flex flex-wrap gap-2"><p class="text-xs text-slate-500">Sin etiquetas aún.</p></div>
+                        </div>
+                    </div>
+
+                    <!-- F2: CERTIFICADOS (conecta /api/certificates) -->
+                    <div id="config-content-certificates" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Certificados <span class="text-[var(--primary)]">de asistencia</span></h2>
+                            <button class="btn-primary" onclick="App.openCertificateTemplateModal()">➕ Nueva plantilla</button>
+                        </div>
+                        <div class="card overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead><tr class="table-header-row"><th class="table-th">Plantilla</th><th class="table-th">Título</th><th class="table-th">Creada</th><th class="table-th">Acciones</th></tr></thead>
+                                    <tbody id="certificates-tbody"><tr><td colspan="4" class="text-center py-8 text-slate-500">Sin plantillas</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="certificates-generated-wrap" class="hidden card p-6">
+                            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">Certificados generados (última tanda)</h3>
+                            <div id="certificates-generated" class="flex flex-col gap-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- F4: BUILDER DE FORMULARIO DE REGISTRO -->
+                    <div id="config-content-reg-fields" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Formulario <span class="text-[var(--primary)]">de registro público</span></h2>
+                            <button class="btn-primary" onclick="App.openRegFieldModal()">➕ Nuevo campo</button>
+                        </div>
+                        <p class="text-xs text-slate-500 -mt-3">Los campos aparecen en la página de registro. Usa "Mostrar solo si" para lógica condicional.</p>
+                        <div class="card overflow-hidden">
+                            <table class="data-table w-full">
+                                <thead><tr class="table-header-row"><th class="table-th">Etiqueta</th><th class="table-th">Tipo</th><th class="table-th">Obligatorio</th><th class="table-th">Condición</th><th class="table-th">Acción</th></tr></thead>
+                                <tbody id="regfields-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Sin campos personalizados</td></tr></tbody>
+                            </table>
+                        </div>
+                        <div class="card p-6 space-y-3 max-w-md">
+                            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400">Acompañantes (plus-ones)</h3>
+                            <div class="flex items-center gap-3">
+                                <input type="number" id="plusone-quota-input" min="0" value="0" class="input-field w-24 !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-center">
+                                <button class="btn-secondary px-4 py-2 text-xs font-black uppercase" onclick="App.savePlusOneQuota()">Guardar cupo</button>
+                            </div>
+                            <p class="text-[10px] text-slate-600">0 = sin acompañantes permitidos.</p>
+                        </div>
+                    </div>
+
+                    <!-- F4: SPONSORS / EXPOSITORES -->
+                    <div id="config-content-sponsors" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Patrocinadores <span class="text-[var(--primary)]">&amp; Expositores</span></h2>
+                            <button class="btn-primary" onclick="App.openSponsorModal()">➕ Nuevo sponsor</button>
+                        </div>
+                        <div id="sponsors-roi" class="flex gap-3 flex-wrap"></div>
+                        <div class="card overflow-hidden">
+                            <table class="data-table w-full">
+                                <thead><tr class="table-header-row"><th class="table-th">Nombre</th><th class="table-th">Tier</th><th class="table-th">Booth</th><th class="table-th">Leads</th><th class="table-th">Acciones</th></tr></thead>
+                                <tbody id="sponsors-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Sin patrocinadores</td></tr></tbody>
+                            </table>
                         </div>
                     </div>
             </section>
@@ -2010,6 +2113,17 @@
                         </button>
                         <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="bi" onclick="App.switchSystemTab('bi')">
                             <span class="material-symbols-outlined text-base">monitoring</span> BI
+                        </button>
+                        <!-- F2: Push avanzado (templates, programadas, segmentado) -->
+                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="push-adv" onclick="App.switchSystemTab('push-adv')">
+                            <span class="material-symbols-outlined text-base">notifications_active</span> Push
+                        </button>
+                        <!-- F5: Ecosistema -->
+                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="api-keys" onclick="App.switchSystemTab('api-keys')">
+                            <span class="material-symbols-outlined text-base">key</span> API Keys
+                        </button>
+                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="crm-sync" onclick="App.switchSystemTab('crm-sync')">
+                            <span class="material-symbols-outlined text-base">sync_alt</span> CRM
                         </button>
                     </div>
                     </div>
@@ -2866,7 +2980,73 @@
                 </div>
 
                 <!-- BI DASHBOARD (C5-01) -->
-                <div id="sys-content-bi" class="hidden space-y-4">
+                <!-- F5: API KEYS -->
+<div id="sys-content-api-keys" class="hidden space-y-4">
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-semibold tracking-tight">API Keys <span class="text-[var(--primary)]">públicas</span></h2>
+        <button class="btn-primary px-4 py-2 text-xs font-black uppercase" onclick="App.openApiKeyModal()">➕ Generar key</button>
+    </div>
+    <p class="text-xs text-slate-500 -mt-2">Consume la API v1: <code>/api/v1/events</code> · Header: <code>X-API-Key</code></p>
+    <div class="card overflow-hidden">
+        <table class="data-table w-full">
+            <thead><tr class="table-header-row"><th class="table-th">Nombre</th><th class="table-th">Key</th><th class="table-th">Scopes</th><th class="table-th">Estado</th><th class="table-th">Acción</th></tr></thead>
+            <tbody id="apikeys-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Cargando...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- F5: CRM SYNC -->
+<div id="sys-content-crm-sync" class="hidden space-y-4">
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-semibold tracking-tight">Integraciones <span class="text-[var(--primary)]">CRM</span></h2>
+        <button class="btn-primary px-4 py-2 text-xs font-black uppercase" onclick="App.openCrmModal()">➕ Conectar CRM</button>
+    </div>
+    <div class="card overflow-hidden">
+        <table class="data-table w-full">
+            <thead><tr class="table-header-row"><th class="table-th">Nombre</th><th class="table-th">Plataforma</th><th class="table-th">Última sync</th><th class="table-th">Estado</th><th class="table-th">Acciones</th></tr></thead>
+            <tbody id="crm-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Cargando...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- F2: PUSH AVANZADO -->
+<div id="sys-content-push-adv" class="hidden space-y-4">
+    <h2 class="text-2xl font-semibold tracking-tight">Notificaciones <span class="text-[var(--primary)]">Push avanzadas</span></h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="card p-6 space-y-3">
+            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400">Plantillas</h3>
+            <div id="push-templates-list" class="flex flex-col gap-2 max-h-48 overflow-y-auto"><p class="text-xs text-slate-500">Cargando...</p></div>
+            <div class="flex gap-2">
+                <input type="text" id="push-tpl-title" placeholder="Título" class="input-field flex-1 !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs">
+                <input type="text" id="push-tpl-body" placeholder="Mensaje" class="input-field flex-1 !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs">
+            </div>
+            <button onclick="App.createPushTemplate()" class="btn-secondary w-full btn-py3 text-xs font-black uppercase tracking-widest">➕ Guardar plantilla</button>
+        </div>
+        <div class="card p-6 space-y-3">
+            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400">Envío segmentado</h3>
+            <select id="push-seg-event" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs"><option value="">Seleccionar evento...</option></select>
+            <select id="push-seg-filter" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs">
+                <option value="all">Todos los suscriptores</option>
+                <option value="checked_in">Solo asistentes (check-in)</option>
+                <option value="not_checked_in">Pendientes de check-in</option>
+            </select>
+            <input type="text" id="push-seg-title" placeholder="Título de la notificación" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs">
+            <textarea id="push-seg-body" rows="2" placeholder="Mensaje..." class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs"></textarea>
+            <button onclick="App.sendSegmentedPush()" class="btn-primary w-full btn-py3 text-xs font-black uppercase tracking-widest">📤 Enviar ahora</button>
+        </div>
+    </div>
+    <div class="card p-6">
+        <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">Envíos programados</h3>
+        <div class="flex gap-2 mb-3">
+            <input type="datetime-local" id="push-sched-at" class="input-field !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs">
+            <input type="text" id="push-sched-title" placeholder="Título" class="input-field flex-1 !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs">
+            <input type="text" id="push-sched-body" placeholder="Mensaje" class="input-field flex-1 !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs">
+            <button onclick="App.createScheduledPush()" class="btn-secondary px-4 text-xs font-black uppercase">Programar</button>
+        </div>
+        <div id="push-scheduled-list" class="flex flex-col gap-2"><p class="text-xs text-slate-500">Sin envíos programados.</p></div>
+    </div>
+</div>
+<div id="sys-content-bi" class="hidden space-y-4">
                     <div class="flex justify-between items-center">
                         <h2 class="text-2xl font-semibold tracking-tight">BI <span class="text-[var(--primary)]">Dashboard</span></h2>
                         <select id="bi-period" class="input-field w-32 text-xs" onchange="App.loadBiDashboard()">
@@ -2929,6 +3109,30 @@
                                 <input type="password" id="pass-new" placeholder="Nueva contraseña" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py4 !px-5">
                                 <button type="submit" class="btn-primary w-full btn-py4 uppercase tracking-widest text-10 font-black">Cambiar Contraseña</button>
                             </form>
+                            <!-- F2: Verificación en dos pasos (TOTP) -->
+                            <div class="mt-8 pt-6 border-t border-white/5" id="twofa-section">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h4 class="text-sm font-black text-white uppercase tracking-widest">Verificación en 2 Pasos</h4>
+                                        <p class="text-xs text-slate-500 mt-1">Protege tu cuenta con un código TOTP (Google Authenticator, Authy...)</p>
+                                    </div>
+                                    <span id="twofa-status-badge" class="px-3 py-1 rounded-full text-[10px] font-black uppercase">...</span>
+                                </div>
+                                <div id="twofa-disabled-view">
+                                    <button id="btn-twofa-setup" class="btn-secondary w-full btn-py3 uppercase tracking-widest text-10 font-black">Activar 2FA</button>
+                                </div>
+                                <div id="twofa-setup-view" class="hidden space-y-4">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <img id="twofa-qr" alt="QR 2FA" class="w-44 h-44 rounded-lg bg-white p-2" />
+                                        <code id="twofa-secret" class="text-[10px] text-slate-400 break-all text-center px-4"></code>
+                                    </div>
+                                    <input type="text" id="twofa-verify-code" placeholder="Código de la app (6 dígitos)" maxlength="6" inputmode="numeric" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py4 !px-5 text-center tracking-[0.5em]">
+                                    <button id="btn-twofa-verify" class="btn-primary w-full btn-py3 uppercase tracking-widest text-10 font-black">Verificar y Activar</button>
+                                </div>
+                                <div id="twofa-enabled-view" class="hidden">
+                                    <button id="btn-twofa-disable" class="w-full btn-py3 uppercase tracking-widest text-10 font-black bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500/20 transition-all">Desactivar 2FA</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -4446,6 +4650,10 @@
                     <option value="">Sin plano</option>
                 </select>
             </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Streaming URL <span class="text-[10px] normal-case font-normal text-slate-600">(sesiones híbridas)</span></label>
+                <input id="session-stream-url" type="url" class="input-field w-full" placeholder="https://zoom.us/j/... o YouTube Live">
+            </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" onclick="document.getElementById('modal-session').classList.add('hidden')" class="btn-secondary">Cancelar</button>
                 <button type="submit" class="btn-primary">Guardar</button>
@@ -4726,3 +4934,45 @@
 <style>
 #editor-3d-panel.fullscreen { top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; border-radius: 0 !important; }
 </style>
+
+<!-- F2: MODAL Plantilla de Certificado -->
+<div id="modal-certificate-template" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-60 backdrop-blur-sm">
+    <div class="card w-full max-w-lg rounded-xl mx-4 my-8 scale-in">
+        <div class="p-5 border-b border-white/5">
+            <h3 class="text-lg font-bold text-white">Nueva plantilla de certificado</h3>
+        </div>
+        <div class="p-5 space-y-4">
+            <input type="text" id="cert-tpl-name" placeholder="Nombre de la plantilla" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py4 !px-5">
+            <input type="text" id="cert-tpl-title" placeholder="Título (ej: Certificado de Asistencia)" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py4 !px-5">
+            <textarea id="cert-tpl-subtitle" rows="2" placeholder="Subtítulo / texto del certificado" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py4 !px-5"></textarea>
+        </div>
+        <div class="flex justify-end gap-3 p-5 pt-0">
+            <button type="button" onclick="document.getElementById('modal-certificate-template').classList.add('hidden')" class="btn-secondary">Cancelar</button>
+            <button type="button" onclick="App.saveCertificateTemplate()" class="btn-primary">Guardar plantilla</button>
+        </div>
+    </div>
+</div>
+
+<!-- F2: MODAL Invitar Usuario -->
+<div id="modal-invite-user" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-60 backdrop-blur-sm">
+    <div class="card w-full max-w-md rounded-xl mx-4 my-8 scale-in">
+        <div class="p-5 border-b border-white/5">
+            <h3 class="text-lg font-bold text-white">Invitar usuario</h3>
+        </div>
+        <div class="p-5 space-y-4">
+            <input type="email" id="invite-email" placeholder="email@ejemplo.com" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py4 !px-5">
+            <input type="password" id="invite-pass" placeholder="Contraseña temporal" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py4 !px-5">
+            <select id="invite-role" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py4 !px-5">
+                <option value="PRODUCTOR">Productor</option>
+                <option value="LOGISTICO">Logístico</option>
+                <option value="ORGANIZER">Organizador</option>
+                <option value="ADMIN">Administrador</option>
+            </select>
+            <input type="text" id="invite-name" placeholder="Nombre para mostrar" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py4 !px-5">
+        </div>
+        <div class="flex justify-end gap-3 p-5 pt-0">
+            <button type="button" onclick="document.getElementById('modal-invite-user').classList.add('hidden')" class="btn-secondary">Cancelar</button>
+            <button type="button" onclick="App.submitInviteUser()" class="btn-primary">Crear acceso</button>
+        </div>
+    </div>
+</div>

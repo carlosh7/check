@@ -8,10 +8,11 @@
  * const { schemas, validate } = require('./security/validation');
  * const result = validate(schemas.login, { username: 'test@test.com', password: 'pass123' });
  * if (!result.valid) {
- *     console.log('Errores:', result.errors);
+ *     logger.info('Errores:', result.errors);
  * }
  */
 
+const logger = require('../utils/logger');
 const z = require('zod');
 
 const emailSchema = z.string().email('Email inválido');

@@ -3,6 +3,9 @@
  * Cubre: auth, events, guests, public, webhooks, payments
  */
 require('dotenv').config();
+// Credenciales deterministas para el seed (evita carrera con .env ambiente)
+process.env.ADMIN_EMAIL = 'admin@check.com';
+process.env.ADMIN_PASSWORD = 'admin123';
 const request = require('supertest');
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');

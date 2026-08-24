@@ -87,13 +87,11 @@ class EventConfigView {
     async loadEventConfig() {
         try {
             const eventId = this.currentEventId;
-            const res = await fetch(`/api/events/${eventId}`);
-            
-            if (res.ok) {
-                const event = await res.json();
-                AppStateManager.set('event', event);
-                
-            }
+            // F1 2026-08: usar fetchAPI (incluye Authorization) — el endpoint exige auth
+            const event = window.App?.fetchAPI
+                ? await App.fetchAPI(`/events/${eventId}`)
+                : await (await fetch(`/api/events/${eventId}`)).json();
+            AppStateManager.set('event', event);
         } catch (error) {
             console.error('[EVENT_CONFIG] Error cargando evento:', error);
             ToastManager.error('Error', 'No se pudo cargar la configuración');

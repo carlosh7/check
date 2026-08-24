@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="/css/modules/base.css?v=12.44.783">
+  <link rel="stylesheet" href="/css/modules/base.css?v=12.44.784">
   <style>
     body {
       display: flex; align-items: center; justify-content: center;
@@ -45,6 +45,7 @@
   </style>
 </head>
 <body>
+    <a href="#form-login" class="skip-to-content">Ir al formulario de acceso</a>
   <!-- VIEW LOGIN (app.js espera este ID) -->
   <div id="view-login">
     <div class="login-logo">
@@ -69,6 +70,10 @@
           <label class="form-label" for="login-password">Contraseña</label>
           <input type="password" id="login-password" class="input" placeholder="••••••••" autocomplete="current-password" required>
         </div>
+        <div class="form-group hidden" id="login-2fa-group">
+          <label class="form-label" for="login-totp">Código 2FA</label>
+          <input type="text" id="login-totp" class="input" placeholder="123456" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+        </div>
         <button type="submit" id="login-btn" class="btn btn-primary btn-lg w-full">
           Ingresar
         </button>
@@ -77,6 +82,44 @@
 
     <div class="login-footer">
       <a href="#" id="forgot-password">¿Olvidaste tu contraseña?</a>
+    </div>
+  </div>
+
+  <!-- Recovery form (F2: flujo de recuperación con código de 6 dígitos) -->
+  <div id="recovery-form" class="hidden" style="width:100%;max-width:360px;">
+    <div class="login-card">
+      <h1 class="login-title">Recuperar Contraseña</h1>
+
+      <!-- Paso 1: solicitar código -->
+      <div id="recovery-step-request">
+        <p class="login-subtitle">Ingresa tu email y te enviaremos un código de verificación.</p>
+        <form id="form-recovery-request" class="login-form" onsubmit="return false;">
+          <div class="form-group">
+            <label class="form-label" for="recovery-email">Email</label>
+            <input type="email" id="recovery-email" class="input" placeholder="tu@email.com" required>
+          </div>
+          <button type="submit" id="recovery-request-btn" class="btn btn-primary btn-lg w-full">Enviar Código</button>
+        </form>
+      </div>
+
+      <!-- Paso 2+3: código y nueva contraseña -->
+      <div id="recovery-step-reset" class="hidden">
+        <p class="login-subtitle">Ingresa el código recibido y tu nueva contraseña.</p>
+        <form id="form-recovery-reset" class="login-form" onsubmit="return false;">
+          <div class="form-group">
+            <label class="form-label" for="recovery-code">Código (6 dígitos)</label>
+            <input type="text" id="recovery-code" class="input" placeholder="123456" maxlength="6" inputmode="numeric" autocomplete="one-time-code" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="recovery-new-pass">Nueva contraseña</label>
+            <input type="password" id="recovery-new-pass" class="input" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required>
+          </div>
+          <button type="submit" id="recovery-reset-btn" class="btn btn-primary btn-lg w-full">Cambiar Contraseña</button>
+        </form>
+      </div>
+
+      <div id="recovery-message" class="login-error hidden"></div>
+      <div class="login-footer"><a href="#" id="back-to-login-from-recovery">Volver al login</a></div>
     </div>
   </div>
 
@@ -99,6 +142,6 @@
     </div>
   </div>
 
-  <script type="module" src="/js/app.js?v=12.44.783"></script>
+  <script type="module" src="/js/app.js?v=12.44.784"></script>
 </body>
 </html>

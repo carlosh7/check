@@ -126,6 +126,16 @@
                         </div>
                         <div id="coupon-result" class="hidden text-xs mt-1"></div>
                     </div>
+
+                    <!-- F4: Campos personalizados dinámicos -->
+                    <div id="dynamic-fields" class="space-y-3"></div>
+
+                    <!-- F4: Acompañantes (plus-ones) -->
+                    <div id="plusones-section" class="hidden registro-form-group">
+                        <label class="form-label">Acompañantes <span id="plusones-quota-label" class="text-[10px] opacity-60"></span></label>
+                        <div id="plusones-list" class="space-y-2"></div>
+                        <button type="button" id="btn-add-plusone" class="btn-secondary text-xs px-3 mt-1">+ Añadir acompañante</button>
+                    </div>
                     
                     <div id="payment-summary" class="hidden registro-form-group">
                         <div class="registro-payment-summary">
@@ -278,6 +288,9 @@
                     document.getElementById('success-text').innerText = eventData.reg_success_message;
                 }
 
+                // F4: campos personalizados + acompañantes
+                loadDynamicFields();
+
                 // Load categories and check payment
                 if (eventData.payment_required) {
                     try {
@@ -352,6 +365,97 @@
             }
         }
 
+        // ═══ F4: Campos personalizados dinámicos + lógica condicional + acompañantes ═══
+        let _regFields = [];
+        let _plusOneQuota = 0;
+
+        async function loadDynamicFields() {
+            try {
+                const res = await fetch(`${API_URL}/events/${eventData.id}/public/registration-form`);
+                if (!res.ok) return;
+                const data = await res.json();
+                _regFields = data.fields || [];
+                _plusOneQuota = data.plusOneQuota || 0;
+                renderDynamicFields();
+                renderPlusOnes();
+                document.getElementById('event-registration-form').addEventListener('change', applyConditionalLogic);
+            } catch (e) { console.warn('[F4] dynamic fields:', e); }
+        }
+
+        function fieldInputHtml(f) {
+            const req = f.required ? 'required' : '';
+            const name = `cf-${f.id}`;
+            if (f.field_type === 'textarea') return `<textarea name="${name}" class="input-field" rows="2" placeholder="${f.label}${f.required ? ' *' : ''}" ${req}></textarea>`;
+            if (f.field_type === 'select' || f.field_type === 'radio') {
+                const opts = (f.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
+                return `<select name="${name}" class="input-field" ${req}><option value="">${f.label}...</option>${opts}</select>`;
+            }
+            if (f.field_type === 'checkbox') return `<label style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer;"><input type="checkbox" name="${name}" value="true" ${req}> ${f.label}${f.required ? ' *' : ''}</label>`;
+            const type = f.field_type === 'number' ? 'number' : f.field_type === 'email' ? 'email' : f.field_type === 'phone' ? 'tel' : 'text';
+            return `<input type="${type}" name="${name}" class="input-field" placeholder="${f.label}${f.required ? ' *' : ''}" ${req}>`;
+        }
+
+        function renderDynamicFields() {
+            const wrap = document.getElementById('dynamic-fields');
+            if (!wrap) return;
+            wrap.innerHTML = _regFields.map(f => `
+                <div class="registro-form-group" data-field-id="${f.id}"
+                     data-cond-field="${f.show_if_field_id || ''}" data-cond-value="${f.show_if_value || ''}">
+                    ${['checkbox'].includes(f.field_type) ? '' : `<label class="form-label">${f.label}${f.required ? ' *' : ''}</label>`}
+                    ${fieldInputHtml(f)}
+                </div>`).join('');
+            applyConditionalLogic();
+        }
+
+        function applyConditionalLogic() {
+            _regFields.forEach(f => {
+                if (!f.show_if_field_id) return;
+                const depEl = document.querySelector(`[name="cf-${f.show_if_field_id}"]`);
+                const wrapEl = document.querySelector(`[data-field-id="${f.id}"]`);
+                if (!depEl || !wrapEl) return;
+                let val = depEl.type === 'checkbox' ? (depEl.checked ? 'true' : '') : (depEl.value || '');
+                const show = f.show_if_value === '*' ? !!val : val === f.show_if_value;
+                wrapEl.classList.toggle('hidden', !show);
+                if (!show) { depEl.value = ''; if (depEl.type === 'checkbox') depEl.checked = false; }
+            });
+        }
+
+        function collectCustomFields() {
+            const out = {};
+            _regFields.forEach(f => {
+                const el = document.querySelector(`[name="cf-${f.id}"]`);
+                if (!el) return;
+                const wrapEl = document.querySelector(`[data-field-id="${f.id}"]`);
+                if (wrapEl && wrapEl.classList.contains('hidden')) return; // condición oculta → no enviar
+                out[f.id] = el.type === 'checkbox' ? (el.checked ? 'true' : '') : el.value.trim();
+            });
+            return out;
+        }
+
+        function renderPlusOnes() {
+            if (_plusOneQuota <= 0) return;
+            document.getElementById('plusones-section').classList.remove('hidden');
+            document.getElementById('plusones-quota-label').innerText = `(máximo ${_plusOneQuota})`;
+            const list = document.getElementById('plusones-list');
+            const btnAdd = document.getElementById('btn-add-plusone');
+            function addRow() {
+                const count = list.querySelectorAll('input').length;
+                if (count >= _plusOneQuota) { btnAdd.disabled = true; btnAdd.innerText = `Máximo ${_plusOneQuota} acompañantes`; return; }
+                const row = document.createElement('div');
+                row.className = 'flex gap-2';
+                row.innerHTML = `<input type="text" class="input-field flex-1 plusone-name" placeholder="Nombre del acompañante">`;
+                list.appendChild(row);
+                if (count + 1 >= _plusOneQuota) { btnAdd.disabled = true; btnAdd.innerText = `Máximo ${_plusOneQuota} acompañantes`; }
+            }
+            btnAdd.onclick = addRow;
+        }
+
+        function collectPlusOnes() {
+            return Array.from(document.querySelectorAll('.plusone-name'))
+                .map(i => ({ name: i.value.trim() }))
+                .filter(p => p.name);
+        }
+
         document.getElementById('event-registration-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!eventData) return alert("Error: Evento no identificado");
@@ -374,6 +478,11 @@
             const vegan = document.querySelector('input[name="vegan"]:checked')?.value || 'no';
             const dietary = document.getElementById('reg-diet').value;
             body.dietary_notes = vegan === 'si' ? 'Vegano' + (dietary ? ', ' + dietary : '') : dietary;
+
+            // F4: campos personalizados + acompañantes
+            body.custom_fields = collectCustomFields();
+            var _pos = collectPlusOnes();
+            if (_pos.length > 0) body.plus_ones = _pos;
 
             // Payment flow (cart)
             var cartItems = [];
