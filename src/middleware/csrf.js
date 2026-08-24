@@ -7,7 +7,17 @@
  * 2. Bloqueo de requests sin origin ni referer en ciertos endpoints
  */
 
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || `http://localhost:${process.env.PORT || 3000}`).split(',');
+let ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || `http://localhost:${process.env.PORT || 3000}`).split(',');
+
+/**
+ * Portabilidad multi-servidor: server.js actualiza la lista tras detectar
+ * el puerto real y las IPs LAN del host. (F-portability 2026-08)
+ */
+function setAllowedOrigins(origins) {
+    if (Array.isArray(origins) && origins.length > 0) {
+        ALLOWED_ORIGINS = origins;
+    }
+}
 
 // Función para verificar si es IP local (192.168.x.x o 10.x.x.x o 172.16-31.x.x)
 function isLocalIP(origin) {
@@ -122,4 +132,4 @@ function securityHeaders(req, res, next) {
     next();
 }
 
-module.exports = { csrfMiddleware, securityHeaders, ALLOWED_ORIGINS };
+module.exports = { csrfMiddleware, securityHeaders, setAllowedOrigins, get ALLOWED_ORIGINS() { return ALLOWED_ORIGINS; } };

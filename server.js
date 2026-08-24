@@ -22,19 +22,42 @@ function isPortFree(port) {
     });
 }
 
+// ─── PORTABILIDAD (multi-servidor) ───
+// Recolecta TODOS los orígenes válidos del host: localhost + IPs LAN reales.
+// Así la app funciona igual en un laptop, un servidor LAN o Docker, sin editar .env.
+function collectLocalOrigins(port) {
+    const os = require('os');
+    const origins = new Set([
+        `http://localhost:${port}`,
+        `http://127.0.0.1:${port}`,
+        `http://${os.hostname().toLowerCase()}:${port}`
+    ]);
+    try {
+        const ifaces = os.networkInterfaces();
+        for (const name of Object.keys(ifaces)) {
+            for (const iface of (ifaces[name] || [])) {
+                // Solo IPv4 no internas (excluye 127.0.0.1 y docker bridges se quedan)
+                if (iface.family === 'IPv4' && !iface.internal) {
+                    origins.add(`http://${iface.address}:${port}`);
+                    origins.add(`https://${iface.address}:${port}`);
+                }
+            }
+        }
+    } catch (_) {}
+    return Array.from(origins);
+}
+
 async function findAvailablePort(preferredPort, maxAttempts = 20) {
     for (let i = 0; i < maxAttempts; i++) {
         const candidatePort = preferredPort + i;
         if (await isPortFree(candidatePort)) {
             if (i > 0) {
                 logger.warn(`Puerto ${preferredPort} ocupado. Usando puerto ${candidatePort} en su lugar.`);
-                // Actualizar .env con el puerto encontrado
+                // Actualizar .env con el puerto encontrado (PORT sí; orígenes se calculan dinámicos abajo)
                 try {
                     const envPath = path.join(__dirname, '.env');
                     let envContent = fs.readFileSync(envPath, 'utf8');
                     envContent = envContent.replace(/^PORT=.*/m, `PORT=${candidatePort}`);
-                    envContent = envContent.replace(/^APP_URL=.*/m, `APP_URL=http://localhost:${candidatePort}`);
-                    envContent = envContent.replace(/ALLOWED_ORIGINS=.*$/m, `ALLOWED_ORIGINS=http://localhost:${candidatePort}`);
                     fs.writeFileSync(envPath, envContent);
                     process.env.PORT = String(candidatePort);
                     logger.info(`.env actualizado con PORT=${candidatePort}`);
@@ -50,7 +73,7 @@ async function findAvailablePort(preferredPort, maxAttempts = 20) {
 }
 
 // Middleware de seguridad
-const { csrfMiddleware, securityHeaders } = require('./src/middleware/csrf');
+const { csrfMiddleware, securityHeaders, setAllowedOrigins } = require('./src/middleware/csrf');
 // --- GZIP COMPRESSION (Performance) ---
 const compression = require('compression');
 
@@ -441,16 +464,29 @@ try {
 (async () => {
     const preferredPort = parseInt(process.env.PORT) || 3000;
     detectedPort = await findAvailablePort(preferredPort);
-    
-    // Configurar CORS con el puerto detectado
-    ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || `http://localhost:${detectedPort}`).split(',');
-    
+
+    // Configurar CORS: env del usuario + orígenes locales reales del host (localhost + IPs LAN)
+    // Esto elimina la configuración manual por servidor: cualquier host funciona out-of-the-box.
+    const envOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+    ALLOWED_ORIGINS = Array.from(new Set([
+        ...envOrigins,
+        ...collectLocalOrigins(detectedPort)
+    ]));
+    // Propagar a middleware que leyeron la lista al cargar (csrf.js)
+    process.env.ALLOWED_ORIGINS = ALLOWED_ORIGINS.join(',');
+    setAllowedOrigins(ALLOWED_ORIGINS);
+
     // Reconectar Socket.io con CORS correcto
     io.engine.opts.cors.origin = ALLOWED_ORIGINS;
 
     server.listen(detectedPort, '0.0.0.0', () => {
         logger.info(`CHECK PRO V${APP_VERSION} (Enterprise Grade + Backups + Rate Limiting): Puerto ${detectedPort}`);
         logger.info(`URL: http://localhost:${detectedPort}`);
+        const lanUrls = collectLocalOrigins(detectedPort)
+            .filter(o => !o.includes('localhost') && !o.includes('127.0.0.1'));
+        if (lanUrls.length > 0) {
+            logger.info(`Acceso en red: ${lanUrls.filter(u => u.startsWith('http://')).join('  ')}`);
+        }
         if (detectedPort !== preferredPort) {
             logger.warn(`Puerto original ${preferredPort} estaba ocupado. App disponible en ${detectedPort}`);
         }
