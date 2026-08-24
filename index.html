@@ -7,21 +7,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="/css/modules/base.css?v=12.44.786">
+  <link rel="stylesheet" href="/css/modules/base.css?v=12.44.787">
   <!-- FIX v12.44.786: el app-shell se inyecta aquí dentro; necesita TODOS los módulos CSS -->
-  <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.786">
-  <link rel="stylesheet" href="/css/modules/components.css?v=12.44.786">
-  <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.786">
-  <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.786">
+  <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.787">
+  <link rel="stylesheet" href="/css/modules/components.css?v=12.44.787">
+  <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.787">
+  <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.787">
+  <link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.787">
   <style>
+    /* Modo LOGIN (por defecto): pantalla centrada.
+       Cuando app.js inyecta el panel añade body.app-mode → layout normal de aplicación. */
     body {
       display: flex; align-items: center; justify-content: center;
       min-height: 100vh; padding: var(--space-4);
       background: var(--bg-app);
     }
+    body.app-mode {
+      display: block; padding: 0; min-height: 100vh;
+    }
     #view-login {
       width: 100%; max-width: 360px;
     }
+    body.app-mode #view-login { display: none !important; }
     .login-logo {
       display: flex; align-items: center; gap: var(--space-3);
       margin-bottom: var(--space-8); justify-content: center;
@@ -147,6 +154,6 @@
     </div>
   </div>
 
-  <script type="module" src="/js/app.js?v=12.44.786"></script>
+  <script type="module" src="/js/app.js?v=12.44.787"></script>
 </body>
 </html>

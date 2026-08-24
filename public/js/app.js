@@ -7005,6 +7005,8 @@ navigate(viewName, params = {}, push = true) {
         // Remover app-shell si existe
         const appShell = document.getElementById('app-container');
         if (appShell) appShell.remove();
+        // Volver al modo login (quitar layout de aplicación)
+        document.body.classList.remove('app-mode');
         this.showView('login', true);
     },
     
@@ -7016,6 +7018,8 @@ navigate(viewName, params = {}, push = true) {
             .then(r => r.text())
             .then(html => {
                 document.body.insertAdjacentHTML('beforeend', html);
+                // Activar layout de aplicación (desactiva el centrado del login)
+                document.body.classList.add('app-mode');
                 
                 // Verificar que los elementos críticos existen
                 const appContainer = document.getElementById('app-container');

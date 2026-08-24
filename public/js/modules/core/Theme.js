@@ -14,7 +14,8 @@ export class ThemeManager {
         if (saved === 'dark' || saved === 'light') {
             return saved;
         }
-        return this.getSystemTheme();
+        // F-UX: diseño dark-first; el tema claro es opt-in vía toggle.
+        return 'dark';
     }
     
     // Obtener tema del sistema

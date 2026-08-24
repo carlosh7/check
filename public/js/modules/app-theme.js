@@ -15,7 +15,9 @@ const ThemeModule = window.ThemeModule = {
         if (saved === 'dark' || saved === 'light') {
             return saved;
         }
-        return this.getSystemTheme();
+        // F-UX unificación: el diseño es dark-first. El tema del sistema solo
+        // se respeta si el usuario nunca ha elegido; default explícito = dark.
+        return 'dark';
     },
     
     applyThemeTransition() {

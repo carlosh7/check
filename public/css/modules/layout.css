@@ -35,7 +35,7 @@
 }
 .app-sidebar-brand-title span { color: var(--accent); }
 .app-sidebar-brand-subtitle {
-  font-size: 10px); color: var(--text-muted); font-weight: 400;
+  font-size: 10px; color: var(--text-muted); font-weight: 400;
 }
 
 /* Nav */
@@ -282,3 +282,36 @@
 @media (max-width: 640px) {
   .app-container { flex-direction: column; }
 }
+
+/* ═══ SIDEBAR FOOTER — F-UX unificación (clases que el markup consumía sin definir) ═══ */
+.sidebar-user-section {
+  margin-top: auto; /* empuja al fondo del sidebar */
+  flex-direction: column; align-items: stretch; gap: var(--space-2);
+  padding: var(--space-3); border-top: 1px solid var(--border);
+}
+.sidebar-user-info { display: flex; align-items: center; gap: var(--space-3); }
+.sidebar-user-avatar {
+  width: 34px; height: 34px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-hover); border: 1px solid var(--border);
+  border-radius: var(--radius-full); color: var(--text-secondary);
+}
+.sidebar-user-avatar .material-symbols-outlined { font-size: 18px; }
+.sidebar-user-details { display: flex; flex-direction: column; min-width: 0; }
+.sidebar-user-name { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-user-role { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; }
+.sidebar-user-actions { display: flex; align-items: center; gap: var(--space-2); }
+.sidebar-action-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: var(--radius-md);
+  background: transparent; border: 1px solid transparent;
+  color: var(--text-secondary); cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+}
+.sidebar-action-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sidebar-action-btn .material-symbols-outlined { font-size: 18px; }
+.logout-btn:hover { background: var(--error-bg); color: var(--error); }
+.sidebar-footer { display: flex; flex-direction: column; gap: 2px; margin-top: var(--space-2); }
+.sidebar-footer-version { font-size: 10px; color: var(--text-muted); }
+.sidebar-footer-link { font-size: 10px; color: var(--text-muted); text-decoration: none; }
+.sidebar-footer-link:hover { color: var(--text-link); }
