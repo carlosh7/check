@@ -10256,6 +10256,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'tenants') this.loadTenants();
         if (tabName === 'bi') this.loadBiDashboard();
         if (tabName === 'push-adv') { this.loadPushTemplates(); this.loadScheduledPush(); this.fillPushSegmentEvents(); }
+        this.syncTabGroup('system', tabName);
         // F5: ecosistema
         if (tabName === 'api-keys') this.loadApiKeys();
         if (tabName === 'crm-sync') this.loadCrmConnections();
@@ -10707,6 +10708,27 @@ navigate(viewName, params = {}, push = true) {
     },
 
     
+    // ═══ F-UX v12.44.789: menú de secciones agrupado ═══
+    showTabGroup: function(scope, group) {
+        // Activar botón de grupo
+        document.querySelectorAll(`.tabs-group-btn[data-scope="${scope}"]`).forEach(b => {
+            b.classList.toggle('active', b.dataset.group === group);
+        });
+        // Mostrar solo su fila de secciones
+        document.querySelectorAll(`.tabs-children-row[data-scope="${scope}"]`).forEach(r => {
+            r.classList.toggle('hidden', r.dataset.group !== group);
+        });
+    },
+
+    syncTabGroup: function(scope, tabName) {
+        // Localizar en qué grupo vive el tab activo y abrir ese grupo
+        const btn = document.querySelector(`.tabs-children-row[data-scope="${scope}"] [data-tab="${tabName}"]`);
+        if (btn) {
+            const row = btn.closest('.tabs-children-row');
+            if (row && row.dataset.group) this.showTabGroup(scope, row.dataset.group);
+        }
+    },
+
     switchConfigTab(tabName) {
         const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-gamification', 'config-content-settings', 'config-content-categories', 'config-content-badge', 'config-content-sessions', 'config-content-seatmaps', 'config-content-google', 'config-content-plugins'];
         ALL_CONFIG_IDS.forEach(id => {
@@ -10738,6 +10760,7 @@ navigate(viewName, params = {}, push = true) {
 
         // Guardar pestaña activa en sessionStorage
         sessionStorage.setItem('active_config_tab', tabName);
+        this.syncTabGroup('config', tabName);
         
         // Actualizar estado guardado en sessionStorage si estamos en la vista 'event-config'
         try {

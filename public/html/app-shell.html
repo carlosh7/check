@@ -1,12 +1,12 @@
 <!-- FIX v12.44.786: links de estilos también en el fragmento (cubre acceso directo a /app-shell.html
      y la inyección en body — los navegadores aplican <link> presente en body) -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5"></script>
-<link rel="stylesheet" href="/css/modules/base.css?v=12.44.788">
-<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.788">
-<link rel="stylesheet" href="/css/modules/components.css?v=12.44.788">
-<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.788">
-<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.788">
-<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.788">
+<link rel="stylesheet" href="/css/modules/base.css?v=12.44.789">
+<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.789">
+<link rel="stylesheet" href="/css/modules/components.css?v=12.44.789">
+<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.789">
+<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.789">
+<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.789">
 <div id="app-container" class="app-container hidden" role="application" aria-label="Check Pro - Panel de administración">
     <a href="#app-main-content" class="skip-to-content">Saltar al contenido principal</a>
     <button id="hamburger-btn" class="hamburger-btn" onclick="document.getElementById('global-sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('active')" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="global-sidebar">☰</button>
@@ -69,7 +69,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.788</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.789</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -455,92 +455,102 @@
 
             <!-- VIEW: CONFIGURACIÓN DEL EVENTO -->
             <section id="view-event-config" class="view-section hidden" role="region" aria-label="Configuración del evento">
-                <div class="config-tabs">
-                    <button class="btn-secondary sub-nav-btn" data-tab="staff" onclick="App.switchConfigTab('staff')">
+                <div class="tabs-groups" id="config-tabs-groups">
+                    <button class="tabs-group-btn active" data-scope="config" data-group="participantes" onclick="App.showTabGroup('config','participantes')">👥 Participantes</button>
+                    <button class="tabs-group-btn" data-scope="config" data-group="experiencia" onclick="App.showTabGroup('config','experiencia')">✨ Experiencia</button>
+                    <button class="tabs-group-btn" data-scope="config" data-group="formato" onclick="App.showTabGroup('config','formato')">🏛️ Formato</button>
+                    <button class="tabs-group-btn" data-scope="config" data-group="comunicacion" onclick="App.showTabGroup('config','comunicacion')">📣 Comunicación</button>
+                    <button class="tabs-group-btn" data-scope="config" data-group="negocio" onclick="App.showTabGroup('config','negocio')">💼 Negocio</button>
+                    <button class="tabs-group-btn" data-scope="config" data-group="avanzado" onclick="App.showTabGroup('config','avanzado')">⚙️ Avanzado</button>
+                </div>
+                <div class="tabs-children" id="config-tabs-children">
+                    <div class="tabs-children-row" data-scope="config" data-group="participantes">
+<button class="btn-secondary sub-nav-btn" data-tab="staff" onclick="App.switchConfigTab('staff')">
                         <span class="material-symbols-outlined">person</span> Personal
                     </button>
-                    <button class="btn-secondary sub-nav-btn" data-tab="email" onclick="App.switchConfigTab('email')">
-                        <span class="material-symbols-outlined">mail</span> Mailing
-                    </button>
-                    <button class="btn-secondary sub-nav-btn" data-tab="agenda" onclick="App.switchConfigTab('agenda')">
-                        <span class="material-symbols-outlined">schedule</span> Agenda
-                    </button>
-                    <button class="btn-secondary sub-nav-btn" data-tab="wheel" onclick="App.switchConfigTab('wheel')">
-                        <span class="material-symbols-outlined">casino</span> Sorteos
-                    </button>
-                    <button class="btn-secondary sub-nav-btn" data-tab="pre-registrations" onclick="App.switchConfigTab('pre-registrations')">
+<button class="btn-secondary sub-nav-btn" data-tab="pre-registrations" onclick="App.switchConfigTab('pre-registrations')">
                         <span class="material-symbols-outlined">how_to_reg</span> Pre-Reg
                     </button>
-                    <button class="btn-secondary sub-nav-btn" data-tab="surveys" onclick="App.switchConfigTab('surveys')">
-                        <span class="material-symbols-outlined">poll</span> Encuestas
-                    </button>
-                    <button class="btn-secondary sub-nav-btn" data-tab="gamification" onclick="App.switchConfigTab('gamification')">
-                        <span class="material-symbols-outlined">celebration</span> Gamificación
-                    </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="settings" onclick="App.switchConfigTab('settings')">
-                            <span class="material-symbols-outlined">settings</span> Ajustes
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="categories" onclick="App.switchConfigTab('categories')">
+<button class="btn-secondary sub-nav-btn" data-tab="categories" onclick="App.switchConfigTab('categories')">
                             <span class="material-symbols-outlined">category</span> Categor&iacute;as
                         </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="badge" onclick="App.switchConfigTab('badge')">
-                            <span class="material-symbols-outlined">badge</span> Gafete
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="sessions" onclick="App.switchConfigTab('sessions')">
-                            <span class="material-symbols-outlined">live_help</span> Sesiones
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="seatmaps" onclick="App.switchConfigTab('seatmaps')">
-                            <span class="material-symbols-outlined">event_seat</span> Planos
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="google" onclick="App.switchConfigTab('google')">
-                            <span class="material-symbols-outlined">table_chart</span> Google Sheets
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="branding" onclick="App.switchConfigTab('branding')">
-                            <span class="material-symbols-outlined">palette</span> Branding
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="plugins" onclick="App.switchConfigTab('plugins')">
-                            <span class="material-symbols-outlined">puzzle</span> Plugins
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="budget" onclick="App.switchConfigTab('budget')">
-                            <span class="material-symbols-outlined">receipt</span> Presupuesto
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="speakers" onclick="App.switchConfigTab('speakers')">
-                            <span class="material-symbols-outlined">mic</span> Ponentes
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="proposals" onclick="App.switchConfigTab('proposals')">
-                            <span class="material-symbols-outlined">lightbulb</span> Propuestas
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="automation" onclick="App.switchConfigTab('automation')">
-                            <span class="material-symbols-outlined">smart_toy</span> Automatizaciones
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="coupons" onclick="App.switchConfigTab('coupons')">
-                            <span class="material-symbols-outlined">confirmation_number</span> Cupones
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="network" onclick="App.switchConfigTab('network')">
-                            <span class="material-symbols-outlined">diversity_3</span> Networking
-                        </button>
-                        <!-- F2: módulos conectados al backend huérfano -->
-                        <button class="btn-secondary sub-nav-btn" data-tab="intelligence" onclick="App.switchConfigTab('intelligence')">
-                            <span class="material-symbols-outlined">psychology</span> Inteligencia
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="certificates" onclick="App.switchConfigTab('certificates')">
-                            <span class="material-symbols-outlined">workspace_premium</span> Certificados
-                        </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="reg-fields" onclick="App.switchConfigTab('reg-fields')">
+<button class="btn-secondary sub-nav-btn" data-tab="reg-fields" onclick="App.switchConfigTab('reg-fields')">
                             <span class="material-symbols-outlined">dynamic_form</span> Formulario
                         </button>
-                        <button class="btn-secondary sub-nav-btn" data-tab="sponsors" onclick="App.switchConfigTab('sponsors')">
-                            <span class="material-symbols-outlined">storefront</span> Sponsors
+<button class="btn-secondary sub-nav-btn" data-tab="network" onclick="App.switchConfigTab('network')">
+                            <span class="material-symbols-outlined">diversity_3</span> Networking
                         </button>
                     </div>
-
-                <div id="config-action-bar" class="action-bar">
-                    <button id="btn-config-staff-new" onclick="App.quickRegisterStaff()" class="btn-primary">
-                        <span class="material-symbols-outlined">person_add</span> +Staff
+                    <div class="tabs-children-row hidden" data-scope="config" data-group="experiencia">
+<button class="btn-secondary sub-nav-btn" data-tab="agenda" onclick="App.switchConfigTab('agenda')">
+                        <span class="material-symbols-outlined">schedule</span> Agenda
                     </button>
-                    <button id="btn-config-staff-edit" onclick="App.openStaffCarouselFromConfig()" class="btn-secondary">
-                        <span class="material-symbols-outlined">edit</span> Edición
+<button class="btn-secondary sub-nav-btn" data-tab="surveys" onclick="App.switchConfigTab('surveys')">
+                        <span class="material-symbols-outlined">poll</span> Encuestas
                     </button>
+<button class="btn-secondary sub-nav-btn" data-tab="wheel" onclick="App.switchConfigTab('wheel')">
+                        <span class="material-symbols-outlined">casino</span> Sorteos
+                    </button>
+<button class="btn-secondary sub-nav-btn" data-tab="gamification" onclick="App.switchConfigTab('gamification')">
+                        <span class="material-symbols-outlined">celebration</span> Gamificación
+                    </button>
+<button class="btn-secondary sub-nav-btn" data-tab="certificates" onclick="App.switchConfigTab('certificates')">
+                            <span class="material-symbols-outlined">workspace_premium</span> Certificados
+                        </button>
+                    </div>
+                    <div class="tabs-children-row hidden" data-scope="config" data-group="formato">
+<button class="btn-secondary sub-nav-btn" data-tab="sessions" onclick="App.switchConfigTab('sessions')">
+                            <span class="material-symbols-outlined">live_help</span> Sesiones
+                        </button>
+<button class="btn-secondary sub-nav-btn" data-tab="seatmaps" onclick="App.switchConfigTab('seatmaps')">
+                            <span class="material-symbols-outlined">event_seat</span> Planos
+                        </button>
+<button class="btn-secondary sub-nav-btn" data-tab="badge" onclick="App.switchConfigTab('badge')">
+                            <span class="material-symbols-outlined">badge</span> Gafete
+                        </button>
+<button class="btn-secondary sub-nav-btn" data-tab="speakers" onclick="App.switchConfigTab('speakers')">
+                            <span class="material-symbols-outlined">mic</span> Ponentes
+                        </button>
+<button class="btn-secondary sub-nav-btn" data-tab="branding" onclick="App.switchConfigTab('branding')">
+                            <span class="material-symbols-outlined">palette</span> Branding
+                        </button>
+                    </div>
+                    <div class="tabs-children-row hidden" data-scope="config" data-group="comunicacion">
+<button class="btn-secondary sub-nav-btn" data-tab="email" onclick="App.switchConfigTab('email')">
+                        <span class="material-symbols-outlined">mail</span> Mailing
+                    </button>
+<button class="btn-secondary sub-nav-btn" data-tab="automation" onclick="App.switchConfigTab('automation')">
+                            <span class="material-symbols-outlined">smart_toy</span> Automatizaciones
+                        </button>
+                    </div>
+                    <div class="tabs-children-row hidden" data-scope="config" data-group="negocio">
+<button class="btn-secondary sub-nav-btn" data-tab="budget" onclick="App.switchConfigTab('budget')">
+                            <span class="material-symbols-outlined">receipt</span> Presupuesto
+                        </button>
+<button class="btn-secondary sub-nav-btn" data-tab="coupons" onclick="App.switchConfigTab('coupons')">
+                            <span class="material-symbols-outlined">confirmation_number</span> Cupones
+                        </button>
+<button class="btn-secondary sub-nav-btn" data-tab="sponsors" onclick="App.switchConfigTab('sponsors')">
+                            <span class="material-symbols-outlined">storefront</span> Sponsors
+                        </button>
+<button class="btn-secondary sub-nav-btn" data-tab="google" onclick="App.switchConfigTab('google')">
+                            <span class="material-symbols-outlined">table_chart</span> Google Sheets
+                        </button>
+<button class="btn-secondary sub-nav-btn" data-tab="proposals" onclick="App.switchConfigTab('proposals')">
+                            <span class="material-symbols-outlined">lightbulb</span> Propuestas
+                        </button>
+                    </div>
+                    <div class="tabs-children-row hidden" data-scope="config" data-group="avanzado">
+<button class="btn-secondary sub-nav-btn" data-tab="settings" onclick="App.switchConfigTab('settings')">
+                            <span class="material-symbols-outlined">settings</span> Ajustes
+                        </button>
+<button class="btn-secondary sub-nav-btn" data-tab="intelligence" onclick="App.switchConfigTab('intelligence')">
+                            <span class="material-symbols-outlined">psychology</span> Inteligencia
+                        </button>
+<button class="btn-secondary sub-nav-btn" data-tab="plugins" onclick="App.switchConfigTab('plugins')">
+                            <span class="material-symbols-outlined">puzzle</span> Plugins
+                        </button>
+                    </div>
                 </div>
 
                 <div class="event-info">
@@ -2071,69 +2081,84 @@
             <!-- VIEW: SISTEMA (UNIFIED HUB) -->
             <section id="view-system" class="hidden space-y-6 animate-fade-in" role="region" aria-label="Configuración del sistema">
                     <div class="sticky-header-container sticky-header-custom">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="groups" onclick="App.switchSystemTab('groups')">
-                            <span class="material-symbols-outlined text-base">business</span> Empresas
-                        </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="users" onclick="App.switchSystemTab('users')">
+                    <div class="tabs-groups" id="system-tabs-groups">
+                        <button class="tabs-group-btn active" data-scope="system" data-group="equipo" onclick="App.showTabGroup('system','equipo')">👥 Equipo y Acceso</button>
+                        <button class="tabs-group-btn" data-scope="system" data-group="datos" onclick="App.showTabGroup('system','datos')">🗂️ Datos y Legal</button>
+                        <button class="tabs-group-btn" data-scope="system" data-group="comunicacion" onclick="App.showTabGroup('system','comunicacion')">📣 Comunicación</button>
+                        <button class="tabs-group-btn" data-scope="system" data-group="integraciones" onclick="App.showTabGroup('system','integraciones')">🔗 Integraciones</button>
+                        <button class="tabs-group-btn" data-scope="system" data-group="inteligencia" onclick="App.showTabGroup('system','inteligencia')">📊 Inteligencia</button>
+                    </div>
+                    <div class="tabs-children" id="system-tabs-children">
+                        <div class="tabs-children-row" data-scope="system" data-group="equipo">
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="users" onclick="App.switchSystemTab('users')">
                             <span class="material-symbols-outlined text-base">group</span> Equipo
                         </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="clients" onclick="App.switchSystemTab('clients')">
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="groups" onclick="App.switchSystemTab('groups')">
+                            <span class="material-symbols-outlined text-base">business</span> Empresas
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="clients" onclick="App.switchSystemTab('clients')">
                             <span class="material-symbols-outlined text-base">contacts</span> Clientes
                         </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="email" onclick="App.switchSystemTab('email')">
-                            <span class="material-symbols-outlined text-base">mail</span> Email
-                        </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="legal" onclick="App.switchSystemTab('legal')">
-                            <span class="material-symbols-outlined text-base">description</span> Legales
-                        </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="account" onclick="App.switchSystemTab('account')">
-                            <span class="material-symbols-outlined text-base">person</span> Perfil
-                        </button>
-                        <button id="sys-nav-db" class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="db" onclick="App.switchSystemTab('db')">
-                            <span class="material-symbols-outlined text-base">storage</span> DB
-                        </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="activity" onclick="App.switchSystemTab('activity')">
-                            <span class="material-symbols-outlined text-base">history</span> Actividad
-                        </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="ai-security" onclick="App.switchSystemTab('ai-security')">
-                            <span class="material-symbols-outlined text-base">security</span> Seguridad IA
-                        </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="compliance" onclick="App.switchSystemTab('compliance')">
-                            <span class="material-symbols-outlined text-base">verified_user</span> Compliance
-                        </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="google" onclick="App.switchSystemTab('google')">
-                            <span class="material-symbols-outlined text-base">table_chart</span> Google Sheets
-                        </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="venues" onclick="App.switchSystemTab('venues')">
-                            <span class="material-symbols-outlined text-base">location_on</span> Espacios
-                        </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="webhooks" onclick="App.switchSystemTab('webhooks')">
-                            <span class="material-symbols-outlined text-base">webhook</span> Webhooks
-                        </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="sms" onclick="App.switchSystemTab('sms')">
-                            <span class="material-symbols-outlined text-base">sms</span> SMS
-                        </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="whatsapp" onclick="App.switchSystemTab('whatsapp')">
-                            <span class="material-symbols-outlined text-base">chat</span> WhatsApp
-                        </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="tenants" onclick="App.switchSystemTab('tenants')">
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="tenants" onclick="App.switchSystemTab('tenants')">
                             <span class="material-symbols-outlined text-base">business</span> Tenants
                         </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="bi" onclick="App.switchSystemTab('bi')">
-                            <span class="material-symbols-outlined text-base">monitoring</span> BI
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="account" onclick="App.switchSystemTab('account')">
+                            <span class="material-symbols-outlined text-base">person</span> Perfil
                         </button>
-                        <!-- F2: Push avanzado (templates, programadas, segmentado) -->
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="push-adv" onclick="App.switchSystemTab('push-adv')">
+                        </div>
+                        <div class="tabs-children-row hidden" data-scope="system" data-group="datos">
+<button id="sys-nav-db" class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="db" onclick="App.switchSystemTab('db')">
+                            <span class="material-symbols-outlined text-base">storage</span> DB
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="legal" onclick="App.switchSystemTab('legal')">
+                            <span class="material-symbols-outlined text-base">description</span> Legales
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="compliance" onclick="App.switchSystemTab('compliance')">
+                            <span class="material-symbols-outlined text-base">verified_user</span> Compliance
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="activity" onclick="App.switchSystemTab('activity')">
+                            <span class="material-symbols-outlined text-base">history</span> Actividad
+                        </button>
+                        </div>
+                        <div class="tabs-children-row hidden" data-scope="system" data-group="comunicacion">
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="email" onclick="App.switchSystemTab('email')">
+                            <span class="material-symbols-outlined text-base">mail</span> Email
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="push-adv" onclick="App.switchSystemTab('push-adv')">
                             <span class="material-symbols-outlined text-base">notifications_active</span> Push
                         </button>
-                        <!-- F5: Ecosistema -->
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="api-keys" onclick="App.switchSystemTab('api-keys')">
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="sms" onclick="App.switchSystemTab('sms')">
+                            <span class="material-symbols-outlined text-base">sms</span> SMS
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="whatsapp" onclick="App.switchSystemTab('whatsapp')">
+                            <span class="material-symbols-outlined text-base">chat</span> WhatsApp
+                        </button>
+                        </div>
+                        <div class="tabs-children-row hidden" data-scope="system" data-group="integraciones">
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="google" onclick="App.switchSystemTab('google')">
+                            <span class="material-symbols-outlined text-base">table_chart</span> Google Sheets
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="venues" onclick="App.switchSystemTab('venues')">
+                            <span class="material-symbols-outlined text-base">location_on</span> Espacios
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="webhooks" onclick="App.switchSystemTab('webhooks')">
+                            <span class="material-symbols-outlined text-base">webhook</span> Webhooks
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="api-keys" onclick="App.switchSystemTab('api-keys')">
                             <span class="material-symbols-outlined text-base">key</span> API Keys
                         </button>
-                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="crm-sync" onclick="App.switchSystemTab('crm-sync')">
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="crm-sync" onclick="App.switchSystemTab('crm-sync')">
                             <span class="material-symbols-outlined text-base">sync_alt</span> CRM
                         </button>
+                        </div>
+                        <div class="tabs-children-row hidden" data-scope="system" data-group="inteligencia">
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="bi" onclick="App.switchSystemTab('bi')">
+                            <span class="material-symbols-outlined text-base">monitoring</span> BI
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="ai-security" onclick="App.switchSystemTab('ai-security')">
+                            <span class="material-symbols-outlined text-base">security</span> Seguridad IA
+                        </button>
+                        </div>
                     </div>
                     </div>
 

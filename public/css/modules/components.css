@@ -327,3 +327,25 @@
   scrollbar-width: thin;
 }
 .config-tabs .sub-nav-btn, .system-tabs .sub-nav-btn { flex-shrink: 0; }
+
+/* ═══ MENÚ DE SECCIONES AGRUPADO (F-UX v12.44.789) ═══ */
+.tabs-groups {
+  display: flex; align-items: center; gap: var(--space-1);
+  flex-wrap: wrap; margin-bottom: var(--space-2);
+  padding: var(--space-1); background: var(--bg-card);
+  border: 1px solid var(--border-card); border-radius: var(--radius-xl);
+}
+.tabs-group-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 14px; border-radius: var(--radius-lg);
+  font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);
+  background: transparent; border: none; cursor: pointer;
+  transition: all var(--duration-fast) var(--ease); white-space: nowrap;
+}
+.tabs-group-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.tabs-group-btn.active { background: var(--accent-light); color: var(--accent); }
+.tabs-children-row {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: var(--space-2) var(--space-1);
+}
+.tabs-children-row.hidden { display: none; }
