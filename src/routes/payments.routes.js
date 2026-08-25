@@ -11,7 +11,7 @@ const { limiters } = require('../middleware/rate-limiter');
 
 const router = express.Router();
 
-var checkoutSessionSchema = z.object({
+const checkoutSessionSchema = z.object({
     name: z.string().min(1, 'Nombre requerido').max(200),
     email: z.string().email('Email inválido'),
     items: z.array(z.object({
@@ -23,7 +23,7 @@ var checkoutSessionSchema = z.object({
     cancel_url: z.string().url().optional().or(z.literal(''))
 });
 
-var checkoutSchema = z.object({
+const checkoutSchema = z.object({
     name: z.string().min(1, 'Nombre requerido').max(200),
     email: z.string().email('Email inválido'),
     category_id: z.string().min(1, 'Categoría requerida')
@@ -38,40 +38,40 @@ const stripe = stripeKey ? require('stripe')(stripeKey) : null;
 
 router.post('/events/:eventId/checkout-session', (req, res) => {
     try {
-        var event = db.prepare("SELECT * FROM events WHERE id = ?").get(req.params.eventId);
+        const event = db.prepare("SELECT * FROM events WHERE id = ?").get(req.params.eventId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         if (!event.payment_required) return res.status(400).json({ error: 'Este evento no requiere pago' });
 
-        var parsed = checkoutSessionSchema.safeParse(req.body);
+        const parsed = checkoutSessionSchema.safeParse(req.body);
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
         }
-        var { name, email, items, coupon_code, success_url, cancel_url } = parsed.data;
+        const { name, email, items, coupon_code, success_url, cancel_url } = parsed.data;
 
         // Validate all items and build line_items for Stripe
-        var lineItems = [];
-        var totalAmount = 0;
-        var categoriesUsed = [];
-        var discountAmount = 0;
+        const lineItems = [];
+        let totalAmount = 0;
+        const categoriesUsed = [];
+        let discountAmount = 0;
 
-        for (var i = 0; i < items.length; i++) {
-            var item = items[i];
-            var cat = db.prepare("SELECT * FROM guest_categories WHERE id = ? AND event_id = ?").get(item.category_id, req.params.eventId);
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const cat = db.prepare("SELECT * FROM guest_categories WHERE id = ? AND event_id = ?").get(item.category_id, req.params.eventId);
             if (!cat) return res.status(400).json({ error: 'Categoría ' + item.category_id + ' no encontrada' });
             if (!cat.price || cat.price <= 0) return res.status(400).json({ error: cat.name + ' no tiene precio' });
-            var qty = parseInt(item.quantity) || 1;
+            const qty = parseInt(item.quantity) || 1;
             lineItems.push({
                 price_data: { currency: (event.currency || 'USD').toLowerCase(), product_data: { name: cat.name }, unit_amount: Math.round(cat.price * 100) },
                 quantity: qty
             });
             totalAmount += cat.price * qty;
-            for (var j = 0; j < qty; j++) categoriesUsed.push(cat.id);
+            for (let j = 0; j < qty; j++) categoriesUsed.push(cat.id);
         }
 
         // Apply coupon if provided
-        var appliedCouponId = null;
+        let appliedCouponId = null;
         if (coupon_code) {
-            var coupon = db.prepare("SELECT * FROM coupons WHERE event_id = ? AND code = UPPER(?) AND is_active = 1").get(req.params.eventId, coupon_code);
+            const coupon = db.prepare("SELECT * FROM coupons WHERE event_id = ? AND code = UPPER(?) AND is_active = 1").get(req.params.eventId, coupon_code);
             if (!coupon) return res.status(400).json({ error: 'Cupón no válido' });
             if (coupon.max_uses > 0 && coupon.current_uses >= coupon.max_uses) return res.status(400).json({ error: 'Cupón agotado' });
             if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return res.status(400).json({ error: 'Cupón expirado' });
@@ -82,16 +82,16 @@ router.post('/events/:eventId/checkout-session', (req, res) => {
             db.prepare("UPDATE coupons SET current_uses = current_uses + 1 WHERE id = ?").run(coupon.id);
         }
 
-        var finalAmount = Math.max(0, totalAmount - discountAmount);
-        var transactionId = uuidv4();
-        var currency = (event.currency || 'USD').toLowerCase();
+        const finalAmount = Math.max(0, totalAmount - discountAmount);
+        const transactionId = uuidv4();
+        const currency = (event.currency || 'USD').toLowerCase();
         db.prepare("INSERT INTO transactions (id, event_id, amount, currency, provider, status, guest_name, guest_email, metadata_json, created_at) VALUES (?, ?, ?, ?, 'stripe', 'pending', ?, ?, ?, ?)").run(
             transactionId, req.params.eventId, finalAmount, event.currency || 'USD', name, email, JSON.stringify({ items: items, categories: categoriesUsed, coupon: coupon_code, discount: discountAmount }), new Date().toISOString()
         );
 
-        var baseUrl = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host');
-        var sUrl = success_url || baseUrl + '/registro.html?event=' + req.params.eventId + '&txn=' + transactionId + '&success=1&cart=1';
-        var cUrl = cancel_url || baseUrl + '/registro.html?event=' + req.params.eventId + '&cancel=1';
+        const baseUrl = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host');
+        const sUrl = success_url || baseUrl + '/registro.html?event=' + req.params.eventId + '&txn=' + transactionId + '&success=1&cart=1';
+        const cUrl = cancel_url || baseUrl + '/registro.html?event=' + req.params.eventId + '&cancel=1';
 
         stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -114,23 +114,23 @@ router.post('/events/:eventId/checkout-session', (req, res) => {
 
 router.post('/events/:eventId/checkout', (req, res) => {
     try {
-        var event = db.prepare("SELECT * FROM events WHERE id = ?").get(req.params.eventId);
+        const event = db.prepare("SELECT * FROM events WHERE id = ?").get(req.params.eventId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         if (!event.payment_required) return res.status(400).json({ error: 'Este evento no requiere pago' });
 
-        var parsed = checkoutSchema.safeParse(req.body);
+        const parsed = checkoutSchema.safeParse(req.body);
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
         }
-        var { name, email, category_id } = parsed.data;
+        const { name, email, category_id } = parsed.data;
 
-        var category = db.prepare("SELECT * FROM guest_categories WHERE id = ? AND event_id = ?").get(category_id, req.params.eventId);
+        const category = db.prepare("SELECT * FROM guest_categories WHERE id = ? AND event_id = ?").get(category_id, req.params.eventId);
         if (!category) return res.status(400).json({ error: 'Categoría no encontrada' });
         if (!category.price || category.price <= 0) return res.status(400).json({ error: 'Esta categoría no tiene precio configurado' });
 
-        var transactionId = uuidv4();
-        var amount = Math.round(category.price * 100); // cents
-        var currency = (event.currency || 'USD').toLowerCase();
+        const transactionId = uuidv4();
+        const amount = Math.round(category.price * 100); // cents
+        const currency = (event.currency || 'USD').toLowerCase();
 
         db.prepare("INSERT INTO transactions (id, event_id, category_id, amount, currency, provider, status, guest_name, guest_email, created_at) VALUES (?, ?, ?, ?, ?, 'stripe', 'pending', ?, ?, ?)").run(
             transactionId, req.params.eventId, category_id, category.price, event.currency || 'USD', name, email, new Date().toISOString()
@@ -160,8 +160,8 @@ router.post('/events/:eventId/checkout', (req, res) => {
 // ── Webhook Stripe ──
 
 router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
-    var sig = req.headers['stripe-signature'];
-    var endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const sig = req.headers['stripe-signature'];
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!endpointSecret) return res.status(500).json({ error: 'Stripe webhook secret no configurado' });
 
     try {
@@ -171,12 +171,12 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
         return res.status(400).send('Signature verification failed');
     }
 
-    var eventData = event2.data.object;
-    var meta = eventData.metadata || {};
+    const eventData = event2.data.object;
+    const meta = eventData.metadata || {};
 
     // Handle checkout.session.completed (Stripe Checkout)
     function createGuestFromTxn(txn, catId, now, eventDb) {
-        var gId = uuidv4(); var qrT = uuidv4().replace(/-/g, '').slice(0, 12);
+        const gId = uuidv4(); const qrT = uuidv4().replace(/-/g, '').slice(0, 12);
         eventDb.prepare("INSERT INTO guests (id, event_id, name, email, category_id, qr_token, is_new_registration, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, 'confirmed', ?)").run(gId, txn.event_id, txn.guest_name, txn.guest_email, catId || txn.category_id, qrT, now);
         return gId;
     }
@@ -189,19 +189,19 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
                 var now = new Date().toISOString();
                 db.prepare("UPDATE transactions SET status = 'completed', completed_at = ?, metadata_json = ? WHERE id = ?").run(now, JSON.stringify(event2), txnId);
                 var eventDb = getEventDb(txn.event_id);
-                var firstGuestId = null;
+                let firstGuestId = null;
 
                 // Check if cart (multiple items) or single item
-                var meta2 = {};
+                let meta2 = {};
                 try { meta2 = JSON.parse(txn.metadata_json || '{}'); if (typeof meta2 === 'string') meta2 = JSON.parse(meta2); } catch(e) { meta2 = {}; }
-                var cartItems = (meta2 && meta2.categories) || (meta2.data && meta2.data.object && meta2.data.object.metadata);
+                const cartItems = (meta2 && meta2.categories) || (meta2.data && meta2.data.object && meta2.data.object.metadata);
 
                 if (txn.metadata_json) {
                     try {
-                        var parsed = JSON.parse(txn.metadata_json);
-                        var cats = parsed.categories || [];
+                        const parsed = JSON.parse(txn.metadata_json);
+                        const cats = parsed.categories || [];
                         cats.forEach(function(catId) {
-                            var gId = createGuestFromTxn(txn, catId, now, eventDb);
+                            const gId = createGuestFromTxn(txn, catId, now, eventDb);
                             if (!firstGuestId) firstGuestId = gId;
                         });
                     } catch(e) { logger.error('[PAYMENTS] Error procesando categorías: ' + e.message); }
@@ -223,15 +223,15 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
         var txnId = meta.transaction_id;
 
         if (txnId) {
-            var txn = db.prepare("SELECT * FROM transactions WHERE id = ?").get(txnId);
+            txn = db.prepare("SELECT * FROM transactions WHERE id = ?").get(txnId);
             if (txn && txn.status === 'pending') {
-                var now = new Date().toISOString();
+                now = new Date().toISOString();
                 db.prepare("UPDATE transactions SET status = 'completed', completed_at = ?, metadata_json = ? WHERE id = ?").run(now, JSON.stringify(event2), txnId);
 
                 // Crear guest
-                var guestId = uuidv4();
-                var qrToken = uuidv4().replace(/-/g, '').slice(0, 12);
-                var eventDb = getEventDb(txn.event_id);
+                const guestId = uuidv4();
+                const qrToken = uuidv4().replace(/-/g, '').slice(0, 12);
+                eventDb = getEventDb(txn.event_id);
                 eventDb.prepare("INSERT INTO guests (id, event_id, name, email, category_id, qr_token, is_new_registration, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, 'confirmed', ?)").run(
                     guestId, txn.event_id, txn.guest_name, txn.guest_email, txn.category_id, qrToken, now
                 );
@@ -252,14 +252,14 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
 
 router.get('/events/:eventId/transactions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var txs = db.prepare("SELECT * FROM transactions WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
+        const txs = db.prepare("SELECT * FROM transactions WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         res.json(txs);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.get('/transactions/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var txn = db.prepare("SELECT * FROM transactions WHERE id = ?").get(req.params.id);
+        const txn = db.prepare("SELECT * FROM transactions WHERE id = ?").get(req.params.id);
         if (!txn) return res.status(404).json({ error: 'Transacción no encontrada' });
         res.json(txn);
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -269,15 +269,15 @@ router.get('/transactions/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
 
 router.get('/transactions/:id/receipt', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
-        var txn = db.prepare("SELECT t.*, e.name as event_name, e.date as event_date, e.location as event_location FROM transactions t JOIN events e ON t.event_id = e.id WHERE t.id = ?").get(req.params.id);
+        const txn = db.prepare("SELECT t.*, e.name as event_name, e.date as event_date, e.location as event_location FROM transactions t JOIN events e ON t.event_id = e.id WHERE t.id = ?").get(req.params.id);
         if (!txn) return res.status(404).json({ error: 'Transacción no encontrada' });
 
-        var { jsPDF } = require('jspdf');
-        var autoTable = require('jspdf-autotable').default;
-        var doc = new jsPDF();
+        const { jsPDF } = require('jspdf');
+        const autoTable = require('jspdf-autotable').default;
+        const doc = new jsPDF();
 
         // Colors
-        var primary = [124, 58, 237];
+        const primary = [124, 58, 237];
         doc.setFillColor(primary[0], primary[1], primary[2]);
         doc.rect(0, 0, 210, 35, 'F');
         doc.setTextColor(255, 255, 255);
@@ -332,9 +332,9 @@ router.get('/events/:eventId/coupons', authMiddleware(['ADMIN', 'PRODUCTOR']), (
 
 router.post('/events/:eventId/coupons', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { code, discount_type, discount_value, max_uses, expires_at } = req.body;
+        const { code, discount_type, discount_value, max_uses, expires_at } = req.body;
         if (!code || !discount_value) return res.status(400).json({ error: 'Código y valor requeridos' });
-        var id = require('uuid').v4();
+        const id = require('uuid').v4();
         db.prepare("INSERT INTO coupons (id, event_id, code, discount_type, discount_value, max_uses, expires_at) VALUES (?, ?, UPPER(?), ?, ?, ?, ?)").run(id, req.params.eventId, code, discount_type || 'percentage', parseFloat(discount_value) || 0, parseInt(max_uses) || 0, expires_at || null);
         res.json({ success: true, id: id });
     } catch(err) {
@@ -348,7 +348,7 @@ router.post('/events/:eventId/coupons', authMiddleware(['ADMIN', 'PRODUCTOR']), 
 
 router.put('/events/:eventId/coupons/:couponId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var d = req.body;
+        const d = req.body;
         db.prepare("UPDATE coupons SET code = COALESCE(UPPER(?), code), discount_type = COALESCE(?, discount_type), discount_value = COALESCE(?, discount_value), max_uses = COALESCE(?, max_uses), expires_at = COALESCE(?, expires_at), is_active = COALESCE(?, is_active) WHERE id = ? AND event_id = ?").run(
             d.code || null, d.discount_type || null, d.discount_value != null ? parseFloat(d.discount_value) : null, d.max_uses != null ? parseInt(d.max_uses) : null, d.expires_at || null, d.is_active !== undefined ? (d.is_active ? 1 : 0) : null, req.params.couponId, req.params.eventId
         );
@@ -363,22 +363,22 @@ router.delete('/events/:eventId/coupons/:couponId', authMiddleware(['ADMIN', 'PR
 // Validate and apply coupon (public)
 router.post('/events/:eventId/coupons/validate', (req, res) => {
     try {
-        var { code, items } = req.body;
+        const { code, items } = req.body;
         if (!code) return res.json({ valid: false, error: 'Código requerido' });
-        var coupon = db.prepare("SELECT * FROM coupons WHERE event_id = ? AND code = UPPER(?) AND is_active = 1").get(req.params.eventId, code);
+        const coupon = db.prepare("SELECT * FROM coupons WHERE event_id = ? AND code = UPPER(?) AND is_active = 1").get(req.params.eventId, code);
         if (!coupon) return res.json({ valid: false, error: 'Cupón no válido' });
         if (coupon.max_uses > 0 && coupon.current_uses >= coupon.max_uses) return res.json({ valid: false, error: 'Cupón agotado' });
         if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return res.json({ valid: false, error: 'Cupón expirado' });
 
-        var total = 0;
+        let total = 0;
         if (items && Array.isArray(items)) {
             items.forEach(function(item) {
-                var cat = db.prepare("SELECT price FROM guest_categories WHERE id = ? AND event_id = ?").get(item.category_id, req.params.eventId);
+                const cat = db.prepare("SELECT price FROM guest_categories WHERE id = ? AND event_id = ?").get(item.category_id, req.params.eventId);
                 if (cat) total += (cat.price || 0) * (parseInt(item.quantity) || 1);
             });
         }
 
-        var discount = 0;
+        let discount = 0;
         if (coupon.discount_type === 'percentage') discount = total * (coupon.discount_value / 100);
         else discount = Math.min(coupon.discount_value, total);
 

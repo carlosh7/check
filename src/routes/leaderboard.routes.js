@@ -12,8 +12,8 @@ const router = express.Router();
 
 router.get('/:eventId', (req, res) => {
     try {
-        var top = parseInt(req.query.top) || 50;
-        var leaderboard = db.prepare(`
+        const top = parseInt(req.query.top) || 50;
+        const leaderboard = db.prepare(`
             SELECT lb.guest_id, g.name as guest_name, g.organization, lb.points,
                    (SELECT COUNT(*) FROM guest_badges gb WHERE gb.guest_id = lb.guest_id) as badges_count
             FROM leaderboard lb
@@ -30,9 +30,9 @@ router.get('/:eventId', (req, res) => {
 
 router.get('/:eventId/guest/:guestId', (req, res) => {
     try {
-        var entry = db.prepare("SELECT *, (SELECT COUNT(DISTINCT points) + 1 FROM leaderboard WHERE event_id = ? AND points > lb.points) as rank FROM leaderboard lb WHERE event_id = ? AND guest_id = ?").get(req.params.eventId, req.params.eventId, req.params.guestId);
+        const entry = db.prepare("SELECT *, (SELECT COUNT(DISTINCT points) + 1 FROM leaderboard WHERE event_id = ? AND points > lb.points) as rank FROM leaderboard lb WHERE event_id = ? AND guest_id = ?").get(req.params.eventId, req.params.eventId, req.params.guestId);
         if (!entry) return res.json({ points: 0, rank: null, badgesCount: 0 });
-        var badgesCount = db.prepare("SELECT COUNT(*) as c FROM guest_badges gb JOIN badges b ON b.id = gb.badge_id WHERE b.event_id = ? AND gb.guest_id = ?").get(req.params.eventId, req.params.guestId).c;
+        const badgesCount = db.prepare("SELECT COUNT(*) as c FROM guest_badges gb JOIN badges b ON b.id = gb.badge_id WHERE b.event_id = ? AND gb.guest_id = ?").get(req.params.eventId, req.params.guestId).c;
         entry.badgesCount = badgesCount;
         res.json(entry);
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
@@ -42,7 +42,7 @@ router.get('/:eventId/guest/:guestId', (req, res) => {
 
 router.get('/:eventId/guest/:guestId/history', (req, res) => {
     try {
-        var history = db.prepare("SELECT * FROM point_history WHERE event_id = ? AND guest_id = ? ORDER BY created_at DESC LIMIT 100").all(req.params.eventId, req.params.guestId);
+        const history = db.prepare("SELECT * FROM point_history WHERE event_id = ? AND guest_id = ? ORDER BY created_at DESC LIMIT 100").all(req.params.eventId, req.params.guestId);
         res.json(history);
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
@@ -51,16 +51,16 @@ router.get('/:eventId/guest/:guestId/history', (req, res) => {
 
 router.get('/:eventId/badges', (req, res) => {
     try {
-        var badges = db.prepare("SELECT *, (SELECT COUNT(*) FROM guest_badges gb WHERE gb.badge_id = b.id) as earned_count FROM badges b WHERE b.event_id = ? ORDER BY b.name ASC").all(req.params.eventId);
+        const badges = db.prepare("SELECT *, (SELECT COUNT(*) FROM guest_badges gb WHERE gb.badge_id = b.id) as earned_count FROM badges b WHERE b.event_id = ? ORDER BY b.name ASC").all(req.params.eventId);
         res.json(badges);
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
 router.post('/:eventId/badges', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { name, description, icon, criteria, points_reward } = req.body;
+        const { name, description, icon, criteria, points_reward } = req.body;
         if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre requerido' });
-        var id = uuidv4();
+        const id = uuidv4();
         db.prepare("INSERT INTO badges (id, event_id, name, description, icon, criteria, points_reward) VALUES (?, ?, ?, ?, ?, ?, ?)").run(
             id, req.params.eventId, name.trim(), description || '', icon || '🏆',
             criteria ? JSON.stringify(criteria) : null, points_reward || 0
@@ -81,7 +81,7 @@ router.delete('/:eventId/badges/:badgeId', authMiddleware(['ADMIN', 'PRODUCTOR']
 
 router.get('/:eventId/guest/:guestId/badges', (req, res) => {
     try {
-        var badges = db.prepare("SELECT b.*, gb.earned_at FROM guest_badges gb JOIN badges b ON b.id = gb.badge_id WHERE b.event_id = ? AND gb.guest_id = ? ORDER BY gb.earned_at DESC").all(req.params.eventId, req.params.guestId);
+        const badges = db.prepare("SELECT b.*, gb.earned_at FROM guest_badges gb JOIN badges b ON b.id = gb.badge_id WHERE b.event_id = ? AND gb.guest_id = ? ORDER BY gb.earned_at DESC").all(req.params.eventId, req.params.guestId);
         res.json(badges);
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });

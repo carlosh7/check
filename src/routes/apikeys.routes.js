@@ -59,12 +59,12 @@ router.get('/api/api-keys/scopes', authMiddleware(['ADMIN']), (req, res) => {
 
 router.post('/api/api-keys', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        var { name, permissions, scopes, expires_in_days } = req.body;
+        const { name, permissions, scopes, expires_in_days } = req.body;
         if (!name) return res.status(400).json({ error: 'Nombre requerido' });
-        var key = 'ck_' + crypto.randomBytes(32).toString('hex');
-        var id = uuidv4();
-        var scopesStr = Array.isArray(scopes) ? scopes.join(',') : (permissions || 'read');
-        var expiresAt = null;
+        const key = 'ck_' + crypto.randomBytes(32).toString('hex');
+        const id = uuidv4();
+        const scopesStr = Array.isArray(scopes) ? scopes.join(',') : (permissions || 'read');
+        let expiresAt = null;
         if (expires_in_days && typeof expires_in_days === 'number') {
             expiresAt = new Date(Date.now() + expires_in_days * 86400000).toISOString();
         }
@@ -117,9 +117,9 @@ router.delete('/api/api-keys/:id', authMiddleware(['ADMIN']), (req, res) => {
 // ─── PUBLIC API (authenticated via API key) ───
 
 function apiKeyAuth(req, res, next) {
-    var key = req.headers['x-api-key'];
+    const key = req.headers['x-api-key'];
     if (!key) return res.status(401).json({ error: 'API key requerida' });
-    var apiKey;
+    let apiKey;
     try {
         apiKey = db.prepare("SELECT * FROM api_keys WHERE key = ? AND is_active = 1 AND (expires_at IS NULL OR expires_at > datetime('now'))").get(key);
     } catch(e) {
@@ -156,14 +156,14 @@ function requireScope(scope) {
 
 router.get('/api/v1/events', apiKeyAuth, requireScope('events:read'), (req, res) => {
     try {
-        var events = db.prepare("SELECT id, name, date, location, status FROM events ORDER BY created_at DESC").all();
+        const events = db.prepare("SELECT id, name, date, location, status FROM events ORDER BY created_at DESC").all();
         res.json({ data: events, total: events.length });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 router.get('/api/v1/events/:id', apiKeyAuth, requireScope('events:read'), (req, res) => {
     try {
-        var event = db.prepare("SELECT id, name, date, end_date, location, description, status FROM events WHERE id = ?").get(req.params.id);
+        const event = db.prepare("SELECT id, name, date, end_date, location, description, status FROM events WHERE id = ?").get(req.params.id);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         res.json({ data: event });
     } catch(err) { res.status(500).json({ error: err.message }); }
@@ -171,16 +171,16 @@ router.get('/api/v1/events/:id', apiKeyAuth, requireScope('events:read'), (req, 
 
 router.get('/api/v1/events/:id/guests', apiKeyAuth, requireScope('guests:read'), (req, res) => {
     try {
-        var guests = db.prepare("SELECT id, name, email, organization, checked_in, checkin_time, created_at FROM guests WHERE event_id = ? ORDER BY name ASC").all(req.params.id);
+        const guests = db.prepare("SELECT id, name, email, organization, checked_in, checkin_time, created_at FROM guests WHERE event_id = ? ORDER BY name ASC").all(req.params.id);
         res.json({ data: guests, total: guests.length });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 router.get('/api/v1/analytics', apiKeyAuth, requireScope('analytics:read'), (req, res) => {
     try {
-        var totalEvents = db.prepare("SELECT COUNT(*) as c FROM events").get().c;
-        var totalGuests = db.prepare("SELECT COUNT(*) as c FROM guests").get().c;
-        var totalChecked = db.prepare("SELECT COUNT(*) as c FROM guests WHERE checked_in = 1").get().c;
+        const totalEvents = db.prepare("SELECT COUNT(*) as c FROM events").get().c;
+        const totalGuests = db.prepare("SELECT COUNT(*) as c FROM guests").get().c;
+        const totalChecked = db.prepare("SELECT COUNT(*) as c FROM guests WHERE checked_in = 1").get().c;
         res.json({ data: { totalEvents, totalGuests, totalChecked, conversionRate: totalGuests > 0 ? Math.round((totalChecked / totalGuests) * 100) : 0 } });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });

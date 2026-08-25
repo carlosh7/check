@@ -16,7 +16,7 @@ const createProposalSchema = z.object({
 // GET /api/events/:eventId/proposals — public
 router.get('/events/:eventId/proposals', (req, res) => {
     try {
-        var proposals = db.prepare("SELECT id, guest_name, title, description, votes, status, created_at FROM proposals WHERE event_id = ? AND status = 'approved' ORDER BY votes DESC, created_at DESC").all(req.params.eventId);
+        const proposals = db.prepare("SELECT id, guest_name, title, description, votes, status, created_at FROM proposals WHERE event_id = ? AND status = 'approved' ORDER BY votes DESC, created_at DESC").all(req.params.eventId);
         res.json(proposals);
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
@@ -28,8 +28,8 @@ router.post('/events/:eventId/proposals', (req, res) => {
         if (!result.success) {
             return res.status(400).json({ errors: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
         }
-        var { guest_name, guest_email, title, description } = result.data;
-        var id = uuidv4();
+        const { guest_name, guest_email, title, description } = result.data;
+        const id = uuidv4();
         db.prepare("INSERT INTO proposals (id, event_id, guest_name, guest_email, title, description) VALUES (?, ?, ?, ?, ?, ?)").run(
             id, req.params.eventId, guest_name, guest_email || '', title, description || ''
         );
@@ -41,7 +41,7 @@ router.post('/events/:eventId/proposals', (req, res) => {
 router.post('/events/:eventId/proposals/:id/vote', (req, res) => {
     try {
         db.prepare("UPDATE proposals SET votes = votes + 1 WHERE id = ? AND event_id = ?").run(req.params.id, req.params.eventId);
-        var p = db.prepare("SELECT votes FROM proposals WHERE id = ?").get(req.params.id);
+        const p = db.prepare("SELECT votes FROM proposals WHERE id = ?").get(req.params.id);
         res.json({ success: true, votes: p ? p.votes : 0 });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
@@ -49,7 +49,7 @@ router.post('/events/:eventId/proposals/:id/vote', (req, res) => {
 // GET /api/events/:eventId/proposals/admin — admin list all
 router.get('/events/:eventId/proposals/admin', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
-        var proposals = db.prepare("SELECT * FROM proposals WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
+        const proposals = db.prepare("SELECT * FROM proposals WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         res.json(proposals);
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
@@ -57,7 +57,7 @@ router.get('/events/:eventId/proposals/admin', authMiddleware(['ADMIN', 'PRODUCT
 // PUT /api/events/:eventId/proposals/:id — admin update status
 router.put('/events/:eventId/proposals/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { status } = req.body;
+        const { status } = req.body;
         if (!['pending', 'approved', 'rejected'].includes(status)) return res.status(400).json({ error: 'Estado inválido' });
         db.prepare("UPDATE proposals SET status = ? WHERE id = ? AND event_id = ?").run(status, req.params.id, req.params.eventId);
         res.json({ success: true });
@@ -77,24 +77,24 @@ router.delete('/events/:eventId/proposals/:id', authMiddleware(['ADMIN', 'PRODUC
 // Auto-moderate a proposal: suggest status based on content analysis
 router.post('/events/:eventId/proposals/:id/moderate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var proposal = db.prepare("SELECT * FROM proposals WHERE id = ? AND event_id = ?").get(req.params.id, req.params.eventId);
+        const proposal = db.prepare("SELECT * FROM proposals WHERE id = ? AND event_id = ?").get(req.params.id, req.params.eventId);
         if (!proposal) return res.status(404).json({ error: 'Propuesta no encontrada' });
 
-        var title = (proposal.title || '').toLowerCase();
-        var desc = (proposal.description || '').toLowerCase();
-        var combined = title + ' ' + desc;
+        const title = (proposal.title || '').toLowerCase();
+        const desc = (proposal.description || '').toLowerCase();
+        const combined = title + ' ' + desc;
 
         // Simple content analysis keywords
-        var positiveKeywords = ['taller', 'workshop', 'charla', 'conferencia', 'presentación', 'innovación', 'tecnología', 'experiencia', 'caso de éxito', 'demostración', 'práctica'];
-        var negativeKeywords = ['publicidad', 'venta', 'spam', 'comercial', 'promoción', 'irrelevante'];
-        var questionWords = ['¿', 'qué', 'cómo', 'cuándo', 'dónde', 'por qué', 'quién', 'cuál'];
+        const positiveKeywords = ['taller', 'workshop', 'charla', 'conferencia', 'presentación', 'innovación', 'tecnología', 'experiencia', 'caso de éxito', 'demostración', 'práctica'];
+        const negativeKeywords = ['publicidad', 'venta', 'spam', 'comercial', 'promoción', 'irrelevante'];
+        const questionWords = ['¿', 'qué', 'cómo', 'cuándo', 'dónde', 'por qué', 'quién', 'cuál'];
 
-        var score = 0;
+        let score = 0;
         positiveKeywords.forEach(function(kw) { if (combined.includes(kw)) score += 15; });
         negativeKeywords.forEach(function(kw) { if (combined.includes(kw)) score -= 25; });
         questionWords.forEach(function(kw) { if (title.startsWith(kw)) score -= 10; });
 
-        var suggestion, confidence;
+        let suggestion, confidence;
         if (score >= 15) { suggestion = 'approved'; confidence = 'alta'; }
         else if (score <= -10) { suggestion = 'rejected'; confidence = 'alta'; }
         else { suggestion = 'pending'; confidence = 'baja'; }

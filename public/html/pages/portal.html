@@ -372,10 +372,11 @@ function loadNetworking() {
     var c = document.getElementById('net-connections-list');
     if (!conns || conns.length === 0) { c.innerHTML = '<p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">Aún no tienes conexiones. Escanea el QR de otros asistentes.</p>'; return; }
     c.innerHTML = conns.map(function(n) {
-      return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0">'
+      return '<div onclick="openNetProfile(\'' + n.connected_guest_id + '\')" style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0;cursor:pointer">'
         + '<span style="font-size:18px">👤</span>'
-        + '<div><span style="font-size:13px;font-weight:600;color:#e2e8f0">' + escHtml(n.connected_name) + '</span>'
-        + '<span style="font-size:11px;color:rgba(255,255,255,0.4);display:block">' + escHtml(n.connected_email || n.connected_org || '') + '</span></div></div>';
+        + '<div style="flex:1"><span style="font-size:13px;font-weight:600;color:#e2e8f0">' + escHtml(n.connected_name) + '</span>'
+        + '<span style="font-size:11px;color:rgba(255,255,255,0.4);display:block">' + escHtml(n.connected_email || n.connected_org || '') + '</span></div>'
+        + '<span style="font-size:16px;color:rgba(255,255,255,0.3)">›</span></div>';
     }).join('');
   }).catch(function() {});
   // A4: Sugerencias de networking
@@ -576,6 +577,38 @@ async function load(){
   }
 }
 load();
+
+  // M4: Perfil de networking + conexiones en común
+  function openNetProfile(guestId) {
+    if (!guestData) return;
+    var eventId = guestData.event?.id;
+    var myId = guestData.guest?.id;
+    fetch(API + '/networking/profile/' + guestId + '?event_id=' + eventId).then(function(r){ return r.json(); }).then(function(prof) {
+      fetch(API + '/networking/' + eventId + '/guest/' + guestId + '/mutual?other=' + myId).then(function(r){ return r.json(); }).then(function(mutual) {
+        var mutualNames = Array.isArray(mutual) ? mutual.map(function(x){ return x.name || x; }) : [];
+        var sessionsHtml = (prof.sessions || []).map(function(s2){
+          return '<div style="font-size:12px;color:#94a3b8">• ' + escHtml(s2.title) + (s2.start_time ? ' · ' + s2.start_time : '') + '</div>';
+        }).join('') || '<div style="font-size:12px;color:rgba(255,255,255,0.3)">Sin sesiones registradas</div>';
+        var mutualHtml = mutualNames.length
+          ? '<p style="font-size:12px;color:#34d399;margin:8px 0 2px">🤝 ' + mutualNames.length + ' conexión(es) en común: ' + escHtml(mutualNames.slice(0,5).join(', ')) + (mutualNames.length>5?'…':'') + '</p>'
+          : '<p style="font-size:12px;color:rgba(255,255,255,0.3);margin:8px 0 2px">Sin conexiones en común</p>';
+        var ov = document.createElement('div');
+        ov.id = 'net-profile-overlay';
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+        ov.innerHTML = '<div style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:16px;max-width:380px;width:100%;padding:24px;color:#e2e8f0">'
+          + '<div style="text-align:center;margin-bottom:12px"><div style="width:56px;height:56px;border-radius:50%;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:26px">👤</div>'
+          + '<h3 style="font-size:16px;font-weight:800;margin:0">' + escHtml(prof.name || '') + '</h3>'
+          + '<p style="font-size:12px;color:rgba(255,255,255,0.5);margin:2px 0">' + escHtml(prof.position || '') + (prof.organization ? ' · ' + escHtml(prof.organization) : '') + '</p>'
+          + (prof.email ? '<p style="font-size:12px;color:#34d399;margin:4px 0 0">' + escHtml(prof.email) + '</p>' : '') + '</div>'
+          + '<div style="display:flex;gap:8px;margin:12px 0">'
+          + '<div style="flex:1;text-align:center;background:rgba(255,255,255,0.04);border-radius:10px;padding:8px"><p style="font-size:18px;font-weight:800;margin:0">' + (prof.connections || 0) + '</p><p style="font-size:10px;color:rgba(255,255,255,0.4)">CONEXIONES</p></div>'
+          + '<div style="flex:1;text-align:center;background:rgba(255,255,255,0.04);border-radius:10px;padding:8px"><p style="font-size:18px;font-weight:800;margin:0">' + mutualNames.length + '</p><p style="font-size:10px;color:rgba(255,255,255,0.4)">EN COMÚN</p></div></div>'
+          + mutualHtml
+          + '<p style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.35);margin:14px 0 4px">Sesiones</p>' + sessionsHtml
+          + '<button onclick="this.closest(\'#net-profile-overlay\').remove()" style="width:100%;margin-top:16px;padding:10px;border-radius:10px;border:none;background:rgba(255,255,255,0.06);color:#e2e8f0;font-weight:700;cursor:pointer">Cerrar</button></div>';
+        document.body.appendChild(ov);
+        ov.addEventListener('click', function(e){ if (e.target === ov) ov.remove(); });
+      });
+    }).catch(function(){ alert('No se pudo cargar el perfil'); });
+  }
 </script>
-</body>
-</html>

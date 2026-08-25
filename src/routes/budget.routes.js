@@ -12,13 +12,13 @@ const router = express.Router();
 // GET /api/events/:eventId/budget — List items with summary
 router.get('/events/:eventId/budget', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
-        var items = db.prepare("SELECT * FROM budgets WHERE event_id = ? ORDER BY category ASC, created_at DESC").all(req.params.eventId);
-        var total = items.reduce(function(sum, i) { return sum + (parseFloat(i.amount) || 0); }, 0);
+        const items = db.prepare("SELECT * FROM budgets WHERE event_id = ? ORDER BY category ASC, created_at DESC").all(req.params.eventId);
+        const total = items.reduce(function(sum, i) { return sum + (parseFloat(i.amount) || 0); }, 0);
         
         // Category breakdown
-        var categories = {};
+        const categories = {};
         items.forEach(function(i) {
-            var cat = i.category || 'general';
+            const cat = i.category || 'general';
             if (!categories[cat]) categories[cat] = { total: 0, count: 0, items: [] };
             categories[cat].total += parseFloat(i.amount) || 0;
             categories[cat].count++;
@@ -37,31 +37,31 @@ router.get('/events/:eventId/budget', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORG
 // GET /api/events/:eventId/budget/stats — Chart data
 router.get('/events/:eventId/budget/stats', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
-        var items = db.prepare("SELECT * FROM budgets WHERE event_id = ?").all(req.params.eventId);
-        var total = items.reduce(function(sum, i) { return sum + (parseFloat(i.amount) || 0); }, 0);
+        const items = db.prepare("SELECT * FROM budgets WHERE event_id = ?").all(req.params.eventId);
+        const total = items.reduce(function(sum, i) { return sum + (parseFloat(i.amount) || 0); }, 0);
         
         // Category breakdown for pie chart
-        var categoryMap = {};
+        const categoryMap = {};
         items.forEach(function(i) {
-            var cat = i.category || 'general';
+            const cat = i.category || 'general';
             categoryMap[cat] = (categoryMap[cat] || 0) + (parseFloat(i.amount) || 0);
         });
-        var categoryData = Object.entries(categoryMap).map(function(e) { 
+        const categoryData = Object.entries(categoryMap).map(function(e) { 
             return { category: e[0], amount: e[1], percentage: total > 0 ? Math.round((e[1] / total) * 100) : 0 }; 
         }).sort(function(a, b) { return b.amount - a.amount; });
         
         // Monthly trend
-        var monthlyMap = {};
+        const monthlyMap = {};
         items.forEach(function(i) {
-            var month = (i.created_at || '').substring(0, 7);
+            const month = (i.created_at || '').substring(0, 7);
             if (month) {
                 monthlyMap[month] = (monthlyMap[month] || 0) + (parseFloat(i.amount) || 0);
             }
         });
-        var monthlyTrend = Object.entries(monthlyMap).map(function(e) { return { month: e[0], amount: e[1] }; });
+        const monthlyTrend = Object.entries(monthlyMap).map(function(e) { return { month: e[0], amount: e[1] }; });
         
         // Top 5 items
-        var topItems = items.slice().sort(function(a, b) { return (parseFloat(b.amount) || 0) - (parseFloat(a.amount) || 0); }).slice(0, 5);
+        const topItems = items.slice().sort(function(a, b) { return (parseFloat(b.amount) || 0) - (parseFloat(a.amount) || 0); }).slice(0, 5);
         
         res.json({
             total: total,
@@ -77,11 +77,11 @@ router.get('/events/:eventId/budget/stats', authMiddleware(['ADMIN', 'PRODUCTOR'
 // GET /api/events/:eventId/budget/export — Export as CSV
 router.get('/events/:eventId/budget/export', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var items = db.prepare("SELECT * FROM budgets WHERE event_id = ? ORDER BY category ASC, created_at DESC").all(req.params.eventId);
-        var total = items.reduce(function(sum, i) { return sum + (parseFloat(i.amount) || 0); }, 0);
+        const items = db.prepare("SELECT * FROM budgets WHERE event_id = ? ORDER BY category ASC, created_at DESC").all(req.params.eventId);
+        const total = items.reduce(function(sum, i) { return sum + (parseFloat(i.amount) || 0); }, 0);
         
         // CSV format
-        var csv = 'Concept,Amount,Category,Notes,Created\n';
+        let csv = 'Concept,Amount,Category,Notes,Created\n';
         items.forEach(function(i) {
             csv += '"' + (i.concept || '').replace(/"/g, '""') + '",' +
                    (parseFloat(i.amount) || 0) + ',' +
@@ -100,9 +100,9 @@ router.get('/events/:eventId/budget/export', authMiddleware(['ADMIN', 'PRODUCTOR
 // POST /api/events/:eventId/budget — Create item
 router.post('/events/:eventId/budget', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { concept, amount, category, notes } = req.body;
+        const { concept, amount, category, notes } = req.body;
         if (!concept || amount === undefined) return res.status(400).json({ error: 'Concepto y monto requeridos' });
-        var id = uuidv4();
+        const id = uuidv4();
         db.prepare("INSERT INTO budgets (id, event_id, concept, amount, category, notes) VALUES (?, ?, ?, ?, ?, ?)").run(id, req.params.eventId, concept, parseFloat(amount) || 0, category || 'general', notes || '');
         res.json({ success: true, id: id });
     } catch(err) { res.status(500).json({ error: err.message }); }
@@ -111,7 +111,7 @@ router.post('/events/:eventId/budget', authMiddleware(['ADMIN', 'PRODUCTOR']), (
 // PUT /api/events/:eventId/budget/:itemId — Update item
 router.put('/events/:eventId/budget/:itemId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { concept, amount, category, notes } = req.body;
+        const { concept, amount, category, notes } = req.body;
         db.prepare("UPDATE budgets SET concept = COALESCE(?, concept), amount = COALESCE(?, amount), category = COALESCE(?, category), notes = COALESCE(?, notes) WHERE id = ? AND event_id = ?").run(
             concept || null, amount !== undefined ? parseFloat(amount) : null, category || null, notes !== undefined ? notes : null, req.params.itemId, req.params.eventId
         );

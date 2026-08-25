@@ -55,9 +55,9 @@ router.get('/health/redis', async (req, res) => {
  * Verifica: DB, Cache, SMTP
  */
 router.get('/health/full', async (req, res) => {
-    var appVersion = 'unknown';
-    try { var pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8')); appVersion = pkg.version; } catch(e) {}
-    var startTime = Date.now();
+    let appVersion = 'unknown';
+    try { const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8')); appVersion = pkg.version; } catch(e) {}
+    const startTime = Date.now();
     const checks = {
         status: 'ok',
         timestamp: new Date().toISOString(),
@@ -74,9 +74,9 @@ router.get('/health/full', async (req, res) => {
     
     // Check Database
     try {
-        var result = db.prepare('SELECT 1 as test').get();
+        const result = db.prepare('SELECT 1 as test').get();
         // Check event DB accessibility (sample)
-        var eventCount = db.prepare('SELECT COUNT(*) as c FROM events').get().c;
+        const eventCount = db.prepare('SELECT COUNT(*) as c FROM events').get().c;
         checks.database = { 
             status: result ? 'connected' : 'error',
             engine: 'sqlite',
@@ -89,7 +89,7 @@ router.get('/health/full', async (req, res) => {
     
     // Check Cache
     try {
-        var stats = await getStats();
+        const stats = await getStats();
         checks.cache = {
             status: stats ? 'connected' : 'error',
             engine: stats?.engine || 'unknown',
@@ -102,11 +102,11 @@ router.get('/health/full', async (req, res) => {
     
     // Check Disk
     try {
-        var dataPath = process.env.DATA_PATH || path.join(__dirname, '../../data');
+        const dataPath = process.env.DATA_PATH || path.join(__dirname, '../../data');
         if (fs.existsSync(dataPath)) {
-            var diskStats = {};
+            let diskStats = {};
             try {
-                var st = fs.statfsSync(dataPath);
+                const st = fs.statfsSync(dataPath);
                 diskStats = { availableBytes: st.bfree * st.bsize, totalBytes: st.blocks * st.bsize, availablePercent: Math.round((st.bfree / st.blocks) * 100) };
             } catch(e) {
                 // statfs not available on all platforms
@@ -123,7 +123,7 @@ router.get('/health/full', async (req, res) => {
     
     // Check Memory
     try {
-        var mem = process.memoryUsage();
+        const mem = process.memoryUsage();
         checks.memory = {
             status: 'ok',
             rss: Math.round(mem.rss / 1024 / 1024) + 'MB',

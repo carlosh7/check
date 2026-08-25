@@ -7,10 +7,10 @@ function requestLogger(req, res, next) {
     req.requestId = uuidv4().slice(0, 8);
     req.startTime = Date.now();
     
-    var originalEnd = res.end;
+    const originalEnd = res.end;
     res.end = function() {
-        var duration = Date.now() - req.startTime;
-        var logData = {
+        const duration = Date.now() - req.startTime;
+        const logData = {
             rid: req.requestId,
             method: req.method,
             path: req.originalUrl || req.url,
@@ -20,7 +20,7 @@ function requestLogger(req, res, next) {
         };
         if (req.userId) logData.uid = req.userId;
         if (duration > 2000) logData.slow = true;
-        var level = res.statusCode >= 500 ? 'ERROR' : res.statusCode >= 400 ? 'WARN' : 'INFO';
+        const level = res.statusCode >= 500 ? 'ERROR' : res.statusCode >= 400 ? 'WARN' : 'INFO';
         console.log('[' + level + ']', JSON.stringify(logData));
         originalEnd.apply(res, arguments);
     };

@@ -889,7 +889,7 @@ router.get('/:id/badge-config', authMiddleware(), (req, res) => {
     try {
         const event = db.prepare("SELECT badge_config FROM events WHERE id = ?").get(req.params.id);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
-        var badgeCfg = null;
+        let badgeCfg = null;
         if (event.badge_config) { try { badgeCfg = JSON.parse(event.badge_config); } catch(e) { badgeCfg = {}; } }
         res.json({ badgeConfig: badgeCfg });
     } catch (err) {
@@ -925,12 +925,12 @@ router.delete('/:id/badge-logo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, r
     try {
         const event = db.prepare("SELECT badge_config FROM events WHERE id = ?").get(req.params.id);
         if (event && event.badge_config) {
-            var config = {};
+            let config = {};
             try { config = JSON.parse(event.badge_config); } catch(e) { config = {}; }
             if (config.logo) {
                 try {
-                    var fs = require('fs'), path = require('path');
-                    var logoPath = path.join(__dirname, '../../public', config.logo);
+                    const fs = require('fs'), path = require('path');
+                    const logoPath = path.join(__dirname, '../../public', config.logo);
                     if (fs.existsSync(logoPath)) fs.unlinkSync(logoPath);
                 } catch(e) {}
             }
@@ -948,7 +948,7 @@ router.delete('/:id/badge-logo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, r
 
 router.get('/:id/branding', authMiddleware(), (req, res) => {
     try {
-        var event = db.prepare("SELECT custom_css, brand_header_html, brand_footer_html, brand_primary_color, brand_logo_url, logo_url, reg_logo_url, ticket_bg_url, ticket_accent_color, qr_color_dark, qr_color_light FROM events WHERE id = ?").get(req.params.id);
+        const event = db.prepare("SELECT custom_css, brand_header_html, brand_footer_html, brand_primary_color, brand_logo_url, logo_url, reg_logo_url, ticket_bg_url, ticket_accent_color, qr_color_dark, qr_color_light FROM events WHERE id = ?").get(req.params.id);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         res.json(event);
     } catch(err) { res.status(500).json({ error: err.message }); }
@@ -956,7 +956,7 @@ router.get('/:id/branding', authMiddleware(), (req, res) => {
 
 router.put('/:id/branding', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var d = req.body;
+        const d = req.body;
         db.prepare("UPDATE events SET custom_css = COALESCE(?, custom_css), brand_header_html = COALESCE(?, brand_header_html), brand_footer_html = COALESCE(?, brand_footer_html), brand_primary_color = COALESCE(?, brand_primary_color), brand_logo_url = COALESCE(?, brand_logo_url) WHERE id = ?").run(
             d.custom_css || null, d.brand_header_html || null, d.brand_footer_html || null,
             d.brand_primary_color || null, d.brand_logo_url || null, req.params.id

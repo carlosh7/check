@@ -16,14 +16,14 @@ export const AiSecurity = {
         this.loadAiStats(App);
         this.loadAiSettings(App);
         try {
-            var inventory = await App.fetchAPI('/security/ai/inventory') || [];
-            var tbody = document.getElementById('ai-inventory-tbody');
+            const inventory = await App.fetchAPI('/security/ai/inventory') || [];
+            const tbody = document.getElementById('ai-inventory-tbody');
             if (tbody) {
                 if (inventory.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Sin sistemas de IA detectados</td></tr>';
                 } else {
-                    var riskColors = { low: '#10b981', medium: '#f59e0b', high: '#ef4444', critical: '#dc2626' };
-                    var statusLabels = { detected: 'Detectado', approved: 'Aprobado', blocked: 'Bloqueado' };
+                    const riskColors = { low: '#10b981', medium: '#f59e0b', high: '#ef4444', critical: '#dc2626' };
+                    const statusLabels = { detected: 'Detectado', approved: 'Aprobado', blocked: 'Bloqueado' };
                     tbody.innerHTML = inventory.map(function(item) {
                         return '<tr class="hover:bg-white/[0.02] transition-colors">' +
                             '<td class="table-td font-medium text-white">' + App.esc(item.name || '') + (item.description ? '<br><span class="text-[10px] text-slate-500">' + App.esc(item.description) + '</span>' : '') + '</td>' +
@@ -36,14 +36,14 @@ export const AiSecurity = {
                     }).join('');
                 }
             }
-            var policies = await App.fetchAPI('/security/ai/policies') || [];
-            var pList = document.getElementById('ai-policies-list');
+            const policies = await App.fetchAPI('/security/ai/policies') || [];
+            const pList = document.getElementById('ai-policies-list');
             if (pList) {
                 if (policies.length === 0) {
                     pList.innerHTML = '<p class="text-xs text-slate-500 italic">Sin politicas definidas</p>';
                 } else {
                     pList.innerHTML = policies.map(function(p) {
-                        var isActive = p.is_active === 1 || p.is_active === true;
+                        const isActive = p.is_active === 1 || p.is_active === true;
                         return '<div class="flex justify-between items-start p-3 rounded-lg bg-[var(--bg-hover)]">' +
                             '<div class="flex-1 min-w-0">' +
                             '<div class="flex items-center gap-2 mb-1">' +
@@ -73,7 +73,7 @@ export const AiSecurity = {
             confirmButtonText: 'Agregar',
             showCancelButton: true,
             preConfirm: function() {
-                var name = document.getElementById('swal-ai-name')?.value.trim();
+                const name = document.getElementById('swal-ai-name')?.value.trim();
                 if (!name) { Swal.showValidationMessage('Nombre requerido'); return; }
                 return {
                     name: name,
@@ -94,7 +94,7 @@ export const AiSecurity = {
     },
 
     async deleteAiInventory(App, id) {
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar sistema?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar sistema?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try {
             await App.fetchAPI('/security/ai/inventory/' + id, { method: 'DELETE' });
@@ -110,7 +110,7 @@ export const AiSecurity = {
     },
 
     openAiPolicyModal(App, policy) {
-        var isActive = policy ? (policy.is_active === 1 || policy.is_active === true) : true;
+        const isActive = policy ? (policy.is_active === 1 || policy.is_active === true) : true;
         Swal.fire({
             title: policy ? 'Editar politica' : 'Nueva politica',
             html: '<input id="swal-pol-name" class="swal2-input" placeholder="Nombre" value="' + App.esc(policy ? (policy.name || '') : '') + '">' +
@@ -121,7 +121,7 @@ export const AiSecurity = {
             confirmButtonText: policy ? 'Guardar' : 'Crear',
             showCancelButton: true,
             preConfirm: function() {
-                var name = document.getElementById('swal-pol-name')?.value.trim();
+                const name = document.getElementById('swal-pol-name')?.value.trim();
                 if (!name) { Swal.showValidationMessage('Nombre requerido'); return; }
                 return {
                     name: name,
@@ -145,13 +145,13 @@ export const AiSecurity = {
     },
 
     async editAiPolicy(App, id) {
-        var policies = await App.fetchAPI('/security/ai/policies') || [];
-        var p = policies.find(function(x) { return x.id === id; });
+        const policies = await App.fetchAPI('/security/ai/policies') || [];
+        const p = policies.find(function(x) { return x.id === id; });
         if (p) this.openAiPolicyModal(App, p);
     },
 
     async deleteAiPolicy(App, id) {
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar politica?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar politica?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try {
             await App.fetchAPI('/security/ai/policies/' + id, { method: 'DELETE' });
@@ -160,10 +160,10 @@ export const AiSecurity = {
     },
 
     switchAiSubTab(App, subTabName) {
-        var tabs = ['overview', 'logs', 'alerts', 'stats', 'settings', 'chat'];
+        const tabs = ['overview', 'logs', 'alerts', 'stats', 'settings', 'chat'];
         tabs.forEach(function(t) {
-            var btn = document.getElementById('ai-tab-' + t);
-            var content = document.getElementById('ai-subtab-' + t);
+            const btn = document.getElementById('ai-tab-' + t);
+            const content = document.getElementById('ai-subtab-' + t);
             if (btn) {
                 btn.className = 'px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider ' + (t === subTabName ? 'bg-[var(--primary)]/20 text-[var(--primary)]' : 'bg-white/5 text-slate-400 hover:bg-white/10');
             }
@@ -181,17 +181,17 @@ export const AiSecurity = {
         if (!this.aiLogsPage) this.aiLogsPage = 1;
         if (direction === -1 && this.aiLogsPage > 1) this.aiLogsPage--;
         if (direction === 1) this.aiLogsPage++;
-        var page = this.aiLogsPage;
-        var userId = document.getElementById('filter-ai-log-user')?.value || '';
-        var injectionOnly = document.getElementById('filter-ai-log-injection')?.value || '';
+        const page = this.aiLogsPage;
+        const userId = document.getElementById('filter-ai-log-user')?.value || '';
+        const injectionOnly = document.getElementById('filter-ai-log-injection')?.value || '';
         try {
-            var res = await App.fetchAPI('/security/ai/logs?page=' + page + '&limit=30&user_id=' + userId + '&injection_only=' + injectionOnly);
-            var logs = res?.data || [];
-            var total = res?.pagination?.total || 0;
-            var tbody = document.getElementById('ai-logs-tbody');
-            var countEl = document.getElementById('ai-logs-count');
-            var prevBtn = document.getElementById('btn-ai-logs-prev');
-            var nextBtn = document.getElementById('btn-ai-logs-next');
+            const res = await App.fetchAPI('/security/ai/logs?page=' + page + '&limit=30&user_id=' + userId + '&injection_only=' + injectionOnly);
+            const logs = res?.data || [];
+            const total = res?.pagination?.total || 0;
+            const tbody = document.getElementById('ai-logs-tbody');
+            const countEl = document.getElementById('ai-logs-count');
+            const prevBtn = document.getElementById('btn-ai-logs-prev');
+            const nextBtn = document.getElementById('btn-ai-logs-next');
             if (countEl) countEl.textContent = total + ' registros';
             if (prevBtn) prevBtn.disabled = page <= 1;
             if (nextBtn) nextBtn.disabled = (page * 30) >= total;
@@ -200,8 +200,8 @@ export const AiSecurity = {
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Sin consultas registradas</td></tr>';
             } else {
                 tbody.innerHTML = logs.map(function(l) {
-                    var riskColor = l.risk_score >= 0.9 ? '#ef4444' : l.risk_score >= 0.7 ? '#f59e0b' : l.risk_score >= 0.3 ? '#3b82f6' : '#10b981';
-                    var snippet = (l.masked_prompt || l.prompt || '').substring(0, 80);
+                    const riskColor = l.risk_score >= 0.9 ? '#ef4444' : l.risk_score >= 0.7 ? '#f59e0b' : l.risk_score >= 0.3 ? '#3b82f6' : '#10b981';
+                    const snippet = (l.masked_prompt || l.prompt || '').substring(0, 80);
                     return '<tr class="hover:bg-white/[0.02] transition-colors">' +
                         '<td class="table-td text-xs text-slate-300">' + App.esc(l.user_name || l.user_id || '-') + '</td>' +
                         '<td class="table-td text-xs text-slate-400 max-w-[200px] truncate" title="' + App.esc(l.masked_prompt || l.prompt || '') + '">' + App.esc(snippet) + (snippet.length >= 80 ? '...' : '') + '</td>' +
@@ -217,9 +217,9 @@ export const AiSecurity = {
 
     async viewAiLogDetail(App, logId) {
         try {
-            var log = await App.fetchAPI('/security/ai/logs/' + logId);
+            const log = await App.fetchAPI('/security/ai/logs/' + logId);
             if (!log) { Swal.fire({ icon: 'error', title: 'Error', text: 'Log no encontrado', background: '#0f172a', color: '#fff' }); return; }
-            var riskColor = log.risk_score >= 0.9 ? '#ef4444' : log.risk_score >= 0.7 ? '#f59e0b' : log.risk_score >= 0.3 ? '#3b82f6' : '#10b981';
+            const riskColor = log.risk_score >= 0.9 ? '#ef4444' : log.risk_score >= 0.7 ? '#f59e0b' : log.risk_score >= 0.3 ? '#3b82f6' : '#10b981';
             Swal.fire({
                 title: 'Detalle de consulta IA',
                 html:
@@ -245,16 +245,16 @@ export const AiSecurity = {
         if (!this.aiAlertsPage) this.aiAlertsPage = 1;
         if (direction === -1 && this.aiAlertsPage > 1) this.aiAlertsPage--;
         if (direction === 1) this.aiAlertsPage++;
-        var page = this.aiAlertsPage;
-        var severity = document.getElementById('filter-ai-alert-severity')?.value || '';
+        const page = this.aiAlertsPage;
+        const severity = document.getElementById('filter-ai-alert-severity')?.value || '';
         try {
-            var res = await App.fetchAPI('/security/ai/alerts?page=' + page + '&limit=30&severity=' + severity + '&acknowledged=0');
-            var alerts = res?.data || [];
-            var total = res?.pagination?.total || 0;
-            var tbody = document.getElementById('ai-alerts-tbody');
-            var countEl = document.getElementById('ai-alerts-count');
-            var prevBtn = document.getElementById('btn-ai-alerts-prev');
-            var nextBtn = document.getElementById('btn-ai-alerts-next');
+            const res = await App.fetchAPI('/security/ai/alerts?page=' + page + '&limit=30&severity=' + severity + '&acknowledged=0');
+            const alerts = res?.data || [];
+            const total = res?.pagination?.total || 0;
+            const tbody = document.getElementById('ai-alerts-tbody');
+            const countEl = document.getElementById('ai-alerts-count');
+            const prevBtn = document.getElementById('btn-ai-alerts-prev');
+            const nextBtn = document.getElementById('btn-ai-alerts-next');
             if (countEl) countEl.textContent = total + ' alertas';
             if (prevBtn) prevBtn.disabled = page <= 1;
             if (nextBtn) nextBtn.disabled = (page * 30) >= total;
@@ -262,11 +262,11 @@ export const AiSecurity = {
             if (alerts.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Sin alertas registradas</td></tr>';
             } else {
-                var severityColors = { low: '#10b981', medium: '#f59e0b', high: '#ef4444', critical: '#dc2626' };
-                var severityLabels = { low: 'Baja', medium: 'Media', high: 'Alta', critical: 'Crítica' };
+                const severityColors = { low: '#10b981', medium: '#f59e0b', high: '#ef4444', critical: '#dc2626' };
+                const severityLabels = { low: 'Baja', medium: 'Media', high: 'Alta', critical: 'Crítica' };
                 tbody.innerHTML = alerts.map(function(a) {
-                    var sev = a.severity || 'medium';
-                    var isAcknowledged = !!a.acknowledged_at;
+                    const sev = a.severity || 'medium';
+                    const isAcknowledged = !!a.acknowledged_at;
                     return '<tr class="hover:bg-white/[0.02] transition-colors">' +
                         '<td class="table-td text-xs text-slate-400">' + App.esc(a.type || '-') + '</td>' +
                         '<td class="table-td"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold" style="background:' + (severityColors[sev] || '#64748b') + '30;color:' + (severityColors[sev] || '#64748b') + '">' + App.esc(severityLabels[sev] || sev) + '</span></td>' +
@@ -290,22 +290,22 @@ export const AiSecurity = {
 
     async loadAiStats(App) {
         try {
-            var stats = await App.fetchAPI('/security/ai/stats');
+            const stats = await App.fetchAPI('/security/ai/stats');
             if (!stats) return;
-            var qEl = document.getElementById('ai-stat-queries');
-            var iEl = document.getElementById('ai-stat-injections');
-            var aEl = document.getElementById('ai-stat-alerts');
-            var pEl = document.getElementById('ai-stat-pending');
-            var rEl = document.getElementById('ai-stat-risk');
-            var uEl = document.getElementById('ai-stats-users');
-            var tEl = document.getElementById('ai-stats-trend');
+            const qEl = document.getElementById('ai-stat-queries');
+            const iEl = document.getElementById('ai-stat-injections');
+            const aEl = document.getElementById('ai-stat-alerts');
+            const pEl = document.getElementById('ai-stat-pending');
+            const rEl = document.getElementById('ai-stat-risk');
+            const uEl = document.getElementById('ai-stats-users');
+            const tEl = document.getElementById('ai-stats-trend');
             if (qEl) qEl.textContent = stats.totalQueries || 0;
             if (iEl) iEl.textContent = stats.totalInjections || 0;
             if (aEl) aEl.textContent = stats.totalAlerts || 0;
             if (pEl) pEl.textContent = stats.pendingAlerts || 0;
             if (rEl) rEl.textContent = (stats.avgRiskScore || 0).toFixed(2);
             if (uEl) {
-                var users = stats.byUser || [];
+                const users = stats.byUser || [];
                 if (users.length === 0) {
                     uEl.innerHTML = '<p class="text-xs text-slate-500 italic">Sin datos</p>';
                 } else {
@@ -315,13 +315,13 @@ export const AiSecurity = {
                 }
             }
             if (tEl) {
-                var trend = stats.dailyTrend || [];
+                const trend = stats.dailyTrend || [];
                 if (trend.length === 0) {
                     tEl.innerHTML = '<p class="text-xs text-slate-500 italic">Sin datos en los ultimos 30 días</p>';
                 } else {
-                    var maxVal = Math.max.apply(null, trend.map(function(d) { return d.cnt; })) || 1;
+                    const maxVal = Math.max.apply(null, trend.map(function(d) { return d.cnt; })) || 1;
                     tEl.innerHTML = trend.map(function(d) {
-                        var pct = (d.cnt / maxVal) * 100;
+                        const pct = (d.cnt / maxVal) * 100;
                         return '<div class="flex items-center gap-2 text-xs"><span class="text-slate-500 w-24 text-right">' + App.esc(d.date) + '</span><div class="flex-1 bg-slate-700 rounded h-3 overflow-hidden"><div class="bg-[var(--primary)] h-3 rounded transition-all" style="width:' + pct + '%"></div></div><span class="text-slate-300 w-6 text-left font-bold">' + d.cnt + '</span></div>';
                     }).join('');
                 }
@@ -331,12 +331,12 @@ export const AiSecurity = {
 
     async loadAiSettings(App) {
         try {
-            var settings = await App.fetchAPI('/security/ai/settings');
+            const settings = await App.fetchAPI('/security/ai/settings');
             if (!settings) return;
-            var enabledEl = document.getElementById('ai-setting-enabled');
-            var keyEl = document.getElementById('ai-setting-key');
-            var modelEl = document.getElementById('ai-setting-model');
-            var promptEl = document.getElementById('ai-setting-prompt');
+            const enabledEl = document.getElementById('ai-setting-enabled');
+            const keyEl = document.getElementById('ai-setting-key');
+            const modelEl = document.getElementById('ai-setting-model');
+            const promptEl = document.getElementById('ai-setting-prompt');
             if (enabledEl) enabledEl.checked = settings.ai_enabled === '1';
             if (keyEl) keyEl.value = settings.ai_openrouter_key || '';
             if (modelEl) modelEl.value = settings.ai_model || '';
@@ -345,10 +345,10 @@ export const AiSecurity = {
     },
 
     async saveAiSettings(App) {
-        var enabled = document.getElementById('ai-setting-enabled')?.checked || false;
-        var apiKey = document.getElementById('ai-setting-key')?.value || '';
-        var model = document.getElementById('ai-setting-model')?.value || '';
-        var prompt = document.getElementById('ai-setting-prompt')?.value || '';
+        const enabled = document.getElementById('ai-setting-enabled')?.checked || false;
+        const apiKey = document.getElementById('ai-setting-key')?.value || '';
+        const model = document.getElementById('ai-setting-model')?.value || '';
+        const prompt = document.getElementById('ai-setting-prompt')?.value || '';
         try {
             await App.fetchAPI('/security/ai/settings', {
                 method: 'PUT',

@@ -3,6 +3,7 @@
  * Carga todas las rutas del sistema
  */
 
+const logger = require('../utils/logger');
 const express = require('express');
 const multer = require('multer');
 let imageUploadMiddleware;
@@ -109,7 +110,6 @@ function preventPathTraversal(req, res, next) {
 
 function registerRoutes(app, rootDir) {
     const path = require('path');
-const logger = require("../utils/logger");
     rootDir = rootDir || __dirname + '/../..';
     
     // SPA Routes (index.html, registro.html)

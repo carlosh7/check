@@ -111,7 +111,7 @@ router.get('/accounts', (req, res) => {
     try {
         const { event_id } = req.query;
         let query = 'SELECT * FROM email_accounts WHERE 1=1';
-        let params = [];
+        const params = [];
         
         if (event_id) {
             query += ' AND (event_id = ? OR event_id IS NULL)';
@@ -345,7 +345,7 @@ router.post('/test-imap', async (req, res) => {
         if (!b.imap_host || !b.imap_user || !b.imap_password) {
             return res.json({ success: false, error: 'Configuración IMAP incompleta' });
         }
-        var client = new ImapFlow({
+        const client = new ImapFlow({
             host: b.imap_host,
             port: parseInt(b.imap_port, 10) || 993,
             secure: !!b.imap_ssl,
@@ -403,8 +403,8 @@ router.post('/accounts/:id/test-imap', async (req, res) => {
             return res.json({ success: false, error: 'Configuración IMAP incompleta' });
         }
         
-        var cfg = getImapConfig(account);
-        var client = new ImapFlow({
+        const cfg = getImapConfig(account);
+        const client = new ImapFlow({
             host: cfg.host, port: cfg.port, secure: cfg.tls,
             auth: { user: cfg.user, pass: cfg.password },
             logger: false
@@ -432,7 +432,7 @@ router.get('/templates', (req, res) => {
     try {
         const { event_id, category } = req.query;
         let query = 'SELECT * FROM email_templates WHERE 1=1';
-        let params = [];
+        const params = [];
         
         if (event_id) {
             query += ' AND (event_id = ? OR event_id IS NULL)';
@@ -751,7 +751,7 @@ router.get('/campaigns', (req, res) => {
     try {
         const { event_id, status } = req.query;
         let query = 'SELECT * FROM email_campaigns WHERE 1=1';
-        let params = [];
+        const params = [];
         
         if (event_id) {
             query += ' AND event_id = ?';
@@ -906,7 +906,7 @@ router.post('/campaigns/:id/send', async (req, res) => {
         
         if (campaign.event_id) {
             let query = `SELECT name, email, group_name, checked_in FROM guests WHERE event_id = ? AND unsubscribed = 0 AND email IS NOT NULL AND email != ''`;
-            let params = [campaign.event_id];
+            const params = [campaign.event_id];
             
             if (campaign.recipient_type === 'confirmed') {
                 query += ' AND checked_in = 1';
@@ -1047,7 +1047,7 @@ router.get('/campaigns/:id/logs', (req, res) => {
     try {
         const { status, limit = 100 } = req.query;
         let query = 'SELECT * FROM email_logs WHERE campaign_id = ?';
-        let params = [req.params.id];
+        const params = [req.params.id];
         
         if (status) {
             query += ' AND status = ?';
@@ -1210,8 +1210,8 @@ router.get('/mailbox/folders', async (req, res) => {
             return res.status(400).json({ error: 'Cuenta no disponible' });
         }
         
-        var cfg = getImapConfig(account);
-        var client = new ImapFlow({
+        const cfg = getImapConfig(account);
+        const client = new ImapFlow({
             host: cfg.host, port: cfg.port, secure: cfg.tls,
             auth: { user: cfg.user, pass: cfg.password },
             logger: false
@@ -1219,10 +1219,10 @@ router.get('/mailbox/folders', async (req, res) => {
         
         try {
             await client.connect();
-            var mailboxList = await client.list();
+            const mailboxList = await client.list();
             await client.logout();
-            var folderNames = mailboxList.map(function(m) { return m.path; });
-            var standardFolders = ['INBOX', 'Sent', 'Drafts', 'Trash', 'Spam', 'Junk'];
+            const folderNames = mailboxList.map(function(m) { return m.path; });
+            const standardFolders = ['INBOX', 'Sent', 'Drafts', 'Trash', 'Spam', 'Junk'];
             for (var sf of standardFolders) {
                 if (!folderNames.includes(sf) && !folderNames.some(function(f) { return f.toLowerCase() === sf.toLowerCase(); })) {
                     folderNames.push(sf);
@@ -1253,8 +1253,8 @@ router.get('/mailbox/messages', async (req, res) => {
             return res.status(400).json({ error: 'Cuenta no disponible' });
         }
         
-        var cfg = getImapConfig(account);
-        var client = new ImapFlow({
+        const cfg = getImapConfig(account);
+        const client = new ImapFlow({
             host: cfg.host, port: cfg.port, secure: cfg.tls,
             auth: { user: cfg.user, pass: cfg.password },
             logger: false
@@ -1262,19 +1262,19 @@ router.get('/mailbox/messages', async (req, res) => {
         
         try {
             await client.connect();
-            var folderName = folder;
+            let folderName = folder;
             if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) {
                 folderName = 'INBOX.' + folder;
             }
-            var lock = await client.getMailboxLock(folderName);
+            const lock = await client.getMailboxLock(folderName);
             try {
-                var total = await client.mailboxOpen(folderName);
-                var messages = [];
-                var count = 0;
-                for await (var msg of client.fetch('1:*', { uid: true, headers: true })) {
+                const total = await client.mailboxOpen(folderName);
+                let messages = [];
+                let count = 0;
+                for await (const msg of client.fetch('1:*', { uid: true, headers: true })) {
                     if (count >= total - parseInt(limit) - parseInt(offset)) {
-                        var h = msg.headers;
-                        var msgData = {
+                        const h = msg.headers;
+                        const msgData = {
                             uid: msg.uid,
                             from: h.get('from') || '',
                             from_name: '',
@@ -1283,7 +1283,7 @@ router.get('/mailbox/messages', async (req, res) => {
                             date: h.get('date') || '',
                             seen: msg.flags.includes('\\Seen')
                         };
-                        var fromMatch = (msgData.from || '').match(/^(.*?)\s*<(.+?)>/);
+                        const fromMatch = (msgData.from || '').match(/^(.*?)\s*<(.+?)>/);
                         if (fromMatch) {
                             msgData.from_name = fromMatch[1].replace(/"/g, '').trim();
                             msgData.from = fromMatch[2].trim();
@@ -1324,8 +1324,8 @@ router.get('/mailbox/message/:uid', async (req, res) => {
             return res.status(400).json({ error: 'Cuenta no disponible' });
         }
         
-        var cfg = getImapConfig(account);
-        var client = new ImapFlow({
+        const cfg = getImapConfig(account);
+        const client = new ImapFlow({
             host: cfg.host, port: cfg.port, secure: cfg.tls,
             auth: { user: cfg.user, pass: cfg.password },
             logger: false
@@ -1333,14 +1333,14 @@ router.get('/mailbox/message/:uid', async (req, res) => {
         
         try {
             await client.connect();
-            var folderName = folder;
+            let folderName = folder;
             if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) {
                 folderName = 'INBOX.' + folder;
             }
-            var lock = await client.getMailboxLock(folderName);
+            const lock = await client.getMailboxLock(folderName);
             try {
                 var rawEmail = null;
-                for await (var msg of client.fetch(uid, { uid: true, source: true })) {
+                for await (const msg of client.fetch(uid, { uid: true, source: true })) {
                     rawEmail = msg.source;
                 }
                 if (!rawEmail) throw new Error('Mensaje no encontrado');
@@ -1507,8 +1507,8 @@ router.get('/mailbox/attachment/:uid', async (req, res) => {
         const account = getEmailDb().prepare('SELECT * FROM email_accounts WHERE id = ? AND is_active = 1').get(account_id);
         if (!account) return res.status(400).json({ error: 'Cuenta no disponible' });
         
-        var cfg = getImapConfig(account);
-        var client = new ImapFlow({
+        const cfg = getImapConfig(account);
+        const client = new ImapFlow({
             host: cfg.host, port: cfg.port, secure: cfg.tls,
             auth: { user: cfg.user, pass: cfg.password },
             logger: false
@@ -1516,20 +1516,20 @@ router.get('/mailbox/attachment/:uid', async (req, res) => {
         
         try {
             await client.connect();
-            var folderName = folder;
+            let folderName = folder;
             if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) folderName = 'INBOX.' + folder;
-            var lock = await client.getMailboxLock(folderName);
+            const lock = await client.getMailboxLock(folderName);
             try {
-                var rawEmail = null;
-                for await (var msg of client.fetch(uid, { uid: true, source: true })) {
+                let rawEmail = null;
+                for await (const msg of client.fetch(uid, { uid: true, source: true })) {
                     rawEmail = msg.source;
                 }
                 if (!rawEmail) throw new Error('Mensaje no encontrado');
-                var parsed = await simpleParser(rawEmail);
-                var attachments = parsed.attachments || [];
-                var idx = parseInt(attachmentIndex) || 0;
+                const parsed = await simpleParser(rawEmail);
+                const attachments = parsed.attachments || [];
+                const idx = parseInt(attachmentIndex) || 0;
                 if (idx >= attachments.length) { res.json({ success: false, error: 'Adjunto no encontrado' }); return; }
-                var att = attachments[idx];
+                const att = attachments[idx];
                 res.setHeader('Content-Disposition', 'attachment; filename="' + (att.filename || 'attachment') + '"');
                 res.setHeader('Content-Type', att.contentType || 'application/octet-stream');
                 res.send(att.content);

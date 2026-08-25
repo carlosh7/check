@@ -2,6 +2,7 @@
  * Webhook utilities para integraciones externas (Slack, Discord, etc)
  */
 
+const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 const { db } = require('../../database');
@@ -129,7 +130,7 @@ function getWebhook(id) {
  * List webhooks (optionally filtered by event_id and status)
  */
 function listWebhooks(filters = {}) {
-    let where = [];
+    const where = [];
     const params = [];
     
     if (filters.event_id !== undefined) {
@@ -301,7 +302,7 @@ function getWebhookLogs(webhookId, limit = 50) {
  * Send enriched Slack message (C5-09)
  */
 async function sendSlackMessage(webhook, payload) {
-    let blocks = [
+    const blocks = [
         { type: 'header', text: { type: 'plain_text', text: payload.title || 'Check Pro' } },
         { type: 'section', text: { type: 'mrkdwn', text: payload.message || '' } }
     ];
@@ -323,19 +324,19 @@ async function sendSlackMessage(webhook, payload) {
 // ─── Backup (C5-11) ───
 
 async function createBackup() {
-    let backupDir = process.env.BACKUP_DIR || './backups';
-    let fs = require('fs'), path = require('path');
+    const backupDir = process.env.BACKUP_DIR || './backups';
+    const fs = require('fs'), path = require('path');
     if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
-    let dateStr = new Date().toISOString().slice(0, 10);
-    let backupFile = path.join(backupDir, 'checkpro_backup_' + dateStr + '.db');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const backupFile = path.join(backupDir, 'checkpro_backup_' + dateStr + '.db');
 
     try {
-        let srcDb = db.name || (process.env.DATA_PATH ? path.join(process.env.DATA_PATH, 'system', 'database.db') : path.join(__dirname, '../../data/system/database.db'));
+        const srcDb = db.name || (process.env.DATA_PATH ? path.join(process.env.DATA_PATH, 'system', 'database.db') : path.join(__dirname, '../../data/system/database.db'));
         if (fs.existsSync(srcDb)) {
             fs.copyFileSync(srcDb, backupFile);
             // Keep only last 7 backups
-            let files = fs.readdirSync(backupDir).filter(function(f) { return f.startsWith('checkpro_backup_'); }).sort();
-            while (files.length > 7) { let old = files.shift(); fs.unlinkSync(path.join(backupDir, old)); }
+            const files = fs.readdirSync(backupDir).filter(function(f) { return f.startsWith('checkpro_backup_'); }).sort();
+            while (files.length > 7) { const old = files.shift(); fs.unlinkSync(path.join(backupDir, old)); }
             return { success: true, file: backupFile, size: fs.statSync(backupFile).size };
         }
         return { success: false, error: 'Database file not found' };
@@ -346,7 +347,7 @@ async function createBackup() {
 
 function logPerformance(operation, durationMs, details) {
     try {
-        let stmt = db.prepare("INSERT INTO performance_logs (id, operation, duration_ms, details, created_at) VALUES (?, ?, ?, ?, ?)");
+        const stmt = db.prepare("INSERT INTO performance_logs (id, operation, duration_ms, details, created_at) VALUES (?, ?, ?, ?, ?)");
         stmt.run(require('uuid').v4(), operation, durationMs, JSON.stringify(details || {}), new Date().toISOString());
     } catch(e) {}
 }

@@ -10387,6 +10387,27 @@ navigate(viewName, params = {}, push = true) {
     openAiPolicyModal: function(policy) { return AiSecurity.openAiPolicyModal(this, policy); },
     editAiPolicy: function(id) { return AiSecurity.editAiPolicy(this, id); },
     deleteAiPolicy: function(id) { return AiSecurity.deleteAiPolicy(this, id); },
+    aiChatSend: async function() {
+        const input = document.getElementById('ai-chat-input');
+        const log = document.getElementById('ai-chat-log');
+        const q = input?.value.trim();
+        if (!q) return;
+        log?.insertAdjacentHTML('beforeend', `<div class="self-end bg-[var(--primary)]/20 text-white rounded-xl px-3 py-2 max-w-[80%]">${App.esc(q)}</div>`);
+        input.value = '';
+        log?.insertAdjacentHTML('beforeend', '<div id="ai-chat-typing" class="self-start bg-white/5 text-slate-300 rounded-xl px-3 py-2 max-w-[80%]">Pensando…</div>');
+        log && (log.scrollTop = log.scrollHeight);
+        try {
+            const r = await this.fetchAPI('/security/ai/chat', { method: 'POST', body: JSON.stringify({ prompt: q }) });
+            document.getElementById('ai-chat-typing')?.remove();
+            const ans = r.answer || r.response || r.message || JSON.stringify(r).slice(0, 300);
+            log?.insertAdjacentHTML('beforeend', `<div class="self-start bg-white/5 text-slate-200 rounded-xl px-3 py-2 max-w-[85%] whitespace-pre-wrap">${App.esc(String(ans))}</div>`);
+            log && (log.scrollTop = log.scrollHeight);
+        } catch (e) {
+            document.getElementById('ai-chat-typing')?.remove();
+            log?.insertAdjacentHTML('beforeend', `<div class="self-start bg-red-500/10 text-red-300 rounded-xl px-3 py-2 max-w-[85%]">${App.esc(e.message)}</div>`);
+        }
+    },
+
     switchAiSubTab: function(name) { return AiSecurity.switchAiSubTab(this, name); },
     loadAiLogs: function(dir) { return AiSecurity.loadAiLogs(this, dir); },
     viewAiLogDetail: function(id) { return AiSecurity.viewAiLogDetail(this, id); },
@@ -12761,13 +12782,32 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td text-xs font-medium text-white">' + App.esc(t.guest_name || t.customer_name || t.email || '-') + '</td>' +
                     '<td class="table-td text-xs text-slate-300">' + App.esc(t.description || t.concept || 'Boleto') + '</td>' +
                     '<td class="table-td text-xs font-bold text-green-400">$' + parseFloat(t.amount || 0).toFixed(2) + '</td>' +
-                    '<td class="table-td"><span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase ' + badge + '">' + status + '</span></td></tr>';
+                    '<td class="table-td flex items-center justify-end gap-2">' +
+                    '<span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase ' + badge + '">' + status + '</span>' +
+                    (t.id ? '<button class="btn-icon" title="Descargar recibo" onclick="App.downloadReceipt(\'' + t.id + '\')"><span class="material-symbols-outlined text-sm">receipt_long</span></button>' : '') +
+                    '</td></tr>';
             }).join('');
         } catch (e) {
             console.warn('[TRANSACTIONS] Error:', e.message);
             this.uiState('transactions-tbody', 'error', { message: e.message, retryFn: 'App.loadTransactions()' });
         }
     },
+
+    downloadReceipt: async function(txId) {
+        try {
+            const token = this.state.user?.token || LS.get('token');
+            const res = await fetch('/api/transactions/' + txId + '/receipt', { headers: { 'Authorization': 'Bearer ' + token } });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'recibo_' + txId.slice(0, 8) + '.pdf';
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+            this._notifyAction('Recibo descargado', '', 'success');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
 
     loadIntelligence: async function() {
         var eId = this.state.event?.id;
@@ -12926,7 +12966,7 @@ navigate(viewName, params = {}, push = true) {
         } catch (e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
-    // ═══ A-Ops: Salud & Operaciones ═══
+    // ═══ Ops: Salud & Operaciones ═══
     loadOps: async function() {
         try {
             const h = await this.fetchAPI('/health/system');
@@ -12939,8 +12979,7 @@ navigate(viewName, params = {}, push = true) {
                     ['Eventos', h.eventCount ?? '—'],
                     ['Invitados', h.guestCount ?? '—'],
                     ['Usuarios', h.userCount ?? '—'],
-                    ['Node', h.nodeVersion || '—'],
-                    ['Entorno', h.environment || process.env.NODE_ENV || '—']
+                    ['Node', h.nodeVersion || '—']
                 ];
                 box.innerHTML = cards.map(([k, v]) => `<div class="card p-3 text-center"><p class="text-lg font-black text-white">${App.esc(String(v))}</p><p class="text-[10px] text-slate-500 uppercase tracking-widest">${k}</p></div>`).join('');
             }
@@ -12974,7 +13013,7 @@ navigate(viewName, params = {}, push = true) {
         if (!url) return this._notifyAction('Error', 'Ingresa la URL del webhook', 'error');
         try {
             await fetch(url, { method: 'POST' });
-            this._notifyAction('Webhook disparado', 'El redeploy está en camino.', 'success');
+            this._notifyAction('Webhook disparado', '', 'success');
         } catch (e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
@@ -12993,7 +13032,18 @@ navigate(viewName, params = {}, push = true) {
             const logs = await this.fetchAPI('/performance/logs');
             const list = Array.isArray(logs) ? logs : (logs.logs || []);
             box.innerHTML = list.length ? list.slice(0, 50).map(l =>
-                `<div>${App.esc(typeof l === 'string' ? l : JSON.stringify(l))}</div>`).join('') : '<p>Sin registros de rendimiento.</p>';
+                `<div>${App.esc(typeof l === 'string' ? l : JSON.stringify(l))}</div>`).join('') : '<p>Sin registros.</p>';
+        } catch (e) { box.innerHTML = `<p class="text-red-400">${App.esc(e.message)}</p>`; }
+    },
+
+    loadDeployLogs: async function() {
+        const box = document.getElementById('ops-deploylogs');
+        try {
+            const logs = await this.fetchAPI('/deploy/logs?limit=50');
+            const list = Array.isArray(logs) ? logs : (logs.logs || []);
+            box.innerHTML = list.length ? list.map(l =>
+                `<div style="border-bottom:1px solid var(--border);padding:4px 0">${App.esc(typeof l === 'string' ? l : (l.created_at ? new Date(l.created_at).toLocaleString() + ' — ' : '') + (l.message || l.action || JSON.stringify(l)))}</div>`).join('')
+                : '<p>Sin registros de deploy.</p>';
         } catch (e) { box.innerHTML = `<p class="text-red-400">${App.esc(e.message)}</p>`; }
     },
 
@@ -13005,9 +13055,8 @@ navigate(viewName, params = {}, push = true) {
             const list = Array.isArray(plugs) ? plugs : (plugs.available || plugs.plugins || []);
             box.innerHTML = list.length ? list.map(pl =>
                 `<div class="card p-4"><p class="text-sm font-bold text-white">${App.esc(pl.name || pl.id || '')}</p>
-                 <p class="text-xs text-slate-400 mt-1">${App.esc(pl.description || '')}</p>
-                 <p class="text-[10px] text-slate-600 mt-2 uppercase">${App.esc(pl.category || 'plugin')}</p></div>`).join('')
-                : '<p class="text-xs text-slate-500">Sin plugins disponibles en el marketplace.</p>';
+                 <p class="text-xs text-slate-400 mt-1">${App.esc(pl.description || '')}</p></div>`).join('')
+                : '<p class="text-xs text-slate-500">Sin plugins disponibles.</p>';
         } catch (e) { box.innerHTML = `<p class="text-xs text-red-400">${App.esc(e.message)}</p>`; }
     },
 
@@ -13018,8 +13067,7 @@ navigate(viewName, params = {}, push = true) {
             const list = Array.isArray(tiers) ? tiers : (tiers.tiers || []);
             box.innerHTML = list.length ? list.map(t =>
                 `<div class="card p-4 text-center"><p class="text-xs font-black uppercase text-[var(--primary)]">${App.esc(t.name || t.id)}</p>
-                 <p class="text-2xl font-black text-white mt-1">$${t.price ?? 0}</p>
-                 <p class="text-[10px] text-slate-500 mt-1">${App.esc(t.description || '')}</p></div>`).join('')
+                 <p class="text-2xl font-black text-white mt-1">$${t.price ?? 0}</p></div>`).join('')
                 : '<p class="text-xs text-slate-500">Sin tiers configurados.</p>';
         } catch (e) { box.innerHTML = `<p class="text-xs text-red-400">${App.esc(e.message)}</p>`; }
     },
@@ -13027,9 +13075,9 @@ navigate(viewName, params = {}, push = true) {
     addPricingTier: async function() {
         const r = await Swal.fire({
             title: 'Nuevo tier de precio',
-            html: '<input id="_pt-name" class="swal2-input" placeholder="Nombre (ej: Pro)">' +
+            html: '<input id="_pt-name" class="swal2-input" placeholder="Nombre">' +
                   '<input id="_pt-price" class="swal2-input" type="number" placeholder="Precio mensual">' +
-                  '<input id="_pt-desc" class="swal2-input" placeholder="Descripción corta">',
+                  '<input id="_pt-desc" class="swal2-input" placeholder="Descripción">',
             focusConfirm: false,
             preConfirm: () => ({ name: document.getElementById('_pt-name').value.trim(), price: parseFloat(document.getElementById('_pt-price').value) || 0, description: document.getElementById('_pt-desc').value.trim() }),
             showCancelButton: true, background: '#0f172a', color: '#fff'
@@ -13040,6 +13088,7 @@ navigate(viewName, params = {}, push = true) {
             this.loadPricingTiers();
         } catch (e) { this._notifyAction('Error', e.message, 'error'); }
     },
+
 
     // ═══ A2: Álbum del evento ═══
     loadAlbum: async function() {
@@ -13708,7 +13757,20 @@ navigate(viewName, params = {}, push = true) {
         } catch(e) { console.error('[AUTO] Error:', e.message); }
     },
 
-    openAutomationModal: function() {
+    _automationOptions: null,
+    loadAutomationOptions: async function() {
+        if (this._automationOptions) return this._automationOptions;
+        try { this._automationOptions = await this.fetchAPI('/automation/options'); }
+        catch (e) { this._automationOptions = { triggers: [], actions: [] }; }
+        const trg = document.getElementById('auto-trigger');
+        const act = document.getElementById('auto-action');
+        if (trg) trg.innerHTML = (this._automationOptions.triggers || []).map(t => `<option value="${t.id}">${t.label}</option>`).join('');
+        if (act) act.innerHTML = (this._automationOptions.actions || []).map(a => `<option value="${a.id}">${a.label}</option>`).join('');
+        return this._automationOptions;
+    },
+
+    openAutomationModal: async function() {
+        await this.loadAutomationOptions();
         document.getElementById('auto-id').value = '';
         document.getElementById('auto-name').value = '';
         document.getElementById('auto-trigger').value = 'guest.created';
@@ -13848,6 +13910,8 @@ navigate(viewName, params = {}, push = true) {
         var value = document.getElementById('coupon-value')?.value;
         if (!code || !value) { this._notifyAction('Error', 'Código y valor requeridos', 'error'); return; }
         var body = { code: code, discount_type: type, discount_value: parseFloat(value), max_uses: parseInt(document.getElementById('coupon-uses')?.value) || 0, expires_at: document.getElementById('coupon-expires')?.value || null, is_active: document.getElementById('coupon-active')?.checked };
+        const saveBtn = document.querySelector('#modal-coupon button[type="submit"], #modal-coupon .btn-primary');
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.dataset.orig = saveBtn.textContent; saveBtn.textContent = 'Guardando…'; }
         try {
             await this.fetchAPI('/events/' + eId + '/coupons' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) });
             this.closeCouponModal(); this.loadCoupons();
@@ -13856,6 +13920,8 @@ navigate(viewName, params = {}, push = true) {
             const errEl = document.getElementById('coupon-error');
             if (errEl) { errEl.textContent = e.message; errEl.classList.remove('hidden'); }
             this._notifyAction('Error', e.message, 'error');
+        } finally {
+            if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = saveBtn.dataset.orig || 'Guardar'; }
         }
     },
 
@@ -18088,6 +18154,7 @@ window.switchSystemTab = App.switchSystemTab.bind(App);
 window.switchEventTab = App.switchEventTab.bind(App);
 window.App.switchConfigTab = App.switchConfigTab.bind(App);
 
+const ALL_TAB_IDS = []; // legacy vista admin antigua
 window.switchAdminTab = function(tabName) {
     const mainDash = document.getElementById('admin-main-dashboard');
     if (mainDash) mainDash.style.display = 'none';
@@ -18347,7 +18414,7 @@ async function initApp() {
     // Listeners System (Se maneja en attachAppListeners para evitar duplicación)
     // Se mantienen solo los que no están en app-shell o son globales fuera del shell
     
-    document.getElementById('nav-tab-dashboard')?.addEventListener('click', () => switchAdminTab(null));
+    document.getElementById('nav-tab-dashboard')?.addEventListener('click', () => window.switchAdminTab?.(null));
 
     // 5. Listeners generales
 

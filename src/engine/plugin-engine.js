@@ -20,10 +20,10 @@ const loadedPlugins = new Map(); // plugin_id -> { hooks, script, sandbox }
 
 function loadPlugin(plugin) {
     try {
-        var hooks = [];
+        let hooks = [];
         try { hooks = JSON.parse(plugin.hooks || '[]'); } catch(e) { console.warn('[PLUGIN] Error parsing hooks for', plugin.name, ':', e.message); }
-        var script = plugin.script || '';
-        var sandbox = {
+        const script = plugin.script || '';
+        const sandbox = {
             console: { log: function() {}, error: function() {} },
             setTimeout: setTimeout,
             fetch: function(url, opts) { return fetch(url, opts); },
@@ -41,31 +41,31 @@ function unloadPlugin(pluginId) {
 }
 
 function initPlugins() {
-    var plugins = db.prepare("SELECT * FROM plugins WHERE enabled = 1").all();
+    const plugins = db.prepare("SELECT * FROM plugins WHERE enabled = 1").all();
     plugins.forEach(loadPlugin);
     console.log('[PLUGIN] Loaded ' + plugins.length + ' plugins');
 }
 
 // Disparar un hook: ejecuta todos los plugins suscritos
 async function triggerHook(hookName, payload, eventId) {
-    var results = [];
-    for (var [pluginId, plugin] of loadedPlugins) {
+    const results = [];
+    for (const [pluginId, plugin] of loadedPlugins) {
         if (!plugin.hooks.includes(hookName)) continue;
         try {
-            var script = plugin.script;
+            const script = plugin.script;
             if (!script) continue;
             // Verificar si el plugin está habilitado para este evento
             if (eventId) {
-                var instance = db.prepare("SELECT enabled, settings FROM plugin_instances WHERE plugin_id = ? AND event_id = ?").get(pluginId, eventId);
+                const instance = db.prepare("SELECT enabled, settings FROM plugin_instances WHERE plugin_id = ? AND event_id = ?").get(pluginId, eventId);
                 if (!instance || !instance.enabled) continue;
                 plugin.sandbox.settings = {};
                 try { plugin.sandbox.settings = JSON.parse(instance.settings || '{}'); } catch(e) {}
             }
             plugin.sandbox.payload = payload;
             plugin.sandbox.eventId = eventId;
-            var context = vm.createContext(plugin.sandbox);
+            const context = vm.createContext(plugin.sandbox);
             plugin.vmContext = context;
-            var wrappedScript = '"use strict";' + script;
+            const wrappedScript = '"use strict";' + script;
             vm.runInContext(wrappedScript, context, { timeout: 5000 });
             results.push({ pluginId: pluginId, pluginName: plugin.name, success: true });
             // Log success
@@ -85,9 +85,9 @@ async function triggerHook(hookName, payload, eventId) {
 
 // Seed plugins iniciales
 function seedDefaultPlugins() {
-    var existing = db.prepare("SELECT COUNT(*) as c FROM plugins WHERE is_system = 1").get().c;
+    const existing = db.prepare("SELECT COUNT(*) as c FROM plugins WHERE is_system = 1").get().c;
     if (existing > 0) return;
-    var plugins = [
+    const plugins = [
         {
             id: 'welcome-email',
             name: 'Email de bienvenida',
@@ -122,7 +122,7 @@ function seedDefaultPlugins() {
             is_system: 1
         }
     ];
-    var insert = db.prepare("INSERT OR IGNORE INTO plugins (id, name, description, version, author, icon, hooks, script, is_system, enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 1)");
+    const insert = db.prepare("INSERT OR IGNORE INTO plugins (id, name, description, version, author, icon, hooks, script, is_system, enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 1)");
     plugins.forEach(function(p) {
         try { insert.run(p.id, p.name, p.description, p.version, p.author, p.icon, p.hooks, p.script, p.is_system); } catch(e) {}
     });

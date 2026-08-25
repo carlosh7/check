@@ -30,26 +30,26 @@ const upload = multer({
 router.post('/upload', upload.single('photo'), (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
-        var { guest_token, caption, event_id } = req.body;
+        const { guest_token, caption, event_id } = req.body;
         if (!event_id) { fs.unlinkSync(req.file.path); return res.status(400).json({ error: 'event_id requerido' }); }
 
-        var guestId = null;
-        var approved = 0;
+        let guestId = null;
+        let approved = 0;
 
         if (guest_token) {
             // Flujo asistente (portal): queda pendiente de aprobación
-            var guest = db.prepare("SELECT id FROM guests WHERE qr_token = ? AND event_id = ?").get(guest_token, event_id);
+            const guest = db.prepare("SELECT id FROM guests WHERE qr_token = ? AND event_id = ?").get(guest_token, event_id);
             if (!guest) { fs.unlinkSync(req.file.path); return res.status(401).json({ error: 'Invitado no válido' }); }
             guestId = guest.id;
         } else {
             // A2 (v12.44.790): flujo organizador — JWT válido → foto publicada directamente
-            var auth = (req.headers.authorization || '').replace('Bearer ', '');
-            var payload = auth ? require('../security/jwt').verifyToken(auth) : null;
+            const auth = (req.headers.authorization || '').replace('Bearer ', '');
+            const payload = auth ? require('../security/jwt').verifyToken(auth) : null;
             if (!payload) { fs.unlinkSync(req.file.path); return res.status(401).json({ error: 'Autenticación requerida' }); }
             approved = 1;
         }
 
-        var id = uuidv4();
+        const id = uuidv4();
         db.prepare("INSERT INTO event_photos (id, event_id, guest_id, filename, caption, approved) VALUES (?, ?, ?, ?, ?, ?)").run(
             id, event_id, guestId, req.file.filename, caption || '', approved
         );
@@ -60,7 +60,7 @@ router.post('/upload', upload.single('photo'), (req, res) => {
 // Listar fotos aprobadas (público)
 router.get('/:eventId', (req, res) => {
     try {
-        var photos = db.prepare("SELECT ep.*, g.name as guest_name FROM event_photos ep LEFT JOIN guests g ON g.id = ep.guest_id WHERE ep.event_id = ? AND ep.approved = 1 ORDER BY ep.created_at DESC").all(req.params.eventId);
+        const photos = db.prepare("SELECT ep.*, g.name as guest_name FROM event_photos ep LEFT JOIN guests g ON g.id = ep.guest_id WHERE ep.event_id = ? AND ep.approved = 1 ORDER BY ep.created_at DESC").all(req.params.eventId);
         photos.forEach(function(p) { p.url = '/uploads/photos/' + p.filename; });
         res.json(photos);
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
@@ -69,7 +69,7 @@ router.get('/:eventId', (req, res) => {
 // Listar todas las fotos (admin — incluye no aprobadas)
 router.get('/:eventId/admin', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
-        var photos = db.prepare("SELECT ep.*, g.name as guest_name FROM event_photos ep LEFT JOIN guests g ON g.id = ep.guest_id WHERE ep.event_id = ? ORDER BY ep.approved ASC, ep.created_at DESC").all(req.params.eventId);
+        const photos = db.prepare("SELECT ep.*, g.name as guest_name FROM event_photos ep LEFT JOIN guests g ON g.id = ep.guest_id WHERE ep.event_id = ? ORDER BY ep.approved ASC, ep.created_at DESC").all(req.params.eventId);
         photos.forEach(function(p) { p.url = '/uploads/photos/' + p.filename; });
         res.json(photos);
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
@@ -86,9 +86,9 @@ router.patch('/:eventId/:photoId/approve', authMiddleware(['ADMIN', 'PRODUCTOR']
 // Rechazar/Eliminar foto
 router.delete('/:eventId/:photoId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var photo = db.prepare("SELECT * FROM event_photos WHERE id = ? AND event_id = ?").get(req.params.photoId, req.params.eventId);
+        const photo = db.prepare("SELECT * FROM event_photos WHERE id = ? AND event_id = ?").get(req.params.photoId, req.params.eventId);
         if (photo && photo.filename) {
-            var filePath = path.join(UPLOAD_DIR, photo.filename);
+            const filePath = path.join(UPLOAD_DIR, photo.filename);
             if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
         }
         db.prepare("DELETE FROM event_photos WHERE id = ? AND event_id = ?").run(req.params.photoId, req.params.eventId);

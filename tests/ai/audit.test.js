@@ -1,6 +1,6 @@
 describe('AI Audit - Logging Actions', () => {
 
-    var AUDIT_ACTIONS = {
+    const AUDIT_ACTIONS = {
         AI_PROMPT_SENT: 'AI_PROMPT_SENT',
         AI_INJECTION_DETECTED: 'AI_INJECTION_DETECTED',
         AI_ALERT_CREATED: 'AI_ALERT_CREATED',
@@ -21,14 +21,14 @@ describe('AI Audit - Logging Actions', () => {
     });
 
     test('AUDIT_ACTIONS should have 5 AI-specific actions', () => {
-        var aiActions = Object.keys(AUDIT_ACTIONS).filter(function(k) {
+        const aiActions = Object.keys(AUDIT_ACTIONS).filter(function(k) {
             return k.startsWith('AI_');
         });
         expect(aiActions.length).toBe(5);
     });
 
     test('log entry should have required fields', () => {
-        var logEntry = {
+        const logEntry = {
             action: 'AI_PROMPT_SENT',
             userId: 'user-123',
             details: {
@@ -44,7 +44,7 @@ describe('AI Audit - Logging Actions', () => {
     });
 
     test('log entry should store injection detection details', () => {
-        var logEntry = {
+        const logEntry = {
             action: 'AI_INJECTION_DETECTED',
             userId: 'user-123',
             details: {
@@ -60,7 +60,7 @@ describe('AI Audit - Logging Actions', () => {
     });
 
     test('sensitive data should be redacted in audit logs', () => {
-        var logEntry = {
+        const logEntry = {
             action: 'AI_PROMPT_SENT',
             userId: 'user-123',
             details: {
@@ -70,7 +70,7 @@ describe('AI Audit - Logging Actions', () => {
                 ip: '127.0.0.1'
             }
         };
-        var sensitiveKeys = ['password', 'apiKey'];
+        const sensitiveKeys = ['password', 'apiKey'];
         sensitiveKeys.forEach(function(key) {
             expect(logEntry.details[key]).toBe('[REDACTED]');
         });

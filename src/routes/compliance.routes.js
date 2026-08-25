@@ -10,8 +10,8 @@ const router = express.Router();
 router.get('/classification', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const { table_name } = req.query;
-        var sql = "SELECT * FROM data_classification";
-        var params = [];
+        let sql = "SELECT * FROM data_classification";
+        const params = [];
         if (table_name) {
             sql += " WHERE table_name = ?";
             params.push(table_name);
@@ -30,7 +30,7 @@ router.post('/classification', authMiddleware(['ADMIN']), (req, res) => {
     try {
         const { table_name, column_name, classification, category, description, is_pii, is_spi } = req.body;
         if (!table_name || !column_name) return res.status(400).json({ error: 'table_name y column_name requeridos' });
-        var existing = db.prepare("SELECT id FROM data_classification WHERE table_name = ? AND column_name = ?").get(table_name, column_name);
+        const existing = db.prepare("SELECT id FROM data_classification WHERE table_name = ? AND column_name = ?").get(table_name, column_name);
         if (existing) return res.status(409).json({ error: 'Ya existe clasificación para esa columna' });
         const id = uuidv4();
         const now = new Date().toISOString();
@@ -82,10 +82,10 @@ router.get('/events/:eventId/guests/:guestId/export', authMiddleware(['ADMIN', '
         const guest = eventDb.prepare("SELECT * FROM guests WHERE id = ?").get(guestId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
 
-        var sessions = [];
+        let sessions = [];
         try { sessions = eventDb.prepare("SELECT s.name, s.date, s.time FROM session_attendees sa JOIN sessions s ON s.id = sa.session_id WHERE sa.guest_id = ?").all(guestId); } catch(e) {}
 
-        var exportData = {
+        const exportData = {
             exported_at: new Date().toISOString(),
             guest: guest,
             sessions: sessions,
@@ -117,7 +117,7 @@ router.delete('/events/:eventId/guests/:guestId/personal-data', authMiddleware([
         const guest = eventDb.prepare("SELECT * FROM guests WHERE id = ?").get(guestId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
 
-        var anonName = 'Anonimizado ' + guestId.substring(0, 8);
+        const anonName = 'Anonimizado ' + guestId.substring(0, 8);
         eventDb.prepare("UPDATE guests SET name = ?, email = ?, phone = ?, company = 'Anonimizada', position = '', dietary_restrictions = '', special_needs = '', notes = '[Datos eliminados por solicitud de derecho al olvido]' WHERE id = ?").run(
             anonName, 'anon-' + guestId.substring(0, 8) + '@removed.com', '', guestId
         );
@@ -146,14 +146,14 @@ router.get('/access-logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
         const offset = (page - 1) * limit;
         const action = req.query.action || '';
 
-        var where = '';
-        var params = [];
+        let where = '';
+        const params = [];
         if (action) {
             where = " WHERE action = ?";
             params.push(action);
         }
-        var total = db.prepare("SELECT COUNT(*) as cnt FROM data_access_log" + where).get(...params).cnt;
-        var rows = db.prepare("SELECT * FROM data_access_log" + where + " ORDER BY created_at DESC LIMIT ? OFFSET ?").all(...params, limit, offset);
+        const total = db.prepare("SELECT COUNT(*) as cnt FROM data_access_log" + where).get(...params).cnt;
+        const rows = db.prepare("SELECT * FROM data_access_log" + where + " ORDER BY created_at DESC LIMIT ? OFFSET ?").all(...params, limit, offset);
         res.json({ data: rows, pagination: { page, limit, total } });
     } catch (err) {
         logger.error('[COMPLIANCE] Access logs error:', err.message);

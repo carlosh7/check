@@ -27,8 +27,8 @@ const SENSITIVE_DATA_PATTERNS = [
 
 function validatePrompt(prompt) {
     if (!prompt || typeof prompt !== 'string') return { riskScore: 0, injectionDetected: false, matchedPatterns: [] };
-    var matchedPatterns = [];
-    var maxRisk = 0;
+    const matchedPatterns = [];
+    let maxRisk = 0;
     INJECTION_PATTERNS.forEach(function(p) {
         if (p.pattern.test(prompt)) {
             matchedPatterns.push({ pattern: p.label, risk: p.risk });
@@ -44,8 +44,8 @@ function validatePrompt(prompt) {
 
 function maskSensitiveData(text) {
     if (!text || typeof text !== 'string') return { masked: text, foundTypes: [] };
-    var masked = text;
-    var foundTypes = [];
+    let masked = text;
+    const foundTypes = [];
     SENSITIVE_DATA_PATTERNS.forEach(function(p) {
         masked = masked.replace(p.regex, function(match) {
             if (!foundTypes.includes(p.type)) foundTypes.push(p.type);
@@ -57,10 +57,10 @@ function maskSensitiveData(text) {
 
 function middleware(req, res, next) {
     if (req.body && req.body.prompt) {
-        var validation = validatePrompt(req.body.prompt);
+        const validation = validatePrompt(req.body.prompt);
         req.aiValidation = validation;
 
-        var dlp = maskSensitiveData(req.body.prompt);
+        const dlp = maskSensitiveData(req.body.prompt);
         req.body.prompt = dlp.masked;
 
         if (validation.injectionDetected) {

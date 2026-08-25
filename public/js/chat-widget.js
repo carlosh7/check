@@ -2,7 +2,7 @@
   if (window.ChatWidgetLoaded) return;
   window.ChatWidgetLoaded = true;
 
-  var styles = document.createElement('style');
+  const styles = document.createElement('style');
   styles.textContent = `
     #chat-widget-btn { position:fixed; bottom:24px; right:24px; width:56px; height:56px; border-radius:50%; background:#7c3aed; color:#fff; border:none; cursor:pointer; box-shadow:0 4px 16px rgba(124,58,237,0.4); z-index:9999; font-size:24px; display:flex; align-items:center; justify-content:center; transition:transform 0.2s; }
     #chat-widget-btn:hover { transform:scale(1.1); }
@@ -25,27 +25,27 @@
   `;
   document.head.appendChild(styles);
 
-  var btn = document.createElement('button');
+  const btn = document.createElement('button');
   btn.id = 'chat-widget-btn';
   btn.innerHTML = '💬';
   btn.onclick = function() { document.getElementById('chat-widget').classList.toggle('open'); };
   document.body.appendChild(btn);
 
-  var widget = document.createElement('div');
+  const widget = document.createElement('div');
   widget.id = 'chat-widget';
   widget.innerHTML = '<div id="chat-header"><span>🤖 Asistente Check</span><button id="chat-close">✕</button></div><div id="chat-messages"><div class="msg bot">¡Hola! Soy el asistente virtual. Pregúntame sobre el evento.</div></div><div id="chat-quick"></div><div id="chat-input-area"><input id="chat-input" placeholder="Escribe tu pregunta..."><button id="chat-send">Enviar</button></div>';
   document.body.appendChild(widget);
 
   document.getElementById('chat-close').onclick = function() { widget.classList.remove('open'); };
-  var input = document.getElementById('chat-input');
-  var sendBtn = document.getElementById('chat-send');
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send');
 
   function addQuickReplies(replies) {
-    var container = document.getElementById('chat-quick');
+    const container = document.getElementById('chat-quick');
     container.innerHTML = '';
     if (!replies || !replies.length) return;
     replies.forEach(function(r) {
-      var b = document.createElement('button');
+      const b = document.createElement('button');
       b.textContent = r;
       b.onclick = function() { sendMessage(r); };
       container.appendChild(b);
@@ -53,8 +53,8 @@
   }
 
   function addMessage(text, role) {
-    var msgs = document.getElementById('chat-messages');
-    var div = document.createElement('div');
+    const msgs = document.getElementById('chat-messages');
+    const div = document.createElement('div');
     div.className = 'msg ' + role;
     div.textContent = text;
     msgs.appendChild(div);
@@ -66,7 +66,7 @@
     addMessage(msg, 'user');
     input.value = '';
     document.getElementById('chat-quick').innerHTML = '';
-    var eventId = window.CHAT_EVENT_ID || null;
+    const eventId = window.CHAT_EVENT_ID || null;
     fetch('/api/chatbot/message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg, event_id: eventId }) })
       .then(function(r) { return r.json(); })
       .then(function(d) {

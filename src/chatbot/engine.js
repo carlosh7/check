@@ -101,8 +101,8 @@ async function getAiResponse(message, eventId, history) {
 }
 
 function getRuleResponse(message, eventId) {
-    var msg = (message || '').toLowerCase().trim();
-    var event = null;
+    const msg = (message || '').toLowerCase().trim();
+    let event = null;
     if (eventId) {
         event = db.prepare("SELECT name, date, end_date, location, description, payment_required, currency FROM events WHERE id = ?").get(eventId);
     }
@@ -151,15 +151,15 @@ function getRuleResponse(message, eventId) {
     
     // Sessions/Activities
     if (msg.match(/(actividades|agenda|sesiones|talleres|charlas|programa|horarios)/)) {
-        var sessions = [];
+        let sessions = [];
         if (eventId) {
             try {
-                var conn = require('../../database').getEventConnection(eventId);
+                const conn = require('../../database').getEventConnection(eventId);
                 if (conn) sessions = conn.prepare("SELECT title, start_time, end_time, location FROM sessions WHERE event_id = ? ORDER BY start_time ASC LIMIT 10").all(eventId);
             } catch(e) {}
         }
         if (sessions.length > 0) {
-            var text = '📋 Agenda del evento:\n\n';
+            let text = '📋 Agenda del evento:\n\n';
             sessions.forEach(function(s) {
                 text += '• ' + (s.start_time || '??:??') + (s.end_time ? '-' + s.end_time : '') + ' — ' + (s.title || 'Sin título') + (s.location ? ' 📍' + s.location : '') + '\n';
             });

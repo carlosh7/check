@@ -4,8 +4,8 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 
 ## Resumen
 - **Endpoints backend:** 426
-- **Con uso desde el frontend:** 403 (95%)
-- **Sin UI conectada:** 23 (5%)
+- **Con uso desde el frontend:** 407 (96%)
+- **Sin UI conectada:** 19 (4%)
 
 > Nota: un endpoint "sin UI" no es necesariamente un error — hay endpoints
 > para webhooks externos (Stripe/GitHub), API pública v1 (consumo externo),
@@ -37,7 +37,7 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 | api-keys | 6 | 6 | 0 | 100% |
 | ecommerce | 6 | 5 | 1 | 83% |
 | seat-layouts | 5 | 5 | 0 | 100% |
-| deploy | 5 | 3 | 2 | 60% |
+| deploy | 5 | 4 | 1 | 80% |
 | album | 5 | 5 | 0 | 100% |
 | export | 5 | 5 | 0 | 100% |
 | health | 4 | 3 | 1 | 75% |
@@ -51,7 +51,7 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 | landing | 3 | 3 | 0 | 100% |
 | bi | 3 | 3 | 0 | 100% |
 | captcha | 2 | 0 | 2 | 0% |
-| transactions | 2 | 0 | 2 | 0% |
+| transactions | 2 | 2 | 0 | 100% |
 | tenant | 2 | 0 | 2 | 0% |
 | marketplace | 2 | 1 | 1 | 50% |
 | raíz | 2 | 2 | 0 | 100% |
@@ -67,7 +67,7 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 | unsubscribe | 1 | 0 | 1 | 0% |
 | public-register | 1 | 1 | 0 | 100% |
 | audit-logs | 1 | 1 | 0 | 100% |
-| automation | 1 | 0 | 1 | 0% |
+| automation | 1 | 1 | 0 | 100% |
 | chatbot | 1 | 1 | 0 | 100% |
 | predict | 1 | 1 | 0 | 100% |
 | recommendations | 1 | 1 | 0 | 100% |
@@ -81,16 +81,12 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 
 ## Endpoints sin UI (por módulo)
 
-### automation
-- `GET /api/automation/options`
-
 ### captcha
 - `GET /api/captcha`
 - `POST /api/captcha/verify`
 
 ### deploy
 - `POST /api/deploy/webhook`
-- `GET /api/deploy/logs`
 
 ### ecommerce
 - `POST /api/ecommerce/webhook/:connectionId`
@@ -117,10 +113,6 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 - `GET /api/tenant/:slug`
 - `GET /api/tenant/:slug/event/:eventId`
 
-### transactions
-- `GET /api/transactions/:id`
-- `GET /api/transactions/:id/receipt`
-
 ### unsubscribe
 - `GET /api/unsubscribe/:token`
 
@@ -135,20 +127,3 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 
 ### whatsapp
 - `POST /api/whatsapp/send-to-guest/:guestId`
-
-
-## Clasificación de los 23 endpoints restantes (revisión deliberada v12.44.791)
-
-| Endpoint(s) | Clasificación |
-|---|---|
-| `POST /api/ecommerce/webhook/:connectionId` | **Webhook externo** — lo llama la plataforma de la tienda, no tiene UI |
-| `GET /api/v1/*` | **API pública v1** — es el producto que consumen terceros con API keys |
-| `GET /api/health`, `/health/redis`, `/health/full` | **Monitoreo** — consumidos por Docker healthcheck y balanceadores; el panel Ops usa `/health/system` |
-| `GET /api/metrics` | **Formato Prometheus** para monitoreo externo |
-| `GET /api/kiosk/*`, `/api/event/:id`, `/api/event-by-slug/:slug`, `/api/tenant/*`, `/api/portal/:guestId`, `/api/captcha/*`, `/api/pricing/tiers` (GET público) | **Endpoints públicos** consumidos por páginas propias (kiosk.html, registro.html, portal.html) mediante llamadas con variables — UI existe, el extractor estático no resuelve la variable |
-| `POST /api/logout`, `POST /api/security/ai/chat`, `POST /api/sms/send-to-guest/:guestId`, `GET /api/bi/export/:format`, `GET /api/transactions/:id/receipt` | **Falsos negativos del extractor** — llamadas con URL construida dinámicamente; UI verificada manualmente |
-| `GET /api/automation/options` | **Pendiente menor**: poblar selects del builder de automatizaciones (backlog) |
-| `GET /api/networking/profile/:guestId`, `/mutual` | **Portal asistente** — perfil detallado de networking (backlog portal v2) |
-| `GET /api/deploy/logs`, `/api/performance/logs` | Panel Ops los consume bajo demanda (botón Ver); extractor no ve la llamada por estar en handler condicional |
-
-**Conclusión:** no quedan endpoints funcionales sin acceso desde la interfaz.

@@ -122,37 +122,37 @@ router.delete('/ai/policies/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, 
 // POST /api/ai/chat — Enviar consulta a IA con deteccion de inyeccion y logging
 router.post('/ai/chat', authMiddleware(['ADMIN', 'PRODUCTOR', 'STAFF', 'ORGANIZER']), async (req, res) => {
     try {
-        let startTime = Date.now();
-        let prompt = (req.body.prompt || '').trim();
+        const startTime = Date.now();
+        const prompt = (req.body.prompt || '').trim();
         if (!prompt) return res.status(400).json({ error: 'Prompt requerido' });
 
-        let aiEnabled = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_enabled'").pluck();
-        let enabled = aiEnabled.get();
+        const aiEnabled = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_enabled'").pluck();
+        const enabled = aiEnabled.get();
         if (enabled !== '1') return res.status(503).json({ error: 'IA deshabilitada' });
 
-        let aiKey = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_openrouter_key'").pluck();
-        let apiKey = aiKey.get() || '';
+        const aiKey = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_openrouter_key'").pluck();
+        const apiKey = aiKey.get() || '';
         if (!apiKey) return res.status(503).json({ error: 'API key de IA no configurada' });
 
-        let aiModel = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_model'").pluck();
-        let model = aiModel.get() || 'google/gemini-2.0-flash-lite-preview-02-05:free';
+        const aiModel = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_model'").pluck();
+        const model = aiModel.get() || 'google/gemini-2.0-flash-lite-preview-02-05:free';
 
-        let aiSysPrompt = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_system_prompt'").pluck();
-        let systemPrompt = aiSysPrompt.get() || '';
+        const aiSysPrompt = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_system_prompt'").pluck();
+        const systemPrompt = aiSysPrompt.get() || '';
 
         // Validacion de inyeccion
-        let validation = validatePrompt(prompt);
-        let dlpResult = maskSensitiveData(prompt);
-        let maskedPrompt = dlpResult.masked;
+        const validation = validatePrompt(prompt);
+        const dlpResult = maskSensitiveData(prompt);
+        const maskedPrompt = dlpResult.masked;
 
-        let logId = uuidv4();
-        let userId = req.userId || 'unknown';
-        let userName = req.user?.name || req.user?.username || 'unknown';
+        const logId = uuidv4();
+        const userId = req.userId || 'unknown';
+        const userName = req.user?.name || req.user?.username || 'unknown';
 
         // Crear alerta si se detecta inyeccion
         if (validation.injectionDetected) {
-            let alertId = uuidv4();
-            let patterns = validation.matchedPatterns.map(function(p) { return p.pattern; }).join(', ');
+            const alertId = uuidv4();
+            const patterns = validation.matchedPatterns.map(function(p) { return p.pattern; }).join(', ');
             db.prepare("INSERT INTO ai_alerts (id, type, severity, title, description, source, user_id, user_name, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(
                 alertId, 'injection_detected', validation.riskScore >= 0.9 ? 'critical' : 'high',
                 'Inyeccion de prompt detectada',
@@ -167,7 +167,7 @@ router.post('/ai/chat', authMiddleware(['ADMIN', 'PRODUCTOR', 'STAFF', 'ORGANIZE
         let responseText = '';
         try {
             responseText = await new Promise(function(resolve, reject) {
-                let postData = JSON.stringify({
+                const postData = JSON.stringify({
                     model: model,
                     messages: [
                         { role: 'system', content: systemPrompt },
@@ -176,7 +176,7 @@ router.post('/ai/chat', authMiddleware(['ADMIN', 'PRODUCTOR', 'STAFF', 'ORGANIZE
                     max_tokens: 2000
                 });
 
-                let options = {
+                const options = {
                     hostname: 'openrouter.ai',
                     path: '/api/v1/chat/completions',
                     method: 'POST',
@@ -188,12 +188,12 @@ router.post('/ai/chat', authMiddleware(['ADMIN', 'PRODUCTOR', 'STAFF', 'ORGANIZE
                     }
                 };
 
-                let apiReq = https.request(options, function(apiRes) {
+                const apiReq = https.request(options, function(apiRes) {
                     let data = '';
                     apiRes.on('data', function(chunk) { data += chunk; });
                     apiRes.on('end', function() {
                         try {
-                            let parsed = JSON.parse(data);
+                            const parsed = JSON.parse(data);
                             if (parsed.choices && parsed.choices.length > 0) {
                                 resolve(parsed.choices[0].message.content || '');
                             } else {
@@ -210,10 +210,10 @@ router.post('/ai/chat', authMiddleware(['ADMIN', 'PRODUCTOR', 'STAFF', 'ORGANIZE
             responseText = 'Error al contactar el servicio de IA: ' + apiError.message;
         }
 
-        let duration = Date.now() - startTime;
+        const duration = Date.now() - startTime;
 
         // Enmascarar PII en respuesta
-        let maskedResponse = maskSensitiveData(responseText).masked;
+        const maskedResponse = maskSensitiveData(responseText).masked;
 
         // Guardar log
         db.prepare("INSERT INTO ai_prompt_logs (id, user_id, user_name, prompt, response, model, risk_score, injection_detected, injection_pattern, masked_prompt, masked_response, tokens_used, duration_ms, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").run(
@@ -242,22 +242,22 @@ router.post('/ai/chat', authMiddleware(['ADMIN', 'PRODUCTOR', 'STAFF', 'ORGANIZE
 // GET /api/security/ai/logs — Logs de consultas IA
 router.get('/ai/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        let page = parseInt(req.query.page) || 1;
-        let limit = Math.min(parseInt(req.query.limit) || 30, 100);
-        let offset = (page - 1) * limit;
-        let userId = req.query.user_id || '';
-        let riskMin = parseFloat(req.query.risk_min) || 0;
-        let injectionOnly = req.query.injection_only === '1';
+        const page = parseInt(req.query.page) || 1;
+        const limit = Math.min(parseInt(req.query.limit) || 30, 100);
+        const offset = (page - 1) * limit;
+        const userId = req.query.user_id || '';
+        const riskMin = parseFloat(req.query.risk_min) || 0;
+        const injectionOnly = req.query.injection_only === '1';
 
-        let where = [];
-        let params = [];
+        const where = [];
+        const params = [];
         if (userId) { where.push("user_id = ?"); params.push(userId); }
         if (riskMin > 0) { where.push("risk_score >= ?"); params.push(riskMin); }
         if (injectionOnly) { where.push("injection_detected = 1"); }
 
-        let whereClause = where.length > 0 ? ' WHERE ' + where.join(' AND ') : '';
-        let total = db.prepare("SELECT COUNT(*) as cnt FROM ai_prompt_logs" + whereClause).get(...params).cnt;
-        let logs = db.prepare("SELECT id, user_id, user_name, model, risk_score, injection_detected, injection_pattern, masked_prompt, masked_response, tokens_used, duration_ms, created_at FROM ai_prompt_logs" + whereClause + " ORDER BY created_at DESC LIMIT ? OFFSET ?").all(...params, limit, offset);
+        const whereClause = where.length > 0 ? ' WHERE ' + where.join(' AND ') : '';
+        const total = db.prepare("SELECT COUNT(*) as cnt FROM ai_prompt_logs" + whereClause).get(...params).cnt;
+        const logs = db.prepare("SELECT id, user_id, user_name, model, risk_score, injection_detected, injection_pattern, masked_prompt, masked_response, tokens_used, duration_ms, created_at FROM ai_prompt_logs" + whereClause + " ORDER BY created_at DESC LIMIT ? OFFSET ?").all(...params, limit, offset);
 
         res.json({ data: logs, pagination: { page: page, limit: limit, total: total } });
     } catch (err) {
@@ -269,7 +269,7 @@ router.get('/ai/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 // GET /api/security/ai/logs/:id — Detalle de un log
 router.get('/ai/logs/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        let log = db.prepare("SELECT * FROM ai_prompt_logs WHERE id = ?").get(req.params.id);
+        const log = db.prepare("SELECT * FROM ai_prompt_logs WHERE id = ?").get(req.params.id);
         if (!log) return res.status(404).json({ error: 'Log no encontrado' });
         res.json(log);
     } catch (err) {
@@ -281,21 +281,21 @@ router.get('/ai/logs/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
 // GET /api/security/ai/alerts — Listar alertas
 router.get('/ai/alerts', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        let page = parseInt(req.query.page) || 1;
-        let limit = Math.min(parseInt(req.query.limit) || 30, 100);
-        let offset = (page - 1) * limit;
-        let severity = req.query.severity || '';
-        let acknowledged = req.query.acknowledged;
+        const page = parseInt(req.query.page) || 1;
+        const limit = Math.min(parseInt(req.query.limit) || 30, 100);
+        const offset = (page - 1) * limit;
+        const severity = req.query.severity || '';
+        const acknowledged = req.query.acknowledged;
 
-        let where = [];
-        let params = [];
+        const where = [];
+        const params = [];
         if (severity) { where.push("severity = ?"); params.push(severity); }
         if (acknowledged === '0') { where.push("acknowledged_at IS NULL"); }
         if (acknowledged === '1') { where.push("acknowledged_at IS NOT NULL"); }
 
-        let whereClause = where.length > 0 ? ' WHERE ' + where.join(' AND ') : '';
-        let total = db.prepare("SELECT COUNT(*) as cnt FROM ai_alerts" + whereClause).get(...params).cnt;
-        let alerts = db.prepare("SELECT * FROM ai_alerts" + whereClause + " ORDER BY created_at DESC LIMIT ? OFFSET ?").all(...params, limit, offset);
+        const whereClause = where.length > 0 ? ' WHERE ' + where.join(' AND ') : '';
+        const total = db.prepare("SELECT COUNT(*) as cnt FROM ai_alerts" + whereClause).get(...params).cnt;
+        const alerts = db.prepare("SELECT * FROM ai_alerts" + whereClause + " ORDER BY created_at DESC LIMIT ? OFFSET ?").all(...params, limit, offset);
 
         res.json({ data: alerts, pagination: { page: page, limit: limit, total: total } });
     } catch (err) {
@@ -307,7 +307,7 @@ router.get('/ai/alerts', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 // POST /api/security/ai/alerts/:id/acknowledge — Marcar alerta como atendida
 router.post('/ai/alerts/:id/acknowledge', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        let alert = db.prepare("SELECT * FROM ai_alerts WHERE id = ?").get(req.params.id);
+        const alert = db.prepare("SELECT * FROM ai_alerts WHERE id = ?").get(req.params.id);
         if (!alert) return res.status(404).json({ error: 'Alerta no encontrada' });
         db.prepare("UPDATE ai_alerts SET acknowledged_by = ?, acknowledged_at = ? WHERE id = ?").run(req.userId || 'unknown', new Date().toISOString(), req.params.id);
         try { logAction(req, AUDIT_ACTIONS.AI_ALERT_ACKNOWLEDGED, { alertId: req.params.id, type: alert.type, severity: alert.severity }); } catch(e) {}
@@ -321,15 +321,15 @@ router.post('/ai/alerts/:id/acknowledge', authMiddleware(['ADMIN', 'PRODUCTOR'])
 // GET /api/security/ai/stats — Estadisticas de uso IA
 router.get('/ai/stats', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        let totalQueries = db.prepare("SELECT COUNT(*) as cnt FROM ai_prompt_logs").get().cnt;
-        let totalInjections = db.prepare("SELECT COUNT(*) as cnt FROM ai_prompt_logs WHERE injection_detected = 1").get().cnt;
-        let totalAlerts = db.prepare("SELECT COUNT(*) as cnt FROM ai_alerts").get().cnt;
-        let pendingAlerts = db.prepare("SELECT COUNT(*) as cnt FROM ai_alerts WHERE acknowledged_at IS NULL").get().cnt;
-        let avgRisk = db.prepare("SELECT COALESCE(AVG(risk_score), 0) as avg FROM ai_prompt_logs").get().avg;
-        let avgDuration = db.prepare("SELECT COALESCE(AVG(duration_ms), 0) as avg FROM ai_prompt_logs WHERE duration_ms > 0").get().avg;
+        const totalQueries = db.prepare("SELECT COUNT(*) as cnt FROM ai_prompt_logs").get().cnt;
+        const totalInjections = db.prepare("SELECT COUNT(*) as cnt FROM ai_prompt_logs WHERE injection_detected = 1").get().cnt;
+        const totalAlerts = db.prepare("SELECT COUNT(*) as cnt FROM ai_alerts").get().cnt;
+        const pendingAlerts = db.prepare("SELECT COUNT(*) as cnt FROM ai_alerts WHERE acknowledged_at IS NULL").get().cnt;
+        const avgRisk = db.prepare("SELECT COALESCE(AVG(risk_score), 0) as avg FROM ai_prompt_logs").get().avg;
+        const avgDuration = db.prepare("SELECT COALESCE(AVG(duration_ms), 0) as avg FROM ai_prompt_logs WHERE duration_ms > 0").get().avg;
 
-        let byUser = db.prepare("SELECT user_id, user_name, COUNT(*) as cnt FROM ai_prompt_logs GROUP BY user_id ORDER BY cnt DESC LIMIT 10").all();
-        let dailyTrend = db.prepare("SELECT DATE(created_at) as date, COUNT(*) as cnt FROM ai_prompt_logs WHERE created_at >= DATE('now', '-30 days') GROUP BY DATE(created_at) ORDER BY date ASC").all();
+        const byUser = db.prepare("SELECT user_id, user_name, COUNT(*) as cnt FROM ai_prompt_logs GROUP BY user_id ORDER BY cnt DESC LIMIT 10").all();
+        const dailyTrend = db.prepare("SELECT DATE(created_at) as date, COUNT(*) as cnt FROM ai_prompt_logs WHERE created_at >= DATE('now', '-30 days') GROUP BY DATE(created_at) ORDER BY date ASC").all();
 
         res.json({
             totalQueries: totalQueries,
@@ -350,10 +350,10 @@ router.get('/ai/stats', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 // GET /api/security/ai/settings — Obtener configuracion IA
 router.get('/ai/settings', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        let settings = {};
-        let keys = ['ai_enabled', 'ai_openrouter_key', 'ai_model', 'ai_system_prompt'];
+        const settings = {};
+        const keys = ['ai_enabled', 'ai_openrouter_key', 'ai_model', 'ai_system_prompt'];
         keys.forEach(function(k) {
-            let val = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").pluck().get(k);
+            const val = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").pluck().get(k);
             settings[k] = val || '';
         });
         res.json(settings);
@@ -366,7 +366,7 @@ router.get('/ai/settings', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
 // PUT /api/security/ai/settings — Actualizar configuracion IA
 router.put('/ai/settings', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        let allowed = ['ai_enabled', 'ai_openrouter_key', 'ai_model', 'ai_system_prompt'];
+        const allowed = ['ai_enabled', 'ai_openrouter_key', 'ai_model', 'ai_system_prompt'];
         Object.keys(req.body).forEach(function(k) {
             if (allowed.includes(k)) {
                 db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?").run(String(req.body[k]), k);

@@ -1,7 +1,7 @@
-var helmet = require('helmet');
+const helmet = require('helmet');
 
 function createMockRes() {
-    var headers = {};
+    const headers = {};
     return {
         headers: headers,
         setHeader: function(name, value) { headers[name.toLowerCase()] = value; },
@@ -20,28 +20,28 @@ describe('AI Hardening - Security Headers', function() {
     });
 
     test('helmet should set X-Content-Type-Options header', function() {
-        var res = createMockRes();
+        const res = createMockRes();
         helmet()({ headers: {}, ip: '127.0.0.1' }, res, function() {
             expect(res.getHeader('x-content-type-options')).toBe('nosniff');
         });
     });
 
     test('helmet should set Strict-Transport-Security header', function() {
-        var res = createMockRes();
+        const res = createMockRes();
         helmet()({ headers: {}, ip: '127.0.0.1' }, res, function() {
             expect(res.getHeader('strict-transport-security')).toMatch(/max-age=/);
         });
     });
 
     test('helmet should set X-Frame-Options to SAMEORIGIN', function() {
-        var res = createMockRes();
+        const res = createMockRes();
         helmet()({ headers: {}, ip: '127.0.0.1' }, res, function() {
             expect(res.getHeader('x-frame-options')).toBe('SAMEORIGIN');
         });
     });
 
     test('helmet should set X-XSS-Protection header', function() {
-        var res = createMockRes();
+        const res = createMockRes();
         helmet()({ headers: {}, ip: '127.0.0.1' }, res, function() {
             expect(res.getHeader('x-xss-protection')).toBe('0');
         });

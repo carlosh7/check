@@ -11,10 +11,10 @@ const router = express.Router();
 // Guardar configuración de landing page
 router.put('/:eventId/config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var eId = castId('events', req.params.eventId);
+        const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID inválido' });
-        var { blocks, primary_color, show_countdown, show_map, show_schedule, hero_title, hero_subtitle, about_text, cta_text, cta_link, banner_url, logo_url } = req.body;
-        var config = { blocks: blocks || [], primary_color: primary_color || '#7c3aed', show_countdown: show_countdown !== false, show_map: show_map !== false, show_schedule: show_schedule !== false, hero_title: hero_title || '', hero_subtitle: hero_subtitle || '', about_text: about_text || '', cta_text: cta_text || 'Registrarse', cta_link: cta_link || '', banner_url: banner_url || '', logo_url: logo_url || '' };
+        const { blocks, primary_color, show_countdown, show_map, show_schedule, hero_title, hero_subtitle, about_text, cta_text, cta_link, banner_url, logo_url } = req.body;
+        const config = { blocks: blocks || [], primary_color: primary_color || '#7c3aed', show_countdown: show_countdown !== false, show_map: show_map !== false, show_schedule: show_schedule !== false, hero_title: hero_title || '', hero_subtitle: hero_subtitle || '', about_text: about_text || '', cta_text: cta_text || 'Registrarse', cta_link: cta_link || '', banner_url: banner_url || '', logo_url: logo_url || '' };
         db.prepare("UPDATE events SET landing_config = ? WHERE id = ?").run(JSON.stringify(config), eId);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
@@ -23,11 +23,11 @@ router.put('/:eventId/config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
 // Obtener configuración de landing page
 router.get('/:eventId/config', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
-        var eId = castId('events', req.params.eventId);
+        const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID inválido' });
-        var event = db.prepare("SELECT id, landing_config FROM events WHERE id = ?").get(eId);
+        const event = db.prepare("SELECT id, landing_config FROM events WHERE id = ?").get(eId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
-        var config = {};
+        let config = {};
         try { config = JSON.parse(event.landing_config); } catch(e) {}
         res.json(config);
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
@@ -36,14 +36,14 @@ router.get('/:eventId/config', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER'
 // Obtener landing page pública
 router.get('/:eventId/public', (req, res) => {
     try {
-        var eId = castId('events', req.params.eventId);
+        const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID inválido' });
-        var event = db.prepare("SELECT id, name, date, end_date, location, description, logo_url, landing_config, video_conference_url, latitude, longitude FROM events WHERE id = ?").get(eId);
+        const event = db.prepare("SELECT id, name, date, end_date, location, description, logo_url, landing_config, video_conference_url, latitude, longitude FROM events WHERE id = ?").get(eId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
-        var config = {};
+        let config = {};
         try { config = JSON.parse(event.landing_config || '{}'); } catch(e) {}
         // Merge config with event data
-        var landing = {
+        const landing = {
             eventName: event.name,
             eventDate: event.date,
             eventEndDate: event.end_date,
@@ -68,9 +68,9 @@ router.get('/:eventId/public', (req, res) => {
         // Get sessions for schedule
         if (landing.showSchedule) {
             try {
-                var targetDb = eventDatabaseExists(eId) ? getEventConnection(eId) : null;
-                if (!targetDb) { var Database = require('better-sqlite3'); targetDb = db; }
-                var sessions = targetDb.prepare("SELECT title, start_time, end_time, location, description FROM sessions WHERE event_id = ? ORDER BY start_time ASC").all(eId);
+                let targetDb = eventDatabaseExists(eId) ? getEventConnection(eId) : null;
+                if (!targetDb) { const Database = require('better-sqlite3'); targetDb = db; }
+                const sessions = targetDb.prepare("SELECT title, start_time, end_time, location, description FROM sessions WHERE event_id = ? ORDER BY start_time ASC").all(eId);
                 landing.sessions = sessions;
             } catch(e) { landing.sessions = []; }
         }

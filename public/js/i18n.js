@@ -32,8 +32,8 @@ async function loadLang(lang) {
 
 function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(function(el) {
-        var key = el.getAttribute('data-i18n');
-        var val = getTranslation(key);
+        const key = el.getAttribute('data-i18n');
+        const val = getTranslation(key);
         if (val) {
             if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                 el.placeholder = val;
@@ -43,13 +43,13 @@ function applyTranslations() {
         }
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
-        var key = el.getAttribute('data-i18n-placeholder');
-        var val = getTranslation(key);
+        const key = el.getAttribute('data-i18n-placeholder');
+        const val = getTranslation(key);
         if (val) el.placeholder = val;
     });
     document.querySelectorAll('[data-i18n-title]').forEach(function(el) {
-        var key = el.getAttribute('data-i18n-title');
-        var val = getTranslation(key);
+        const key = el.getAttribute('data-i18n-title');
+        const val = getTranslation(key);
         if (val) el.title = val;
     });
     document.documentElement.lang = currentLang;
@@ -57,9 +57,9 @@ function applyTranslations() {
 
 function getTranslation(key) {
     if (!key) return '';
-    var parts = key.split('.');
-    var obj = translations;
-    for (var i = 0; i < parts.length; i++) {
+    const parts = key.split('.');
+    let obj = translations;
+    for (let i = 0; i < parts.length; i++) {
         if (obj && typeof obj === 'object' && parts[i] in obj) {
             obj = obj[parts[i]];
         } else {

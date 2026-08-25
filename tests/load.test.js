@@ -19,23 +19,23 @@ async function runLoadTest() {
     console.log('Target:', BASE_URL);
     console.log('');
 
-    var totalRequests = 0;
-    var totalErrors = 0;
-    var totalTime = 0;
-    var minTime = Infinity;
-    var maxTime = 0;
+    let totalRequests = 0;
+    let totalErrors = 0;
+    let totalTime = 0;
+    let minTime = Infinity;
+    let maxTime = 0;
 
     for (var e of ENDPOINTS) {
         console.log('Testing:', e.method, e.path);
-        for (var i = 0; i < 10; i++) {
+        for (let i = 0; i < 10; i++) {
             var start = Date.now();
             try {
                 await new Promise(function(resolve, reject) {
-                    var req = http.request(BASE_URL + e.path, { method: e.method }, function(res) {
-                        var body = '';
+                    const req = http.request(BASE_URL + e.path, { method: e.method }, function(res) {
+                        let body = '';
                         res.on('data', function(chunk) { body += chunk; });
                         res.on('end', function() {
-                            var ms = Date.now() - start;
+                            const ms = Date.now() - start;
                             totalTime += ms;
                             minTime = Math.min(minTime, ms);
                             maxTime = Math.max(maxTime, ms);

@@ -1,3 +1,4 @@
+import { ThemeManagerInstance } from './core/Theme.js?v=12.44.789';
 import { LS } from '../src/frontend/utils.js';
 
 const ThemeModule = window.ThemeModule = {

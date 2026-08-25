@@ -44,7 +44,7 @@ router.post('/:eventId/conflicts', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
         let sql = `SELECT id, title, date, start_time, end_time, location FROM sessions 
             WHERE event_id = ? AND date = ? 
             AND start_time < ? AND end_time > ?`;
-        let params = [eId, date, end_time, start_time];
+        const params = [eId, date, end_time, start_time];
         
         if (exclude_session_id) {
             sql += ` AND id != ?`;

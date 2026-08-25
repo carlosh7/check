@@ -76,7 +76,7 @@ const { limiters } = require('../middleware/rate-limiter');
 const logger = require("../utils/logger");
 const router = express.Router();
 
-let tempImport = {};
+const tempImport = {};
 
 // Obtener invitado por ID (público - para tickets)
 router.get('/by-id/:guestId', (req, res) => {
@@ -90,9 +90,9 @@ router.get('/by-id/:guestId', (req, res) => {
 // OTP Check-in (BL-14)
 router.post('/otp/generate/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var guest = db.prepare("SELECT id FROM guests WHERE id = ?").get(req.params.guestId);
+        const guest = db.prepare("SELECT id FROM guests WHERE id = ?").get(req.params.guestId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
-        var code = String(Math.floor(100000 + Math.random() * 900000));
+        const code = String(Math.floor(100000 + Math.random() * 900000));
         db.prepare("UPDATE guests SET otp_code = ? WHERE id = ?").run(code, req.params.guestId);
         res.json({ success: true, code: code });
     } catch(err) { res.status(500).json({ error: err.message }); }
@@ -102,14 +102,14 @@ const otpLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { err
 
 router.post('/otp/verify', otpLimiter, (req, res) => {
     try {
-        var { code } = req.body;
+        const { code } = req.body;
         if (!code) return res.status(400).json({ error: 'Código requerido' });
-        var guest = db.prepare("SELECT id, event_id, name, checked_in FROM guests WHERE otp_code = ?").get(code);
+        const guest = db.prepare("SELECT id, event_id, name, checked_in FROM guests WHERE otp_code = ?").get(code);
         if (!guest) return res.json({ valid: false, error: 'Código inválido' });
         if (guest.checked_in) return res.json({ valid: false, error: 'Ya registró asistencia', guest: guest });
         if (!guest.checked_in) {
             db.prepare("UPDATE guests SET checked_in = 1, checkin_time = ? WHERE id = ?").run(new Date().toISOString(), guest.id);
-            try { var io2 = require('../socket').getIO(); if (io2) { io2.to(guest.event_id).emit('update_stats', guest.event_id); io2.to(guest.event_id).emit('live_checkin', { name: guest.name, id: guest.id, event_id: guest.event_id }); } } catch(e) {}
+            try { const io2 = require('../socket').getIO(); if (io2) { io2.to(guest.event_id).emit('update_stats', guest.event_id); io2.to(guest.event_id).emit('live_checkin', { name: guest.name, id: guest.id, event_id: guest.event_id }); } } catch(e) {}
         }
         res.json({ valid: true, guest: { id: guest.id, name: guest.name, event_id: guest.event_id } });
     } catch(err) { res.status(500).json({ error: err.message }); }
@@ -127,7 +127,7 @@ router.get('/:eventId', authMiddleware(), (req, res) => {
     const targetDb = getEventDb(eId);
 
     let whereClause = 'event_id = ?';
-    let params = [eId];
+    const params = [eId];
 
     if (search) {
         whereClause += " AND (name LIKE ? OR email LIKE ? OR organization LIKE ?)";
@@ -295,13 +295,13 @@ router.get('/export-excel/:eventId', authMiddleware(), async (req, res) => {
     const eId = castId('events', req.params.eventId);
     const targetDb = getEventDb(eId);
     // Filtros opcionales (F-03)
-    var whereClause = "WHERE event_id = ?";
-    var params = [eId];
+    let whereClause = "WHERE event_id = ?";
+    const params = [eId];
     if (req.query.checked_in === '1') { whereClause += " AND checked_in = 1"; }
     if (req.query.checked_in === '0') { whereClause += " AND checked_in = 0"; }
     if (req.query.category_id) { whereClause += " AND category_id = ?"; params.push(req.query.category_id); }
-    if (req.query.search) { whereClause += " AND (name LIKE ? OR email LIKE ? OR organization LIKE ?)"; var s = '%' + req.query.search + '%'; params.push(s, s, s); }
-    var rows = targetDb.prepare("SELECT name as Nombre, email as Email, organization as Organizacion, phone as Telefono, gender as Genero, category_id as Categoria, CASE WHEN checked_in = 1 THEN 'SÍ' ELSE 'NO' END as Asistio, checkin_time as Hora FROM guests " + whereClause + " ORDER BY name ASC").all.apply(targetDb, params);
+    if (req.query.search) { whereClause += " AND (name LIKE ? OR email LIKE ? OR organization LIKE ?)"; const s = '%' + req.query.search + '%'; params.push(s, s, s); }
+    const rows = targetDb.prepare("SELECT name as Nombre, email as Email, organization as Organizacion, phone as Telefono, gender as Genero, category_id as Categoria, CASE WHEN checked_in = 1 THEN 'SÍ' ELSE 'NO' END as Asistio, checkin_time as Hora FROM guests " + whereClause + " ORDER BY name ASC").all.apply(targetDb, params);
     
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Check Pro V10';
@@ -702,13 +702,13 @@ router.get('/:eventId/badges/zpl', authMiddleware(), (req, res) => {
         const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         const targetDb = getEventDb(eId);
-        var guests = targetDb.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
+        let guests = targetDb.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
         // Filtrar solo checked_in si se solicita
         if (req.query.checked_in === '1') guests = guests.filter(function(g) { return g.checked_in === 1; });
         // Ancho etiqueta: 90mm (aprox 850 dots a 203dpi)
-        var labelW = parseInt(req.query.width) || 850;
-        var labelH = parseInt(req.query.height) || 550;
-        var zpl = '^XA\n';
+        const labelW = parseInt(req.query.width) || 850;
+        const labelH = parseInt(req.query.height) || 550;
+        let zpl = '^XA\n';
         zpl += '^CF0,30\n';
         zpl += '^FO30,30^FD' + escZpl(event.name || 'Evento') + '^FS\n';
         zpl += '^CF0,50\n';
@@ -739,9 +739,9 @@ router.get('/:eventId/badges/escpos', authMiddleware(), (req, res) => {
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
         const targetDb = getEventDb(eId);
-        var guests = targetDb.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
+        let guests = targetDb.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
         if (req.query.checked_in === '1') guests = guests.filter(function(g) { return g.checked_in === 1; });
-        var lines = [];
+        const lines = [];
         guests.forEach(function(g) {
             lines.push('');
             lines.push('================================');
@@ -751,9 +751,9 @@ router.get('/:eventId/badges/escpos', authMiddleware(), (req, res) => {
             lines.push('================================');
             lines.push('');
         });
-        var text = lines.join('\n');
+        const text = lines.join('\n');
         // ESC/POS: Initialize printer, set font, print text, cut
-        var escpos = Buffer.concat([
+        const escpos = Buffer.concat([
             Buffer.from([0x1B, 0x40]), // Initialize
             Buffer.from(text, 'ascii'),
             Buffer.from([0x1B, 0x64, 0x03]), // Feed 3 lines
@@ -856,14 +856,14 @@ router.get('/:eventId/report', authMiddleware(), (req, res) => {
 // ─── Networking directory (C5-05) ───
 router.get('/:eventId/network', (req, res) => {
     try {
-        var guests = db.prepare("SELECT id, name, email, organization, position, bio, interests, social_linkedin, photo_url FROM guests WHERE event_id = ? AND (bio IS NOT NULL AND bio != '') ORDER BY name ASC").all(req.params.eventId);
+        const guests = db.prepare("SELECT id, name, email, organization, position, bio, interests, social_linkedin, photo_url FROM guests WHERE event_id = ? AND (bio IS NOT NULL AND bio != '') ORDER BY name ASC").all(req.params.eventId);
         res.json(guests);
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 router.put('/:eventId/guests/:guestId/profile', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { bio, interests, social_linkedin, photo_url } = req.body;
+        const { bio, interests, social_linkedin, photo_url } = req.body;
         const old = db.prepare("SELECT bio, interests, social_linkedin, photo_url FROM guests WHERE id = ?").get(req.params.guestId);
         db.prepare("UPDATE guests SET bio = COALESCE(?, bio), interests = COALESCE(?, interests), social_linkedin = COALESCE(?, social_linkedin), photo_url = COALESCE(?, photo_url) WHERE id = ?").run(
             bio || null, interests || null, social_linkedin || null, photo_url || null, req.params.guestId
@@ -880,16 +880,16 @@ router.put('/:eventId/guests/:guestId/profile', authMiddleware(['ADMIN', 'PRODUC
 // ─── Gamification (C5-06) ───
 router.get('/:eventId/achievements/:guestId', (req, res) => {
     try {
-        var achievements = db.prepare("SELECT * FROM guest_achievements WHERE guest_id = ? AND event_id = ? ORDER BY awarded_at DESC").all(req.params.guestId, req.params.eventId);
+        const achievements = db.prepare("SELECT * FROM guest_achievements WHERE guest_id = ? AND event_id = ? ORDER BY awarded_at DESC").all(req.params.guestId, req.params.eventId);
         res.json(achievements);
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 router.post('/:eventId/achievements/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { achievement } = req.body;
+        const { achievement } = req.body;
         if (!achievement) return res.status(400).json({ error: 'Achievement requerido' });
-        var id = require('uuid').v4();
+        const id = require('uuid').v4();
         db.prepare("INSERT INTO guest_achievements (id, guest_id, event_id, achievement) VALUES (?, ?, ?, ?)").run(id, req.params.guestId, req.params.eventId, achievement);
         res.json({ success: true, id: id });
     } catch(err) { res.status(500).json({ error: err.message }); }
@@ -898,30 +898,30 @@ router.post('/:eventId/achievements/:guestId', authMiddleware(['ADMIN', 'PRODUCT
 // ─── Social Media auto-publish (C5-08) ───
 router.post('/:eventId/social-publish', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
-        var event = db.prepare("SELECT id, name, date, location, description FROM events WHERE id = ?").get(req.params.eventId);
+        const event = db.prepare("SELECT id, name, date, location, description FROM events WHERE id = ?").get(req.params.eventId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
 
-        var message = '📢 ' + event.name + ' - ' + new Date(event.date).toLocaleDateString('es-ES');
+        let message = '📢 ' + event.name + ' - ' + new Date(event.date).toLocaleDateString('es-ES');
         if (event.location) message += '\n📍 ' + event.location;
         if (event.description) message += '\n\n' + event.description.slice(0, 200);
         message += '\n\nRegístrate aquí: ' + (req.headers.origin || '') + '/registro.html?event=' + event.id;
 
         // Twitter/X
-        var twitterResult = null;
+        let twitterResult = null;
         try {
-            var twToken = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'twitter_token'").get();
+            const twToken = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'twitter_token'").get();
             if (twToken) {
-                var twRes = await fetch('https://api.twitter.com/2/tweets', { method: 'POST', headers: { 'Authorization': 'Bearer ' + twToken.setting_value, 'Content-Type': 'application/json' }, body: JSON.stringify({ text: message.slice(0, 280) }) });
+                const twRes = await fetch('https://api.twitter.com/2/tweets', { method: 'POST', headers: { 'Authorization': 'Bearer ' + twToken.setting_value, 'Content-Type': 'application/json' }, body: JSON.stringify({ text: message.slice(0, 280) }) });
                 twitterResult = twRes.ok ? 'published' : 'error';
             }
         } catch(e) { twitterResult = 'error'; }
 
         // LinkedIn
-        var linkedinResult = null;
+        let linkedinResult = null;
         try {
-            var liToken = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'linkedin_token'").get();
+            const liToken = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'linkedin_token'").get();
             if (liToken) {
-                var liRes = await fetch('https://api.linkedin.com/v2/ugcPosts', { method: 'POST', headers: { 'Authorization': 'Bearer ' + liToken.setting_value, 'Content-Type': 'application/json' }, body: JSON.stringify({ author: 'urn:li:person:me', lifecycleState: 'PUBLISHED', specificContent: { 'com.linkedin.ugc.ShareContent': { shareCommentary: { text: message }, shareMediaCategory: 'NONE' } }, visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' } }) });
+                const liRes = await fetch('https://api.linkedin.com/v2/ugcPosts', { method: 'POST', headers: { 'Authorization': 'Bearer ' + liToken.setting_value, 'Content-Type': 'application/json' }, body: JSON.stringify({ author: 'urn:li:person:me', lifecycleState: 'PUBLISHED', specificContent: { 'com.linkedin.ugc.ShareContent': { shareCommentary: { text: message }, shareMediaCategory: 'NONE' } }, visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' } }) });
                 linkedinResult = liRes.ok ? 'published' : 'error';
             }
         } catch(e) { linkedinResult = 'error'; }
@@ -934,9 +934,9 @@ router.post('/:eventId/social-publish', authMiddleware(['ADMIN', 'PRODUCTOR']), 
 // DEPRECATED: Usar /api/compliance/events/:eventId/guests/:guestId/export
 router.get('/:eventId/guests/:guestId/export', (req, res) => {
     try {
-        var guest = db.prepare("SELECT * FROM guests WHERE id = ? AND event_id = ?").get(req.params.guestId, req.params.eventId);
+        const guest = db.prepare("SELECT * FROM guests WHERE id = ? AND event_id = ?").get(req.params.guestId, req.params.eventId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
-        var achievements = db.prepare("SELECT * FROM guest_achievements WHERE guest_id = ?").all(req.params.guestId);
+        const achievements = db.prepare("SELECT * FROM guest_achievements WHERE guest_id = ?").all(req.params.guestId);
         res.json({ personalData: guest, achievements: achievements, exportDate: new Date().toISOString(), generatedBy: 'Check Pro GDPR' });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
@@ -953,14 +953,14 @@ router.delete('/:eventId/guests/:guestId/erase', authMiddleware(['ADMIN', 'PRODU
 // ─── Presence (C6-07) ───
 router.post('/:eventId/presence', authMiddleware(), (req, res) => {
     try {
-        var key = 'presence_' + req.params.eventId;
-        var now = Date.now();
-        var existing = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").get(key);
-        var users = existing ? JSON.parse(existing.setting_value) : {};
+        const key = 'presence_' + req.params.eventId;
+        const now = Date.now();
+        const existing = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").get(key);
+        const users = existing ? JSON.parse(existing.setting_value) : {};
         users[req.userId] = now;
         // Clean stale entries (>30s)
         Object.keys(users).forEach(function(u) { if (users[u] < now - 30000) delete users[u]; });
-        var upsert = function(k, v) { var e = db.prepare("SELECT setting_key FROM settings WHERE setting_key = ?").get(k); if (e) db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?").run(v, k); else db.prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)").run(k, v); };
+        const upsert = function(k, v) { const e = db.prepare("SELECT setting_key FROM settings WHERE setting_key = ?").get(k); if (e) db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?").run(v, k); else db.prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)").run(k, v); };
         upsert(key, JSON.stringify(users));
         res.json({ online: Object.keys(users).length });
     } catch(err) { res.status(500).json({ error: err.message }); }

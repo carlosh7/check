@@ -6,6 +6,8 @@ const path = require('path');
 const OUT = '/tmp/opencode/e2e';
 fs.mkdirSync(OUT, { recursive: true });
 const GROUP = (process.argv[2] || 'ALL').toUpperCase();
+const ADMIN_USER = process.env.E2E_USER || 'admin@example.com';
+const ADMIN_PASS = process.env.E2E_PASS || 'changeme123';
 const results = [];
 const consoleErrors = [];
 const apiErrors = [];
@@ -37,8 +39,8 @@ const skip = (n, e) => { results.push(`SKIP ${n} — ${e}`); console.log(`⏭️
         page.on('pageerror', e => consoleErrors.push('PAGEERROR: ' + String(e).slice(0, 200)));
         page.on('response', r => { if (r.url().includes('/api/') && r.status() >= 400 && !r.url().includes('/api/health')) apiErrors.push(`${r.status()} ${r.request().method()} ${r.url().replace(BASE, '')}`); });
         await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
-        await page.fill('#login-email', 'admin@example.com');
-        await page.fill('#login-password', 'changeme123');
+        await page.fill('#login-email', ADMIN_USER);
+        await page.fill('#login-password', ADMIN_PASS);
         await page.click('#login-btn');
         await page.waitForSelector('#app-container', { timeout: 20000 });
     }

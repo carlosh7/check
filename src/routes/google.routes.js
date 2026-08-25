@@ -16,7 +16,7 @@ function escapeHtml(str) {
 
 function getSetting(key) {
     try {
-        var row = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").get(key);
+        const row = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").get(key);
         return row ? row.setting_value : '';
     } catch (e) {
         logger.error('[GOOGLE] getSetting error:', e.message);
@@ -25,20 +25,20 @@ function getSetting(key) {
 }
 
 function getOAuth2Client() {
-    var clientId = getSetting('google_client_id');
-    var clientSecret = getSetting('google_client_secret');
-    var redirectUri = getSetting('google_redirect_uri');
+    const clientId = getSetting('google_client_id');
+    const clientSecret = getSetting('google_client_secret');
+    const redirectUri = getSetting('google_redirect_uri');
     if (!clientId || !clientSecret || !redirectUri) return null;
     return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
 }
 
 function getUserRefreshToken(userId) {
-    var row = db.prepare("SELECT refresh_token FROM user_google_accounts WHERE user_id = ?").get(userId);
+    const row = db.prepare("SELECT refresh_token FROM user_google_accounts WHERE user_id = ?").get(userId);
     return row ? row.refresh_token : null;
 }
 
 function getOAuthWithToken(refreshToken) {
-    var oauth2 = getOAuth2Client();
+    const oauth2 = getOAuth2Client();
     if (!oauth2 || !refreshToken) return null;
     oauth2.setCredentials({ refresh_token: refreshToken });
     return oauth2;
@@ -54,10 +54,10 @@ function getAuthScope() {
 
 function findBestAccount(event, userId) {
     if (event.google_account_id) {
-        var groupAcc = db.prepare("SELECT id, refresh_token FROM group_google_accounts WHERE id = ?").get(event.google_account_id);
+        const groupAcc = db.prepare("SELECT id, refresh_token FROM group_google_accounts WHERE id = ?").get(event.google_account_id);
         if (groupAcc && groupAcc.refresh_token) return { type: 'group', id: groupAcc.id, refreshToken: groupAcc.refresh_token };
     }
-    var userAcc = db.prepare("SELECT id, refresh_token FROM user_google_accounts WHERE user_id = ?").get(userId);
+    const userAcc = db.prepare("SELECT id, refresh_token FROM user_google_accounts WHERE user_id = ?").get(userId);
     if (userAcc && userAcc.refresh_token) return { type: 'user', id: userAcc.id, refreshToken: userAcc.refresh_token };
     return null;
 }
@@ -70,24 +70,24 @@ async function ensureEventFolder(drive, event, accountLabel) {
         } catch(e) { }
     }
 
-    var groupName = 'Sin Empresa';
+    let groupName = 'Sin Empresa';
     if (event.group_id) {
-        var grp = db.prepare("SELECT name FROM groups WHERE id = ?").get(event.group_id);
+        const grp = db.prepare("SELECT name FROM groups WHERE id = ?").get(event.group_id);
         if (grp) groupName = grp.name;
     }
 
-    var eventName = event.name || 'Evento';
+    const eventName = event.name || 'Evento';
 
     // Buscar o crear carpeta raíz "Check Pro"
-    var rootFolder = null;
-    var rootQuery = await drive.files.list({
+    let rootFolder = null;
+    const rootQuery = await drive.files.list({
         q: "name='Check Pro' and mimeType='application/vnd.google-apps.folder' and trashed=false",
         fields: 'files(id, name)', pageSize: 1
     });
     if (rootQuery.data.files.length > 0) {
         rootFolder = rootQuery.data.files[0].id;
     } else {
-        var rootRes = await drive.files.create({
+        const rootRes = await drive.files.create({
             resource: { name: 'Check Pro', mimeType: 'application/vnd.google-apps.folder' },
             fields: 'id'
         });
@@ -95,15 +95,15 @@ async function ensureEventFolder(drive, event, accountLabel) {
     }
 
     // Buscar o crear carpeta del grupo
-    var groupFolder = null;
-    var groupQuery = await drive.files.list({
+    let groupFolder = null;
+    const groupQuery = await drive.files.list({
         q: "name='" + groupName.replace(/'/g, "\\'") + "' and '" + rootFolder + "' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false",
         fields: 'files(id, name)', pageSize: 1
     });
     if (groupQuery.data.files.length > 0) {
         groupFolder = groupQuery.data.files[0].id;
     } else {
-        var grpRes = await drive.files.create({
+        const grpRes = await drive.files.create({
             resource: { name: groupName, mimeType: 'application/vnd.google-apps.folder', parents: [rootFolder] },
             fields: 'id'
         });
@@ -111,22 +111,22 @@ async function ensureEventFolder(drive, event, accountLabel) {
     }
 
     // Buscar o crear carpeta del evento
-    var eventFolderId = event.google_folder_id;
+    let eventFolderId = event.google_folder_id;
     if (eventFolderId) {
         try {
-            var existing = await drive.files.get({ fileId: eventFolderId, fields: 'id' });
+            const existing = await drive.files.get({ fileId: eventFolderId, fields: 'id' });
             if (existing) return eventFolderId;
         } catch(e) { }
     }
 
-    var evtQuery = await drive.files.list({
+    const evtQuery = await drive.files.list({
         q: "name='" + eventName.replace(/'/g, "\\'") + "' and '" + groupFolder + "' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false",
         fields: 'files(id, name)', pageSize: 1
     });
     if (evtQuery.data.files.length > 0) {
         eventFolderId = evtQuery.data.files[0].id;
     } else {
-        var evtRes = await drive.files.create({
+        const evtRes = await drive.files.create({
             resource: { name: eventName, mimeType: 'application/vnd.google-apps.folder', parents: [groupFolder] },
             fields: 'id'
         });
@@ -138,7 +138,7 @@ async function ensureEventFolder(drive, event, accountLabel) {
 }
 
 async function uploadPdfToDrive(drive, folderId, filename, pdfBuffer) {
-    var query = await drive.files.list({
+    const query = await drive.files.list({
         q: "name='" + filename.replace(/'/g, "\\'") + "' and '" + folderId + "' in parents and trashed=false",
         fields: 'files(id)', pageSize: 1
     });
@@ -149,7 +149,7 @@ async function uploadPdfToDrive(drive, folderId, filename, pdfBuffer) {
         });
         return query.data.files[0].id;
     }
-    var res = await drive.files.create({
+    const res = await drive.files.create({
         resource: { name: filename, parents: [folderId] },
         media: { body: pdfBuffer, mimeType: 'application/pdf' },
         fields: 'id'
@@ -161,7 +161,7 @@ async function uploadPdfToDrive(drive, folderId, filename, pdfBuffer) {
 
 router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var clientId = getSetting('google_client_id');
+        const clientId = getSetting('google_client_id');
         res.json({ configured: !!clientId });
     } catch (err) {
         logger.error('[GOOGLE] Status error:', err.message);
@@ -173,15 +173,15 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 
 router.get('/auth', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var oauth2 = getOAuth2Client();
+        const oauth2 = getOAuth2Client();
         if (!oauth2) return res.status(400).json({ error: 'Google OAuth no configurado.' });
 
-        var groupId = req.query.group_id;
-        var label = req.query.label || 'Mi cuenta Google';
+        const groupId = req.query.group_id;
+        const label = req.query.label || 'Mi cuenta Google';
         if (!groupId) return res.status(400).json({ error: 'group_id requerido' });
 
-        var state = JSON.stringify({ type: 'group', groupId: groupId, label: label, userId: req.userId });
-        var authUrl = oauth2.generateAuthUrl({
+        const state = JSON.stringify({ type: 'group', groupId: groupId, label: label, userId: req.userId });
+        const authUrl = oauth2.generateAuthUrl({
             access_type: 'offline',
             scope: getAuthScope(),
             prompt: 'consent',
@@ -198,11 +198,11 @@ router.get('/auth', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 
 router.get('/user/auth', authMiddleware(), (req, res) => {
     try {
-        var oauth2 = getOAuth2Client();
+        const oauth2 = getOAuth2Client();
         if (!oauth2) return res.status(400).json({ error: 'Google OAuth no configurado.' });
 
-        var state = JSON.stringify({ type: 'user', userId: req.userId });
-        var authUrl = oauth2.generateAuthUrl({
+        const state = JSON.stringify({ type: 'user', userId: req.userId });
+        const authUrl = oauth2.generateAuthUrl({
             access_type: 'offline',
             scope: getAuthScope(),
             prompt: 'consent',
@@ -219,7 +219,7 @@ router.get('/user/auth', authMiddleware(), (req, res) => {
 
 router.get('/user/status', authMiddleware(), (req, res) => {
     try {
-        var acc = db.prepare("SELECT id, google_email, created_at FROM user_google_accounts WHERE user_id = ?").get(req.userId);
+        const acc = db.prepare("SELECT id, google_email, created_at FROM user_google_accounts WHERE user_id = ?").get(req.userId);
         if (acc) {
             res.json({ connected: true, email: acc.google_email, connectedAt: acc.created_at });
         } else {
@@ -234,10 +234,10 @@ router.get('/user/status', authMiddleware(), (req, res) => {
 
 router.delete('/user/disconnect', authMiddleware(), (req, res) => {
     try {
-        var acc = db.prepare("SELECT * FROM user_google_accounts WHERE user_id = ?").get(req.userId);
+        const acc = db.prepare("SELECT * FROM user_google_accounts WHERE user_id = ?").get(req.userId);
         if (acc && acc.refresh_token) {
             try {
-                var oauth2 = getOAuth2Client();
+                const oauth2 = getOAuth2Client();
                 if (oauth2) oauth2.revokeToken(acc.refresh_token).catch(function() {});
             } catch(e) {}
         }
@@ -252,24 +252,24 @@ router.delete('/user/disconnect', authMiddleware(), (req, res) => {
 
 router.get('/callback', async (req, res) => {
     try {
-        var code = req.query.code;
-        var state = JSON.parse(req.query.state || '{}');
+        const code = req.query.code;
+        const state = JSON.parse(req.query.state || '{}');
         if (!code) return res.status(400).send('Código de autorización requerido');
 
-        var oauth2 = getOAuth2Client();
+        const oauth2 = getOAuth2Client();
         if (!oauth2) return res.status(400).send('OAuth no configurado');
 
-        var token = await oauth2.getToken(code);
-        var refreshToken = token.tokens.refresh_token;
+        const token = await oauth2.getToken(code);
+        const refreshToken = token.tokens.refresh_token;
         if (!refreshToken) return res.status(400).send('No se obtuvo refresh_token.');
 
         oauth2.setCredentials({ access_token: token.tokens.access_token });
-        var oauth2Api = google.oauth2({ version: 'v2', auth: oauth2 });
-        var userInfo = await oauth2Api.userinfo.get();
-        var googleEmail = userInfo.data.email || '';
+        const oauth2Api = google.oauth2({ version: 'v2', auth: oauth2 });
+        const userInfo = await oauth2Api.userinfo.get();
+        const googleEmail = userInfo.data.email || '';
 
         if (state.type === 'user') {
-            var existing = db.prepare("SELECT id FROM user_google_accounts WHERE user_id = ?").get(state.userId);
+            const existing = db.prepare("SELECT id FROM user_google_accounts WHERE user_id = ?").get(state.userId);
             if (existing) {
                 db.prepare("UPDATE user_google_accounts SET google_email = ?, refresh_token = ?, updated_at = ? WHERE user_id = ?").run(googleEmail, refreshToken, new Date().toISOString(), state.userId);
             } else {
@@ -278,7 +278,7 @@ router.get('/callback', async (req, res) => {
             try { logAction(req, 'GOOGLE_USER_CONNECTED', { email: googleEmail }); } catch(e) {}
             res.send('<html><body style="background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif"><div style="text-align:center"><h2 style="color:#10b981">✅ Cuenta personal conectada</h2><p>' + escapeHtml(googleEmail) + '</p><p>Vinculada a tu perfil. Tus eventos se sincronizar&aacute;n autom&aacute;ticamente.</p><p>Puedes cerrar esta ventana.</p></div></body></html>');
         } else {
-            var accountId = uuidv4();
+            const accountId = uuidv4();
             db.prepare("INSERT INTO group_google_accounts (id, group_id, label, google_email, refresh_token, created_by) VALUES (?, ?, ?, ?, ?, ?)").run(
                 accountId, state.groupId, state.label, googleEmail, refreshToken, state.userId || null
             );
@@ -295,7 +295,7 @@ router.get('/callback', async (req, res) => {
 
 router.get('/groups/:groupId/accounts', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var accounts = db.prepare("SELECT id, group_id, label, google_email, created_at, updated_at FROM group_google_accounts WHERE group_id = ? ORDER BY created_at DESC").all(req.params.groupId);
+        const accounts = db.prepare("SELECT id, group_id, label, google_email, created_at, updated_at FROM group_google_accounts WHERE group_id = ? ORDER BY created_at DESC").all(req.params.groupId);
         res.json(accounts);
     } catch (err) {
         logger.error('[GOOGLE] Error:', err.message);
@@ -307,7 +307,7 @@ router.get('/groups/:groupId/accounts', authMiddleware(['ADMIN', 'PRODUCTOR']), 
 
 router.put('/groups/:groupId/accounts/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var label = (req.body.label || '').trim();
+        const label = (req.body.label || '').trim();
         if (!label) return res.status(400).json({ error: 'Etiqueta requerida' });
         db.prepare("UPDATE group_google_accounts SET label = ?, updated_at = ? WHERE id = ? AND group_id = ?").run(label, new Date().toISOString(), req.params.id, req.params.groupId);
         res.json({ success: true });
@@ -320,13 +320,13 @@ router.put('/groups/:groupId/accounts/:id', authMiddleware(['ADMIN', 'PRODUCTOR'
 
 router.delete('/groups/:groupId/accounts/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var account = db.prepare("SELECT * FROM group_google_accounts WHERE id = ? AND group_id = ?").get(req.params.id, req.params.groupId);
+        const account = db.prepare("SELECT * FROM group_google_accounts WHERE id = ? AND group_id = ?").get(req.params.id, req.params.groupId);
         if (!account) return res.status(404).json({ error: 'Cuenta no encontrada' });
 
         // Intentar revocar token en Google
         if (account.refresh_token) {
             try {
-                var oauth2 = getOAuth2Client();
+                const oauth2 = getOAuth2Client();
                 if (oauth2) {
                     oauth2.revokeToken(account.refresh_token).catch(function() {});
                 }
@@ -350,15 +350,15 @@ router.delete('/groups/:groupId/accounts/:id', authMiddleware(['ADMIN', 'PRODUCT
 
 router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), async (req, res) => {
     try {
-        var eId = req.params.eventId;
-        var event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
+        const eId = req.params.eventId;
+        const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
 
-        var accountId = event.google_account_id;
+        let accountId = event.google_account_id;
 
         // Auto-asignar cuenta personal del creador si el evento no tiene cuenta
         if (!accountId) {
-            var creatorAcc = db.prepare("SELECT id, refresh_token FROM user_google_accounts WHERE user_id = ?").get(event.user_id || req.userId);
+            const creatorAcc = db.prepare("SELECT id, refresh_token FROM user_google_accounts WHERE user_id = ?").get(event.user_id || req.userId);
             if (creatorAcc && creatorAcc.refresh_token) {
                 accountId = creatorAcc.id;
                 db.prepare("UPDATE events SET google_account_id = ? WHERE id = ?").run(creatorAcc.id, eId);
@@ -368,16 +368,16 @@ router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
 
         if (!accountId) return res.status(400).json({ error: 'Este evento no tiene una cuenta Google asignada. Conecta una cuenta en tu Perfil o asigna una en la configuración del evento.' });
 
-        var refreshToken = null;
-        var accountLabel = 'Cuenta';
+        let refreshToken = null;
+        let accountLabel = 'Cuenta';
         // Buscar en cuentas de grupo primero
-        var groupAcc = db.prepare("SELECT refresh_token, label FROM group_google_accounts WHERE id = ?").get(accountId);
+        const groupAcc = db.prepare("SELECT refresh_token, label FROM group_google_accounts WHERE id = ?").get(accountId);
         if (groupAcc && groupAcc.refresh_token) {
             refreshToken = groupAcc.refresh_token;
             accountLabel = groupAcc.label || 'Cuenta de grupo';
         } else {
             // Buscar en cuenta personal del usuario
-            var userAcc = db.prepare("SELECT refresh_token, google_email FROM user_google_accounts WHERE id = ?").get(accountId);
+            const userAcc = db.prepare("SELECT refresh_token, google_email FROM user_google_accounts WHERE id = ?").get(accountId);
             if (userAcc && userAcc.refresh_token) {
                 refreshToken = userAcc.refresh_token;
                 accountLabel = userAcc.google_email || 'Cuenta personal';
@@ -386,30 +386,30 @@ router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
 
         if (!refreshToken) return res.status(400).json({ error: 'Cuenta Google no válida o token expirado' });
 
-        var oauth2 = getOAuthWithToken(refreshToken);
+        const oauth2 = getOAuthWithToken(refreshToken);
         if (!oauth2) return res.status(400).json({ error: 'Error de autenticación Google' });
 
-        var sheets = google.sheets({ version: 'v4', auth: oauth2 });
-        var drive = google.drive({ version: 'v3', auth: oauth2 });
-        var eventName = event.name || 'Evento sin nombre';
-        var targetDb = getEventConnection(eId) || db;
+        const sheets = google.sheets({ version: 'v4', auth: oauth2 });
+        const drive = google.drive({ version: 'v3', auth: oauth2 });
+        const eventName = event.name || 'Evento sin nombre';
+        const targetDb = getEventConnection(eId) || db;
 
         // Asegurar carpeta del evento en Drive
-        var folderId = await ensureEventFolder(drive, event, accountLabel);
+        const folderId = await ensureEventFolder(drive, event, accountLabel);
 
         // ── 1. Exportar invitados a Sheets ──
-        var guests = targetDb.prepare("SELECT name, email, organization, phone, gender, status, checked_in, checkin_time, category_id FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
-        var categories = {};
+        const guests = targetDb.prepare("SELECT name, email, organization, phone, gender, status, checked_in, checkin_time, category_id FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
+        const categories = {};
         try {
-            var cats = targetDb.prepare("SELECT id, name FROM guest_categories").all();
+            const cats = targetDb.prepare("SELECT id, name FROM guest_categories").all();
             cats.forEach(function(c) { categories[c.id] = c.name; });
         } catch(e) {}
 
-        var spreadsheetTitle = eventName + ' - Invitados';
-        var spreadsheetId = null;
+        const spreadsheetTitle = eventName + ' - Invitados';
+        let spreadsheetId = null;
 
         try {
-            var existingSheets = await drive.files.list({
+            const existingSheets = await drive.files.list({
                 q: "name='" + spreadsheetTitle.replace(/'/g, "\\'") + "' and '" + folderId + "' in parents and trashed=false",
                 fields: 'files(id)', pageSize: 1
             });
@@ -419,7 +419,7 @@ router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
         } catch(e) {}
 
         if (!spreadsheetId) {
-            var createRes = await sheets.spreadsheets.create({
+            const createRes = await sheets.spreadsheets.create({
                 resource: {
                     properties: { title: spreadsheetTitle },
                     sheets: [{ properties: { title: 'Invitados' } }]
@@ -437,8 +437,8 @@ router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
             } catch(e) {}
         }
 
-        var headers = ['Nombre', 'Email', 'Organización', 'Teléfono', 'Género', 'Estado', 'Check-in', 'Hora Check-in', 'Categoría'];
-        var rows = guests.map(function(g) {
+        const headers = ['Nombre', 'Email', 'Organización', 'Teléfono', 'Género', 'Estado', 'Check-in', 'Hora Check-in', 'Categoría'];
+        const rows = guests.map(function(g) {
             return [g.name || '', g.email || '', g.organization || '', g.phone || '', g.gender || '', g.status || 'lead', g.checked_in ? 'Sí' : 'No', g.checkin_time || '', categories[g.category_id] || ''];
         });
 
@@ -450,13 +450,13 @@ router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
 
         // ── 2. Exportar reporte PDF ──
         try {
-            var { jsPDF } = require('jspdf');
-            var autoTable = require('jspdf-autotable').default;
-            var doc = new jsPDF();
+            const { jsPDF } = require('jspdf');
+            const autoTable = require('jspdf-autotable').default;
+            const doc = new jsPDF();
 
-            var total = guests.length;
-            var checkedIn = guests.filter(function(g) { return g.checked_in; }).length;
-            var conversionRate = total > 0 ? Math.round((checkedIn / total) * 100) : 0;
+            const total = guests.length;
+            const checkedIn = guests.filter(function(g) { return g.checked_in; }).length;
+            const conversionRate = total > 0 ? Math.round((checkedIn / total) * 100) : 0;
 
             doc.setFontSize(22); doc.setTextColor(124, 58, 237);
             doc.text('Reporte del Evento', 14, 30);
@@ -492,21 +492,21 @@ router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
 
         // ── 3. Exportar gafetes PDF ──
         try {
-            var QRCode = require('qrcode');
-            var { jsPDF: JsPDF2 } = require('jspdf');
-            var doc2 = new JsPDF2({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            var pageW = 210, margin = 10, cols = 2, rowsPerPage = 3;
-            var cardW = (pageW - margin * 3) / cols, cardH = 85;
+            const QRCode = require('qrcode');
+            const { jsPDF: JsPDF2 } = require('jspdf');
+            const doc2 = new JsPDF2({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const pageW = 210, margin = 10, cols = 2, rowsPerPage = 3;
+            const cardW = (pageW - margin * 3) / cols, cardH = 85;
 
-            var badgeGuests = targetDb.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
-            for (var i = 0; i < badgeGuests.length; i++) {
-                var g = badgeGuests[i];
+            const badgeGuests = targetDb.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
+            for (let i = 0; i < badgeGuests.length; i++) {
+                const g = badgeGuests[i];
                 if (i > 0 && i % (cols * rowsPerPage) === 0) doc2.addPage();
-                var pos = i % (cols * rowsPerPage);
-                var col = pos % cols;
-                var row = Math.floor(pos / cols);
-                var x = margin + col * (cardW + margin);
-                var y = margin + row * (cardH + margin);
+                const pos = i % (cols * rowsPerPage);
+                const col = pos % cols;
+                const row = Math.floor(pos / cols);
+                const x = margin + col * (cardW + margin);
+                const y = margin + row * (cardH + margin);
                 doc2.setDrawColor(124, 58, 237); doc2.setLineWidth(0.5);
                 doc2.rect(x, y, cardW, cardH);
                 doc2.setFontSize(8); doc2.setTextColor(100);
@@ -517,7 +517,7 @@ router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
                 if (g.organization) doc2.text(g.organization, x + 3, y + 26);
                 if (g.qr_token) {
                     try {
-                        var qrDataUrl = await QRCode.toDataURL(g.qr_token, { width: 80, margin: 1 });
+                        const qrDataUrl = await QRCode.toDataURL(g.qr_token, { width: 80, margin: 1 });
                         doc2.addImage(qrDataUrl, 'PNG', x + cardW - 45, y + 25, 40, 40);
                     } catch(_) {}
                 }
@@ -545,27 +545,27 @@ router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
 
 router.post('/events/:eventId/import', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
-        var eId = req.params.eventId;
-        var event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
+        const eId = req.params.eventId;
+        const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
 
-        var accountId = event.google_account_id;
+        const accountId = event.google_account_id;
         if (!accountId) return res.status(400).json({ error: 'No hay cuenta asignada' });
-        var account = db.prepare("SELECT * FROM group_google_accounts WHERE id = ?").get(accountId);
+        const account = db.prepare("SELECT * FROM group_google_accounts WHERE id = ?").get(accountId);
         if (!account || !account.refresh_token) return res.status(400).json({ error: 'Token expirado' });
 
-        var oauth2 = getOAuth2Client();
+        const oauth2 = getOAuth2Client();
         if (!oauth2) return res.status(400).json({ error: 'OAuth no configurado' });
         oauth2.setCredentials({ refresh_token: account.refresh_token });
 
-        var sheets = google.sheets({ version: 'v4', auth: oauth2 });
+        const sheets = google.sheets({ version: 'v4', auth: oauth2 });
 
         // Buscar el spreadsheet del evento
-        var spreadsheetTitle = (event.name || 'Evento') + ' - Check Pro';
-        var spreadsheetId = req.body.spreadsheet_id || account.spreadsheet_id;
+        const spreadsheetTitle = (event.name || 'Evento') + ' - Check Pro';
+        const spreadsheetId = req.body.spreadsheet_id || account.spreadsheet_id;
         if (!spreadsheetId) return res.status(400).json({ error: 'No hay spreadsheet vinculado. Exporta primero.' });
 
-        var sheetRes = await sheets.spreadsheets.values.get({
+        const sheetRes = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
             range: 'Invitados!A:I'
         }).catch(function(err) {
@@ -573,39 +573,39 @@ router.post('/events/:eventId/import', authMiddleware(['ADMIN', 'PRODUCTOR']), a
             throw err;
         });
 
-        var rows = sheetRes.data.values || [];
+        const rows = sheetRes.data.values || [];
         if (rows.length <= 1) return res.json({ imported: 0, message: 'No hay datos para importar' });
 
-        var targetDb = getEventConnection(eId) || db;
-        var headers = rows[0];
-        var nameIdx = headers.indexOf('Nombre');
-        var emailIdx = headers.indexOf('Email');
-        var orgIdx = headers.indexOf('Organización');
-        var phoneIdx = headers.indexOf('Teléfono');
+        const targetDb = getEventConnection(eId) || db;
+        const headers = rows[0];
+        const nameIdx = headers.indexOf('Nombre');
+        const emailIdx = headers.indexOf('Email');
+        const orgIdx = headers.indexOf('Organización');
+        const phoneIdx = headers.indexOf('Teléfono');
 
         if (nameIdx === -1 && emailIdx === -1) return res.status(400).json({ error: 'La hoja debe tener al menos columnas Nombre o Email' });
 
-        var statusMap = { 'lead': 'lead', 'contactado': 'contacted', 'confirmado': 'confirmed', 'asistió': 'attended', 'Asistió': 'attended', 'Sí': 'attended', 'no interesado': 'not_interested' };
+        const statusMap = { 'lead': 'lead', 'contactado': 'contacted', 'confirmado': 'confirmed', 'asistió': 'attended', 'Asistió': 'attended', 'Sí': 'attended', 'no interesado': 'not_interested' };
 
-        var imported = 0;
-        var insertGuest = targetDb.prepare("INSERT OR IGNORE INTO guests (id, event_id, name, email, organization, phone, status, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        let imported = 0;
+        const insertGuest = targetDb.prepare("INSERT OR IGNORE INTO guests (id, event_id, name, email, organization, phone, status, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
-        var insertMany = targetDb.transaction(function(dataRows) {
-            for (var i = 1; i < dataRows.length; i++) {
-                var row = dataRows[i];
-                var name = row[nameIdx] || '';
-                var email = (row[emailIdx] || '').toLowerCase().trim();
+        const insertMany = targetDb.transaction(function(dataRows) {
+            for (let i = 1; i < dataRows.length; i++) {
+                const row = dataRows[i];
+                const name = row[nameIdx] || '';
+                const email = (row[emailIdx] || '').toLowerCase().trim();
                 if (!name && !email) continue;
-                var org = orgIdx >= 0 ? (row[orgIdx] || '') : '';
-                var phone = phoneIdx >= 0 ? (row[phoneIdx] || '') : '';
-                var statusRaw = '';
-                for (var j = 0; j < headers.length; j++) {
+                const org = orgIdx >= 0 ? (row[orgIdx] || '') : '';
+                const phone = phoneIdx >= 0 ? (row[phoneIdx] || '') : '';
+                let statusRaw = '';
+                for (let j = 0; j < headers.length; j++) {
                     if (headers[j].toLowerCase() === 'estado' || headers[j].toLowerCase() === 'status') { statusRaw = (row[j] || '').toLowerCase().trim(); break; }
                 }
-                var status = statusMap[statusRaw] || 'lead';
+                const status = statusMap[statusRaw] || 'lead';
 
-                    var guestId = getValidId('guests');
-                var qrToken = uuidv4();
+                    const guestId = getValidId('guests');
+                const qrToken = uuidv4();
                 try {
                     insertGuest.run(guestId, eId, name, email, org, phone, status, qrToken);
                     imported++;
@@ -621,7 +621,7 @@ router.post('/events/:eventId/import', authMiddleware(['ADMIN', 'PRODUCTOR']), a
         res.json({ success: true, imported: imported });
     } catch (err) {
         if (err.message === 'Token expirado') {
-            var acc = db.prepare("SELECT id FROM group_google_accounts WHERE id = ?").get(req.params.eventId);
+            const acc = db.prepare("SELECT id FROM group_google_accounts WHERE id = ?").get(req.params.eventId);
             if (acc) db.prepare("UPDATE group_google_accounts SET refresh_token = NULL WHERE id = ?").run(acc.id);
             return res.status(401).json({ error: 'Token expirado. Reconecta la cuenta.' });
         }
@@ -634,8 +634,8 @@ router.post('/events/:eventId/import', authMiddleware(['ADMIN', 'PRODUCTOR']), a
 
 function runSyncWorker() {
     try {
-        var now = new Date().toISOString();
-        var eventsToSync = db.prepare(`
+        const now = new Date().toISOString();
+        const eventsToSync = db.prepare(`
             SELECT e.id, e.name, e.google_account_id, e.google_sync_interval, e.google_last_sync_at,
                    e.google_debounce_until, e.google_auto_sync_mode
             FROM events e
@@ -647,8 +647,8 @@ function runSyncWorker() {
         eventsToSync.forEach(function(event) {
             try {
                 if (event.google_auto_sync_mode === 'scheduled' && event.google_sync_interval) {
-                    var lastSync = event.google_last_sync_at ? new Date(event.google_last_sync_at).getTime() : 0;
-                    var intervalMs = event.google_sync_interval * 60 * 1000;
+                    const lastSync = event.google_last_sync_at ? new Date(event.google_last_sync_at).getTime() : 0;
+                    const intervalMs = event.google_sync_interval * 60 * 1000;
                     if (Date.now() - lastSync < intervalMs) return;
                 }
 
@@ -664,15 +664,15 @@ function runSyncWorker() {
 }
 
 function triggerExport(eventId) {
-    var server = require('../../server');
-    var http = require('http');
-    var url = require('url');
+    const server = require('../../server');
+    const http = require('http');
+    const url = require('url');
 
-    var baseUrl = process.env.APP_URL || 'http://localhost:' + (process.env.PORT || 3000);
-    var parsedUrl = url.parse(baseUrl);
+    const baseUrl = process.env.APP_URL || 'http://localhost:' + (process.env.PORT || 3000);
+    const parsedUrl = url.parse(baseUrl);
 
-    var postData = JSON.stringify({});
-    var options = {
+    const postData = JSON.stringify({});
+    const options = {
         hostname: parsedUrl.hostname || 'localhost',
         port: parsedUrl.port || 3000,
         path: '/api/google/events/' + eventId + '/export',
@@ -683,7 +683,7 @@ function triggerExport(eventId) {
         }
     };
 
-    var req = http.request(options, function(res) {
+    const req = http.request(options, function(res) {
         if (res.statusCode !== 200) {
             logger.error('[GOOGLE] Sync failed for event ' + eventId + ': HTTP ' + res.statusCode);
         }
@@ -695,7 +695,7 @@ function triggerExport(eventId) {
     req.end();
 }
 
-var syncInterval = null;
+let syncInterval = null;
 
 function startSyncWorker() {
     if (syncInterval) clearInterval(syncInterval);
@@ -715,10 +715,10 @@ function stopSyncWorker() {
 
 router.put('/events/:eventId/sync-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var eId = req.params.eventId;
-        var accountId = req.body.google_account_id || null;
-        var mode = req.body.google_auto_sync_mode || 'manual';
-        var interval = parseInt(req.body.google_sync_interval) || 60;
+        const eId = req.params.eventId;
+        const accountId = req.body.google_account_id || null;
+        const mode = req.body.google_auto_sync_mode || 'manual';
+        const interval = parseInt(req.body.google_sync_interval) || 60;
 
         if (!['manual', 'checkin', 'scheduled'].includes(mode)) return res.status(400).json({ error: 'Modo inválido' });
         if (mode === 'scheduled' && (interval < 5 || interval > 1440)) return res.status(400).json({ error: 'Intervalo debe ser entre 5 y 1440 minutos' });
@@ -733,10 +733,10 @@ router.put('/events/:eventId/sync-config', authMiddleware(['ADMIN', 'PRODUCTOR']
 // ── Trigger check-in sync ──
 
 function notifyCheckin(eventId) {
-    var event = db.prepare("SELECT google_auto_sync_mode, google_debounce_until, google_account_id FROM events WHERE id = ?").get(eventId);
+    const event = db.prepare("SELECT google_auto_sync_mode, google_debounce_until, google_account_id FROM events WHERE id = ?").get(eventId);
     if (!event || event.google_auto_sync_mode !== 'checkin' || !event.google_account_id) return;
 
-    var debounceUntil = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    const debounceUntil = new Date(Date.now() + 5 * 60 * 1000).toISOString();
     db.prepare("UPDATE events SET google_debounce_until = ? WHERE id = ?").run(debounceUntil, eventId);
 
     try { triggerExport(eventId); } catch(e) {}
@@ -746,21 +746,21 @@ function notifyCheckin(eventId) {
 
 router.post('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
-        var eventId = require('../utils/helpers').castId('events', req.params.eventId);
-        var event = db.prepare("SELECT id, name, date, end_date, location, description FROM events WHERE id = ?").get(eventId);
+        const eventId = require('../utils/helpers').castId('events', req.params.eventId);
+        const event = db.prepare("SELECT id, name, date, end_date, location, description FROM events WHERE id = ?").get(eventId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
-        var acc = findBestAccount(event, req.userId);
+        const acc = findBestAccount(event, req.userId);
         if (!acc || !acc.refreshToken) return res.status(400).json({ error: 'Google no conectado. Ve a Sistema > Perfil y conecta tu cuenta Google.' });
-        var oauth2 = getOAuthWithToken(acc.refreshToken);
+        const oauth2 = getOAuthWithToken(acc.refreshToken);
         if (!oauth2) return res.status(400).json({ error: 'Error al conectar con Google.' });
-        var calendar = google.calendar({ version: 'v3', auth: oauth2 });
-        var eventData = { summary: event.name, description: event.description || '', location: event.location || '', start: { dateTime: event.date || new Date().toISOString(), timeZone: 'America/Mexico_City' }, end: { dateTime: event.end_date || event.date || new Date().toISOString(), timeZone: 'America/Mexico_City' } };
-        var existingEventId = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'gcal_event_" + eventId + "'").get();
-        var result;
+        const calendar = google.calendar({ version: 'v3', auth: oauth2 });
+        const eventData = { summary: event.name, description: event.description || '', location: event.location || '', start: { dateTime: event.date || new Date().toISOString(), timeZone: 'America/Mexico_City' }, end: { dateTime: event.end_date || event.date || new Date().toISOString(), timeZone: 'America/Mexico_City' } };
+        const existingEventId = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'gcal_event_" + eventId + "'").get();
+        let result;
         if (existingEventId) { result = await calendar.events.update({ calendarId: 'primary', eventId: existingEventId.setting_value, requestBody: eventData }); }
         else {
             result = await calendar.events.insert({ calendarId: 'primary', requestBody: eventData });
-            var upsert = function(k, v) { var e = db.prepare("SELECT setting_key FROM settings WHERE setting_key = ?").get(k); if (e) db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?").run(v, k); else db.prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)").run(k, v); };
+            const upsert = function(k, v) { const e = db.prepare("SELECT setting_key FROM settings WHERE setting_key = ?").get(k); if (e) db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?").run(v, k); else db.prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)").run(k, v); };
             upsert('gcal_event_' + eventId, result.data.id);
         }
         res.json({ success: true, calendarEventId: result.data.id, htmlLink: result.data.htmlLink });
@@ -769,16 +769,16 @@ router.post('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTO
 
 router.delete('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
-        var eventId = require('../utils/helpers').castId('events', req.params.eventId);
-        var event = db.prepare("SELECT id, google_account_id FROM events WHERE id = ?").get(eventId);
+        const eventId = require('../utils/helpers').castId('events', req.params.eventId);
+        const event = db.prepare("SELECT id, google_account_id FROM events WHERE id = ?").get(eventId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
-        var existingEventId = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'gcal_event_" + eventId + "'").get();
+        const existingEventId = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'gcal_event_" + eventId + "'").get();
         if (!existingEventId) return res.json({ success: true, message: 'No estaba sincronizado' });
-        var acc = findBestAccount(event, req.userId);
+        const acc = findBestAccount(event, req.userId);
         if (!acc || !acc.refreshToken) return res.json({ success: true, message: 'Google no conectado' });
-        var oauth2 = getOAuthWithToken(acc.refreshToken);
+        const oauth2 = getOAuthWithToken(acc.refreshToken);
         if (!oauth2) return res.json({ success: true, message: 'Google no conectado' });
-        var calendar = google.calendar({ version: 'v3', auth: oauth2 });
+        const calendar = google.calendar({ version: 'v3', auth: oauth2 });
         await calendar.events.delete({ calendarId: 'primary', eventId: existingEventId.setting_value }).catch(function() {});
         db.prepare("DELETE FROM settings WHERE setting_key = 'gcal_event_" + eventId + "'").run();
         res.json({ success: true });

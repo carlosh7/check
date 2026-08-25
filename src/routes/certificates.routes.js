@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.get('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
-        var templates = db.prepare("SELECT * FROM certificate_templates WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
+        const templates = db.prepare("SELECT * FROM certificate_templates WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         res.json(templates.map(function(t) {
             if (t.config) { try { t.config = JSON.parse(t.config); } catch(e) { t.config = {}; } }
             return t;
@@ -24,10 +24,10 @@ router.get('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZ
 
 router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { name, config } = req.body;
+        const { name, config } = req.body;
         if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre requerido' });
-        var id = uuidv4();
-        var now = new Date().toISOString();
+        const id = uuidv4();
+        const now = new Date().toISOString();
         db.prepare("INSERT INTO certificate_templates (id, event_id, name, config, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)").run(
             id, req.params.eventId, name.trim(), config ? JSON.stringify(config) : null, now, now
         );
@@ -37,7 +37,7 @@ router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
 
 router.put('/:eventId/templates/:templateId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { name, config } = req.body;
+        const { name, config } = req.body;
         db.prepare("UPDATE certificate_templates SET name = COALESCE(?, name), config = COALESCE(?, config), updated_at = ? WHERE id = ? AND event_id = ?").run(
             name || null, config ? JSON.stringify(config) : null, new Date().toISOString(), req.params.templateId, req.params.eventId
         );
@@ -57,18 +57,18 @@ router.delete('/:eventId/templates/:templateId', authMiddleware(['ADMIN', 'PRODU
 
 router.post('/:eventId/templates/:templateId/generate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var template = db.prepare("SELECT * FROM certificate_templates WHERE id = ? AND event_id = ?").get(req.params.templateId, req.params.eventId);
+        const template = db.prepare("SELECT * FROM certificate_templates WHERE id = ? AND event_id = ?").get(req.params.templateId, req.params.eventId);
         if (!template) return res.status(404).json({ error: 'Plantilla no encontrada' });
-        var cfg = {};
+        let cfg = {};
         try { cfg = JSON.parse(template.config); } catch(e) {}
-        var targetDb = getEventDb(req.params.eventId);
-        var guests = targetDb.prepare("SELECT id, name, email, organization, checked_in FROM guests WHERE event_id = ? AND checked_in = 1 ORDER BY name ASC").all(req.params.eventId);
+        const targetDb = getEventDb(req.params.eventId);
+        const guests = targetDb.prepare("SELECT id, name, email, organization, checked_in FROM guests WHERE event_id = ? AND checked_in = 1 ORDER BY name ASC").all(req.params.eventId);
         if (guests.length === 0) return res.status(400).json({ error: 'No hay invitados con check-in' });
-        var count = 0;
-        var insertCert = db.prepare("INSERT OR IGNORE INTO guest_certificates (id, template_id, event_id, guest_id) VALUES (?, ?, ?, ?)");
-        var insertMany = db.transaction(function(guests) {
+        let count = 0;
+        const insertCert = db.prepare("INSERT OR IGNORE INTO guest_certificates (id, template_id, event_id, guest_id) VALUES (?, ?, ?, ?)");
+        const insertMany = db.transaction(function(guests) {
             guests.forEach(function(g) {
-                var certId = uuidv4();
+                const certId = uuidv4();
                 insertCert.run(certId, req.params.templateId, req.params.eventId, g.id);
                 count++;
             });
@@ -82,7 +82,7 @@ router.post('/:eventId/templates/:templateId/generate', authMiddleware(['ADMIN',
 
 router.get('/:eventId/templates/:templateId/certificates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
-        var certs = db.prepare(`
+        const certs = db.prepare(`
             SELECT gc.*, g.name as guest_name, g.email as guest_email
             FROM guest_certificates gc
             LEFT JOIN guests g ON g.id = gc.guest_id
@@ -97,7 +97,7 @@ router.get('/:eventId/templates/:templateId/certificates', authMiddleware(['ADMI
 
 router.get('/download/:certId', (req, res) => {
     try {
-        var cert = db.prepare(`
+        const cert = db.prepare(`
             SELECT gc.*, g.name as guest_name, g.email as guest_email, g.qr_token,
                    t.name as template_name, t.config, t.event_id,
                    e.name as event_name, e.date as event_date,
@@ -113,12 +113,12 @@ router.get('/download/:certId', (req, res) => {
         // Actualizar contador de descargas
         db.prepare("UPDATE guest_certificates SET download_count = download_count + 1 WHERE id = ?").run(req.params.certId);
 
-        var cfg = {};
+        let cfg = {};
         try { cfg = JSON.parse(cert.config); } catch(e) {}
-        var themeColor = cfg.primaryColor || '#7c3aed';
+        const themeColor = cfg.primaryColor || '#7c3aed';
 
         const { jsPDF } = require('jspdf');
-        var doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
         // Fondo
         doc.setFillColor(15, 23, 42);
@@ -159,14 +159,14 @@ router.get('/download/:certId', (req, res) => {
         // Fecha
         doc.setFontSize(12);
         doc.setTextColor(150, 150, 150);
-        var dateStr = cert.event_date ? new Date(cert.event_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+        const dateStr = cert.event_date ? new Date(cert.event_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
         doc.text(dateStr, 148.5, 135, { align: 'center' });
 
         // QR de verificación
         if (cert.qr_token) {
             try {
-                var QRCode = require('qrcode');
-                var verifyUrl = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host') + '/api/certificates/verify/' + req.params.certId;
+                const QRCode = require('qrcode');
+                const verifyUrl = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host') + '/api/certificates/verify/' + req.params.certId;
                 QRCode.toDataURL(verifyUrl, { width: 120, margin: 1, color: { dark: themeColor, light: '#0f172a' } }).then(function(qrDataUrl) {
                     doc.addImage(qrDataUrl, 'PNG', 148.5 - 18, 145, 36, 36);
                     doc.setFontSize(7);
@@ -191,7 +191,7 @@ function sendPdf(doc, res, cert) {
 
 router.get('/verify/:certId', (req, res) => {
     try {
-        var cert = db.prepare(`
+        const cert = db.prepare(`
             SELECT gc.id, gc.generated_at, g.name as guest_name, e.name as event_name
             FROM guest_certificates gc
             JOIN guests g ON g.id = gc.guest_id
@@ -207,7 +207,7 @@ router.get('/verify/:certId', (req, res) => {
 
 router.get('/guest/:guestId', (req, res) => {
     try {
-        var certs = db.prepare(`
+        const certs = db.prepare(`
             SELECT gc.id, t.name as template_name, e.name as event_name, gc.generated_at
             FROM guest_certificates gc
             JOIN certificate_templates t ON t.id = gc.template_id

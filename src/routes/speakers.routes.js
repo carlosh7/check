@@ -13,7 +13,7 @@ const router = express.Router();
 // GET /api/events/:eventId/speakers
 router.get('/events/:eventId/speakers', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
-        var speakers = db.prepare("SELECT * FROM speakers WHERE event_id = ? ORDER BY sort_order ASC, name ASC").all(req.params.eventId);
+        const speakers = db.prepare("SELECT * FROM speakers WHERE event_id = ? ORDER BY sort_order ASC, name ASC").all(req.params.eventId);
         // Attach session assignments
         speakers.forEach(s => {
             try {
@@ -33,9 +33,9 @@ router.get('/events/:eventId/speakers', authMiddleware(['ADMIN', 'PRODUCTOR', 'O
 // POST /api/events/:eventId/speakers
 router.post('/events/:eventId/speakers', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { name, bio, photo_url, social_twitter, social_linkedin, social_web, topic, sort_order, session_ids } = req.body;
+        const { name, bio, photo_url, social_twitter, social_linkedin, social_web, topic, sort_order, session_ids } = req.body;
         if (!name) return res.status(400).json({ error: 'Nombre requerido' });
-        var id = uuidv4();
+        const id = uuidv4();
         db.prepare("INSERT INTO speakers (id, event_id, name, bio, photo_url, social_twitter, social_linkedin, social_web, topic, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").run(
             id, req.params.eventId, name, bio || '', photo_url || '', social_twitter || '', social_linkedin || '', social_web || '', topic || '', sort_order || 0
         );
@@ -51,7 +51,7 @@ router.post('/events/:eventId/speakers', authMiddleware(['ADMIN', 'PRODUCTOR']),
 // PUT /api/events/:eventId/speakers/:speakerId
 router.put('/events/:eventId/speakers/:speakerId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var d = req.body;
+        const d = req.body;
         db.prepare("UPDATE speakers SET name = COALESCE(?, name), bio = COALESCE(?, bio), photo_url = COALESCE(?, photo_url), social_twitter = COALESCE(?, social_twitter), social_linkedin = COALESCE(?, social_linkedin), social_web = COALESCE(?, social_web), topic = COALESCE(?, topic), sort_order = COALESCE(?, sort_order) WHERE id = ? AND event_id = ?").run(
             d.name || null, d.bio || null, d.photo_url || null, d.social_twitter || null, d.social_linkedin || null, d.social_web || null, d.topic || null, d.sort_order != null ? d.sort_order : null, req.params.speakerId, req.params.eventId
         );
@@ -77,7 +77,7 @@ router.delete('/events/:eventId/speakers/:speakerId', authMiddleware(['ADMIN', '
 // GET /api/events/:eventId/speakers/public — Public speaker list
 router.get('/events/:eventId/speakers/public', (req, res) => {
     try {
-        var speakers = db.prepare("SELECT id, name, bio, photo_url, social_twitter, social_linkedin, social_web, topic, sort_order FROM speakers WHERE event_id = ? ORDER BY sort_order ASC, name ASC").all(req.params.eventId);
+        const speakers = db.prepare("SELECT id, name, bio, photo_url, social_twitter, social_linkedin, social_web, topic, sort_order FROM speakers WHERE event_id = ? ORDER BY sort_order ASC, name ASC").all(req.params.eventId);
         res.json(speakers);
     } catch(err) { logger.error('[SPEAKERS] Error:', err.message); res.status(500).json({ error: err.message }); }
 });

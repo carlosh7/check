@@ -9,15 +9,15 @@ function skipLocal(req) {
 
 function getClientKey(req) {
     // Use user ID if authenticated, fallback to IP + user-agent
-    var userId = req.userId || (req.user && req.user.id) || (req.auth && req.auth.userId);
+    const userId = req.userId || (req.user && req.user.id) || (req.auth && req.auth.userId);
     if (userId) return 'user:' + userId;
-    var ip = req.ip || req.connection.remoteAddress || 'unknown';
-    var ua = req.headers['user-agent'] || '';
+    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    const ua = req.headers['user-agent'] || '';
     return 'ip:' + ip + '|' + ua.substring(0, 30);
 }
 
 function createLimiter(opts) {
-    var config = {
+    const config = {
         windowMs: opts.windowMs || 15 * 60 * 1000,
         max: opts.max || 100,
         skip: skipLocal,

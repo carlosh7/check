@@ -355,22 +355,22 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
             };
 
             function detectClientCol(headerName, sampleValues) {
-                var h = (headerName || '').toLowerCase().trim();
+                const h = (headerName || '').toLowerCase().trim();
                 // Excluir columnas de fecha explícitamente
                 if (h.includes('fecha') || h.includes('date') || h.includes('nacimiento') || h.includes('alta')) {
                     return null;
                 }
                 // Keyword match
-                for (var field in clientFieldKeywords) {
+                for (const field in clientFieldKeywords) {
                     if (clientFieldKeywords[field].some(function(kw) { return h.includes(kw); })) {
                         return field;
                     }
                 }
                 // Content sampling
                 if (sampleValues && sampleValues.length > 0) {
-                    var atCount = 0, phoneCount = 0;
+                    let atCount = 0, phoneCount = 0;
                     sampleValues.forEach(function(v) {
-                        var s = (v || '').toString().trim();
+                        const s = (v || '').toString().trim();
                         if (s.includes('@') && s.includes('.')) atCount++;
                         if (s.replace(/[^0-9]/g,'').length >= 7) phoneCount++;
                     });
@@ -382,20 +382,20 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
 
             // Leer encabezados y detectar columnas
             var headerRow = sheet.getRow(1);
-            var colMap = {};  // { fieldName: columnIndex }
-            var colHeaders = [];  // [{ index, name, detectedField }]
+            const colMap = {};  // { fieldName: columnIndex }
+            const colHeaders = [];  // [{ index, name, detectedField }]
             
             headerRow.eachCell(function(cell, colNumber) {
-                var headerName = cell.text?.trim() || 'Columna ' + colNumber;
-                var sampleValues = [];
+                const headerName = cell.text?.trim() || 'Columna ' + colNumber;
+                const sampleValues = [];
                 
                 // Recoger muestras de las primeras 5 filas
-                for (var r = 2; r <= Math.min(6, sheet.rowCount); r++) {
-                    var val = sheet.getRow(r).getCell(colNumber).text?.trim() || '';
+                for (let r = 2; r <= Math.min(6, sheet.rowCount); r++) {
+                    const val = sheet.getRow(r).getCell(colNumber).text?.trim() || '';
                     if (val) sampleValues.push(val);
                 }
                 
-                var detectedField = detectClientCol(headerName, sampleValues);
+                const detectedField = detectClientCol(headerName, sampleValues);
                 colHeaders.push({ index: colNumber - 1, name: headerName, detectedField: detectedField });
                 
                 if (detectedField) {
@@ -412,25 +412,25 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
             sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
                 try {
                     // Obtener valores usando el mapeo de columnas detectado
-                    var vals = {};
-                    for (var field in colMap) {
+                    const vals = {};
+                    for (const field in colMap) {
                         vals[field] = row.getCell(colMap[field] + 1).text?.trim() || '';
                     }
                     
                     // Saltar si no hay nombre ni email
-                    var name = vals.name || '';
-                    var email = vals.email || '';
+                    const name = vals.name || '';
+                    const email = vals.email || '';
                     if (!name && !email) return;
                     
                     // Saltar filas de encabezado
-                    var nameLower = (name || '').toLowerCase();
-                    var emailLower = (email || '').toLowerCase();
+                    const nameLower = (name || '').toLowerCase();
+                    const emailLower = (email || '').toLowerCase();
                     if (headerValues.includes(nameLower) || headerValues.includes(emailLower)) {
                         return;
                     }
                     
                     // Buscar cliente existente por nombre o email
-                    var exists = existingClients.find(function(c) { 
+                    const exists = existingClients.find(function(c) { 
                         return (c.name && c.name.toLowerCase() === nameLower) ||
                                (c.email && c.email.toLowerCase() === emailLower);
                     });
@@ -481,11 +481,11 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
             let availableColumns = [];
             let allRows = [];
             let totalRows = 0;
-            let detectedFields = {};
+            const detectedFields = {};
             const eventId = castId('events', req.body.eventId);
 
             // Smart field detection keywords
-            var fieldKeywords = {
+            const fieldKeywords = {
                 name: ['nombre', 'name', 'apellido', 'names', 'nombres', 'asistente', 'invitado', 'guest', 'attendee'],
                 email: ['email', 'correo', 'mail', 'e-mail', 'e_mail'],
                 phone: ['telefono', 'phone', 'teléfono', 'tel', 'celular', 'cel', 'movil', 'whatsapp'],
@@ -496,18 +496,18 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
             };
 
             function smartDetectCol(headerName, sampleValues) {
-                var h = headerName.toLowerCase().trim();
+                const h = headerName.toLowerCase().trim();
                 // Try keyword match first
-                for (var field in fieldKeywords) {
+                for (const field in fieldKeywords) {
                     if (fieldKeywords[field].some(function(kw) { return h.includes(kw); })) {
                         return field;
                     }
                 }
                 // Try content sampling
                 if (sampleValues && sampleValues.length > 0) {
-                    var atCount = 0, digCount = 0;
+                    let atCount = 0, digCount = 0;
                     sampleValues.forEach(function(v) {
-                        var s = (v || '').toString().trim();
+                        const s = (v || '').toString().trim();
                         if (s.includes('@') && s.includes('.')) atCount++;
                         if (s.replace(/[^0-9]/g,'').length >= 7) digCount++;
                     });
@@ -528,48 +528,48 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                     totalRows = lines.length;
                     stats.message = 'PDF: ' + lines.length + ' líneas';
                 } catch (pdfErr) {
-                    throw new Error('No se pudo procesar el PDF');
+                    throw new Error('No se pudo procesar el PDF', { cause: pdfErr });
                 }
             } else {
                 // Try Excel first, fallback to CSV
-                var sheet = null;
+                let sheet = null;
                 try {
                     await workbook.xlsx.load(buffer);
                     sheet = workbook.getWorksheet('Asistentes') || workbook.getWorksheet(1) || workbook.getWorksheet('asistentes');
                 } catch (e) {
                     // CSV fallback: try loading as CSV
                     try {
-                        var csvBuffer = buffer.toString('utf-8');
-                        var csvLines = csvBuffer.split('\n').filter(Boolean);
+                        const csvBuffer = buffer.toString('utf-8');
+                        const csvLines = csvBuffer.split('\n').filter(Boolean);
                         if (csvLines.length > 0) {
                             // Create a temp worksheet manually
-                            var wb2 = new ExcelJS.Workbook();
+                            const wb2 = new ExcelJS.Workbook();
                             sheet = wb2.addWorksheet('Asistentes');
                             csvLines.forEach(function(l, i) {
-                                var cells = l.split(',').map(function(c) { return c.trim().replace(/^"|"$/g,''); });
+                                const cells = l.split(',').map(function(c) { return c.trim().replace(/^"|"$/g,''); });
                                 sheet.getRow(i+1).values = cells;
                             });
                         }
                     } catch (csvErr) {
-                        throw new Error('No se pudo leer el archivo como Excel ni como CSV');
+                        throw new Error('No se pudo leer el archivo como Excel ni como CSV', { cause: csvErr });
                     }
                 }
                 if (!sheet) throw new Error('No se encontró una hoja válida en el archivo');
 
                 // Headers
-                var headerRow = sheet.getRow(1);
-                var colSample = {};
+                headerRow = sheet.getRow(1);
+                const colSample = {};
                 headerRow.eachCell(function(cell, colNumber) {
-                    var idx = colNumber - 1;
+                    const idx = colNumber - 1;
                     availableColumns.push({ index: idx, name: cell.text?.trim() || 'Columna ' + colNumber });
                     colSample[idx] = [];
                 });
 
                 // Collect all rows + sample values for smart detection
                 sheet.eachRow({ skip: 1 }, function(row) {
-                    var vals = [];
+                    const vals = [];
                     row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
-                        var v = cell.text?.trim() || '';
+                        const v = cell.text?.trim() || '';
                         vals[colNumber - 1] = v;
                         if (colSample[colNumber - 1] && colSample[colNumber - 1].length < 5) {
                             colSample[colNumber - 1].push(v);
@@ -581,48 +581,48 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
 
                 // Smart detect fields
                 availableColumns.forEach(function(col) {
-                    var field = smartDetectCol(col.name, colSample[col.index]);
+                    const field = smartDetectCol(col.name, colSample[col.index]);
                     if (field) detectedFields[col.index] = field;
                 });
 
                 // Load existing guests for fuzzy matching
-                var existingGuests = [];
+                let existingGuests = [];
                 if (eventId) {
                     try {
-                        var { getEventConnection: gec2 } = require('../../database');
-                        var tdb2 = gec2(eventId);
+                        const { getEventConnection: gec2 } = require('../../database');
+                        const tdb2 = gec2(eventId);
                         if (tdb2) existingGuests = tdb2.prepare("SELECT id, name, email, phone FROM guests WHERE event_id = ?").all(eventId);
                     } catch (_) {}
                 }
 
                 // Fuzzy duplicate detection
-                var fuzzyNew = 0, fuzzyUpdate = 0;
+                let fuzzyNew = 0, fuzzyUpdate = 0;
                 allRows.forEach(function(vals) {
-                    var isDuplicate = false;
-                    for (var g = 0; g < existingGuests.length; g++) {
-                        var eg = existingGuests[g];
+                    let isDuplicate = false;
+                    for (let g = 0; g < existingGuests.length; g++) {
+                        const eg = existingGuests[g];
                         // Email match
-                        for (var ei in detectedFields) {
+                        for (const ei in detectedFields) {
                             if (detectedFields[ei] === 'email') {
-                                var ve = (vals[ei] || '').toString().toLowerCase().trim();
+                                const ve = (vals[ei] || '').toString().toLowerCase().trim();
                                 if (ve && eg.email && ve === eg.email.toLowerCase().trim()) { isDuplicate = true; break; }
                             }
                         }
                         if (isDuplicate) break;
                         // Phone match (normalized)
-                        for (var pi in detectedFields) {
+                        for (const pi in detectedFields) {
                             if (detectedFields[pi] === 'phone') {
-                                var vp = (vals[pi] || '').toString().replace(/[^0-9]/g,'');
-                                var ep = (eg.phone || '').replace(/[^0-9]/g,'');
+                                const vp = (vals[pi] || '').toString().replace(/[^0-9]/g,'');
+                                const ep = (eg.phone || '').replace(/[^0-9]/g,'');
                                 if (vp && ep && vp === ep) { isDuplicate = true; break; }
                             }
                         }
                         if (isDuplicate) break;
                         // Name fuzzy match
-                        for (var ni in detectedFields) {
+                        for (const ni in detectedFields) {
                             if (detectedFields[ni] === 'name') {
-                                var vn = (vals[ni] || '').toString().toLowerCase().trim();
-                                var en = (eg.name || '').toLowerCase().trim();
+                                const vn = (vals[ni] || '').toString().toLowerCase().trim();
+                                const en = (eg.name || '').toLowerCase().trim();
                                 if (vn && en && (vn === en || vn.includes(en) || en.includes(vn))) { isDuplicate = true; break; }
                             }
                         }
@@ -931,8 +931,8 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 
                 if (existingClient) {
                     // Actualización inteligente: solo actualizar campos que están vacíos o son diferentes
-                    var updates = [];
-                    var params = [];
+                    const updates = [];
+                    const params = [];
                     
                     if (c.email && (!existingClient.email || existingClient.email === '')) {
                         updates.push('email = ?'); params.push(c.email);
@@ -1077,7 +1077,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 const provisionalName = cleanName || emailLower.split('@')[0];
 
                 // 1. Gestionar tabla 'guests'
-                let guest = targetDb.prepare("SELECT id, name FROM guests WHERE event_id = ? AND LOWER(email) = ?").get(eventId, emailLower);
+                const guest = targetDb.prepare("SELECT id, name FROM guests WHERE event_id = ? AND LOWER(email) = ?").get(eventId, emailLower);
                 
                 if (guest) {
                     duplicates++; // Marcado como existente/duplicado

@@ -886,9 +886,9 @@ function initSchema(db) {
     // Seed politicas por defecto (solo si no existen)
     defaultAiPolicies.forEach(function(policy) {
         try {
-            var existing = db.prepare("SELECT id FROM ai_policies WHERE name = ?").get(policy.name);
+            const existing = db.prepare("SELECT id FROM ai_policies WHERE name = ?").get(policy.name);
             if (!existing) {
-                var pId = uuidv4();
+                const pId = uuidv4();
                 db.prepare("INSERT INTO ai_policies (id, name, description, content, created_at) VALUES (?, ?, ?, ?, ?)")
                   .run(pId, policy.name, policy.description, policy.content, new Date().toISOString());
                 logger.info('[SEED] Politica IA creada:', policy.name);
@@ -1027,9 +1027,9 @@ function initSchema(db) {
     
     // Seed classifications (PII fields)
     (function() {
-        var existing = db.prepare("SELECT COUNT(*) as cnt FROM data_classification").get();
+        const existing = db.prepare("SELECT COUNT(*) as cnt FROM data_classification").get();
         if (existing.cnt === 0) {
-            var piiFields = [
+            const piiFields = [
                 ['guests', 'name', 'confidential', 'identidad', 'Nombre completo del invitado', 1, 0],
                 ['guests', 'email', 'confidential', 'contacto', 'Correo electronico del invitado', 1, 0],
                 ['guests', 'phone', 'confidential', 'contacto', 'Telefono del invitado', 1, 0],
@@ -1055,7 +1055,7 @@ function initSchema(db) {
                 ['events', 'location', 'public', 'general', 'Ubicacion del evento', 0, 0],
                 ['events', 'notes', 'internal', 'general', 'Notas del evento', 0, 0]
             ];
-            var insert = db.prepare("INSERT INTO data_classification (id, table_name, column_name, classification, category, description, is_pii, is_spi) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            const insert = db.prepare("INSERT INTO data_classification (id, table_name, column_name, classification, category, description, is_pii, is_spi) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             piiFields.forEach(function(f) {
                 insert.run(require('uuid').v4(), f[0], f[1], f[2], f[3], f[4], f[5], f[6]);
             });

@@ -85,7 +85,7 @@ class AdminView {
             const eventId = this.currentEventId;
             
             // Cargar guests
-            var token = window.App?.state?.user?.token || '';
+            const token = window.App?.state?.user?.token || '';
             const guestsRes = await fetch(`/api/events/${eventId}/guests`, { headers: { 'Authorization': 'Bearer ' + token } });
             if (guestsRes.ok) {
                 const guests = await guestsRes.json();

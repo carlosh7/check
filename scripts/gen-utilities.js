@@ -191,7 +191,7 @@ for (const raw of Array.from(used).sort()) {
     if (c === 'border-none') { emit(raw, 'border: none;', variant); continue; }
     if (c === 'border-transparent') { emit(raw, 'border-color: transparent;', variant); continue; }
     if ((m = c.match(/^border-l-(\[[^\]]+\]|[a-z0-9-]+\/[0-9]+|[a-z0-9-]+)$/)) && m[1] !== '4') {
-        let cv = m[1].startsWith('[') ? m[1].slice(1,-1) : (COLORS_BORDER[m[1]] || ({['amber-400']:'#fbbf24',['green-500']:'#22c55e',['red-500']:'#ef4444'})[m[1]]);
+        const cv = m[1].startsWith('[') ? m[1].slice(1,-1) : (COLORS_BORDER[m[1]] || ({['amber-400']:'#fbbf24',['green-500']:'#22c55e',['red-500']:'#ef4444'})[m[1]]);
         if (cv) { emit(raw, `border-left: 4px solid ${cv};`, variant); continue; } }
     if (c === 'border-l-4') { emit(raw, 'border-left-width: 4px;', variant); continue; }
     if (c === 'border-l-[#0ba5ec]' || c === 'border-l-[#34a853]') { emit(raw, `border-left: 4px solid ${c.includes('0ba5ec') ? '#0ba5ec' : '#34a853'};`, variant); continue; }

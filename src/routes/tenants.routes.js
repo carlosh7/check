@@ -34,10 +34,10 @@ try {
 
 // Detect tenant by domain (middleware)
 router.use(function(req, res, next) {
-    var host = req.get('host') || '';
-    var subdomain = host.split('.')[0];
+    const host = req.get('host') || '';
+    const subdomain = host.split('.')[0];
     if (subdomain && subdomain !== 'www' && subdomain !== 'app' && !subdomain.includes('localhost') && !subdomain.includes('192.168')) {
-        var tenant = db.prepare("SELECT * FROM tenants WHERE (domain = ? OR (domain = '' AND slug = ?)) AND is_active = 1").get(host, subdomain);
+        const tenant = db.prepare("SELECT * FROM tenants WHERE (domain = ? OR (domain = '' AND slug = ?)) AND is_active = 1").get(host, subdomain);
         if (tenant) {
             req.tenant = tenant;
             res.locals.tenant = tenant;
@@ -62,11 +62,11 @@ router.get('/api/tenants', authMiddleware(['ADMIN']), (req, res) => {
 
 router.post('/api/tenants', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        var { name, slug, domain, logo_url, primary_color, welcome_text, max_events, max_guests } = req.body;
+        const { name, slug, domain, logo_url, primary_color, welcome_text, max_events, max_guests } = req.body;
         if (!name || !slug) return res.status(400).json({ error: 'Nombre y slug requeridos' });
-        var existing = db.prepare("SELECT id FROM tenants WHERE slug = ?").get(slug);
+        const existing = db.prepare("SELECT id FROM tenants WHERE slug = ?").get(slug);
         if (existing) return res.status(400).json({ error: 'Slug ya existe' });
-        var id = uuidv4();
+        const id = uuidv4();
         db.prepare("INSERT INTO tenants (id, name, slug, domain, logo_url, primary_color, welcome_text) VALUES (?, ?, ?, ?, ?, ?, ?)").run(id, name, slug, domain || '', logo_url || '', primary_color || '#7c3aed', welcome_text || '');
         res.json({ success: true, id: id });
     } catch(err) { res.status(500).json({ error: err.message }); }
@@ -74,7 +74,7 @@ router.post('/api/tenants', authMiddleware(['ADMIN']), (req, res) => {
 
 router.put('/api/tenants/:id', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        var d = req.body;
+        const d = req.body;
         db.prepare("UPDATE tenants SET name = COALESCE(?, name), slug = COALESCE(?, slug), domain = COALESCE(?, domain), logo_url = COALESCE(?, logo_url), primary_color = COALESCE(?, primary_color), welcome_text = COALESCE(?, welcome_text), is_active = COALESCE(?, is_active) WHERE id = ?").run(
             d.name || null, d.slug || null, d.domain || null, d.logo_url || null, d.primary_color || null, d.welcome_text || null, d.is_active !== undefined ? (d.is_active ? 1 : 0) : null, req.params.id
         );
@@ -148,7 +148,7 @@ router.get('/api/tenants/:id/usage', authMiddleware(['ADMIN']), (req, res) => {
 // Public: get tenant info by slug
 router.get('/api/tenant/:slug', (req, res) => {
     try {
-        var tenant = db.prepare("SELECT id, name, slug, logo_url, primary_color, welcome_text FROM tenants WHERE slug = ? AND is_active = 1").get(req.params.slug);
+        const tenant = db.prepare("SELECT id, name, slug, logo_url, primary_color, welcome_text FROM tenants WHERE slug = ? AND is_active = 1").get(req.params.slug);
         if (!tenant) return res.status(404).json({ error: 'Tenant no encontrado' });
         res.json(tenant);
     } catch(err) { res.status(500).json({ error: err.message }); }
@@ -157,9 +157,9 @@ router.get('/api/tenant/:slug', (req, res) => {
 // Public: tenant-branded registration page data
 router.get('/api/tenant/:slug/event/:eventId', (req, res) => {
     try {
-        var tenant = db.prepare("SELECT id, name, slug, logo_url, primary_color, welcome_text FROM tenants WHERE slug = ? AND is_active = 1").get(req.params.slug);
+        const tenant = db.prepare("SELECT id, name, slug, logo_url, primary_color, welcome_text FROM tenants WHERE slug = ? AND is_active = 1").get(req.params.slug);
         if (!tenant) return res.status(404).json({ error: 'Tenant no encontrado' });
-        var event = db.prepare("SELECT id, name, date, location, description, reg_title, reg_welcome_text, reg_success_message, reg_show_phone, reg_show_org, reg_show_position, reg_show_dietary, reg_show_gender, reg_require_agreement, reg_policy, reg_logo_url, payment_required, currency, latitude, longitude, music_url, video_conference_url FROM events WHERE id = ?").get(req.params.eventId);
+        const event = db.prepare("SELECT id, name, date, location, description, reg_title, reg_welcome_text, reg_success_message, reg_show_phone, reg_show_org, reg_show_position, reg_show_dietary, reg_show_gender, reg_require_agreement, reg_policy, reg_logo_url, payment_required, currency, latitude, longitude, music_url, video_conference_url FROM events WHERE id = ?").get(req.params.eventId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         event.tenant = tenant;
         res.json(event);

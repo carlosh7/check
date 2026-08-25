@@ -289,10 +289,6 @@ class EventService {
         return 'completed';
     }
     
-    // Limpiar cache
-    clearCache() {
-        this.cache.clear();
-    }
 }
 
 export const EventServiceInstance = new EventService();

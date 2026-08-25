@@ -39,11 +39,11 @@ router.get('/rules', authMiddleware(['ADMIN']), (req, res) => {
 
 router.post('/rules', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        var parsed = createBusinessRuleSchema.safeParse(req.body);
+        const parsed = createBusinessRuleSchema.safeParse(req.body);
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
         }
-        var { name, event_id, trigger_event, condition_expr, action_type, action_config } = parsed.data;
+        const { name, event_id, trigger_event, condition_expr, action_type, action_config } = parsed.data;
         const id = uuidv4();
         db.prepare("INSERT INTO business_rules (id, name, event_id, trigger_event, condition_expr, action_type, action_config, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)")
             .run(id, name, event_id || null, trigger_event, condition_expr || null, action_type, action_config || null, new Date().toISOString());
@@ -53,11 +53,11 @@ router.post('/rules', authMiddleware(['ADMIN']), (req, res) => {
 
 router.put('/rules/:id', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        var parsed = updateBusinessRuleSchema.safeParse(req.body);
+        const parsed = updateBusinessRuleSchema.safeParse(req.body);
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
         }
-        var { name, is_active, condition_expr, action_config } = parsed.data;
+        const { name, is_active, condition_expr, action_config } = parsed.data;
         db.prepare("UPDATE business_rules SET name=COALESCE(?,name), is_active=COALESCE(?,is_active), condition_expr=COALESCE(?,condition_expr), action_config=COALESCE(?,action_config) WHERE id=?")
             .run(name, is_active != null ? (is_active ? 1 : 0) : null, condition_expr, action_config, req.params.id);
         res.json({ success: true });
@@ -78,11 +78,11 @@ router.get('/workflows', authMiddleware(['ADMIN']), (req, res) => {
 
 router.post('/workflows', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        var parsed = createWorkflowSchema.safeParse(req.body);
+        const parsed = createWorkflowSchema.safeParse(req.body);
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
         }
-        var { name, description, steps, trigger_event } = parsed.data;
+        const { name, description, steps, trigger_event } = parsed.data;
         const id = uuidv4();
         db.prepare("INSERT INTO workflows (id, name, description, steps, trigger_event, is_active, created_at) VALUES (?, ?, ?, ?, ?, 1, ?)")
             .run(id, name, description || '', JSON.stringify(steps), trigger_event || 'manual', new Date().toISOString());
