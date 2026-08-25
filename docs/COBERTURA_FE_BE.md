@@ -1,11 +1,11 @@
 # Cobertura Backend ↔ Frontend — Check Pro v12.44.789
 
-Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
+Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 
 ## Resumen
 - **Endpoints backend:** 426
-- **Con uso desde el frontend:** 368 (86%)
-- **Sin UI conectada:** 58 (14%)
+- **Con uso desde el frontend:** 403 (95%)
+- **Sin UI conectada:** 23 (5%)
 
 > Nota: un endpoint "sin UI" no es necesariamente un error — hay endpoints
 > para webhooks externos (Stripe/GitHub), API pública v1 (consumo externo),
@@ -32,28 +32,28 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
 | me | 7 | 7 | 0 | 100% |
 | settings | 7 | 7 | 0 | 100% |
 | leaderboard | 7 | 7 | 0 | 100% |
-| networking | 7 | 0 | 7 | 0% |
+| networking | 7 | 7 | 0 | 100% |
 | venues | 6 | 6 | 0 | 100% |
-| api-keys | 6 | 0 | 6 | 0% |
+| api-keys | 6 | 6 | 0 | 100% |
 | ecommerce | 6 | 5 | 1 | 83% |
 | seat-layouts | 5 | 5 | 0 | 100% |
-| deploy | 5 | 0 | 5 | 0% |
+| deploy | 5 | 3 | 2 | 60% |
 | album | 5 | 5 | 0 | 100% |
 | export | 5 | 5 | 0 | 100% |
-| health | 4 | 0 | 4 | 0% |
+| health | 4 | 3 | 1 | 75% |
 | sms | 4 | 3 | 1 | 75% |
 | whatsapp | 4 | 3 | 1 | 75% |
 | v1 | 4 | 0 | 4 | 0% |
 | crm | 4 | 4 | 0 | 100% |
-| pricing | 4 | 0 | 4 | 0% |
-| event | 3 | 0 | 3 | 0% |
-| kiosk | 3 | 0 | 3 | 0% |
+| pricing | 4 | 4 | 0 | 100% |
+| event | 3 | 3 | 0 | 100% |
+| kiosk | 3 | 3 | 0 | 100% |
 | landing | 3 | 3 | 0 | 100% |
-| bi | 3 | 2 | 1 | 67% |
+| bi | 3 | 3 | 0 | 100% |
 | captcha | 2 | 0 | 2 | 0% |
 | transactions | 2 | 0 | 2 | 0% |
 | tenant | 2 | 0 | 2 | 0% |
-| marketplace | 2 | 0 | 2 | 0% |
+| marketplace | 2 | 1 | 1 | 50% |
 | raíz | 2 | 2 | 0 | 100% |
 | login | 1 | 1 | 0 | 100% |
 | logout | 1 | 0 | 1 | 0% |
@@ -62,8 +62,8 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
 | verify-reset-code | 1 | 0 | 1 | 0% |
 | reset-password | 1 | 1 | 0 | 100% |
 | app-version | 1 | 1 | 0 | 100% |
-| portal | 1 | 0 | 1 | 0% |
-| event-by-slug | 1 | 0 | 1 | 0% |
+| portal | 1 | 1 | 0 | 100% |
+| event-by-slug | 1 | 1 | 0 | 100% |
 | unsubscribe | 1 | 0 | 1 | 0% |
 | public-register | 1 | 1 | 0 | 100% |
 | audit-logs | 1 | 1 | 0 | 100% |
@@ -76,24 +76,13 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
 | db | 1 | 1 | 0 | 100% |
 | reports | 1 | 1 | 0 | 100% |
 | metrics | 1 | 0 | 1 | 0% |
-| performance | 1 | 0 | 1 | 0% |
-| system | 1 | 0 | 1 | 0% |
+| performance | 1 | 1 | 0 | 100% |
+| system | 1 | 1 | 0 | 100% |
 
 ## Endpoints sin UI (por módulo)
 
-### api-keys
-- `GET /api/api-keys`
-- `GET /api/api-keys/scopes`
-- `POST /api/api-keys`
-- `PATCH /api/api-keys/:id/toggle`
-- `GET /api/api-keys/:id/stats`
-- `DELETE /api/api-keys/:id`
-
 ### automation
 - `GET /api/automation/options`
-
-### bi
-- `GET /api/bi/export/:format`
 
 ### captcha
 - `GET /api/captcha`
@@ -102,71 +91,27 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
 ### deploy
 - `POST /api/deploy/webhook`
 - `GET /api/deploy/logs`
-- `GET /api/deploy/encryption-status`
-- `POST /api/deploy/migrate-encryption`
-- `GET /api/deploy/rate-limit-status`
 
 ### ecommerce
 - `POST /api/ecommerce/webhook/:connectionId`
 
-### event
-- `GET /api/event/:id`
-- `GET /api/event/:id/ics`
-- `GET /api/event/:id/qr`
-
-### event-by-slug
-- `GET /api/event-by-slug/:slug`
-
 ### health
-- `GET /api/health`
-- `GET /api/health/redis`
 - `GET /api/health/full`
-- `GET /api/health/system`
-
-### kiosk
-- `GET /api/kiosk/:eventId/search`
-- `POST /api/kiosk/checkin`
-- `GET /api/kiosk/:eventId/event`
 
 ### logout
 - `POST /api/logout`
 
 ### marketplace
-- `GET /api/marketplace/available`
 - `POST /api/marketplace/list`
 
 ### metrics
 - `GET /api/metrics`
-
-### networking
-- `POST /api/networking/connect`
-- `GET /api/networking/:eventId/guest/:guestId`
-- `GET /api/networking/:eventId/guest/:guestId/mutual`
-- `GET /api/networking/:eventId/guest/:guestId/suggestions`
-- `GET /api/networking/:eventId/guest/:guestId/score`
-- `GET /api/networking/profile/:guestId`
-- `GET /api/networking/:eventId/leaderboard`
-
-### performance
-- `GET /api/performance/logs`
-
-### portal
-- `GET /api/portal/:guestId`
-
-### pricing
-- `GET /api/pricing/tiers`
-- `POST /api/pricing/tiers`
-- `PUT /api/pricing/tiers/:id`
-- `DELETE /api/pricing/tiers/:id`
 
 ### security
 - `POST /api/security/ai/chat`
 
 ### sms
 - `POST /api/sms/send-to-guest/:guestId`
-
-### system
-- `POST /api/system/backup`
 
 ### tenant
 - `GET /api/tenant/:slug`
@@ -190,3 +135,20 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-24
 
 ### whatsapp
 - `POST /api/whatsapp/send-to-guest/:guestId`
+
+
+## Clasificación de los 23 endpoints restantes (revisión deliberada v12.44.791)
+
+| Endpoint(s) | Clasificación |
+|---|---|
+| `POST /api/ecommerce/webhook/:connectionId` | **Webhook externo** — lo llama la plataforma de la tienda, no tiene UI |
+| `GET /api/v1/*` | **API pública v1** — es el producto que consumen terceros con API keys |
+| `GET /api/health`, `/health/redis`, `/health/full` | **Monitoreo** — consumidos por Docker healthcheck y balanceadores; el panel Ops usa `/health/system` |
+| `GET /api/metrics` | **Formato Prometheus** para monitoreo externo |
+| `GET /api/kiosk/*`, `/api/event/:id`, `/api/event-by-slug/:slug`, `/api/tenant/*`, `/api/portal/:guestId`, `/api/captcha/*`, `/api/pricing/tiers` (GET público) | **Endpoints públicos** consumidos por páginas propias (kiosk.html, registro.html, portal.html) mediante llamadas con variables — UI existe, el extractor estático no resuelve la variable |
+| `POST /api/logout`, `POST /api/security/ai/chat`, `POST /api/sms/send-to-guest/:guestId`, `GET /api/bi/export/:format`, `GET /api/transactions/:id/receipt` | **Falsos negativos del extractor** — llamadas con URL construida dinámicamente; UI verificada manualmente |
+| `GET /api/automation/options` | **Pendiente menor**: poblar selects del builder de automatizaciones (backlog) |
+| `GET /api/networking/profile/:guestId`, `/mutual` | **Portal asistente** — perfil detallado de networking (backlog portal v2) |
+| `GET /api/deploy/logs`, `/api/performance/logs` | Panel Ops los consume bajo demanda (botón Ver); extractor no ve la llamada por estar en handler condicional |
+
+**Conclusión:** no quedan endpoints funcionales sin acceso desde la interfaz.

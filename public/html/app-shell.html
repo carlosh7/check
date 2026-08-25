@@ -1,12 +1,12 @@
 <!-- FIX v12.44.786: links de estilos también en el fragmento (cubre acceso directo a /app-shell.html
      y la inyección en body — los navegadores aplican <link> presente en body) -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5"></script>
-<link rel="stylesheet" href="/css/modules/base.css?v=12.44.790">
-<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.790">
-<link rel="stylesheet" href="/css/modules/components.css?v=12.44.790">
-<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.790">
-<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.790">
-<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.790">
+<link rel="stylesheet" href="/css/modules/base.css?v=12.44.791">
+<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.791">
+<link rel="stylesheet" href="/css/modules/components.css?v=12.44.791">
+<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.791">
+<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.791">
+<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.791">
 <div id="app-container" class="app-container hidden" role="application" aria-label="Check Pro - Panel de administración">
     <a href="#app-main-content" class="skip-to-content">Saltar al contenido principal</a>
     <button id="hamburger-btn" class="hamburger-btn" onclick="document.getElementById('global-sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('active')" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="global-sidebar">☰</button>
@@ -69,7 +69,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.790</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.791</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -2000,6 +2000,18 @@
                             </div>
                         </div>
                     </div>
+<div id="config-content-album" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">&Aacute;lbum <span class="text-[var(--primary)]">del evento</span></h2>
+                            <label class="btn-primary cursor-pointer">
+                                &#11014; Subir foto
+                                <input type="file" id="album-file-input" accept="image/*" class="hidden" onchange="App.uploadAlbumPhoto(this)">
+                            </label>
+                        </div>
+                        <div id="album-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <p class="text-xs text-slate-500 col-span-full">Cargando&hellip;</p>
+                        </div>
+                    </div>
 
                     <!-- F2: INTELIGENCIA (conecta /api/intelligence) -->
                     <div id="config-content-intelligence" class="config-tab-content hidden space-y-6">
@@ -2023,20 +2035,298 @@
                     </div>
 
                     <!-- F2: CERTIFICADOS (conecta /api/certificates) -->
-                                        <div id="config-content-album" class="config-tab-content hidden space-y-6">
+                    <div id="config-content-certificates" class="config-tab-content hidden space-y-6">
                         <div class="flex justify-between items-center">
-                            <h2 class="text-xl font-bold text-white">&Aacute;lbum <span class="text-[var(--primary)]">del evento</span></h2>
-                            <label class="btn-primary cursor-pointer">
-                                ⬆ Subir foto
-                                <input type="file" id="album-file-input" accept="image/*" class="hidden" onchange="App.uploadAlbumPhoto(this)">
-                            </label>
+                            <h2 class="text-xl font-bold text-white">Certificados <span class="text-[var(--primary)]">de asistencia</span></h2>
+                            <button class="btn-primary" onclick="App.openCertificateTemplateModal()">➕ Nueva plantilla</button>
                         </div>
-                        <div id="album-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <p class="text-xs text-slate-500 col-span-full">Cargando…</p>
+                        <div class="card overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead><tr class="table-header-row"><th class="table-th">Plantilla</th><th class="table-th">Título</th><th class="table-th">Creada</th><th class="table-th">Acciones</th></tr></thead>
+                                    <tbody id="certificates-tbody"><tr><td colspan="4" class="text-center py-8 text-slate-500">Sin plantillas</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="certificates-generated-wrap" class="hidden card p-6">
+                            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">Certificados generados (última tanda)</h3>
+                            <div id="certificates-generated" class="flex flex-col gap-2"></div>
                         </div>
                     </div>
-                                </div>
 
+                    <!-- F4: BUILDER DE FORMULARIO DE REGISTRO -->
+                    <div id="config-content-reg-fields" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Formulario <span class="text-[var(--primary)]">de registro público</span></h2>
+                            <button class="btn-primary" onclick="App.openRegFieldModal()">➕ Nuevo campo</button>
+                        </div>
+                        <p class="text-xs text-slate-500 -mt-3">Los campos aparecen en la página de registro. Usa "Mostrar solo si" para lógica condicional.</p>
+                        <div class="card overflow-hidden">
+                            <table class="data-table w-full">
+                                <thead><tr class="table-header-row"><th class="table-th">Etiqueta</th><th class="table-th">Tipo</th><th class="table-th">Obligatorio</th><th class="table-th">Condición</th><th class="table-th">Acción</th></tr></thead>
+                                <tbody id="regfields-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Sin campos personalizados</td></tr></tbody>
+                            </table>
+                        </div>
+                        <div class="card p-6 space-y-3 max-w-md">
+                            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400">Acompañantes (plus-ones)</h3>
+                            <div class="flex items-center gap-3">
+                                <input type="number" id="plusone-quota-input" min="0" value="0" class="input-field w-24 !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-center">
+                                <button class="btn-secondary px-4 py-2 text-xs font-black uppercase" onclick="App.savePlusOneQuota()">Guardar cupo</button>
+                            </div>
+                            <p class="text-[10px] text-slate-600">0 = sin acompañantes permitidos.</p>
+                        </div>
+                    </div>
+
+                    <!-- F4: SPONSORS / EXPOSITORES -->
+                    <div id="config-content-sponsors" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Patrocinadores <span class="text-[var(--primary)]">&amp; Expositores</span></h2>
+                            <button class="btn-primary" onclick="App.openSponsorModal()">➕ Nuevo sponsor</button>
+                        </div>
+                        <div id="sponsors-roi" class="flex gap-3 flex-wrap"></div>
+                        <div class="card overflow-hidden">
+                            <table class="data-table w-full">
+                                <thead><tr class="table-header-row"><th class="table-th">Nombre</th><th class="table-th">Tier</th><th class="table-th">Booth</th><th class="table-th">Leads</th><th class="table-th">Acciones</th></tr></thead>
+                                <tbody id="sponsors-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Sin patrocinadores</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+            </section>
+
+            <!-- VIEW: SISTEMA (UNIFIED HUB) -->
+            <section id="view-system" class="hidden space-y-6 animate-fade-in" role="region" aria-label="Configuración del sistema">
+                    <div class="sticky-header-container sticky-header-custom">
+                    <div class="tabs-groups" id="system-tabs-groups">
+                        <button class="tabs-group-btn active" data-scope="system" data-group="equipo" onclick="App.showTabGroup('system','equipo')">👥 Equipo y Acceso</button>
+                        <button class="tabs-group-btn" data-scope="system" data-group="datos" onclick="App.showTabGroup('system','datos')">🗂️ Datos y Legal</button>
+                        <button class="tabs-group-btn" data-scope="system" data-group="comunicacion" onclick="App.showTabGroup('system','comunicacion')">📣 Comunicación</button>
+                        <button class="tabs-group-btn" data-scope="system" data-group="integraciones" onclick="App.showTabGroup('system','integraciones')">🔗 Integraciones</button>
+                        <button class="tabs-group-btn" data-scope="system" data-group="inteligencia" onclick="App.showTabGroup('system','inteligencia')">📊 Inteligencia</button>
+                        <button class="tabs-group-btn" data-scope="system" data-group="operaciones" onclick="App.showTabGroup('system','operaciones')">🛠️ Operaciones</button>
+                    </div>
+                    <div class="tabs-children-row hidden" data-scope="system" data-group="operaciones">
+                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="ops" onclick="App.switchSystemTab('ops')">
+                            <span class="material-symbols-outlined text-base">monitor_heart</span> Salud &amp; Ops
+                        </button>
+                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="marketplace" onclick="App.switchSystemTab('marketplace')">
+                            <span class="material-symbols-outlined text-base">storefront</span> Marketplace
+                        </button>
+                    </div>
+                    <div class="tabs-children" id="system-tabs-children">
+                        <div class="tabs-children-row" data-scope="system" data-group="equipo">
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="users" onclick="App.switchSystemTab('users')">
+                            <span class="material-symbols-outlined text-base">group</span> Equipo
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="groups" onclick="App.switchSystemTab('groups')">
+                            <span class="material-symbols-outlined text-base">business</span> Empresas
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="clients" onclick="App.switchSystemTab('clients')">
+                            <span class="material-symbols-outlined text-base">contacts</span> Clientes
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="tenants" onclick="App.switchSystemTab('tenants')">
+                            <span class="material-symbols-outlined text-base">business</span> Tenants
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="account" onclick="App.switchSystemTab('account')">
+                            <span class="material-symbols-outlined text-base">person</span> Perfil
+                        </button>
+                        </div>
+                        <div class="tabs-children-row hidden" data-scope="system" data-group="datos">
+<button id="sys-nav-db" class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="db" onclick="App.switchSystemTab('db')">
+                            <span class="material-symbols-outlined text-base">storage</span> DB
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="legal" onclick="App.switchSystemTab('legal')">
+                            <span class="material-symbols-outlined text-base">description</span> Legales
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="compliance" onclick="App.switchSystemTab('compliance')">
+                            <span class="material-symbols-outlined text-base">verified_user</span> Compliance
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="activity" onclick="App.switchSystemTab('activity')">
+                            <span class="material-symbols-outlined text-base">history</span> Actividad
+                        </button>
+                        </div>
+                        <div class="tabs-children-row hidden" data-scope="system" data-group="comunicacion">
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="email" onclick="App.switchSystemTab('email')">
+                            <span class="material-symbols-outlined text-base">mail</span> Email
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="push-adv" onclick="App.switchSystemTab('push-adv')">
+                            <span class="material-symbols-outlined text-base">notifications_active</span> Push
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="sms" onclick="App.switchSystemTab('sms')">
+                            <span class="material-symbols-outlined text-base">sms</span> SMS
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="whatsapp" onclick="App.switchSystemTab('whatsapp')">
+                            <span class="material-symbols-outlined text-base">chat</span> WhatsApp
+                        </button>
+                        </div>
+                        <div class="tabs-children-row hidden" data-scope="system" data-group="integraciones">
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="google" onclick="App.switchSystemTab('google')">
+                            <span class="material-symbols-outlined text-base">table_chart</span> Google Sheets
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="venues" onclick="App.switchSystemTab('venues')">
+                            <span class="material-symbols-outlined text-base">location_on</span> Espacios
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="webhooks" onclick="App.switchSystemTab('webhooks')">
+                            <span class="material-symbols-outlined text-base">webhook</span> Webhooks
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="api-keys" onclick="App.switchSystemTab('api-keys')">
+                            <span class="material-symbols-outlined text-base">key</span> API Keys
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="ecommerce" onclick="App.switchSystemTab('ecommerce')">
+                            <span class="material-symbols-outlined text-base">shopping_cart</span> Tienda
+                        </button>
+                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="crm-sync" onclick="App.switchSystemTab('crm-sync')">
+                            <span class="material-symbols-outlined text-base">sync_alt</span> CRM
+                        </button>
+                        </div>
+                        <div class="tabs-children-row hidden" data-scope="system" data-group="inteligencia">
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="bi" onclick="App.switchSystemTab('bi')">
+                            <span class="material-symbols-outlined text-base">monitoring</span> BI
+                        </button>
+<button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="ai-security" onclick="App.switchSystemTab('ai-security')">
+                            <span class="material-symbols-outlined text-base">security</span> Seguridad IA
+                        </button>
+                        </div>
+                    </div>
+                    </div>
+
+                <!-- SECCIÓN: LEGALES -->
+                <div id="sys-content-legal" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card p-6">
+                            <h4 class="text-sm font-semibold mb-4">Política de Privacidad</h4>
+                            <div id="editor-policy" class="bg- rounded-lg min-h-min-h-300"></div>
+                            <button id=btn-save-policy" class="btn-primary mt-4 w-full">Guardar Política</button>
+                        </div>
+                        <div class="card p-6">
+                            <h4 class="text-sm font-semibold mb-4">Términos del Servicio</h4>
+                            <div id="editor-terms" class="bg- rounded-lg min-h-min-h-300"></div>
+                            <button id=btn-save-terms" class="btn-primary mt-4 w-full">Guardar Términos</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: EMPRESAS -->
+                <div id="sys-content-groups" class="hidden space-y-4">
+                    <div class="sticky-header-container">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="flex gap-2">
+                                <button class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.navigateToCreateGroup()">
+                                    <span class="material-symbols-outlined text-base">add_business</span> + Empresa
+                                </button>
+                                <button class="btn-secondary btn-standard flex items-center gap-1.5" onclick="App.openGroupEditCarousel()">
+                                    <span class="material-symbols-outlined text-base">edit</span> Edición
+                                </button>
+                                <button class="btn-secondary btn-standard flex items-center gap-1.5" onclick="App.openImportModal('groups')">
+                                    <span class="material-symbols-outlined text-base">upload</span> Importar
+                                </button>
+                                <button class="btn-secondary btn-standard flex items-center gap-1.5" onclick="App.openExportModal('groups')">
+                                    <span class="material-symbols-outlined text-base">download</span> Exportar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 flex-wrap items-center mt-4">
+                            <select id="filter-group-client" onchange="App.filterGroups()" class="filter-select filter-select-cliente">
+                                <option value="">Clientes</option>
+                            </select>
+                            <select id="filter-group-user" onchange="App.filterGroups()" class="filter-select filter-select-staff">
+                                <option value="">Staff</option>
+                            </select>
+                            <select id="filter-group-event" onchange="App.filterGroups()" class="filter-select filter-select-evento">
+                                <option value="">Eventos</option>
+                            </select>
+                        </div>
+                        <div class="mt-4 search-box-container">
+                            <input id="group-search" type="text" class="search-input" placeholder="Buscar por nombre, email, cliente, staff, evento..."
+                                   oninput="App.filterGroups(); App.showGroupSuggestions()" onfocus="App.showGroupSuggestions()" autocomplete="off">
+                            <span class="material-symbols-outlined search-icon">search</span>
+                            <span id="group-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('group')" title="Búsqueda por voz">mic</span>
+                            <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-client').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-event').value=''; App.filterGroups(); App.hideGroupSuggestions();">close</span>
+                            <div id="group-suggestions" class="hidden suggestions-dropdown"></div>
+                        </div>
+                    </div>
+
+                    <div class="table-scroll-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr class="table-header-row">
+                                    <th class="table-th table-checkbox-cell">
+                                        <input type="checkbox" id="select-all-groups" onchange="App.toggleSelectAllGroups()" class="checkbox-sm">
+                                    </th>
+                                    <th class="table-th">Empresa</th>
+                                    <th class="table-th">Clientes</th>
+                                    <th class="table-th">Staff</th>
+                                    <th class="table-th">Eventos</th>
+                                    <th class="table-th">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="groups-tbody" class="table-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: EMAIL (SISTEMA) -->
+                <div id="sys-content-email" class="hidden space-y-6">
+                    <!-- Sub-tabs para Email -->
+                    <div class="flex gap-2 mb-6">
+                        <button id="email-tab-accounts" class="px-4 py-2 rounded-xl bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold uppercase tracking-wider" onclick="App.switchEmailSubTab('accounts')">Cuentas</button>
+                        <button id="email-tab-mailbox" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchEmailSubTab('mailbox')">Buz&oacute;n</button>
+                        <button id="email-tab-campaigns" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchEmailSubTab('campaigns')">Campa&ntilde;as</button>
+                    </div>
+
+                    <!-- SUBTAB: CUENTAS SMTP/IMAP -->
+                    <div id="email-subtab-accounts" class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-semibold tracking-tight">Cuentas de <span class="text-">Email</span></h2>
+                                <p class="text-[var(--text-main)] text-sm">Configura tus cuentas SMTP/IMAP para enviar y recibir emails.</p>
+                            </div>
+                            <button onclick="App.openEmailAccountModal()" class="btn-primary btn-lg">+ Nueva Cuenta</button>
+                        </div>
+                        <div id="email-accounts-list" class="grid gap-4">
+                            <!-- Lista de cuentas se carga dinámicamente -->
+                            <div class="text-center py-8 text-slate-500">
+                                <span class="material-symbols-outlined text-4xl mb-2">loading</span>
+                                <p>Cargando cuentas...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUBTAB: MAILBOX -->
+                    <div id="email-subtab-mailbox" class="hidden space-y-4">
+                        <!-- Header -->
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-semibold tracking-tight">Mail<span class="text-">box</span></h2>
+                                <p class="text-[var(--text-main)] text-sm">Gestiona tus emails recibidos y enviados.</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <select id="mailbox-account-select" onchange="App.loadMailboxFolders()" class="input-field btn-py2 btn-px4 text-sm">
+                                    <option value="">-- Seleccionar Cuenta --</option>
+                                </select>
+                                <button onclick="App.openEmailComposer()" class="btn-primary btn-px4 btn-py2 text-sm flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">edit</span>
+                                    Nuevo Email
+                                </button>
+                                <button onclick="App.refreshMailbox()" class="btn-secondary btn-px4 btn-py2 text-sm flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">refresh</span>
+                                    Actualizar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Barra de progreso -->
+                        <div id="mailbox-progress" class="hidden">
+                            <div id="mailbox-progress-track" class="w-full bg-[var(--bg-secondary)] rounded-full h-1 overflow-hidden">
+                                <div id="mailbox-progress-fill" class="h-full rounded-full transition-all duration-500 ease-out" style="width: 0%; background: linear-gradient(90deg, var(--primary), var(--primary-light))"></div>
+                            </div>
+                        </div>
+
+                        <!-- Layout principal: Carpetas + Mensajes -->
+                        <div class="grid grid-cols-12 gap-4 min-h-[520px]">
+                            <!-- Panel de Carpetas -->
+                            <div class="col-span-3 card p-0 overflow-hidden">
+                                <div class="p-4 border-b border-[var(--border)]">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Carpetas</h4>
                                 </div>
                                 <div id="mailbox-folders" class="p-2 space-y-0.5 max-h-[480px] overflow-y-auto">
                                     <div class="text-center py-8 text-[var(--text-secondary)] text-sm">
@@ -2436,19 +2726,42 @@
                     </div>
 
                     <!-- Sub-tab: Configuracion IA -->
-                                        <div id="ai-subtab-chat" class="space-y-3 hidden">
+                    <div id="ai-subtab-settings" class="hidden space-y-4">
+                        <div class="card p-6 space-y-4">
+                            <h3 class="text-sm font-bold text-white">Configuraci&oacute;n del servicio de IA</h3>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">Estado</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                                    <input type="checkbox" id="ai-setting-enabled" class="checkbox-sm"> IA Habilitada
+                                </label>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">API Key (OpenRouter)</label>
+                                <input id="ai-setting-key" type="password" class="input-field w-full" placeholder="sk-or-...">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">Modelo</label>
+                                <input id="ai-setting-model" class="input-field w-full" placeholder="google/gemini-2.0-flash-lite-preview-02-05:free">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">System Prompt</label>
+                                <textarea id="ai-setting-prompt" class="input-field w-full" rows="4" placeholder="Eres un asistente experto..."></textarea>
+                            </div>
+                            <button class="btn-primary w-full" onclick="App.saveAiSettings()">
+                                <span class="material-symbols-outlined text-sm">save</span> Guardar Configuraci&oacute;n
+                            </button>
+                        </div>
+                    </div>
+<div id="ai-subtab-chat" class="space-y-3 hidden">
                         <div class="card p-4 flex flex-col gap-2">
                             <div id="ai-chat-log" class="flex flex-col gap-2 max-h-72 overflow-y-auto text-xs">
-                                <p class="text-slate-500">Pregunta al analista de seguridad IA (requiere IA activada en Configuración).</p>
+                                <p class="text-slate-500">Pregunta al analista de seguridad IA (requiere IA activada en Configuraci&oacute;n).</p>
                             </div>
                             <div class="flex gap-2">
-                                <input id="ai-chat-input" class="input-field flex-1 text-xs" placeholder="Escribe tu pregunta…" onkeydown="if(event.key==='Enter')App.aiChatSend()">
+                                <input id="ai-chat-input" class="input-field flex-1 text-xs" placeholder="Escribe tu pregunta&hellip;" onkeydown="if(event.key==='Enter')App.aiChatSend()">
                                 <button class="btn-primary px-4 text-xs font-bold uppercase" onclick="App.aiChatSend()">Enviar</button>
                             </div>
                         </div>
-                    </div>
-                    </div>
-
                     </div>
                 </div>
 
@@ -2462,7 +2775,7 @@
                         <button id="compliance-tab-classification" class="px-4 py-2 rounded-xl bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold uppercase tracking-wider" onclick="App.switchComplianceSubTab('classification')">Clasificación</button>
                         <button id="compliance-tab-access" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchComplianceSubTab('access')">Logs de Acceso</button>
                         <button id="compliance-tab-consent" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchComplianceSubTab('consent')">Consentimientos</button>
-                        <button id="compliance-tab-retention" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchComplianceSubTab('retention')">Retención</button>
+                        <button id="compliance-tab-retention" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchComplianceSubTab('retention')">Retenci&oacute;n</button>
                     </div>
                     <div id="compliance-subtab-classification" class="space-y-4">
                         <div class="flex justify-between items-center">
@@ -2493,9 +2806,46 @@
                             </div>
                         </div>
                     </div>
-                                        <div id="compliance-subtab-consent" class="space-y-4 hidden">
+                    <div id="compliance-subtab-access" class="hidden space-y-4">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs text-slate-500">Registro de accesos a datos sensibles.</p>
+                            <select id="filter-access-action" onchange="App.loadComplianceAccessLogs()" class="input-field text-xs py-1 px-2">
+                                <option value="">Todas las acciones</option>
+                                <option value="read">Lectura</option>
+                                <option value="export">Exportación</option>
+                                <option value="erasure">Eliminación</option>
+                            </select>
+                        </div>
+                        <div class="card p-0 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead>
+                                        <tr class="table-header-row">
+                                            <th class="table-th">Usuario</th>
+                                            <th class="table-th">Tabla</th>
+                                            <th class="table-th">Acción</th>
+                                            <th class="table-th">Sensibilidad</th>
+                                            <th class="table-th">IP</th>
+                                            <th class="table-th">Fecha</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="compliance-access-tbody">
+                                        <tr><td colspan="6" class="text-center py-8 text-slate-500">Cargando...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-slate-500">
+                            <span id="compliance-access-count">0 registros</span>
+                            <div class="flex gap-2">
+                                <button id="btn-access-prev" class="btn-secondary text-xs px-3 py-1" onclick="App.loadComplianceAccessLogs(-1)" disabled>Anterior</button>
+                                <button id="btn-access-next" class="btn-secondary text-xs px-3 py-1" onclick="App.loadComplianceAccessLogs(1)">Siguiente</button>
+                            </div>
+                        </div>
+                    </div>
+<div id="compliance-subtab-consent" class="space-y-4 hidden">
                         <div class="flex items-center gap-3">
-                            <select id="compliance-consent-event" class="input-field w-64 text-xs" onchange="App.loadConsentData()"><option value="">Seleccionar evento…</option></select>
+                            <select id="compliance-consent-event" class="input-field w-64 text-xs" onchange="App.loadConsentData()"><option value="">Seleccionar evento&hellip;</option></select>
                             <button class="btn-secondary px-4 py-2 text-xs font-bold uppercase" onclick="App.loadConsentStats()">Ver stats</button>
                         </div>
                         <div id="compliance-consent-stats" class="grid grid-cols-3 gap-3"></div>
@@ -2506,11 +2856,10 @@
                     </div>
                     <div id="compliance-subtab-retention" class="space-y-4 hidden">
                         <div class="card p-6">
-                            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-3">Política de retención</h3>
-                            <div id="compliance-retention-info" class="text-xs text-slate-300 space-y-1"><p>Cargando…</p></div>
-                            <button class="mt-4 px-4 py-2 rounded-xl bg-red-500/10 text-red-400 text-xs font-bold uppercase hover:bg-red-500/20" onclick="App.runRetentionClean()">🧹 Ejecutar limpieza ahora</button>
+                            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-3">Pol&iacute;tica de retenci&oacute;n</h3>
+                            <div id="compliance-retention-info" class="text-xs text-slate-300 space-y-1"><p>Cargando&hellip;</p></div>
+                            <button class="mt-4 px-4 py-2 rounded-xl bg-red-500/10 text-red-400 text-xs font-bold uppercase hover:bg-red-500/20" onclick="App.runRetentionClean()">&#129529; Ejecutar limpieza ahora</button>
                         </div>
-                    </div>
                     </div>
                 </div>
 
@@ -2740,10 +3089,22 @@
 </div>
 
 <!-- F5: CRM SYNC -->
+<div id="sys-content-crm-sync" class="hidden space-y-4">
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-semibold tracking-tight">Integraciones <span class="text-[var(--primary)]">CRM</span></h2>
+        <button class="btn-primary px-4 py-2 text-xs font-black uppercase" onclick="App.openCrmModal()">➕ Conectar CRM</button>
+    </div>
+    <div class="card overflow-hidden">
+        <table class="data-table w-full">
+            <thead><tr class="table-header-row"><th class="table-th">Nombre</th><th class="table-th">Plataforma</th><th class="table-th">Última sync</th><th class="table-th">Estado</th><th class="table-th">Acciones</th></tr></thead>
+            <tbody id="crm-tbody"><tr><td colspan="5" class="text-center py-8 text-slate-500">Cargando...</td></tr></tbody>
+        </table>
+    </div>
+</div>
 <div id="sys-content-ecommerce" class="hidden space-y-4">
                         <div class="flex justify-between items-center">
                             <h2 class="text-2xl font-semibold tracking-tight">Tiendas <span class="text-[var(--primary)]">conectadas</span></h2>
-                            <button class="btn-primary px-4 py-2 text-xs font-black uppercase" onclick="App.openEcomModal()">➕ Conectar tienda</button>
+                            <button class="btn-primary px-4 py-2 text-xs font-black uppercase" onclick="App.openEcomModal()">&#10133; Conectar tienda</button>
                         </div>
                         <div class="card overflow-hidden">
                             <table class="data-table w-full">
@@ -2752,9 +3113,6 @@
                             </table>
                         </div>
                     </div>
-</div>
-
-</div>
 
 <!-- F2: PUSH AVANZADO -->
 <div id="sys-content-push-adv" class="hidden space-y-4">
@@ -2764,6 +3122,7 @@
             <h3 class="text-sm font-black uppercase tracking-widest text-slate-400">Plantillas</h3>
             <div id="push-templates-list" class="flex flex-col gap-2 max-h-48 overflow-y-auto"><p class="text-xs text-slate-500">Cargando...</p></div>
             <div class="flex gap-2">
+                <input type="text" id="push-tpl-name" placeholder="Nombre interno" class="input-field !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs" style="max-width:120px">
                 <input type="text" id="push-tpl-name" placeholder="Nombre interno" class="input-field !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs" style="max-width:120px">
                 <input type="text" id="push-tpl-title" placeholder="Título" class="input-field flex-1 !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs">
                 <input type="text" id="push-tpl-body" placeholder="Mensaje" class="input-field flex-1 !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4 text-xs">
@@ -2794,6 +3153,50 @@
         <div id="push-scheduled-list" class="flex flex-col gap-2"><p class="text-xs text-slate-500">Sin envíos programados.</p></div>
     </div>
 </div>
+<div id="sys-content-ops" class="hidden space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-2xl font-semibold tracking-tight">Salud <span class="text-[var(--primary)]">&amp; Operaciones</span></h2>
+                            <div class="flex gap-2">
+                                <button class="btn-secondary px-3 py-2 text-[10px] font-black uppercase" onclick="App.loadOps()">&#128260; Refrescar</button>
+                                <button class="btn-primary px-3 py-2 text-[10px] font-black uppercase" onclick="App.createBackupNow()">&#128190; Backup ahora</button>
+                            </div>
+                        </div>
+                        <div id="ops-health" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="card p-5"><h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-3">Redis / Cach&eacute;</h3><div id="ops-redis" class="text-xs text-slate-300 space-y-1"><p>Cargando&hellip;</p></div></div>
+                            <div class="card p-5"><h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-3">Rate limiting</h3><div id="ops-ratelimit" class="text-xs text-slate-300 space-y-1"><p>Cargando&hellip;</p></div></div>
+                        </div>
+                        <div class="card p-5">
+                            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-3">Deploy</h3>
+                            <div id="ops-deploy-enc" class="text-xs text-slate-300 mb-3"><p>Cargando&hellip;</p></div>
+                            <div class="flex gap-2 items-center flex-wrap">
+                                <input id="ops-webhook-url" class="input-field flex-1 text-xs !bg-black-40 !rounded-xl !border-white-5 btn-py3 !px-4" placeholder="URL de webhook de deploy (Portainer)">
+                                <button class="btn-secondary px-4 py-2 text-xs font-black uppercase" onclick="App.triggerDeployWebhook()">&#128640; Disparar</button>
+                                <button class="btn-secondary px-4 py-2 text-xs font-black uppercase" onclick="App.migrateEncryption()">&#128274; Migrar encriptaci&oacute;n</button>
+                            </div>
+                        </div>
+                        <div class="card p-5">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-sm font-black uppercase tracking-widest text-slate-400">Logs de rendimiento</h3>
+                                <button class="btn-secondary px-3 py-1.5 text-[10px] font-black uppercase" onclick="App.loadPerfLogs()">Ver</button>
+                            </div>
+                            <div id="ops-perflogs" class="text-xs text-slate-400 font-mono max-h-40 overflow-y-auto"><p>Click en Ver para cargar.</p></div>
+                        </div>
+                    </div>
+                    <div id="sys-content-marketplace" class="hidden space-y-4">
+                        <h2 class="text-2xl font-semibold tracking-tight">Marketplace <span class="text-[var(--primary)]">&amp; Precios</span></h2>
+                        <div class="card p-5">
+                            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-3">Plugins disponibles</h3>
+                            <div id="marketplace-list" class="grid grid-cols-1 md:grid-cols-3 gap-3"><p class="text-xs text-slate-500">Cargando&hellip;</p></div>
+                        </div>
+                        <div class="card p-5">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-sm font-black uppercase tracking-widest text-slate-400">Tiers de precios</h3>
+                                <button class="btn-primary px-3 py-1.5 text-[10px] font-black uppercase" onclick="App.addPricingTier()">➕ Tier</button>
+                            </div>
+                            <div id="pricing-tiers" class="grid grid-cols-1 md:grid-cols-4 gap-3"><p class="text-xs text-slate-500">Cargando&hellip;</p></div>
+                        </div>
+                    </div>
 <div id="sys-content-bi" class="hidden space-y-4">
                     <div class="flex justify-between items-center">
                         <h2 class="text-2xl font-semibold tracking-tight">BI <span class="text-[var(--primary)]">Dashboard</span></h2>
@@ -2804,8 +3207,8 @@
                             <option value="90">90 días</option>
                             <option value="365">1 año</option>
                         </select>
-                        <button class="btn-secondary px-3 py-2 text-[10px] font-black uppercase" onclick="App.exportBi('json')">⬇ JSON</button>
-                        <button class="btn-secondary px-3 py-2 text-[10px] font-black uppercase" onclick="App.exportBi('csv')">⬇ CSV</button>
+                    <button class="btn-secondary px-3 py-2 text-[10px] font-black uppercase" onclick="App.exportBi('json')">&#11015; JSON</button>
+                        <button class="btn-secondary px-3 py-2 text-[10px] font-black uppercase" onclick="App.exportBi('csv')">&#11015; CSV</button>
                         </div>
                     </div>
                     <div id="bi-trends" class="grid grid-cols-2 gap-3"></div>

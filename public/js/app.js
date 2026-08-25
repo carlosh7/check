@@ -10278,6 +10278,8 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'api-keys') this.loadApiKeys();
         if (tabName === 'crm-sync') this.loadCrmConnections();
         if (tabName === 'ecommerce') this.loadEcomConnections();
+        if (tabName === 'ops') this.loadOps();
+        if (tabName === 'marketplace') { this.loadMarketplace(); this.loadPricingTiers(); }
         if (tabName === 'ai-security') this.loadAiSecurity();
         if (tabName === 'compliance') this.loadCompliance();
         if (tabName === 'google') this.loadGoogleTab();
@@ -12921,6 +12923,121 @@ navigate(viewName, params = {}, push = true) {
             this._notifyAction('Usuario creado', email + ' ya puede iniciar sesión.', 'success');
             if (typeof this.loadUsers === 'function') this.loadUsers();
             if (typeof this.loadSystemUsers === 'function') this.loadSystemUsers();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    // ═══ A-Ops: Salud & Operaciones ═══
+    loadOps: async function() {
+        try {
+            const h = await this.fetchAPI('/health/system');
+            const box = document.getElementById('ops-health');
+            if (box) {
+                const cards = [
+                    ['Uptime', Math.floor((h.uptime || 0) / 3600) + 'h ' + Math.floor(((h.uptime || 0) % 3600) / 60) + 'm'],
+                    ['Memoria', Math.round((h.memory?.heapUsed || 0) / 1048576) + ' MB'],
+                    ['Base de datos', Math.round((h.databaseSize || 0) / 1048576) + ' MB'],
+                    ['Eventos', h.eventCount ?? '—'],
+                    ['Invitados', h.guestCount ?? '—'],
+                    ['Usuarios', h.userCount ?? '—'],
+                    ['Node', h.nodeVersion || '—'],
+                    ['Entorno', h.environment || process.env.NODE_ENV || '—']
+                ];
+                box.innerHTML = cards.map(([k, v]) => `<div class="card p-3 text-center"><p class="text-lg font-black text-white">${App.esc(String(v))}</p><p class="text-[10px] text-slate-500 uppercase tracking-widest">${k}</p></div>`).join('');
+            }
+        } catch (e) { const b = document.getElementById('ops-health'); if (b) b.innerHTML = `<p class="text-xs text-red-400 col-span-full">${App.esc(e.message)}</p>`; }
+        try {
+            const r = await this.fetchAPI('/health/redis');
+            const el = document.getElementById('ops-redis');
+            if (el) el.innerHTML = Object.entries(r || {}).map(([k, v]) => `<p>• ${App.esc(k)}: <span class="text-white font-bold">${App.esc(String(v))}</span></p>`).join('');
+        } catch (e) { const el = document.getElementById('ops-redis'); if (el) el.innerHTML = `<p class="text-red-400">${App.esc(e.message)}</p>`; }
+        try {
+            const rl = await this.fetchAPI('/deploy/rate-limit-status');
+            const el = document.getElementById('ops-ratelimit');
+            if (el) el.innerHTML = '<pre class="whitespace-pre-wrap">' + App.esc(JSON.stringify(rl, null, 1)) + '</pre>';
+        } catch (e) { const el = document.getElementById('ops-ratelimit'); if (el) el.innerHTML = `<p class="text-red-400">${App.esc(e.message)}</p>`; }
+        try {
+            const enc = await this.fetchAPI('/deploy/encryption-status');
+            const el = document.getElementById('ops-deploy-enc');
+            if (el) el.innerHTML = '<pre class="whitespace-pre-wrap">' + App.esc(JSON.stringify(enc, null, 1)) + '</pre>';
+        } catch (e) { const el = document.getElementById('ops-deploy-enc'); if (el) el.innerHTML = `<p class="text-red-400">${App.esc(e.message)}</p>`; }
+    },
+
+    createBackupNow: async function() {
+        try {
+            const r = await this.fetchAPI('/system/backup', { method: 'POST' });
+            this._notifyAction('Backup creado', r.file || r.filename || '', 'success');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    triggerDeployWebhook: async function() {
+        const url = document.getElementById('ops-webhook-url')?.value.trim();
+        if (!url) return this._notifyAction('Error', 'Ingresa la URL del webhook', 'error');
+        try {
+            await fetch(url, { method: 'POST' });
+            this._notifyAction('Webhook disparado', 'El redeploy está en camino.', 'success');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    migrateEncryption: async function() {
+        if (!confirm('¿Migrar passwords SMTP/IMAP a encriptación AES-256?')) return;
+        try {
+            const r = await this.fetchAPI('/deploy/migrate-encryption', { method: 'POST' });
+            this._notifyAction('Migración completada', JSON.stringify(r).slice(0, 80), 'success');
+            this.loadOps();
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    loadPerfLogs: async function() {
+        const box = document.getElementById('ops-perflogs');
+        try {
+            const logs = await this.fetchAPI('/performance/logs');
+            const list = Array.isArray(logs) ? logs : (logs.logs || []);
+            box.innerHTML = list.length ? list.slice(0, 50).map(l =>
+                `<div>${App.esc(typeof l === 'string' ? l : JSON.stringify(l))}</div>`).join('') : '<p>Sin registros de rendimiento.</p>';
+        } catch (e) { box.innerHTML = `<p class="text-red-400">${App.esc(e.message)}</p>`; }
+    },
+
+    // ═══ Marketplace + Pricing ═══
+    loadMarketplace: async function() {
+        const box = document.getElementById('marketplace-list');
+        try {
+            const plugs = await this.fetchAPI('/marketplace/available');
+            const list = Array.isArray(plugs) ? plugs : (plugs.available || plugs.plugins || []);
+            box.innerHTML = list.length ? list.map(pl =>
+                `<div class="card p-4"><p class="text-sm font-bold text-white">${App.esc(pl.name || pl.id || '')}</p>
+                 <p class="text-xs text-slate-400 mt-1">${App.esc(pl.description || '')}</p>
+                 <p class="text-[10px] text-slate-600 mt-2 uppercase">${App.esc(pl.category || 'plugin')}</p></div>`).join('')
+                : '<p class="text-xs text-slate-500">Sin plugins disponibles en el marketplace.</p>';
+        } catch (e) { box.innerHTML = `<p class="text-xs text-red-400">${App.esc(e.message)}</p>`; }
+    },
+
+    loadPricingTiers: async function() {
+        const box = document.getElementById('pricing-tiers');
+        try {
+            const tiers = await this.fetchAPI('/pricing/tiers');
+            const list = Array.isArray(tiers) ? tiers : (tiers.tiers || []);
+            box.innerHTML = list.length ? list.map(t =>
+                `<div class="card p-4 text-center"><p class="text-xs font-black uppercase text-[var(--primary)]">${App.esc(t.name || t.id)}</p>
+                 <p class="text-2xl font-black text-white mt-1">$${t.price ?? 0}</p>
+                 <p class="text-[10px] text-slate-500 mt-1">${App.esc(t.description || '')}</p></div>`).join('')
+                : '<p class="text-xs text-slate-500">Sin tiers configurados.</p>';
+        } catch (e) { box.innerHTML = `<p class="text-xs text-red-400">${App.esc(e.message)}</p>`; }
+    },
+
+    addPricingTier: async function() {
+        const r = await Swal.fire({
+            title: 'Nuevo tier de precio',
+            html: '<input id="_pt-name" class="swal2-input" placeholder="Nombre (ej: Pro)">' +
+                  '<input id="_pt-price" class="swal2-input" type="number" placeholder="Precio mensual">' +
+                  '<input id="_pt-desc" class="swal2-input" placeholder="Descripción corta">',
+            focusConfirm: false,
+            preConfirm: () => ({ name: document.getElementById('_pt-name').value.trim(), price: parseFloat(document.getElementById('_pt-price').value) || 0, description: document.getElementById('_pt-desc').value.trim() }),
+            showCancelButton: true, background: '#0f172a', color: '#fff'
+        });
+        if (!r.isConfirmed || !r.value.name) return;
+        try {
+            await this.fetchAPI('/pricing/tiers', { method: 'POST', body: JSON.stringify(r.value) });
+            this.loadPricingTiers();
         } catch (e) { this._notifyAction('Error', e.message, 'error'); }
     },
 

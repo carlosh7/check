@@ -64,11 +64,17 @@ for (const f of feFiles) {
     for (const m of src.matchAll(/fetchAPI\(\s*[`'"](\/[^`'"]+)/g)) feCalls.add(m[1].replace(/\$\{[^}]+\}/g, '*'));
     // fetch('/api/x') · fetch(`/api/x`)
     for (const m of src.matchAll(/fetch\(\s*[`'"](\/api\/[^`'"]+|\/api\/)/g)) feCalls.add(m[1].replace(/\$\{[^}]+\}/g, '*'));
+    // window.open('/api/...') — descargas/exports
+    for (const m of src.matchAll(/window\.open\(\s*[`'"](\/api\/[^`'"]+)/g)) feCalls.add(m[1].replace(/\$\{[^}]+\}/g, '*'));
+    // Variable API + '/x' en páginas públicas (const API='/api')
+    for (const m of src.matchAll(/API\s*\+\s*[`'"](\/[a-z][^`'"]*)/g)) feCalls.add('/api' + m[1].replace(/\$\{[^}]+\}/g, '*'));
+    // form.action / src con /api
+    for (const m of src.matchAll(/(?:action|src)=["'](\/api\/[^"']+)["']/g)) feCalls.add(m[1]);
     // socket emit no cuenta como HTTP
 }
 const feNorm = [...feCalls]
     .map(c => c.split('?')[0].replace(/\/+$/, '') || '/')
-    .map(c => c.startsWith('/api') ? c : '/api' + c);
+    .map(c => (c === '/api' || c.startsWith('/api/')) ? c : '/api' + c);
 
 function segmentsMatch(ep, c) {
     const a = ep.split('?')[0].split('/').filter(Boolean);
