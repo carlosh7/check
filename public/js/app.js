@@ -12657,6 +12657,17 @@ navigate(viewName, params = {}, push = true) {
     loadBudget: async function() {
         var eId = this.state.event?.id;
         if (!eId) return;
+        // B3: P&L con ingresos reales
+        try {
+            const sum = await this.fetchAPI('/events/' + eId + '/budget/summary');
+            const pnl = document.getElementById('budget-pnl');
+            if (pnl && sum) {
+                pnl.innerHTML = `
+                    <div class="card p-4 text-center"><p class="text-[10px] uppercase text-slate-500 font-black tracking-widest">Ingresos (transacciones)</p><p class="text-2xl font-black text-green-400 mt-1">$${Number(sum.income).toFixed(2)}</p><p class="text-[10px] text-slate-600">${sum.transactions} transacciones</p></div>
+                    <div class="card p-4 text-center"><p class="text-[10px] uppercase text-slate-500 font-black tracking-widest">Gastos</p><p class="text-2xl font-black text-red-400 mt-1">$${Number(sum.expenses).toFixed(2)}</p></div>
+                    <div class="card p-4 text-center"><p class="text-[10px] uppercase text-slate-500 font-black tracking-widest">Balance</p><p class="text-2xl font-black ${sum.balance >= 0 ? 'text-green-400' : 'text-red-400'} mt-1">$${Number(sum.balance).toFixed(2)}</p></div>`;
+            }
+        } catch (_) {}
         try {
             var data = await this.fetchAPI('/events/' + eId + '/budget');
             var tbody = document.getElementById('budget-tbody');
@@ -13345,6 +13356,7 @@ navigate(viewName, params = {}, push = true) {
                 '<td class="table-td text-xs text-slate-400">' + App.esc(c.store_url || c.url || '—') + '</td>' +
                 '<td class="table-td">' + (c.is_active !== 0 ? '<span class="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-[10px] font-black">ACTIVA</span>' : '<span class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 text-[10px] font-black">INACTIVA</span>') + '</td>' +
                 '<td class="table-td flex gap-1">' +
+                '<button class="btn-icon" title="Mapear productos a boletos" onclick="App.mapEcomProducts(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">sell</span></button>' +
                 '<button class="btn-icon" title="Sincronizar productos" onclick="App.syncEcomProducts(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">sync</span></button>' +
                 '<button class="btn-icon text-red-400" title="Eliminar" onclick="App.deleteEcom(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
             ).join('');
@@ -13375,6 +13387,37 @@ navigate(viewName, params = {}, push = true) {
             await this.fetchAPI('/ecommerce/connections', { method: 'POST', body: JSON.stringify(r.value) });
             this.loadEcomConnections();
             this._notifyAction('Tienda conectada', '', 'success');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    mapEcomProducts: async function(id) {
+        const evs = await this.fetchAPI('/events');
+        const evR = await Swal.fire({
+            title: 'Paso 1: evento destino',
+            input: 'select',
+            inputOptions: Object.fromEntries((Array.isArray(evs) ? evs : []).map(e => [e.id, e.name])),
+            inputPlaceholder: 'Seleccionar evento',
+            showCancelButton: true, background: '#0f172a', color: '#fff'
+        });
+        if (!evR.isConfirmed || !evR.value) return;
+        const eventId = evR.value;
+        const products = await this.fetchAPI('/ecommerce/connections/' + id + '/products');
+        const cats = await this.fetchAPI('/guests/' + eventId + '/categories');
+        const prodOpts = Object.fromEntries((products || []).map(pr => [pr.id, `${pr.title} ($${pr.price ?? 0})`]));
+        const catOpts = Object.fromEntries((cats || []).map(c2 => [c2.id, c2.name]));
+        if (!Object.keys(prodOpts).length) return this._notifyAction('Sin productos', 'Ejecuta una sincronización primero', 'info');
+        const r = await Swal.fire({
+            title: 'Paso 2: producto → boleto',
+            html: '<select id="_mp-prod" class="swal2-input">' + Object.entries(prodOpts).map(([k,v])=>`<option value="${k}">${v}</option>`).join('') + '</select>' +
+                  '<select id="_mp-cat" class="swal2-input">' + Object.entries(catOpts).map(([k,v])=>`<option value="${k}">${v}</option>`).join('') + '</select>',
+            focusConfirm: false,
+            preConfirm: () => ({ product_id: document.getElementById('_mp-prod').value, category_id: document.getElementById('_mp-cat').value }),
+            showCancelButton: true, background: '#0f172a', color: '#fff'
+        });
+        if (!r.isConfirmed) return;
+        try {
+            await this.fetchAPI('/ecommerce/connections/' + id + '/map-product', { method: 'POST', body: JSON.stringify(r.value) });
+            this._notifyAction('Mapeo guardado', 'El producto queda vinculado a la categoría del evento', 'success');
         } catch (e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
@@ -13473,6 +13516,7 @@ navigate(viewName, params = {}, push = true) {
                 '<td class="table-td text-xs text-slate-400">' + (c.last_sync_at ? new Date(c.last_sync_at).toLocaleString() : 'nunca') + '</td>' +
                 '<td class="table-td">' + (c.is_active ? '<span class="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-[10px] font-black">ACTIVA</span>' : '') + '</td>' +
                 '<td class="table-td flex gap-1">' +
+                '<button class="btn-icon" title="Convertir contactos en invitados de un evento" onclick="App.crmToEvent(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">person_add</span></button>' +
                 '<button class="btn-icon" title="Sincronizar contactos" onclick="App.syncCrm(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">sync</span></button>' +
                 '<button class="btn-icon text-red-400" title="Eliminar" onclick="App.deleteCrm(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
             ).join('');
@@ -13501,6 +13545,22 @@ navigate(viewName, params = {}, push = true) {
             await this.fetchAPI('/crm/connections', { method: 'POST', body: JSON.stringify(r.value) });
             this.loadCrmConnections();
             this._notifyAction('CRM conectado', '', 'success');
+        } catch (e) { this._notifyAction('Error', e.message, 'error'); }
+    },
+
+    crmToEvent: async function(id) {
+        const evs = await this.fetchAPI('/events');
+        const r = await Swal.fire({
+            title: 'Convertir contactos en invitados',
+            input: 'select',
+            inputOptions: Object.fromEntries((Array.isArray(evs) ? evs : []).map(e => [e.id, e.name])),
+            inputPlaceholder: 'Seleccionar evento',
+            showCancelButton: true, background: '#0f172a', color: '#fff'
+        });
+        if (!r.isConfirmed || !r.value) return;
+        try {
+            const res = await this.fetchAPI('/crm/connections/' + id + '/to-event', { method: 'POST', body: JSON.stringify({ event_id: r.value }) });
+            this._notifyAction('Contactos → invitados', `${res.created} creados · ${res.skipped} omitidos (duplicados)`, 'success');
         } catch (e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
@@ -13550,6 +13610,25 @@ navigate(viewName, params = {}, push = true) {
         } catch (e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
+    loadPushTags: async function() {
+        const eventId = document.getElementById('push-seg-event')?.value;
+        const sel = document.getElementById('push-seg-filter');
+        if (!sel || !eventId) return;
+        // conservar selección base
+        const current = sel.value.startsWith('tag:') ? sel.value.split(':')[1] : '';
+        try {
+            const tags = await this.fetchAPI('/guests/' + eventId + '/tags');
+            // limpiar opciones tag previas
+            Array.from(sel.options).filter(o => o.value.startsWith('tag:')).forEach(o => o.remove());
+            (Array.isArray(tags) ? tags : []).forEach(t => {
+                const o = document.createElement('option');
+                o.value = 'tag:' + t.id; o.textContent = '🏷️ Etiqueta: ' + t.name;
+                sel.appendChild(o);
+            });
+            if (current) sel.value = 'tag:' + current;
+        } catch (_) {}
+    },
+
     fillPushSegmentEvents: async function() {
         const sel = document.getElementById('push-seg-event');
         if (!sel || sel.options.length > 1) return;
@@ -13561,6 +13640,7 @@ navigate(viewName, params = {}, push = true) {
                 opt.value = ev.id; opt.textContent = ev.name || ev.id;
                 sel.appendChild(opt);
             });
+            sel.onchange = () => this.loadPushTags();
         } catch (e) { console.warn('[PUSH] events:', e.message); }
     },
 
@@ -13570,8 +13650,11 @@ navigate(viewName, params = {}, push = true) {
         const title = document.getElementById('push-seg-title')?.value.trim();
         const body = document.getElementById('push-seg-body')?.value.trim();
         if (!eventId || !title || !body) return this._notifyAction('Error', 'Evento, título y mensaje requeridos', 'error');
+        const payload = { eventId, segment: filter, title, body };
+        if (filter === 'guest_tag') payload.tag_id = filter.startsWith('tag:') ? '' : '';
+        if (filter && filter.startsWith('tag:')) { payload.segment = 'guest_tag'; payload.tag_id = filter.slice(4); }
         try {
-            await this.fetchAPI('/push/send-segmented', { method: 'POST', body: JSON.stringify({ eventId, segment: filter, title, body }) });
+            await this.fetchAPI('/push/send-segmented', { method: 'POST', body: JSON.stringify(payload) });
             this._notifyAction('Enviado', 'Notificación segmentada en cola de envío.', 'success');
         } catch (e) { this._notifyAction('Error', e.message, 'error'); }
     },

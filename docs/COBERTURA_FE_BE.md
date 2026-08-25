@@ -3,9 +3,9 @@
 Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 
 ## Resumen
-- **Endpoints backend:** 426
-- **Con uso desde el frontend:** 407 (96%)
-- **Sin UI conectada:** 19 (4%)
+- **Endpoints backend:** 430
+- **Con uso desde el frontend:** 412 (96%)
+- **Sin UI conectada:** 18 (4%)
 
 > Nota: un endpoint "sin UI" no es necesariamente un error — hay endpoints
 > para webhooks externos (Stripe/GitHub), API pública v1 (consumo externo),
@@ -14,11 +14,11 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 ## Cobertura por módulo
 | Módulo | Endpoints | Con UI | Sin UI | % |
 |--------|-----------|--------|--------|---|
-| events | 79 | 79 | 0 | 100% |
+| events | 80 | 80 | 0 | 100% |
 | guests | 37 | 37 | 0 | 100% |
 | email | 35 | 35 | 0 | 100% |
 | raffles | 21 | 21 | 0 | 100% |
-| security | 16 | 15 | 1 | 94% |
+| security | 16 | 16 | 0 | 100% |
 | users | 13 | 13 | 0 | 100% |
 | clients | 13 | 13 | 0 | 100% |
 | compliance | 12 | 12 | 0 | 100% |
@@ -29,22 +29,22 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 | certificates | 9 | 9 | 0 | 100% |
 | groups | 8 | 8 | 0 | 100% |
 | tenants | 8 | 8 | 0 | 100% |
+| ecommerce | 8 | 7 | 1 | 88% |
 | me | 7 | 7 | 0 | 100% |
 | settings | 7 | 7 | 0 | 100% |
 | leaderboard | 7 | 7 | 0 | 100% |
 | networking | 7 | 7 | 0 | 100% |
 | venues | 6 | 6 | 0 | 100% |
 | api-keys | 6 | 6 | 0 | 100% |
-| ecommerce | 6 | 5 | 1 | 83% |
 | seat-layouts | 5 | 5 | 0 | 100% |
 | deploy | 5 | 4 | 1 | 80% |
+| crm | 5 | 5 | 0 | 100% |
 | album | 5 | 5 | 0 | 100% |
 | export | 5 | 5 | 0 | 100% |
 | health | 4 | 3 | 1 | 75% |
 | sms | 4 | 3 | 1 | 75% |
 | whatsapp | 4 | 3 | 1 | 75% |
 | v1 | 4 | 0 | 4 | 0% |
-| crm | 4 | 4 | 0 | 100% |
 | pricing | 4 | 4 | 0 | 100% |
 | event | 3 | 3 | 0 | 100% |
 | kiosk | 3 | 3 | 0 | 100% |
@@ -102,9 +102,6 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 
 ### metrics
 - `GET /api/metrics`
-
-### security
-- `POST /api/security/ai/chat`
 
 ### sms
 - `POST /api/sms/send-to-guest/:guestId`

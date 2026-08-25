@@ -73,6 +73,34 @@ router.post('/connections/:id/sync-products', authMiddleware(['ADMIN']), async (
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+// B2 (v12.44.793): mapeo producto de tienda → categoría de boleto
+router.get('/connections/:id/products', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        const products = db.prepare(`
+            SELECT p.*, m.category_id
+            FROM ecommerce_products p
+            LEFT JOIN ecommerce_product_map m ON m.product_id = p.id AND m.connection_id = p.connection_id
+            WHERE p.connection_id = ? ORDER BY p.title ASC
+        `).all(req.params.id);
+        res.json(products);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/connections/:id/map-product', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        const { product_id, category_id } = req.body || {};
+        if (!product_id || !category_id) return res.status(400).json({ error: 'product_id y category_id requeridos' });
+        const existing = db.prepare("SELECT id FROM ecommerce_product_map WHERE connection_id = ? AND product_id = ?").get(req.params.id, product_id);
+        if (existing) {
+            db.prepare("UPDATE ecommerce_product_map SET category_id = ? WHERE id = ?").run(category_id, existing.id);
+        } else {
+            db.prepare("INSERT INTO ecommerce_product_map (id, connection_id, product_id, category_id) VALUES (?, ?, ?, ?)")
+                .run(require('uuid').v4(), req.params.id, product_id, category_id);
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ─── WEBHOOK HANDLER ───
 router.post('/webhook/:connectionId', (req, res) => {
     try {

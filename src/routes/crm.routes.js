@@ -25,6 +25,41 @@ router.post('/crm/connections', authMiddleware(['ADMIN']), (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+// B1 (v12.44.793): convertir contactos del CRM en invitados de un evento
+router.post('/crm/connections/:id/to-event', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        const { event_id } = req.body || {};
+        if (!event_id) return res.status(400).json({ error: 'event_id requerido' });
+        const conn = db.prepare("SELECT * FROM crm_connections WHERE id = ?").get(req.params.id);
+        if (!conn) return res.status(404).json({ error: 'Conexión no encontrada' });
+
+        const contacts = db.prepare("SELECT name, email, phone, company FROM crm_contacts WHERE connection_id = ?").all(req.params.id);
+        if (contacts.length === 0) return res.status(400).json({ error: 'La conexión no tiene contactos sincronizados. Ejecuta una sync primero.' });
+
+        const eventDb = (() => {
+            try {
+                const ev = db.prepare("SELECT has_own_db FROM events WHERE id = ?").get(event_id);
+                if (ev && ev.has_own_db === 1) {
+                    return require('../utils/database-manager').getEventConnection(event_id);
+                }
+            } catch (_) {}
+            return db;
+        })();
+
+        let created = 0, skipped = 0;
+        const insertGuest = eventDb.prepare(`INSERT OR IGNORE INTO guests (id, event_id, name, email, phone, organization, qr_token, is_new_registration, checked_in, guest_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1, 0, 'principal')`);
+        for (const c of contacts) {
+            if (!c.email) { skipped++; continue; }
+            const dup = eventDb.prepare("SELECT id FROM guests WHERE event_id = ? AND email = ?").get(event_id, c.email);
+            if (dup) { skipped++; continue; }
+            insertGuest.run(require('uuid').v4(), event_id, c.name || c.email, c.email, c.phone || '', c.company || '', require('uuid').v4());
+            created++;
+        }
+        res.json({ success: true, created, skipped, total: contacts.length });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 router.delete('/crm/connections/:id', authMiddleware(['ADMIN']), (req, res) => {
     try { db.prepare("DELETE FROM crm_connections WHERE id=?").run(req.params.id); res.json({ success: true }); } catch(err) { res.status(500).json({ error: err.message }); }
 });

@@ -143,6 +143,8 @@ router.post('/subscribe', async (req, res) => {
         if (req.userId) {
             userId = req.userId;
         }
+        // B4 (v12.44.793): suscripción ligada al asistente del portal
+        const guestId = subscription.guestId || req.body.guestId || null;
         
         const id = uuidv4();
         const now = new Date().toISOString();
@@ -151,9 +153,9 @@ router.post('/subscribe', async (req, res) => {
             // Actualizar suscripción existente
             db.prepare(`
                 UPDATE push_subscriptions 
-                SET user_id = ?, p256dh = ?, auth = ?, created_at = ?
+                SET user_id = ?, guest_id = COALESCE(?, guest_id), p256dh = ?, auth = ?, created_at = ?
                 WHERE endpoint = ?
-            `).run(userId, subscription.keys.p256dh, subscription.keys.auth, now, subscription.endpoint);
+            `).run(userId, guestId, subscription.keys.p256dh, subscription.keys.auth, now, subscription.endpoint);
             
             logAction(req, AUDIT_ACTIONS.PUSH_SUBSCRIBE, {
                 subscriptionId: existing.id,
@@ -164,9 +166,9 @@ router.post('/subscribe', async (req, res) => {
         } else {
             // Crear nueva suscripción
             db.prepare(`
-                INSERT INTO push_subscriptions (id, user_id, endpoint, p256dh, auth, created_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-            `).run(id, userId, subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth, now);
+                INSERT INTO push_subscriptions (id, user_id, guest_id, endpoint, p256dh, auth, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            `).run(id, userId, guestId, subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth, now);
             
             logAction(req, AUDIT_ACTIONS.PUSH_SUBSCRIBE, {
                 subscriptionId: id,
@@ -439,7 +441,7 @@ router.delete('/scheduled/:id', authMiddleware(['ADMIN']), (req, res) => {
 // ─── SEND SEGMENTED NOTIFICATION (C8-01) ───
 router.post('/send-segmented', authMiddleware(['ADMIN']), async (req, res) => {
     try {
-        const { title, body, icon, url, segment, event_id } = req.body;
+        const { title, body, icon, url, segment, event_id, tag_id } = req.body;
         if (!title || !body) return res.status(400).json({ error: 'title y body son requeridos' });
         
         let users = [];
@@ -452,6 +454,26 @@ router.post('/send-segmented', authMiddleware(['ADMIN']), async (req, res) => {
             if (event) {
                 users = db.prepare("SELECT id FROM users WHERE group_id = ? AND status = 'APPROVED'").all(event.group_id);
             }
+        } else if (segment === 'guest_tag' && tag_id) {
+            // B4 (v12.44.793): push a asistentes por etiqueta de inteligencia
+            const subs = db.prepare(`
+                SELECT ps.id, ps.endpoint, ps.p256dh, ps.auth
+                FROM push_subscriptions ps
+                JOIN guest_tag_assignments gta ON gta.guest_id = ps.guest_id
+                WHERE gta.tag_id = ? AND ps.guest_id IS NOT NULL
+            `).all(tag_id);
+            const notification = { title, body, icon: icon || '/icon-192.png', url: url || '/' };
+            const results = await Promise.allSettled(subs.map(sub => (async () => {
+                const webpush = require('web-push');
+                await webpush.sendNotification({
+                    endpoint: sub.endpoint,
+                    keys: { p256dh: sub.p256dh, auth: sub.auth }
+                }, JSON.stringify(notification));
+                return { success: true };
+            })()));
+            const successful = results.filter(r => r.value && r.value.success).length;
+            logAction(req, AUDIT_ACTIONS.PUSH_SEND_TEST, { segment: 'guest_tag', tag_id, total: subs.length, successful });
+            return res.json({ success: true, total: subs.length, successful, failed: subs.length - successful, audience: 'guests' });
         } else {
             users = db.prepare("SELECT id FROM users WHERE status = 'APPROVED'").all();
         }

@@ -1530,6 +1530,25 @@ function initSchema(db) {
     )`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_sleads_sponsor ON sponsor_leads(sponsor_id)`);
 
+    // ═══ PUENTES ECOSISTEMA (v12.44.793) ═══
+    // Push a asistentes: suscripciones ligadas a guest_id (portal)
+    try {
+        const psCols = db.prepare("PRAGMA table_info(push_subscriptions)").all().map(c => c.name);
+        if (!psCols.includes('guest_id')) {
+            db.exec("ALTER TABLE push_subscriptions ADD COLUMN guest_id TEXT");
+        }
+    } catch (e) { console.warn('[SCHEMA] push guest_id:', e.message); }
+
+    // Ecommerce: mapeo producto de tienda → categoría de boleto
+    db.exec(`CREATE TABLE IF NOT EXISTS ecommerce_product_map (
+        id TEXT PRIMARY KEY,
+        connection_id TEXT NOT NULL,
+        product_id TEXT NOT NULL,
+        category_id TEXT NOT NULL,
+        created_at TEXT DEFAULT (datetime('now'))
+    )`);
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_epmap_conn ON ecommerce_product_map(connection_id)"); } catch(e) {}
+
     // ═══ SEMILLA DE ADMIN POR DEFECTO ═══
     const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
     if (userCount.count === 0) {

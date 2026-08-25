@@ -35,6 +35,25 @@ router.get('/events/:eventId/budget', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORG
 });
 
 // GET /api/events/:eventId/budget/stats — Chart data
+// B3 (v12.44.793): P&L — ingresos reales (transacciones) + gastos presupuestados
+router.get('/events/:eventId/budget/summary', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+    try {
+        const eId = req.params.eventId;
+        let income = 0, txCount = 0;
+        try {
+            const row = db.prepare("SELECT COALESCE(SUM(amount),0) as total, COUNT(*) as c FROM transactions WHERE event_id = ? AND status IN ('completed','succeeded')").get(eId);
+            income = row.total || 0; txCount = row.c || 0;
+        } catch (_) {}
+        const expenses = db.prepare("SELECT COALESCE(SUM(amount),0) as total FROM budgets WHERE event_id = ?").get(eId).total || 0;
+        res.json({
+            income: Math.round(income * 100) / 100,
+            expenses: Math.round(expenses * 100) / 100,
+            balance: Math.round((income - expenses) * 100) / 100,
+            transactions: txCount
+        });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 router.get('/events/:eventId/budget/stats', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
         const items = db.prepare("SELECT * FROM budgets WHERE event_id = ?").all(req.params.eventId);
