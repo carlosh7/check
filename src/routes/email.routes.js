@@ -1121,8 +1121,10 @@ function startCampaignScheduler() {
     }, 30000); // Cada 30 segundos
 }
 
-// Iniciar scheduler al cargar el módulo
-startCampaignScheduler();
+// Iniciar scheduler al cargar el módulo (no en tests)
+if (process.env.NODE_ENV !== 'test') {
+    startCampaignScheduler();
+}
 
 // POST /api/email/send - Enviar email individual
 router.post('/send', limiters.emailLimiter, async (req, res) => {

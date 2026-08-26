@@ -123,7 +123,7 @@ router.put('/:eventId/:sessionId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
         const eId = castId('events', req.params.eventId);
         const sId = req.params.sessionId;
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
-        const { title, description, date, start_time, end_time, capacity, location, sort_order, layout_id, speaker_ids } = req.body;
+        const { title, description, date, start_time, end_time, capacity, location, sort_order, layout_id, speaker_ids, stream_url } = req.body;
         
         // Auto-check conflicts if time is being changed
         if (date && start_time && end_time) {

@@ -420,7 +420,7 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
 // Limpiar base de datos de evento
 router.post('/clear/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const eId = castId('events', req.params.eventId);
-    const targetDb = getEventConnection(eId) || db;
+    const targetDb = getEventDb(eId) || db;
     targetDb.prepare("DELETE FROM guests WHERE event_id = ?").run(eId);
     res.json({ success: true });
 });
@@ -437,7 +437,7 @@ router.patch('/:eventId/guest-status/:guestId', authMiddleware(['ADMIN', 'PRODUC
             return res.status(400).json({ error: 'Estado invalido. Validos: ' + validStatuses.join(', ') });
         }
         
-        const targetDb = getEventConnection(eId) || db;
+        const targetDb = getEventDb(eId) || db;
         const guest = targetDb.prepare("SELECT * FROM guests WHERE id = ? AND event_id = ?").get(gId, eId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
         
@@ -467,7 +467,7 @@ router.get('/:eventId/pipeline', authMiddleware(), (req, res) => {
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
         
-        const targetDb = getEventConnection(eId) || db;
+        const targetDb = getEventDb(eId) || db;
         
         const counts = targetDb.prepare(`
             SELECT status, COUNT(*) as count FROM guests WHERE event_id = ? GROUP BY status

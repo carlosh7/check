@@ -683,35 +683,38 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         if (data.groups && data.groups.length > 0) {
             logger.info('[IMPORT] Step 1 - Processing groups:', data.groups.length);
             
-            for (const g of data.groups) {
-                logger.info('[IMPORT] Group:', g.name, 'email:', g.email);
-                
-                // Buscar por nombre O email
-                let existing = null;
-                if (g.name) {
-                    existing = db.prepare("SELECT id, name FROM groups WHERE LOWER(name) = LOWER(?)").get(g.name);
+            const groupsTx = db.transaction((groups) => {
+                for (const g of groups) {
+                    logger.info('[IMPORT] Group:', g.name, 'email:', g.email);
+                    
+                    // Buscar por nombre O email
+                    let existing = null;
+                    if (g.name) {
+                        existing = db.prepare("SELECT id, name FROM groups WHERE LOWER(name) = LOWER(?)").get(g.name);
+                    }
+                    if (!existing && g.email) {
+                        existing = db.prepare("SELECT id, name FROM groups WHERE email IS NOT NULL AND LOWER(email) = LOWER(?)").get(g.email);
+                    }
+                    
+                    if (existing) {
+                        logger.info('[IMPORT] Updating group:', existing.name, 'id:', existing.id);
+                        db.prepare("UPDATE groups SET email = ?, phone = ?, status = ?, description = ? WHERE id = ?")
+                            .run(g.email, g.phone, g.status, g.description, existing.id);
+                        updated++;
+                        // Registrar en mapa para siguientes pasos
+                        createdGroupsMap[g.name.trim().toLowerCase()] = existing.id;
+                    } else {
+                        logger.info('[IMPORT] Creating new group:', g.name);
+                        const newId = getValidId('groups');
+                        db.prepare("INSERT INTO groups (id, name, email, phone, status, description, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+                            .run(newId, g.name, g.email, g.phone, g.status, g.description, new Date().toISOString());
+                        imported++;
+                        // Registrar en mapa para siguientes pasos
+                        createdGroupsMap[g.name.trim().toLowerCase()] = newId;
+                    }
                 }
-                if (!existing && g.email) {
-                    existing = db.prepare("SELECT id, name FROM groups WHERE email IS NOT NULL AND LOWER(email) = LOWER(?)").get(g.email);
-                }
-                
-                if (existing) {
-                    logger.info('[IMPORT] Updating group:', existing.name, 'id:', existing.id);
-                    db.prepare("UPDATE groups SET email = ?, phone = ?, status = ?, description = ? WHERE id = ?")
-                        .run(g.email, g.phone, g.status, g.description, existing.id);
-                    updated++;
-                    // Registrar en mapa para siguientes pasos
-                    createdGroupsMap[g.name.trim().toLowerCase()] = existing.id;
-                } else {
-                    logger.info('[IMPORT] Creating new group:', g.name);
-                    const newId = getValidId('groups');
-                    db.prepare("INSERT INTO groups (id, name, email, phone, status, description, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
-                        .run(newId, g.name, g.email, g.phone, g.status, g.description, new Date().toISOString());
-                    imported++;
-                    // Registrar en mapa para siguientes pasos
-                    createdGroupsMap[g.name.trim().toLowerCase()] = newId;
-                }
-            }
+            });
+            groupsTx(data.groups);
         }
 
         // ════════════════════════════════════════════════════════════
@@ -728,53 +731,56 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 }
             }
             
-            for (const e of data.events) {
-                logger.info('[IMPORT] Event:', e.name, 'date:', e.date, 'group:', e.group_name);
-                
-                // Resolver nombre de empresa a ID (primero mapa local, luego BD)
-                let resolvedGroupId = null;
-                if (e.group_name) {
-                    const groupNameLower = e.group_name.trim().toLowerCase();
-                    if (createdGroupsMap[groupNameLower]) {
-                        resolvedGroupId = createdGroupsMap[groupNameLower];
-                        logger.info('[IMPORT] Resolved group from created:', e.group_name, '->', resolvedGroupId);
-                    } else {
-                        // Buscar en BD
-                        const foundGroup = db.prepare("SELECT id FROM groups WHERE LOWER(name) = LOWER(?)").get(e.group_name);
-                        if (foundGroup) {
-                            resolvedGroupId = foundGroup.id;
-                            logger.info('[IMPORT] Resolved group from DB:', e.group_name, '->', resolvedGroupId);
+            const eventsTx = db.transaction((events) => {
+                for (const e of events) {
+                    logger.info('[IMPORT] Event:', e.name, 'date:', e.date, 'group:', e.group_name);
+                    
+                    // Resolver nombre de empresa a ID (primero mapa local, luego BD)
+                    let resolvedGroupId = null;
+                    if (e.group_name) {
+                        const groupNameLower = e.group_name.trim().toLowerCase();
+                        if (createdGroupsMap[groupNameLower]) {
+                            resolvedGroupId = createdGroupsMap[groupNameLower];
+                            logger.info('[IMPORT] Resolved group from created:', e.group_name, '->', resolvedGroupId);
+                        } else {
+                            // Buscar en BD
+                            const foundGroup = db.prepare("SELECT id FROM groups WHERE LOWER(name) = LOWER(?)").get(e.group_name);
+                            if (foundGroup) {
+                                resolvedGroupId = foundGroup.id;
+                                logger.info('[IMPORT] Resolved group from DB:', e.group_name, '->', resolvedGroupId);
+                            }
                         }
                     }
+                    
+                    // Buscar evento existente
+                    let existing = null;
+                    if (e.name && e.date) {
+                        existing = db.prepare("SELECT id, name FROM events WHERE LOWER(name) = LOWER(?) AND date = ?").get(e.name, e.date);
+                    }
+                    
+                    if (existing) {
+                        logger.info('[IMPORT] Updating event:', existing.name);
+                        db.prepare("UPDATE events SET location = ?, description = ?, group_id = ?, has_own_db = 1 WHERE id = ?")
+                            .run(e.location, e.description, resolvedGroupId || null, existing.id);
+                        // Crear DB del evento si no existe
+                        createEventDatabase(existing.id);
+                        updated++;
+                        // Registrar en mapa
+                        createdEventsMap[e.name.toLowerCase()] = existing.id;
+                    } else {
+                        logger.info('[IMPORT] Creating new event:', e.name);
+                        const newId = getValidId('events');
+                        db.prepare("INSERT INTO events (id, user_id, name, date, location, description, group_id, status, created_at, has_own_db) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, 1)")
+                            .run(newId, req.userId, e.name, e.date, e.location, e.description, resolvedGroupId || null, new Date().toISOString());
+                        // Crear DB del evento
+                        createEventDatabase(newId);
+                        imported++;
+                        // Registrar en mapa
+                        createdEventsMap[e.name.toLowerCase()] = newId;
+                    }
                 }
-                
-                // Buscar evento existente
-                let existing = null;
-                if (e.name && e.date) {
-                    existing = db.prepare("SELECT id, name FROM events WHERE LOWER(name) = LOWER(?) AND date = ?").get(e.name, e.date);
-                }
-                
-                if (existing) {
-                    logger.info('[IMPORT] Updating event:', existing.name);
-                    db.prepare("UPDATE events SET location = ?, description = ?, group_id = ?, has_own_db = 1 WHERE id = ?")
-                        .run(e.location, e.description, resolvedGroupId || null, existing.id);
-                    // Crear DB del evento si no existe
-                    createEventDatabase(existing.id);
-                    updated++;
-                    // Registrar en mapa
-                    createdEventsMap[e.name.toLowerCase()] = existing.id;
-                } else {
-                    logger.info('[IMPORT] Creating new event:', e.name);
-                    const newId = getValidId('events');
-                    db.prepare("INSERT INTO events (id, user_id, name, date, location, description, group_id, status, created_at, has_own_db) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, 1)")
-                        .run(newId, req.userId, e.name, e.date, e.location, e.description, resolvedGroupId || null, new Date().toISOString());
-                    // Crear DB del evento
-                    createEventDatabase(newId);
-                    imported++;
-                    // Registrar en mapa
-                    createdEventsMap[e.name.toLowerCase()] = newId;
-                }
-            }
+            });
+            eventsTx(data.events);
         }
 
         // ════════════════════════════════════════════════════════════
@@ -799,84 +805,87 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 }
             }
             
-            for (const u of data.users) {
-                logger.info('[IMPORT] User:', u.username, 'display_name:', u.display_name, 'company:', u.company_name, 'event:', u.event_name);
-                
-                // Resolver company_name a group_id (usar mapa local primero, luego BD)
-                let resolvedGroupId = null;
-                if (u.company_name) {
-                    const companyLower = u.company_name.toLowerCase();
-                    if (createdGroupsMap[companyLower]) {
-                        resolvedGroupId = createdGroupsMap[companyLower];
-                        logger.info('[IMPORT] Resolved company from map:', u.company_name, '->', resolvedGroupId);
+            const usersTx = db.transaction((users) => {
+                for (const u of users) {
+                    logger.info('[IMPORT] User:', u.username, 'display_name:', u.display_name, 'company:', u.company_name, 'event:', u.event_name);
+                    
+                    // Resolver company_name a group_id (usar mapa local primero, luego BD)
+                    let resolvedGroupId = null;
+                    if (u.company_name) {
+                        const companyLower = u.company_name.toLowerCase();
+                        if (createdGroupsMap[companyLower]) {
+                            resolvedGroupId = createdGroupsMap[companyLower];
+                            logger.info('[IMPORT] Resolved company from map:', u.company_name, '->', resolvedGroupId);
+                        }
                     }
-                }
-                
-                // Buscar por username (email)
-                let existingUser = null;
-                if (u.username) {
-                    existingUser = db.prepare("SELECT id, username FROM users WHERE LOWER(username) = LOWER(?)").get(u.username);
-                }
-                
-                let userId;
-                
-                if (existingUser) {
-                    logger.info('[IMPORT] Updating user:', existingUser.username);
-                    db.prepare("UPDATE users SET display_name = ?, phone = ?, role = ?, group_id = ? WHERE id = ?")
-                        .run(u.display_name, u.phone, u.role, resolvedGroupId || null, existingUser.id);
-                    userId = existingUser.id;
-                    updated++;
-                } else {
-                    logger.info('[IMPORT] Creating new user (APPROVED):', u.username);
-                    try {
-                        const hashedPassword = u.password ? bcrypt.hashSync(u.password, 10) : bcrypt.hashSync(require('crypto').randomBytes(12).toString('base64url'), 10);
-                        userId = getValidId('users');
-                        db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
-                            .run(userId, u.username, hashedPassword, u.role, u.display_name, u.phone, resolvedGroupId || null, new Date().toISOString());
-                        imported++;
-                    } catch(createErr) {
-                        if (createErr.message.includes('UNIQUE constraint failed')) {
-                            logger.info('[IMPORT] User already exists (skipping):', u.username);
-                            // Buscar el usuario existente y usarlo
-                            const existing = db.prepare("SELECT id FROM users WHERE LOWER(username) = LOWER(?)").get(u.username);
-                            if (existing) {
-                                userId = existing.id;
-                                logger.info('[IMPORT] Using existing user ID:', userId);
+                    
+                    // Buscar por username (email)
+                    let existingUser = null;
+                    if (u.username) {
+                        existingUser = db.prepare("SELECT id, username FROM users WHERE LOWER(username) = LOWER(?)").get(u.username);
+                    }
+                    
+                    let userId;
+                    
+                    if (existingUser) {
+                        logger.info('[IMPORT] Updating user:', existingUser.username);
+                        db.prepare("UPDATE users SET display_name = ?, phone = ?, role = ?, group_id = ? WHERE id = ?")
+                            .run(u.display_name, u.phone, u.role, resolvedGroupId || null, existingUser.id);
+                        userId = existingUser.id;
+                        updated++;
+                    } else {
+                        logger.info('[IMPORT] Creating new user (APPROVED):', u.username);
+                        try {
+                            const hashedPassword = u.password ? bcrypt.hashSync(u.password, 10) : bcrypt.hashSync(require('crypto').randomBytes(12).toString('base64url'), 10);
+                            userId = getValidId('users');
+                            db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
+                                .run(userId, u.username, hashedPassword, u.role, u.display_name, u.phone, resolvedGroupId || null, new Date().toISOString());
+                            imported++;
+                        } catch(createErr) {
+                            if (createErr.message.includes('UNIQUE constraint failed')) {
+                                logger.info('[IMPORT] User already exists (skipping):', u.username);
+                                // Buscar el usuario existente y usarlo
+                                const existing = db.prepare("SELECT id FROM users WHERE LOWER(username) = LOWER(?)").get(u.username);
+                                if (existing) {
+                                    userId = existing.id;
+                                    logger.info('[IMPORT] Using existing user ID:', userId);
+                                } else {
+                                    continue; // Saltar este usuario
+                                }
                             } else {
-                                continue; // Saltar este usuario
+                                throw createErr; // Re-lanzar otros errores
                             }
-                        } else {
-                            throw createErr; // Re-lanzar otros errores
+                        }
+                    }
+                    
+                    // Vincular a eventos (soporta múltiples eventos separados por coma)
+                    if (u.event_name && userId) {
+                        const eventNames = u.event_name.split(',').map(e => e.trim()).filter(e => e);
+                        let linkedCount = 0;
+                        for (const eventName of eventNames) {
+                            const eventLower = eventName.toLowerCase();
+                            const eventId = createdEventsMap[eventLower];
+                            
+                            if (eventId) {
+                                logger.info('[IMPORT] Linking user to event:', u.username, '->', eventName, '(', eventId, ')');
+                                try {
+                                    db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
+                                        .run(getValidId('user_events'), userId, eventId, new Date().toISOString());
+                                    linkedCount++;
+                                } catch(linkErr) {
+                                    logger.info('[IMPORT] Warning: Could not link user to event:', linkErr.message);
+                                }
+                            } else {
+                                logger.info('[IMPORT] Warning: Event not found:', eventName);
+                            }
+                        }
+                        if (linkedCount > 0) {
+                            logger.info('[IMPORT] User', u.username, 'linked to', linkedCount, 'events');
                         }
                     }
                 }
-                
-                // Vincular a eventos (soporta múltiples eventos separados por coma)
-                if (u.event_name && userId) {
-                    const eventNames = u.event_name.split(',').map(e => e.trim()).filter(e => e);
-                    let linkedCount = 0;
-                    for (const eventName of eventNames) {
-                        const eventLower = eventName.toLowerCase();
-                        const eventId = createdEventsMap[eventLower];
-                        
-                        if (eventId) {
-                            logger.info('[IMPORT] Linking user to event:', u.username, '->', eventName, '(', eventId, ')');
-                            try {
-                                db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
-                                    .run(getValidId('user_events'), userId, eventId, new Date().toISOString());
-                                linkedCount++;
-                            } catch(linkErr) {
-                                logger.info('[IMPORT] Warning: Could not link user to event:', linkErr.message);
-                            }
-                        } else {
-                            logger.info('[IMPORT] Warning: Event not found:', eventName);
-                        }
-                    }
-                    if (linkedCount > 0) {
-                        logger.info('[IMPORT] User', u.username, 'linked to', linkedCount, 'events');
-                    }
-                }
-            }
+            });
+            usersTx(data.users);
         }
 
         logger.info('[IMPORT] Result - imported:', imported, 'updated:', updated);
@@ -906,82 +915,85 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             const clientCols = db.prepare("PRAGMA table_info(clients)").all().map(function(c) { return c.name; });
             const hasExtendedFields = clientCols.includes('position') || clientCols.includes('dietary_notes') || clientCols.includes('vegano');
             
-            for (const c of data.clients) {
-                logger.info('[IMPORT] Client:', c.name, 'email:', c.email, 'org:', c.company_name, 'phone:', c.phone);
-                
-                // Resolver company_name a group_id
-                let resolvedGroupId = null;
-                if (c.company_name) {
-                    const companyLower = c.company_name.toLowerCase();
-                    if (createdGroupsMap[companyLower]) {
-                        resolvedGroupId = createdGroupsMap[companyLower];
-                    }
-                }
-                
-                // Buscar por name o email
-                let existingClient = null;
-                if (c.name) {
-                    existingClient = db.prepare("SELECT id, email, phone, organization, position, dietary_notes, vegano FROM clients WHERE LOWER(name) = LOWER(?)").get(c.name);
-                }
-                if (!existingClient && c.email) {
-                    existingClient = db.prepare("SELECT id, email, phone, organization, position, dietary_notes, vegano FROM clients WHERE email IS NOT NULL AND LOWER(email) = LOWER(?)").get(c.email);
-                }
-                
-                let clientId;
-                
-                if (existingClient) {
-                    // Actualización inteligente: solo actualizar campos que están vacíos o son diferentes
-                    const updates = [];
-                    const params = [];
+            const clientsTx = db.transaction((clients) => {
+                for (const c of clients) {
+                    logger.info('[IMPORT] Client:', c.name, 'email:', c.email, 'org:', c.company_name, 'phone:', c.phone);
                     
-                    if (c.email && (!existingClient.email || existingClient.email === '')) {
-                        updates.push('email = ?'); params.push(c.email);
-                    }
-                    if (c.phone && (!existingClient.phone || existingClient.phone === '')) {
-                        updates.push('phone = ?'); params.push(c.phone);
-                    }
-                    if (c.company_name && (!existingClient.organization || existingClient.organization === '')) {
-                        updates.push('organization = ?'); params.push(c.company_name);
-                    }
-                    if (resolvedGroupId && !existingClient.group_id) {
-                        updates.push('group_id = ?'); params.push(resolvedGroupId);
-                    }
-                    
-                    // Extended fields (si existen en la BD)
-                    if (hasExtendedFields) {
-                        if (c.position && (!existingClient.position || existingClient.position === '')) {
-                            updates.push('position = ?'); params.push(c.position);
-                        }
-                        if (c.dietary && (!existingClient.dietary_notes || existingClient.dietary_notes === '')) {
-                            updates.push('dietary_notes = ?'); params.push(c.dietary);
-                        }
-                        if (c.vegan && (!existingClient.vegano || existingClient.vegano === '')) {
-                            updates.push('vegano = ?'); params.push(c.vegan);
+                    // Resolver company_name a group_id
+                    let resolvedGroupId = null;
+                    if (c.company_name) {
+                        const companyLower = c.company_name.toLowerCase();
+                        if (createdGroupsMap[companyLower]) {
+                            resolvedGroupId = createdGroupsMap[companyLower];
                         }
                     }
                     
-                    if (updates.length > 0) {
-                        params.push(existingClient.id);
-                        db.prepare("UPDATE clients SET " + updates.join(', ') + " WHERE id = ?").apply(params);
-                        logger.info('[IMPORT] Updated client:', c.name, '- fields:', updates.join(', '));
+                    // Buscar por name o email
+                    let existingClient = null;
+                    if (c.name) {
+                        existingClient = db.prepare("SELECT id, email, phone, organization, position, dietary_notes, vegano FROM clients WHERE LOWER(name) = LOWER(?)").get(c.name);
+                    }
+                    if (!existingClient && c.email) {
+                        existingClient = db.prepare("SELECT id, email, phone, organization, position, dietary_notes, vegano FROM clients WHERE email IS NOT NULL AND LOWER(email) = LOWER(?)").get(c.email);
                     }
                     
-                    clientId = existingClient.id;
-                    updated++;
-                } else {
-                    // Crear nuevo cliente con todos los campos disponibles
-                    clientId = getValidId('clients');
-                    if (hasExtendedFields) {
-                        db.prepare("INSERT INTO clients (id, name, email, phone, group_id, organization, position, dietary_notes, vegano, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)")
-                            .run(clientId, c.name, c.email, c.phone, resolvedGroupId || null, c.company_name || null, c.position || null, c.dietary || null, c.vegan || null, new Date().toISOString());
+                    let clientId;
+                    
+                    if (existingClient) {
+                        // Actualización inteligente: solo actualizar campos que están vacíos o son diferentes
+                        const updates = [];
+                        const params = [];
+                        
+                        if (c.email && (!existingClient.email || existingClient.email === '')) {
+                            updates.push('email = ?'); params.push(c.email);
+                        }
+                        if (c.phone && (!existingClient.phone || existingClient.phone === '')) {
+                            updates.push('phone = ?'); params.push(c.phone);
+                        }
+                        if (c.company_name && (!existingClient.organization || existingClient.organization === '')) {
+                            updates.push('organization = ?'); params.push(c.company_name);
+                        }
+                        if (resolvedGroupId && !existingClient.group_id) {
+                            updates.push('group_id = ?'); params.push(resolvedGroupId);
+                        }
+                        
+                        // Extended fields (si existen en la BD)
+                        if (hasExtendedFields) {
+                            if (c.position && (!existingClient.position || existingClient.position === '')) {
+                                updates.push('position = ?'); params.push(c.position);
+                            }
+                            if (c.dietary && (!existingClient.dietary_notes || existingClient.dietary_notes === '')) {
+                                updates.push('dietary_notes = ?'); params.push(c.dietary);
+                            }
+                            if (c.vegan && (!existingClient.vegano || existingClient.vegano === '')) {
+                                updates.push('vegano = ?'); params.push(c.vegan);
+                            }
+                        }
+                        
+                        if (updates.length > 0) {
+                            params.push(existingClient.id);
+                            db.prepare("UPDATE clients SET " + updates.join(', ') + " WHERE id = ?").apply(params);
+                            logger.info('[IMPORT] Updated client:', c.name, '- fields:', updates.join(', '));
+                        }
+                        
+                        clientId = existingClient.id;
+                        updated++;
                     } else {
-                        db.prepare("INSERT INTO clients (id, name, email, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)")
-                            .run(clientId, c.name, c.email, c.phone, resolvedGroupId || null, new Date().toISOString());
+                        // Crear nuevo cliente con todos los campos disponibles
+                        clientId = getValidId('clients');
+                        if (hasExtendedFields) {
+                            db.prepare("INSERT INTO clients (id, name, email, phone, group_id, organization, position, dietary_notes, vegano, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)")
+                                .run(clientId, c.name, c.email, c.phone, resolvedGroupId || null, c.company_name || null, c.position || null, c.dietary || null, c.vegan || null, new Date().toISOString());
+                        } else {
+                            db.prepare("INSERT INTO clients (id, name, email, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)")
+                                .run(clientId, c.name, c.email, c.phone, resolvedGroupId || null, new Date().toISOString());
+                        }
+                        logger.info('[IMPORT] Created client:', c.name);
+                        imported++;
                     }
-                    logger.info('[IMPORT] Created client:', c.name);
-                    imported++;
                 }
-            }
+            });
+            clientsTx(data.clients);
         }
 
         // ════════════════════════════════════════════════════════════
@@ -1063,67 +1075,70 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             // Contadores ya inicializados al inicio del manejador
              
             
-            for (const a of attendeesToProcess) {
-                if (!a.email) continue;
-                const emailLower = a.email.toLowerCase().trim();
+            const attendanceTx = targetDb.transaction((attendees) => {
+                for (const a of attendees) {
+                    if (!a.email) continue;
+                    const emailLower = a.email.toLowerCase().trim();
 
-                // Normalización de Vegano (V12.44.311)
-                const vRaw = (a.vegano || "").toString().trim().toUpperCase();
-                const vNorm = (!vRaw || vRaw === 'NO' || vRaw === 'N' || vRaw === 'FALSE' || vRaw === '0') ? 'NO' :
-                             (vRaw === 'SI' || vRaw === 'SÍ' || vRaw === 'YES' || vRaw === 'TRUE' || vRaw === '1') ? 'SI' : 'NO';
+                    // Normalización de Vegano (V12.44.311)
+                    const vRaw = (a.vegano || "").toString().trim().toUpperCase();
+                    const vNorm = (!vRaw || vRaw === 'NO' || vRaw === 'N' || vRaw === 'FALSE' || vRaw === '0') ? 'NO' :
+                                 (vRaw === 'SI' || vRaw === 'SÍ' || vRaw === 'YES' || vRaw === 'TRUE' || vRaw === '1') ? 'SI' : 'NO';
 
-                // Fallback de nombre: usar email si no hay nombre
-                const cleanName = (a.name || "").trim();
-                const provisionalName = cleanName || emailLower.split('@')[0];
+                    // Fallback de nombre: usar email si no hay nombre
+                    const cleanName = (a.name || "").trim();
+                    const provisionalName = cleanName || emailLower.split('@')[0];
 
-                // 1. Gestionar tabla 'guests'
-                const guest = targetDb.prepare("SELECT id, name FROM guests WHERE event_id = ? AND LOWER(email) = ?").get(eventId, emailLower);
-                
-                if (guest) {
-                    duplicates++; // Marcado como existente/duplicado
-                    // Solo actualizar el nombre si el nuevo nombre no está vacío
-                    const nameToUpdate = cleanName || guest.name || provisionalName;
-
-                    targetDb.prepare(`
-                        UPDATE guests SET 
-                            name = ?, 
-                            phone = COALESCE(?, phone), 
-                            organization = COALESCE(?, organization), 
-                            position = COALESCE(?, position),
-                            cargo = COALESCE(?, cargo),
-                            dietary_notes = COALESCE(?, dietary_notes),
-                            restricciones = COALESCE(?, restricciones),
-                            vegano = COALESCE(?, vegano)
-                        WHERE id = ?
-                    `).run(
-                        nameToUpdate, 
-                        a.phone, a.organization, 
-                        a.cargo || a.position, a.cargo || a.position,
-                        a.restricciones || a.dietary_notes, a.restricciones || a.dietary_notes,
-                        vNorm,
-                        guest.id
-                    );
-                    updated++;
-                } else {
-                    logger.info('[IMPORT] Creating new guest:', emailLower);
-                    const guestId = getValidId('guests');
-                    const qrToken = require('uuid').v4();
+                    // 1. Gestionar tabla 'guests'
+                    const guest = targetDb.prepare("SELECT id, name FROM guests WHERE event_id = ? AND LOWER(email) = ?").get(eventId, emailLower);
                     
-                    targetDb.prepare(`
-                        INSERT INTO guests (
-                            id, event_id, name, email, phone, organization, position, cargo, 
-                            dietary_notes, restricciones, vegano, qr_token, created_at
-                        )
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    `).run(
-                        guestId, eventId, provisionalName, emailLower, a.phone, a.organization, 
-                        a.cargo || (a.position || null), a.cargo || (a.position || null),
-                        a.restricciones || (a.dietary_notes || null), a.restricciones || (a.dietary_notes || null),
-                        vNorm, qrToken, new Date().toISOString()
-                    );
-imported++;
+                    if (guest) {
+                        duplicates++; // Marcado como existente/duplicado
+                        // Solo actualizar el nombre si el nuevo nombre no está vacío
+                        const nameToUpdate = cleanName || guest.name || provisionalName;
+
+                        targetDb.prepare(`
+                            UPDATE guests SET 
+                                name = ?, 
+                                phone = COALESCE(?, phone), 
+                                organization = COALESCE(?, organization), 
+                                position = COALESCE(?, position),
+                                cargo = COALESCE(?, cargo),
+                                dietary_notes = COALESCE(?, dietary_notes),
+                                restricciones = COALESCE(?, restricciones),
+                                vegano = COALESCE(?, vegano)
+                            WHERE id = ?
+                        `).run(
+                            nameToUpdate, 
+                            a.phone, a.organization, 
+                            a.cargo || a.position, a.cargo || a.position,
+                            a.restricciones || a.dietary_notes, a.restricciones || a.dietary_notes,
+                            vNorm,
+                            guest.id
+                        );
+                        updated++;
+                    } else {
+                        logger.info('[IMPORT] Creating new guest:', emailLower);
+                        const guestId = getValidId('guests');
+                        const qrToken = require('uuid').v4();
+                        
+                        targetDb.prepare(`
+                            INSERT INTO guests (
+                                id, event_id, name, email, phone, organization, position, cargo, 
+                                dietary_notes, restricciones, vegano, qr_token, created_at
+                            )
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        `).run(
+                            guestId, eventId, provisionalName, emailLower, a.phone, a.organization, 
+                            a.cargo || (a.position || null), a.cargo || (a.position || null),
+                            a.restricciones || (a.dietary_notes || null), a.restricciones || (a.dietary_notes || null),
+                            vNorm, qrToken, new Date().toISOString()
+                        );
+                    imported++;
+                    }
                 }
-            }
+            });
+            attendanceTx(attendeesToProcess);
         }
 
         res.json({ success: true, imported, updated, duplicates, total: imported + updated });

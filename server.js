@@ -150,19 +150,21 @@ app.disable('x-powered-by'); // Deshabilitar exposición de tecnología
 
 app.use(helmet({
     // Content Security Policy (CSP) - proteger contra XSS e inyecciones
+    // Fase 2026-08: endurecido gradualmente (P2-3): frameSrc acotado, CDNs minimizados.
+    // Próximo paso: extraer estilos inline a archivos y reemplazar 'unsafe-inline' por nonce/hashes.
     contentSecurityPolicy: {
         useDefaults: true,
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdn.quilljs.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
             scriptSrcAttr: ["'unsafe-inline'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdn.quilljs.com"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
             imgSrc: ["'self'", "data:", "https:", "blob:"],
             connectSrc: ["'self'", "wss:", "https:"],
             mediaSrc: ["'self'", "https:"],
             objectSrc: ["'none'"],
-            frameSrc: ["*"],
+            frameSrc: ["'self'"],
             baseUri: ["'self'"],
             formAction: ["'self'"],
             upgradeInsecureRequests: null

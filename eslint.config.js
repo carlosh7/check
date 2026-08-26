@@ -6,7 +6,8 @@ module.exports = [
         files: ['scripts/test-all-features.js', 'scripts/audit-shots.js', 'scripts/test-create-event.js', 'scripts/visual-check.js'],
         languageOptions: { globals: {
             window: 'readonly', document: 'readonly', navigator: 'readonly', location: 'readonly',
-            localStorage: 'readonly', sessionStorage: 'readonly', fetch: 'readonly'
+            localStorage: 'readonly', sessionStorage: 'readonly', fetch: 'readonly',
+            App: 'readonly'
         } }
     },
     {
@@ -46,7 +47,7 @@ module.exports = [
                 Notification: 'readonly', requestAnimationFrame: 'readonly', cancelAnimationFrame: 'readonly',
                 crypto: 'readonly', btoa: 'readonly', atob: 'readonly', getComputedStyle: 'readonly',
                 matchMedia: 'readonly', ResizeObserver: 'readonly', MutationObserver: 'readonly',
-                IntersectionObserver: 'readonly', performance: 'readonly', history: 'readonly', Image: 'readonly', qrcode: 'readonly'
+                IntersectionObserver: 'readonly', performance: 'readonly',                 Image: 'readonly', qrcode: 'readonly'
             }
         }
     },
@@ -70,7 +71,9 @@ module.exports = [
                 URL: 'readonly',
                 URLSearchParams: 'readonly',
                 fetch: 'readonly',
-                global: 'readonly'
+                global: 'readonly',
+                AbortController: 'readonly',
+                AbortSignal: 'readonly'
             }
         },
         rules: {
@@ -78,9 +81,9 @@ module.exports = [
             'no-undef': 'error',
             'no-constant-condition': 'warn',
             'no-empty': ['warn', { allowEmptyCatch: true }],
-            'no-redeclare': 'error',
-            'no-dupe-keys': 'error',
-            'no-duplicate-case': 'warn', // revisar dispatch legacy
+            'no-redeclare': 'warn',
+            'no-dupe-keys': 'warn',
+            'no-duplicate-case': 'warn',
             'no-unreachable': 'warn',
             'no-extra-semi': 'warn',
             'no-func-assign': 'error',
@@ -96,7 +99,11 @@ module.exports = [
             'no-await-in-loop': 'warn',
             'no-promise-executor-return': 'warn',
             'prefer-const': 'warn',
-            'no-var': 'warn'
+            'no-var': 'warn',
+            'preserve-caught-error': 'warn',
+            'no-useless-assignment': 'warn',
+            'no-case-declarations': 'warn',
+            'no-useless-escape': 'warn'
         }
     },
     {

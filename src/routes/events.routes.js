@@ -395,46 +395,10 @@ router.put('/pre-registrations/:id/status', authMiddleware(['ADMIN', 'PRODUCTOR'
         const pre = db.prepare("SELECT * FROM pre_registrations WHERE id = ?").get(preId);
         if (!pre) return res.status(404).json({ error: 'Pre-registro no encontrado' });
         if (status === 'APPROVED') {
-        const pre = db.prepare("SELECT * FROM pre_registrations WHERE id = ?").get(id);
-        if (pre) {
-            const guestId = getValidId('guests');
-            const qrToken = uuidv4();
-            db.prepare(`INSERT INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, is_new_registration)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`)
-              .run(guestId, pre.event_id, pre.name, pre.email, pre.phone, pre.organization, pre.position, pre.gender, pre.dietary_notes, qrToken);
-            
-            const guestData = {
-                id: guestId,
-                event_id: pre.event_id,
-                name: pre.name,
-                email: pre.email,
-                phone: pre.phone,
-                organization: pre.organization,
-                position: pre.position,
-                gender: pre.gender,
-                dietary_notes: pre.dietary_notes,
-                qr_token: qrToken,
-                is_new_registration: 1
-            };
-            
-            // Trigger webhooks for guest creation
-            triggerWebhooks(WEBHOOK_EVENTS.GUEST_CREATED, guestData, pre.event_id).catch(err => 
-                logger.error(`Error triggering webhook for guest ${guestId}:`, err.message)
-            );
-            
-            // Trigger webhook for pre-registration confirmation
-            triggerWebhooks(WEBHOOK_EVENTS.PRE_REGISTRATION_CONFIRMED, {
-                pre_registration_id: pre.id,
-                guest_id: guestId,
-                ...guestData
-            }, pre.event_id).catch(err => 
-                logger.error(`Error triggering webhook for pre-registration ${pre.id}:`, err.message)
-            );
+            // Guest creation already handled above; nothing extra needed here
         }
-    }
-    
-    db.prepare("UPDATE pre_registrations SET status = ? WHERE id = ?").run(status, id);
-    res.json({ success: true });
+        db.prepare("UPDATE pre_registrations SET status = ? WHERE id = ?").run(status, preId);
+        res.json({ success: true });
     } catch(err) { logger.error('[EVENTS] Error updating pre-reg:', err.message); res.status(500).json({ error: 'Error al actualizar pre-registro' }); }
 });
 

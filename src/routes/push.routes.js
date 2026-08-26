@@ -518,7 +518,10 @@ function startPushScheduler() {
     }, 30000);
 }
 
-startPushScheduler();
+// No iniciar scheduler en tests (evita open handles)
+if (process.env.NODE_ENV !== 'test') {
+    startPushScheduler();
+}
 
 module.exports = {
     router,
