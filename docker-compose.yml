@@ -8,8 +8,7 @@ services:
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
     volumes:
-      - ./persistence:/usr/src/app/persistence
-      - ${DATA_PATH:-./data}:${DATA_PATH:-./data}
+      - ./data:/usr/src/app/persistence
       - .:/usr/src/app
       - node_modules:/usr/src/app/node_modules
     env_file:
