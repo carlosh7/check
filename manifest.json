@@ -10,12 +10,52 @@
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "events", "productivity"],
+  "orientation": "any",
+  "scope": "/",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "handle_links": "preferred",
+  "shortcuts": [
+    {
+      "name": "Mis Eventos",
+      "url": "/?view=my-events",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Escanear QR",
+      "url": "/?view=kiosk",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Crear Evento",
+      "url": "/?view=my-events&action=create",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard de eventos en Check Pro"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Gestión móvil de invitados"
     }
   ]
 }

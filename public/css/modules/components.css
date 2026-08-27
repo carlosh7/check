@@ -349,3 +349,18 @@
   padding: var(--space-2) var(--space-1);
 }
 .tabs-children-row.hidden { display: none; }
+
+/* ═══ MÓVIL: Touch targets + Bottom-sheet modales + Safe area (Fase Responsive 12.44.798) ═══ */
+@media (max-width: 640px) {
+  .btn, .btn-primary, .btn-secondary, .btn-ghost, .btn-danger, .btn-success,
+  .sub-nav-btn, .tabs-group-btn, .chip, .tab {
+    min-height: 44px; min-width: 44px;
+  }
+  .btn-icon { min-width: 44px; min-height: 44px; }
+  .modal { position: fixed; bottom: 0; left: 0; right: 0; top: auto; max-width: 100%; max-height: 85vh; border-radius: var(--radius-xl) var(--radius-xl) 0 0; margin: 0; }
+  .modal-overlay { align-items: flex-end; padding: 0; padding-bottom: env(safe-area-inset-bottom); }
+  .card.max-w-md, .card.max-w-lg { max-width: 100%; margin-left: 0; margin-right: 0; }
+}
+@media (max-width: 768px) {
+  .toast-container { left: var(--space-3); right: var(--space-3); bottom: calc(var(--space-3) + env(safe-area-inset-bottom)); }
+}
