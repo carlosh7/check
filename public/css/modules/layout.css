@@ -6,7 +6,8 @@
 
 /* ═══ APP SHELL ═══ */
 .app-container {
-  display: flex; min-height: 100vh; background: var(--bg-app);
+  display: flex; height: 100vh; height: 100dvh; background: var(--bg-app);
+  overflow: hidden;
 }
 
 /* ═══ SIDEBAR ═══ */
@@ -112,8 +113,10 @@
 /* ═══ MAIN CONTENT ═══ */
 .app-main-content {
   flex: 1; margin-left: var(--sidebar-width);
-  min-height: 100vh; padding: var(--space-6);
+  height: 100vh; height: 100dvh; padding: var(--space-6);
   max-width: calc(100vw - var(--sidebar-width));
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 @media (max-width: 768px) {

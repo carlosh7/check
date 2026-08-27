@@ -24,7 +24,9 @@ class Modal {
         modal.classList.add('hidden');
         modal.setAttribute('aria-hidden', 'true');
         this.activeModals.delete(modalId);
-        if (this.activeModals.size === 0) {
+        // Fallback: verificar DOM real por si algún modal se abrió/cerró fuera del manager
+        const anyVisible = Array.from(document.querySelectorAll('div[id^="modal-"].fixed')).some(m => !m.classList.contains('hidden'));
+        if (this.activeModals.size === 0 && !anyVisible) {
             document.body.style.overflow = '';
         }
     }

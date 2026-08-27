@@ -6580,6 +6580,10 @@ const App = window.App = {
         }
         this.updateSidebarVisibility();
 
+        // Limpieza de scroll bloqueado por modales desincronizados (fix móvil)
+        const anyModalVisible = Array.from(document.querySelectorAll('div[id^="modal-"].fixed')).some(m => !m.classList.contains('hidden'));
+        if (!anyModalVisible) document.body.style.overflow = '';
+
         // UI Sidebar - actualizar estado activo para sub-nav-btns
         document.querySelectorAll('#global-sidebar .sub-nav-btn').forEach(b => {
             b.classList.remove('active');
