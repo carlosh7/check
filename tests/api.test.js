@@ -4,9 +4,10 @@
  */
 
 require('dotenv').config();
-// Credenciales deterministas para el seed (no depender del .env ambiente)
-process.env.ADMIN_EMAIL = 'admin@check.com';
-process.env.ADMIN_PASSWORD = 'admin123';
+// Credenciales deterministas para el seed (no depender del .env ambiente).
+// v12.44.802: deben cumplir la política fuerte (rechaza las expuestas).
+process.env.ADMIN_EMAIL = 'ci-admin@check.local';
+process.env.ADMIN_PASSWORD = 'CiTest-Admin-2026';
 const request = require('supertest');
 const express = require('express');
 const { db } = require('../database');

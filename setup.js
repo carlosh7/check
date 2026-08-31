@@ -6,8 +6,8 @@
  * 1. Crea archivo .env si no existe
  * 2. Instala dependencias si faltan
  * 3. Inicializa la base de datos
- * 4. Crea usuario admin por defecto
- * 5. Inicia el servidor automáticamente
+ * 4. Inicia el servidor automáticamente
+ *    (el admin inicial se crea con el wizard de primer arranque, no aquí)
  */
 
 const fs = require('fs');
@@ -57,9 +57,11 @@ PORT=3000
 # JWT (generar con: openssl rand -hex 32)
 JWT_SECRET=${process.env.JWT_SECRET || ''}
 
-# Admin inicial (configurar antes del primer uso)
-ADMIN_EMAIL=${process.env.ADMIN_EMAIL || 'admin@check.com'}
-ADMIN_PASSWORD=${process.env.ADMIN_PASSWORD || 'admin123'}
+# Admin inicial (OPCIONAL — v12.44.802)
+# Si defines AMBAS variables se crea ese admin en el primer arranque (headless).
+# Si no, el primer arranque abre el asistente web para crear el admin de forma segura.
+# ADMIN_EMAIL=
+# ADMIN_PASSWORD=
 
 # URL de la aplicación
 APP_URL=http://localhost:3000
@@ -70,7 +72,7 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
 # VAPID Keys for Push Notifications
 VAPID_PUBLIC_KEY=${vapidPublicKey}
 VAPID_PRIVATE_KEY=${vapidPrivateKey}
-VAPID_SUBJECT=${process.env.VAPID_SUBJECT || 'mailto:admin@check.com'}
+VAPID_SUBJECT=${process.env.VAPID_SUBJECT || 'mailto:tu-correo@tudominio.com'}
 `;
         
         fs.writeFileSync(envPath, envContent);
@@ -139,18 +141,12 @@ try {
         created_at TEXT
     )`);
     
-    // Verificar si hay usuarios
+    // Verificar si hay usuarios (v12.44.802: ya NO se siembra ningún admin
+    // con credenciales conocidas — el primer arranque usa el wizard web)
     const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
     
     if (userCount.count === 0) {
-        console.log('👤 Creando usuario admin por defecto...');
-        const adminId = uuidv4();
-        const adminHash = bcrypt.hashSync('admin123', 10);
-        
-        db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-          .run(adminId, 'admin@check.com', adminHash, 'ADMIN', 'APPROVED', new Date().toISOString());
-        
-        console.log('✅ Usuario admin creado: admin@check.com / admin123');
+        console.log('👤 Instalación sin usuarios: el asistente de primer arranque creará el admin al abrir la app.');
     } else {
         console.log('✅ Base de datos ya tiene usuarios');
     }
@@ -219,8 +215,7 @@ try {
     
     console.log('\n✅ Servidor iniciado correctamente');
     console.log('🌐 Accede a: http://localhost:3000');
-    console.log('👤 Usuario: admin@check.com');
-    console.log('🔑 Contraseña: admin123');
+    console.log('🧙 Si la instalación es nueva, el asistente de primer arranque te pedirá crear la cuenta de administrador.');
     console.log('\nPresiona Ctrl+C para detener el servidor');
     
 } catch (error) {

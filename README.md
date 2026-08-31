@@ -43,8 +43,8 @@ El script automático hará todo por ti:
 - ✅ Creará el archivo `.env` si no existe
 - ✅ Instalará todas las dependencias
 - ✅ Inicializará la base de datos
-- ✅ Creará el usuario admin por defecto
 - ✅ Iniciará el servidor automáticamente
+- 🧙 Al abrir la app por primera vez, el **asistente de primer arranque** te pedirá crear la cuenta de administrador (sin credenciales precargadas)
 
 ### 🔧 Instalación Manual
 
@@ -82,13 +82,13 @@ El contenedor Docker hará todo automáticamente:
 - ✅ Construirá la imagen con todas las dependencias
 - ✅ Creará archivo `.env` si no existe
 - ✅ Inicializará la base de datos automáticamente
-- ✅ Creará usuario admin por defecto
 - ✅ Iniciará el servidor en http://localhost:3000
 
-**Credenciales por defecto:**
+**Primer acceso (seguro por defecto):**
 - **URL:** http://localhost:3000
-- **Usuario:** admin@check.com
-- **Contraseña:** admin123
+- La app detecta que no hay usuarios y muestra el **asistente de primer arranque**: creas ahí tu cuenta de administrador con contraseña fuerte (mínimo 10 caracteres, mayúscula, minúscula y número).
+- **No existen credenciales precargadas.** Las antiguas (`admin@check.com`/`admin123`) fueron retiradas en v12.44.802 y están prohibidas como contraseña nueva.
+- Alternativa headless: define `ADMIN_EMAIL` y `ADMIN_PASSWORD` en el entorno y el primer arranque creará ese admin sin wizard.
 
 Para más detalles, consulta [DOCKER_INSTALL.md](DOCKER_INSTALL.md).
 
@@ -284,15 +284,17 @@ ALLOWED_ORIGINS=http://localhost:3000
 
 ### Credenciales de Administrador
 
-> [!WARNING]
-> **CAMBIAR LA CONTRASEÑA INMEDIATAMENTE DESPUÉS DEL PRIMER LOGIN**
+> [!NOTE]
+> Desde **v12.44.802 no existen credenciales por defecto**: en una instalación nueva, el **asistente de primer arranque** crea la cuenta de administrador con la contraseña que tú elijas (política: mínimo 10 caracteres, mayúscula, minúscula y número; las contraseñas públicas/conocidas se rechazan siempre).
 
-Por defecto se crea un usuario administrador. Las credenciales iniciales están en `.env.example` (configuradas durante la instalación).
+Política aplicada en todos los flujos que fijan contraseña (wizard, registro, recuperación, cambio de contraseña, alta de usuarios):
+- Mínimo **10 caracteres**, con al menos una **mayúscula**, una **minúscula** y un **número**.
+- Las contraseñas expuestas en el repositorio (`admin123`, `changeme123`) están **prohibidas permanentemente** como contraseña nueva.
 
-Para cambiar la contraseña:
+Para cambiar tu contraseña después:
 1. Inicia sesión como administrador
 2. Ve a Configuración > Mi Cuenta
-3. Cambia la contraseña
+3. Cambia la contraseña (debe cumplir la política)
 
 ## 📁 Estructura del Proyecto
 

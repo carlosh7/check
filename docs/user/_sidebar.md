@@ -26,6 +26,7 @@
   - [Crear webhook](06-webhooks/01-crear-webhook.md)
   - [SMS Twilio](06-webhooks/02-sms.md)
 - **Administración**
+  - [Primer arranque (wizard)](07-administracion/12-primer-arranque.md)
   - [Usuarios y roles](07-administracion/01-usuarios-roles.md)
   - [Espacios](07-administracion/02-espacios.md)
   - [Google Sheets](07-administracion/03-google-sheets.md)

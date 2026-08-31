@@ -11,14 +11,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="/css/modules/base.css?v=12.44.801">
+  <link rel="stylesheet" href="/css/modules/base.css?v=12.44.802">
   <!-- FIX v12.44.801: el app-shell se inyecta aquí dentro; necesita TODOS los módulos CSS -->
-  <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.801">
-  <link rel="stylesheet" href="/css/modules/components.css?v=12.44.801">
-  <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.801">
-  <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.801">
-  <link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.801">
-  <link rel="stylesheet" href="/css/modules/login.css?v=12.44.801">
+  <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.802">
+  <link rel="stylesheet" href="/css/modules/components.css?v=12.44.802">
+  <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.802">
+  <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.802">
+  <link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.802">
+  <link rel="stylesheet" href="/css/modules/login.css?v=12.44.802">
   <style>.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:6px}.password-toggle:hover{color:var(--text-primary);background:var(--bg-hover)}.password-toggle .material-symbols-outlined{font-size:20px}</style>
 </head>
 <body>
@@ -41,7 +41,7 @@
       <form id="form-login" class="login-form" onsubmit="return false;">
         <div class="form-group">
           <label class="form-label" for="login-email">Email</label>
-          <input type="email" id="login-email" class="input" placeholder="admin@check.com" autocomplete="email" required>
+          <input type="email" id="login-email" class="input" placeholder="tu@email.com" autocomplete="email" required>
         </div>
         <div class="form-group">
           <label class="form-label" for="login-password">Contraseña</label>
@@ -128,8 +128,70 @@
     </div>
   </div>
 
+  <!-- Setup wizard: primer arranque sin usuarios (v12.44.802) -->
+  <div id="setup-wizard" class="hidden" style="width:100%;max-width:400px;">
+    <div class="login-card">
+      <div class="progress" style="height:6px;margin-bottom:18px;" role="progressbar" aria-label="Progreso de configuración">
+        <div id="setup-progress-bar" class="progress-bar" style="width:33%;background:linear-gradient(90deg,#7c3aed,#3b82f6);transition:width .3s"></div>
+      </div>
+
+      <!-- Paso 1: Bienvenida -->
+      <div id="setup-step-1">
+        <h1 class="login-title">Configuración inicial</h1>
+        <p class="login-subtitle">Esta instalación aún no tiene usuarios. Vamos a crear tu cuenta de administrador para que Check Pro sea seguro desde el primer minuto.</p>
+        <ul class="login-subtitle" style="text-align:left;margin:12px 0 20px;padding-left:18px;line-height:1.8">
+          <li>Único paso de configuración</li>
+          <li>Contraseña fuerte obligatoria</li>
+          <li>Sin credenciales precargadas</li>
+        </ul>
+        <button type="button" id="setup-start-btn" class="btn btn-primary btn-lg w-full">Comenzar</button>
+      </div>
+
+      <!-- Paso 2: Crear admin -->
+      <div id="setup-step-2" class="hidden">
+        <h1 class="login-title">Crear administrador</h1>
+        <p class="login-subtitle">Esta cuenta tendrá control total de la instalación.</p>
+        <div id="setup-message" class="login-error hidden"></div>
+        <form id="form-setup-admin" class="login-form" onsubmit="return false;">
+          <div class="form-group">
+            <label class="form-label" for="setup-name">Tu nombre</label>
+            <input type="text" id="setup-name" class="input" placeholder="Ej: Carlos" maxlength="100" autocomplete="name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="setup-email">Email</label>
+            <input type="email" id="setup-email" class="input" placeholder="tu@email.com" autocomplete="email" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="setup-pass">Contraseña</label>
+            <div style="position:relative">
+              <input type="password" id="setup-pass" class="input" placeholder="••••••••••" autocomplete="new-password" required style="padding-right:44px">
+              <button type="button" class="password-toggle" data-target="setup-pass" aria-label="Mostrar contraseña"><span class="material-symbols-outlined">visibility</span></button>
+            </div>
+            <div id="setup-pass-hint" class="login-subtitle" style="font-size:12px;margin-top:6px;text-align:left">Mínimo 10 caracteres, con mayúscula, minúscula y número.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="setup-pass2">Confirmar contraseña</label>
+            <div style="position:relative">
+              <input type="password" id="setup-pass2" class="input" placeholder="••••••••••" autocomplete="new-password" required style="padding-right:44px">
+              <button type="button" class="password-toggle" data-target="setup-pass2" aria-label="Mostrar contraseña"><span class="material-symbols-outlined">visibility</span></button>
+            </div>
+          </div>
+          <button type="submit" id="setup-create-btn" class="btn btn-primary btn-lg w-full">Crear cuenta de administrador</button>
+        </form>
+        <div class="login-footer"><a href="#" id="setup-back-to-welcome">Volver</a></div>
+      </div>
+
+      <!-- Paso 3: Éxito -->
+      <div id="setup-step-3" class="hidden">
+        <h1 class="login-title">¡Todo listo!</h1>
+        <p class="login-subtitle">Tu cuenta de administrador fue creada. Ahora inicia sesión con tu email y tu nueva contraseña.</p>
+        <button type="button" id="setup-done-btn" class="btn btn-primary btn-lg w-full">Ir al inicio de sesión</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5"></script>
   <script>document.addEventListener('click',function(e){const b=e.target.closest('.password-toggle');if(!b)return;const i=document.getElementById(b.dataset.target);if(!i)return;const p=i.type==='password';i.type=p?'text':'password';const s=b.querySelector('.material-symbols-outlined');if(s)s.textContent=p?'visibility_off':'visibility';b.setAttribute('aria-label',p?'Ocultar contraseña':'Mostrar contraseña')});</script>
-  <script type="module" src="/js/app.js?v=12.44.801"></script>
+  <script type="module" src="/js/app.js?v=12.44.802"></script>
 </body>
 </html>

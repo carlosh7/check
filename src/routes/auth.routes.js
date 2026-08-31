@@ -28,6 +28,7 @@ const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { schemas, validate } = require('../security/validation');
+const { validatePasswordStrength } = require('../security/password-policy');
 const { generateToken, verifyToken } = require('../security/jwt');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { authMiddleware } = require('../middleware/auth');
@@ -176,7 +177,16 @@ router.post('/signup', limiters.authLimiter, (req, res) => {
     const v = validate(schemas.signup, req.body);
     if (!v.valid) return res.status(400).json({ errors: v.errors });
 
-    const { username, password, role = 'PRODUCTOR', display_name } = v.data;
+    const { username, password, display_name } = v.data;
+
+    // v12.44.802 (cierra hueco): se ignora el role que envíe el cliente.
+    // Toda cuenta nueva nace PRODUCTOR; el rol real lo asigna un admin
+    // desde el panel de usuarios. Nunca se auto-asigna ADMIN vía signup.
+    const role = 'PRODUCTOR';
+
+    // v12.44.802: política de contraseñas (rechaza las expuestas en el repo)
+    const pwCheck = validatePasswordStrength(password);
+    if (!pwCheck.valid) return res.status(400).json({ errors: pwCheck.errors });
 
     try {
         const id = getValidId('users');
@@ -247,6 +257,11 @@ router.post('/reset-password', (req, res) => {
     if (!v.valid) return res.status(400).json({ errors: v.errors });
 
     const { code, new_password } = v.data;
+
+    // v12.44.802: la nueva contraseña no puede ser una de las expuestas
+    const pwCheck = validatePasswordStrength(new_password);
+    if (!pwCheck.valid) return res.status(400).json({ errors: pwCheck.errors });
+
     const reset = db.prepare("SELECT * FROM password_resets WHERE code = ? AND used = 0 AND expires_at > ?")
       .get(code, new Date().toISOString());
 
@@ -339,7 +354,11 @@ router.put('/me/password', authMiddleware(), (req, res) => {
         if (!bcrypt.compareSync(currentPassword, user.password)) {
             return res.status(400).json({ error: 'Contraseña actual incorrecta' });
         }
-        
+
+        // v12.44.802: política de contraseñas (fortaleza + expuestas)
+        const pwCheck = validatePasswordStrength(newPassword);
+        if (!pwCheck.valid) return res.status(400).json({ error: pwCheck.errors.join('. ') });
+
         const hashedPassword = bcrypt.hashSync(newPassword, 10);
         db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, req.userId);
         logAction(req, AUDIT_ACTIONS.USER_PASSWORD_CHANGED, { userId: req.userId });

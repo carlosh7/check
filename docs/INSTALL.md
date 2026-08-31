@@ -27,16 +27,16 @@ El script `setup.js` automatiza todo el proceso:
 3. **Instala dependencias** - Ejecuta `npm install`
 4. **Crea directorios necesarios** - Incluyendo `data/`
 5. **Inicializa base de datos** - Crea todas las tablas
-6. **Crea usuario admin** - `admin@check.com` / `admin123`
-7. **Inicia el servidor** - En puerto 3000 por defecto
+6. **Inicia el servidor** - En puerto 3000 por defecto
 
 ## 🌐 Acceso a la aplicación
 
 Una vez completada la instalación:
 
 - **URL:** http://localhost:3000
-- **Usuario:** admin@check.com
-- **Contraseña:** admin123
+- Al abrir la app por primera vez verás el **asistente de primer arranque**: crea ahí tu cuenta de administrador (email + contraseña fuerte de mínimo 10 caracteres con mayúscula, minúscula y número).
+- Desde **v12.44.802 no existen credenciales precargadas** (`admin@check.com`/`admin123` fue retirado por seguridad).
+- Alternativa headless: define `ADMIN_EMAIL` y `ADMIN_PASSWORD` en el entorno y el primer arranque creará ese admin sin wizard.
 
 ## 🔧 Configuración personalizada
 

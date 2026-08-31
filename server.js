@@ -234,6 +234,7 @@ app.set('trust proxy', 1);
 app.use('/api/', limiters.general);
 app.use('/api/login', limiters.auth);
 app.use('/api/signup', limiters.auth);
+app.use('/api/setup', limiters.auth);
 app.use('/api/password-reset', limiters.auth);
 app.use('/api/guests', limiters.guests);
 app.use('/api/events', limiters.guests);

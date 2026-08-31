@@ -1549,17 +1549,10 @@ function initSchema(db) {
     )`);
     try { db.exec("CREATE INDEX IF NOT EXISTS idx_epmap_conn ON ecommerce_product_map(connection_id)"); } catch(e) {}
 
-    // ═══ SEMILLA DE ADMIN POR DEFECTO ═══
-    const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
-    if (userCount.count === 0) {
-        const adminEmail = process.env.ADMIN_EMAIL || 'admin@check.com';
-        const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-        const adminId = uuidv4();
-        const adminHash = bcrypt.hashSync(adminPassword, 10);
-        db.prepare("INSERT OR IGNORE INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-          .run(adminId, adminEmail, adminHash, 'ADMIN', 'APPROVED', new Date().toISOString());
-        logger.info(`✓ Admin por defecto creado: ${adminEmail} / ${adminPassword}`);
-    }
+    // ═══ ADMIN INICIAL (solo por env explícito — v12.44.802) ═══
+    // Sin ADMIN_EMAIL + ADMIN_PASSWORD definidos NO se crea ningún usuario:
+    // el primer arranque usa el wizard web (POST /api/setup/admin).
+    seedAdminIfConfigured(db);
     
     // ─── Crear tabla de respaldo de configuracion de email (legacy, mantenido para compatibilidad) ───
     // Las tablas smtp_config e imap_config fueron reemplazadas por email_accounts
@@ -2004,4 +1997,44 @@ function initSchema(db) {
     try { db.exec("CREATE INDEX IF NOT EXISTS idx_plugin_logs_plugin ON plugin_logs(plugin_id)"); } catch(_) {}
 }
 
-module.exports = { initSchema };
+/**
+ * Siembra un admin inicial SOLO si el operador definió ADMIN_EMAIL y
+ * ADMIN_PASSWORD explícitamente en el entorno (automatización headless de
+ * Docker/CI). Si falta cualquiera de las dos, no se crea ningún usuario y el
+ * primer arranque lo resuelve el wizard web (GET/POST /api/setup).
+ *
+ * v12.44.802: se eliminaron los fallbacks 'admin@check.com' / 'admin123'
+ * (credenciales expuestas en el repo público — hallazgo P1-2 auditoría 2026-08).
+ *
+ * @param {import('better-sqlite3').Database} db
+ * @returns {boolean} true si se creó el admin
+ */
+function seedAdminIfConfigured(db) {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminEmail || !adminPassword) return false;
+
+    // Nunca sembrar una contraseña expuesta: la política la rechaza siempre
+    const { isExposedPassword } = require('../security/password-policy');
+    if (isExposedPassword(adminPassword)) {
+        logger.warn('[SEED] ADMIN_PASSWORD definida en el entorno es una contraseña expuesta — se ignora el seed. Usa el wizard de primer arranque.');
+        return false;
+    }
+
+    try {
+        const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
+        if (userCount.count > 0) return false;
+
+        const adminId = uuidv4();
+        const adminHash = bcrypt.hashSync(adminPassword, 10);
+        db.prepare("INSERT OR IGNORE INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+          .run(adminId, adminEmail.toLowerCase(), adminHash, 'ADMIN', 'APPROVED', new Date().toISOString());
+        logger.info(`✓ Admin inicial creado desde variables de entorno (${adminEmail.toLowerCase()})`);
+        return true;
+    } catch (e) {
+        logger.error('[SEED] Error sembrando admin inicial:', e.message);
+        return false;
+    }
+}
+
+module.exports = { initSchema, seedAdminIfConfigured };

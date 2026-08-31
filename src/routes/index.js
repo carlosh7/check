@@ -15,6 +15,7 @@ try {
     imageUploadMiddleware = (req, res, next) => next();
 }
 const authRoutes = require('./auth.routes');
+const setupRoutes = require('./setup.routes'); // Wizard de primer arranque (v12.44.802)
 const usersRoutes = require('./users.routes');
 const eventsRoutes = require('./events.routes');
 const guestsRoutes = require('./guests.routes');
@@ -140,6 +141,9 @@ function registerRoutes(app, rootDir) {
     
     // Auth (login, signup, password reset)
     app.use('/api', authRoutes);
+
+    // Setup wizard de primer arranque (v12.44.802) — solo útil sin usuarios
+    app.use('/api/setup', setupRoutes);
 
     // Version and health (público)
     app.use('/api', versionRoutes);

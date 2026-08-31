@@ -9,6 +9,7 @@ const { db } = require('../../database');
 const { getValidId, castId, getProducerGroups } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { schemas, validate } = require('../security/validation');
+const { validatePasswordStrength } = require('../security/password-policy');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 
 const logger = require("../utils/logger");
@@ -135,8 +136,10 @@ router.post('/', authMiddleware(['ADMIN']), (req, res) => {
         return res.status(400).json({ errors: ['username, password y display_name son requeridos'] });
     }
     
-    if (password.length < 6) {
-        return res.status(400).json({ errors: ['La contraseña debe tener al menos 6 caracteres'] });
+    // v12.44.802: política completa de contraseñas (fortaleza + expuestas)
+    const pwCheck = validatePasswordStrength(password);
+    if (!pwCheck.valid) {
+        return res.status(400).json({ errors: pwCheck.errors });
     }
     
     // Validar email
@@ -181,6 +184,10 @@ router.post('/invite', authMiddleware(['ADMIN']), (req, res) => {
 
     const { username, password, role, display_name, phone, group_id } = v.data;
     const id = getValidId('users');
+
+    // v12.44.802: la contraseña no puede ser una de las expuestas
+    const pwCheck = validatePasswordStrength(password);
+    if (!pwCheck.valid) return res.status(400).json({ errors: pwCheck.errors });
 
     try {
         const hashedPassword = bcrypt.hashSync(password, 10);
@@ -234,6 +241,10 @@ router.put('/:id/password', authMiddleware(), (req, res) => {
         return res.status(403).json({ error: 'Acceso Denegado' });
     }
 
+    // v12.44.802: la nueva contraseña no puede ser una de las expuestas
+    const pwCheck = validatePasswordStrength(v.data.newPassword);
+    if (!pwCheck.valid) return res.status(400).json({ errors: pwCheck.errors });
+
     const hashedPassword = bcrypt.hashSync(v.data.newPassword, 10);
     db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, targetId);
 
@@ -246,7 +257,8 @@ const updateUserBodySchema = z.object({
     username: z.string().email('Email inválido').max(200).optional(),
     display_name: z.string().max(100).optional(),
     role: z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'LOGISTICO', 'ORGANIZER']).optional(),
-    password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').max(200).optional()
+    // v12.44.802: usa la política fuerte centralizada (antes min 6)
+    password: require('../security/password-policy').strongPasswordSchema.optional()
 });
 
 // Actualizar usuario (editar colaborador)
@@ -303,6 +315,10 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         params.push(role);
     }
     if (password) {
+        // v12.44.802: la nueva contraseña no puede ser una de las expuestas
+        const pwCheck = validatePasswordStrength(password);
+        if (!pwCheck.valid) return res.status(400).json({ errors: pwCheck.errors });
+
         const hashedPassword = bcrypt.hashSync(password, 10);
         updates.push("password = ?");
         params.push(hashedPassword);

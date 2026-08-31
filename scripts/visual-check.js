@@ -9,6 +9,10 @@ const fs = require('fs');
 const BASE_URL = 'http://localhost:3001';
 const SCREENSHOT_DIR = path.join(__dirname, '..', 'screenshots');
 
+// v12.44.802: credenciales SOLO desde entorno (sin defaults expuestos)
+const ADMIN_USER = process.env.E2E_USER;
+const ADMIN_PASS = process.env.E2E_PASS;
+
 // Ensure screenshot directory exists
 if (!fs.existsSync(SCREENSHOT_DIR)) fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 
@@ -76,8 +80,9 @@ async function run() {
     // ═══ TEST 2: Login Flow ═══
     console.log('📸 Test 2: Login flow');
     try {
-        await page.fill('#login-email', 'admin@check.com');
-        await page.fill('#login-password', 'admin123');
+        if (!ADMIN_USER || !ADMIN_PASS) throw new Error('Define E2E_USER y E2E_PASS en el entorno para probar el login');
+        await page.fill('#login-email', ADMIN_USER);
+        await page.fill('#login-password', ADMIN_PASS);
         await page.click('#login-btn');
         await page.waitForTimeout(3000);
         

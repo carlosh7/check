@@ -2,6 +2,13 @@
 const { chromium } = require('playwright');
 const path = require('path');
 (async () => {
+    // v12.44.802: credenciales SOLO desde entorno (sin defaults expuestos)
+    const ADMIN_USER = process.env.E2E_USER;
+    const ADMIN_PASS = process.env.E2E_PASS;
+    if (!ADMIN_USER || !ADMIN_PASS) {
+        console.error('✗ Faltan credenciales: define E2E_USER y E2E_PASS en el entorno.');
+        process.exit(1);
+    }
     const BASE = 'http://localhost:3000';
     const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] });
     const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
@@ -13,8 +20,8 @@ const path = require('path');
 
     // Login real por formulario
     await page.goto(BASE + '/');
-    await page.fill('#login-email', 'admin@example.com');
-    await page.fill('#login-password', 'changeme123');
+    await page.fill('#login-email', ADMIN_USER);
+    await page.fill('#login-password', ADMIN_PASS);
     await page.click('#login-btn');
     await page.waitForSelector('#app-container', { timeout: 15000 });
     console.log('✓ login → app-container visible');

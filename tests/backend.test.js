@@ -3,9 +3,12 @@
  * Cubre: auth, events, guests, public, webhooks, payments
  */
 require('dotenv').config();
-// Credenciales deterministas para el seed (evita carrera con .env ambiente)
-process.env.ADMIN_EMAIL = 'admin@check.com';
-process.env.ADMIN_PASSWORD = 'admin123';
+// Credenciales deterministas para el seed (evita carrera con .env ambiente).
+// v12.44.802: el seed solo funciona con env explícita y rechaza contraseñas
+// expuestas (admin123/changeme123), por eso la contraseña debe cumplir la
+// política fuerte de src/security/password-policy.
+process.env.ADMIN_EMAIL = 'ci-admin@check.local';
+process.env.ADMIN_PASSWORD = 'CiTest-Admin-2026';
 const request = require('supertest');
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');

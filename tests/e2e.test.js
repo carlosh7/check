@@ -10,6 +10,12 @@ const { generateToken } = require('../src/security/jwt');
 
 let app, adminToken, eventId, guestId;
 
+// v12.44.802: credenciales desde entorno (sin defaults expuestos en el repo).
+// Deben coincidir con el admin real de la BD objetivo (seed por ADMIN_EMAIL/
+// ADMIN_PASSWORD en arranques headless, o el admin creado por el wizard).
+const E2E_ADMIN_USER = process.env.E2E_USER || process.env.ADMIN_EMAIL;
+const E2E_ADMIN_PASS = process.env.E2E_PASS || process.env.ADMIN_PASSWORD;
+
 beforeAll(() => {
     app = express();
     app.use(express.json());
@@ -29,7 +35,8 @@ beforeAll(() => {
 
 describe('E2E: Auth Flow', () => {
     test('Login returns valid JWT', async () => {
-        const res = await request(app).post('/api/login').send({ username: 'admin@check.com', password: 'admin123' });
+        if (!E2E_ADMIN_USER || !E2E_ADMIN_PASS) return; // sin credenciales en env: omitir
+        const res = await request(app).post('/api/login').send({ username: E2E_ADMIN_USER, password: E2E_ADMIN_PASS });
         expect(res.status).toBe(200);
         expect(res.body.success).toBe(true);
         expect(res.body.token).toBeDefined();

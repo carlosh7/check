@@ -37,7 +37,7 @@ import { AiSecurity } from './modules/features/ai-security.js?v=12.44.765';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.516';
+const VERSION = '12.44.802';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -6435,6 +6435,46 @@ const App = window.App = {
         }
     },
 
+    // ─── Wizard de primer arranque (v12.44.802) ───
+    // Si la instalación aún no tiene usuarios, este wizard sustituye al login
+    // hasta crear el primer administrador (POST /api/setup/admin).
+    setupWizardActive: false,
+
+    showSetupWizard() {
+        this.setupWizardActive = true;
+        const loginEl = document.getElementById('view-login');
+        if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
+        const recoveryEl = document.getElementById('recovery-form');
+        if (recoveryEl) recoveryEl.classList.add('hidden');
+        const signupEl = document.getElementById('signup-form');
+        if (signupEl) signupEl.classList.add('hidden');
+        const wizard = document.getElementById('setup-wizard');
+        if (wizard) {
+            wizard.classList.remove('hidden');
+            this._setSetupStep(1);
+        }
+    },
+
+    _setSetupStep(step) {
+        [1, 2, 3].forEach(n => {
+            const el = document.getElementById('setup-step-' + n);
+            if (el) el.classList.toggle('hidden', n !== step);
+        });
+        const bar = document.getElementById('setup-progress-bar');
+        if (bar) bar.style.width = Math.min(step * 33, 100) + '%';
+        const firstInput = document.getElementById(step === 2 ? 'setup-name' : null);
+        if (firstInput) firstInput.focus();
+    },
+
+    completeSetupWizard() {
+        this.setupWizardActive = false;
+        const wizard = document.getElementById('setup-wizard');
+        if (wizard) wizard.classList.add('hidden');
+        this._showingView = null;
+        this.showView('login');
+        this._notifyAction('Instalación protegida', 'Administrador creado. Inicia sesión con tu nueva cuenta.', 'success');
+    },
+
     // Agenda
     loadEventAgenda: async function(eventId) {
         try {
@@ -6518,6 +6558,16 @@ const App = window.App = {
         }
         
         if (viewName === 'login') {
+            // Wizard de primer arranque activo: el login permanece oculto
+            // hasta que se cree el primer administrador (v12.44.802)
+            if (this.setupWizardActive) {
+                const loginEl = document.getElementById('view-login');
+                if (loginEl) {
+                    loginEl.classList.add('hidden');
+                    loginEl.style.display = 'none';
+                }
+                return;
+            }
             const loginEl = document.getElementById('view-login');
             if (loginEl) {
                 loginEl.classList.remove('hidden');
@@ -18321,6 +18371,21 @@ async function initApp() {
     // 0.8. CARGAR VERSIÓN DE LA APLICACIÓN (AUTOMÁTICO)
     App.loadAppVersion();
 
+    // 0.9. WIZARD DE PRIMER ARRANQUE (v12.44.802): si la instalación todavía
+    // no tiene usuarios, el wizard sustituye al login hasta crear el primer
+    // admin. Si la verificación falla, se continúa con el flujo normal (fail-open).
+    let setupNeeded = false;
+    try {
+        const setupRes = await fetch('/api/setup/status');
+        if (setupRes.ok) {
+            const setupData = await setupRes.json();
+            setupNeeded = !!(setupData && setupData.needsSetup);
+        }
+    } catch (e) {
+        console.warn('[SETUP] No se pudo verificar el estado de instalación:', e);
+    }
+    if (setupNeeded) App.showSetupWizard();
+
     // 1. RESTORE SESSION FIRST
     let savedUser = null;
     try {
@@ -18329,7 +18394,11 @@ async function initApp() {
         console.warn("[AUTH] localStorage no disponible:", e);
     }
     
-    if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
+    if (setupNeeded) {
+        // Wizard activo: no restaurar sesión (una instalación sin usuarios
+        // no puede tener una sesión válida). Los listeners de más abajo
+        // (incluido el wizard) sí se registran igualmente.
+    } else if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
         try {
             const user = JSON.parse(savedUser);
             if (user && (user.userId || user.token)) {
@@ -18620,6 +18689,68 @@ async function initApp() {
             document.getElementById('login-form')?.classList.remove('hidden');
         } catch(err) { App._notifyAction('Error', 'Error de conexión.', 'error'); }
     });
+
+    // ── Wizard de primer arranque (v12.44.802) ──
+    function showSetupMessage(msg, isError) {
+        const el = document.getElementById('setup-message');
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.remove('hidden');
+        el.style.color = isError ? '#f87171' : '#4ade80';
+    }
+    cl('setup-start-btn', () => App._setSetupStep(2));
+    cl('setup-back-to-welcome', (e) => { e.preventDefault(); App._setSetupStep(1); });
+    const setupPassInput = document.getElementById('setup-pass');
+    setupPassInput?.addEventListener('input', () => {
+        const hintEl = document.getElementById('setup-pass-hint');
+        if (!hintEl) return;
+        const v = setupPassInput.value;
+        if (!v) {
+            hintEl.textContent = 'Mínimo 10 caracteres, con mayúscula, minúscula y número.';
+            hintEl.style.color = '';
+            return;
+        }
+        const missing = [];
+        if (v.length < 10) missing.push('10+ caracteres');
+        if (!/[A-Z]/.test(v)) missing.push('mayúscula');
+        if (!/[a-z]/.test(v)) missing.push('minúscula');
+        if (!/[0-9]/.test(v)) missing.push('número');
+        if (missing.length === 0) { hintEl.textContent = '✓ Contraseña válida'; hintEl.style.color = '#4ade80'; }
+        else { hintEl.textContent = 'Falta: ' + missing.join(', '); hintEl.style.color = '#fbbf24'; }
+    });
+    sf('form-setup-admin', async () => {
+        const name = document.getElementById('setup-name')?.value.trim();
+        const email = document.getElementById('setup-email')?.value.trim();
+        const pass = document.getElementById('setup-pass')?.value;
+        const pass2 = document.getElementById('setup-pass2')?.value;
+        if (!name || !email || !pass) return showSetupMessage('Completa todos los campos', true);
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showSetupMessage('Ingresa un email válido', true);
+        if (pass !== pass2) return showSetupMessage('Las contraseñas no coinciden', true);
+        const btn = document.getElementById('setup-create-btn');
+        const prevText = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Creando...';
+        try {
+            const res = await fetch('/api/setup/admin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: email, password: pass, display_name: name })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success) {
+                showSetupMessage('', false);
+                document.getElementById('setup-message')?.classList.add('hidden');
+                App._setSetupStep(3);
+            } else {
+                const msg = (data.errors && data.errors.join('. ')) || data.error || 'No se pudo crear la cuenta';
+                showSetupMessage(msg, true);
+            }
+        } catch (err) {
+            showSetupMessage('No se pudo contactar con el servidor', true);
+        } finally {
+            btn.disabled = false; btn.textContent = prevText;
+        }
+    });
+    cl('setup-done-btn', () => App.completeSetupWizard());
 
     // Modales Legales (Links del Login)
     async function openLegalModal(key, title) {

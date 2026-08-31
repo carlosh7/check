@@ -68,7 +68,7 @@ db.pragma('cache_size = -32000');
 db.pragma('foreign_keys = ON');
 
 // ═══ SCHEMA (extraído a src/utils/schema.js para mantenibilidad) ═══
-const { initSchema } = require('./src/utils/schema');
+const { initSchema, seedAdminIfConfigured } = require('./src/utils/schema');
 initSchema(db);
 try { db.exec("ALTER TABLE events ADD COLUMN created_at TEXT"); } catch (_) {}
 
@@ -1035,17 +1035,12 @@ db.exec(`CREATE TABLE IF NOT EXISTS token_blacklist (
 try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_token_blacklist_jti ON token_blacklist(token_jti)"); } catch (_) {}
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_token_blacklist_expires ON token_blacklist(expires_at)"); } catch (_) {}
 
-// ═══ SEMILLA DE ADMIN POR DEFECTO ═══
-const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
-if (userCount.count === 0) {
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@check.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-    const adminId = uuidv4();
-    const adminHash = bcrypt.hashSync(adminPassword, 10);
-    db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-      .run(adminId, adminEmail, adminHash, 'ADMIN', 'APPROVED', new Date().toISOString());
-    console.log(`✓ Admin por defecto creado: ${adminEmail} / ${adminPassword}`);
-}
+// ═══ ADMIN INICIAL (solo por env explícito — v12.44.802) ═══
+// El bloque que sembraba admin@check.com/admin123 por defecto fue retirado:
+// sin ADMIN_EMAIL + ADMIN_PASSWORD en el entorno, el primer arranque usa el
+// wizard web (POST /api/setup/admin). Esta llamada es idempotente y no-op si
+// initSchema ya sembró o si no hay env definida.
+seedAdminIfConfigured(db);
 
 // ─── Crear tabla de respaldo de configuracion de email (legacy, mantenido para compatibilidad) ───
 // Las tablas smtp_config e imap_config fueron reemplazadas por email_accounts

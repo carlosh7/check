@@ -6,8 +6,13 @@ const path = require('path');
 const OUT = '/tmp/opencode/e2e';
 fs.mkdirSync(OUT, { recursive: true });
 const GROUP = (process.argv[2] || 'ALL').toUpperCase();
-const ADMIN_USER = process.env.E2E_USER || 'admin@example.com';
-const ADMIN_PASS = process.env.E2E_PASS || 'changeme123';
+// v12.44.802: credenciales SOLO desde entorno (sin defaults expuestos)
+const ADMIN_USER = process.env.E2E_USER;
+const ADMIN_PASS = process.env.E2E_PASS;
+if (!ADMIN_USER || !ADMIN_PASS) {
+    console.error('✗ Faltan credenciales: define E2E_USER y E2E_PASS en el entorno (ej: E2E_USER=tu@correo.com E2E_PASS=\'TuClave123\' node scripts/test-all-features.js A)');
+    process.exit(1);
+}
 const results = [];
 const consoleErrors = [];
 const apiErrors = [];

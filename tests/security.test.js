@@ -108,7 +108,7 @@ describe('Validation - schemas', () => {
         test('should accept valid signup data', () => {
             const data = {
                 username: 'test@example.com',
-                password: 'password123',
+                password: 'Password123',
                 display_name: 'Test User'
             };
             const result = validate(schemas.signup, data);
@@ -125,7 +125,7 @@ describe('Validation - schemas', () => {
             const result = validate(schemas.signup, data);
             
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('6 caracteres'))).toBe(true);
+            expect(result.errors.some(e => e.includes('10 caracteres'))).toBe(true);
         });
         
         test('should accept valid roles', () => {
@@ -134,7 +134,7 @@ describe('Validation - schemas', () => {
             validRoles.forEach(role => {
                 const data = {
                     username: 'test@example.com',
-                    password: 'password123',
+                    password: 'Password123',
                     display_name: 'Test',
                     role
                 };

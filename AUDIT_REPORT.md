@@ -3,6 +3,8 @@
 **Auditoría técnica independiente** · Fecha: 2026-08-21 · Alcance: commit `85f52be` (1.955 commits)
 **Método:** análisis estático + verificación runtime real (`npm ci`, tests, arranque, curl). No se modificó código fuente.
 
+> **ACTUALIZACIÓN v12.44.802 (2026-08-30):** el hallazgo **P1-2** (secretos con default débil conocido) quedó **RESUELTO**: se eliminaron los seeds de admin con credenciales expuestas (`admin@check.com`/`admin123` y `admin@example.com`/`changeme123`) de `schema.js`, `database.js`, `setup.js` y `.env.example`; el seeding solo procede con `ADMIN_EMAIL`+`ADMIN_PASSWORD` explícitas en el entorno; y las instalaciones nuevas crean su admin mediante un **wizard de primer arranque** (`GET/POST /api/setup`, ver `docs/user/07-administracion/12-primer-arranque.md`). Además, la política centralizada de contraseñas (`src/security/password-policy.js`) prohíbe permanentemente las contraseñas expuestas y exige 10+ caracteres con mayúscula, minúscula y número en todos los flujos que fijan contraseña, y `POST /api/signup` ya ignora el rol enviado por el cliente (siempre `PRODUCTOR`). Tests: **279/279** (16 suites).
+
 ---
 
 ## 1. Resumen Ejecutivo
@@ -100,7 +102,7 @@ Revisión manual de rutas críticas: queries parametrizadas (prepared statements
   404 /.env           404 /data/system/database.db (solo porque DATA_PATH apunta fuera)
   ```
   En un despliegue sin `DATA_PATH` externo, **la base de datos SQLite completa quedaría descargable** en `/data/system/database.db`.
-- 🟠 **P1 — Secretos con default débil conocido**: `.env.example` incluye `JWT_SECRET=genera_una_clave_unica` y `ADMIN_PASSWORD=changeme123`. Si el operador no edita, los tokens son falsificables con clave pública en el repo (jwt.js exige presencia, no fortaleza).
+- 🟠 **P1 — Secretos con default débil conocido** → ✅ **RESUELTO en v12.44.802**: `ADMIN_PASSWORD=changeme123` retirado de `.env.example` (el admin ya no se siembra por defecto: wizard de primer arranque); `JWT_SECRET=genera_una_clave_unica` placeholder sigue presente pero `scripts/bootstrap-env.js` lo rota automáticamente en el arranque/postinstall.
 - 🟠 CSP con `'unsafe-inline'` + 4 CDNs (`server.js:134-136`) y `frameSrc:*`: debilita la defensa XSS del frontend (que renderiza HTML dinámico).
 - ✅ Fortalezas: helmet completo, rate limiting granular (~25 buckets), CSRF middleware, bcrypt, blacklist JWT con jti + limpieza programada, audit logging, path-traversal guard en /uploads, multer con límites y mime-whitelist, Swagger desactivado en producción.
 
@@ -131,7 +133,7 @@ Revisión manual de rutas críticas: queries parametrizadas (prepared statements
 | eslint | `npx eslint .` | ❌ 1.031 errores / 2.742 warnings |
 | Build | N/A (sin build step) | — |
 | Arranque | `DATA_PATH=/tmp/opencode/data_check PORT=3777 node server.js` | ✅ arriba en ~5s (tras sembrar admin manualmente, porque el seed automático falla por B-1) |
-| Login | POST `/api/login` admin@check.com/admin123 | ✅ token JWT válido emitido |
+| Login | POST `/api/login` admin@check.com/admin123 | ✅ token JWT válido emitido *(nota v12.44.802: esas credenciales fueron retiradas; hoy el primer admin lo crea el wizard o env explícita)* |
 | API autenticada | GET `/api/events` con/sin Bearer | ✅ 200 con token / ✅ 401 sin token |
 | Exposición estática | GET `/package.json`, `/server.js`, etc. | ❌ 200 en todos (P0) |
 
@@ -160,7 +162,7 @@ Revisión manual de rutas críticas: queries parametrizadas (prepared statements
 | P0-2 | P0 | Raíz del proyecto servida por HTTP (código fuente; riesgo de descargar BD) | server.js:274 |
 | P0-3 | P0 | `npm test` se autodestruye vía `process.exit(1)` en require de BD | database.js:39 + tests/backend.test.js:9 |
 | P1-1 | P1 | `DATA_PATH=/home/data_check` imposible sin root; fallo silencioso→exit | .env.example:22, database.js:11-39 |
-| P1-2 | P1 | JWT_SECRET/ADMIN_PASSWORD con defaults débiles shipeados | .env.example:5,16 |
+| P1-2 | P1 | JWT_SECRET/ADMIN_PASSWORD con defaults débiles shipeados | ✅ **RESUELTO v12.44.802**: seeds eliminados + wizard de primer arranque + política de contraseñas (`src/security/password-policy.js`); `.env.example` sin ADMIN_* por defecto |
 | P1-3 | P1 | backend.test.js cuelga Jest (open handles sin --forceExit) | package.json:11 |
 | P2-1 | P2 | Token JWT aceptado por query string | src/middleware/auth.js:51 |
 | P2-2 | P2 | Suite visual.test.js sin tests (falsa señal de cobertura) | tests/visual.test.js |

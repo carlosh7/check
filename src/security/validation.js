@@ -14,9 +14,13 @@
 
 const logger = require('../utils/logger');
 const z = require('zod');
+// v12.44.802: toda contraseña nueva usa la política fuerte centralizada
+// (longitud mínima + mayúscula + minúscula + número). La lista de contraseñas
+// expuestas se valida por separado con isExposedPassword()/validatePasswordStrength().
+const { strongPasswordSchema } = require('./password-policy');
 
 const emailSchema = z.string().email('Email inválido');
-const passwordSchema = z.string().min(6, 'La contraseña debe tener al menos 6 caracteres');
+const passwordSchema = strongPasswordSchema;
 const uuidSchema = z.string().min(1, 'ID requerido');
 
 /**
@@ -36,6 +40,16 @@ const schemas = {
         password: passwordSchema,
         display_name: z.string().min(1, 'Nombre requerido').max(100),
         role: z.enum(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'ORGANIZER']).optional()
+    }),
+
+    /**
+     * v12.44.802: Wizard de primer arranque — creación del primer admin.
+     * El endpoint además exige que no exista ningún usuario en la BD.
+     */
+    setupAdmin: z.object({
+        username: emailSchema,
+        password: passwordSchema,
+        display_name: z.string().min(1, 'Nombre requerido').max(100)
     }),
 
     createUser: z.object({

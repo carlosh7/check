@@ -1,9 +1,19 @@
 /**
  * validate-production.js — Validación integral en vivo, como producción.
  * Capas: infraestructura → seguridad → auth → features → puentes → recovery/2FA.
- * Uso: node scripts/validate-production.js [baseUrl]
+ * Uso: VALIDATE_USER=tu@correo.com VALIDATE_PASS='TuClave123' node scripts/validate-production.js [baseUrl]
+ * (v12.44.802: credenciales SOLO desde entorno — sin defaults expuestos.
+ *  NOTA: valida el ciclo recovery/2FA y al final RESTAURA la contraseña original.)
  */
 const BASE = process.argv[2] || 'http://localhost:3000';
+const TARGET_USER = process.env.VALIDATE_USER || process.env.E2E_USER || process.env.ADMIN_EMAIL;
+const TARGET_PASS = process.env.VALIDATE_PASS || process.env.E2E_PASS || process.env.ADMIN_PASSWORD;
+if (!TARGET_USER || !TARGET_PASS) {
+    console.error('✗ Faltan credenciales: define VALIDATE_USER y VALIDATE_PASS (o E2E_USER/E2E_PASS) en el entorno.');
+    process.exit(1);
+}
+// Contraseña temporal para el ciclo recovery (debe cumplir la política fuerte)
+const RECOVERY_PASS = 'Prod-Valida-2026';
 const results = [];
 const pass = (n, x = '') => { results.push(`PASS ${n}${x ? ' — ' + x : ''}`); console.log(`✅ ${n}${x ? ' — ' + x : ''}`); };
 const fail = (n, e) => { results.push(`FAIL ${n} — ${e}`); console.log(`❌ ${n} — ${e}`); };
@@ -41,9 +51,9 @@ const fail = (n, e) => { results.push(`FAIL ${n} — ${e}`); console.log(`❌ ${
 
     // ═══ CAPA 2: AUTH ═══
     console.log('\n━━ CAPA 2: Autenticación ━━');
-    let login = await req('POST', '/api/login', { body: { username: 'admin@example.com', password: 'clave-incorrecta' } });
+    let login = await req('POST', '/api/login', { body: { username: TARGET_USER, password: 'clave-incorrecta' } });
     login.status === 401 ? pass('Login rechaza credenciales malas') : fail('Login malas', login.status);
-    login = await req('POST', '/api/login', { body: { username: 'admin@example.com', password: 'changeme123' } });
+    login = await req('POST', '/api/login', { body: { username: TARGET_USER, password: TARGET_PASS } });
     const TOKEN = login.data.token;
     TOKEN ? pass('Login válido + JWT') : fail('Login', 'sin token');
     const AH = () => ({ token: TOKEN });
@@ -107,30 +117,30 @@ const fail = (n, e) => { results.push(`FAIL ${n} — ${e}`); console.log(`❌ ${
 
     // ═══ CAPA 6: RECOVERY + 2FA E2E ═══
     console.log('\n━━ CAPA 6: Recovery y 2FA ━━');
-    await req('POST', '/api/password-reset-request', { body: { username: 'admin@example.com' } });
+    await req('POST', '/api/password-reset-request', { body: { username: TARGET_USER } });
     const { db } = require('/home/jim/repos/check/database');
     const reset = db.prepare('SELECT code FROM password_resets ORDER BY created_at DESC LIMIT 1').get();
     r = await req('POST', '/api/verify-reset-code', { body: { code: reset.code } });
     r.data.valid ? pass('Recovery: código verificado') : fail('Recovery verify', JSON.stringify(r.data).slice(0, 50));
-    r = await req('POST', '/api/reset-password', { body: { code: reset.code, new_password: 'prod-valida-123' } });
+    r = await req('POST', '/api/reset-password', { body: { code: reset.code, new_password: RECOVERY_PASS } });
     r.data.success ? pass('Recovery: contraseña restablecida') : fail('Recovery reset', JSON.stringify(r.data).slice(0, 50));
-    r = await req('POST', '/api/login', { body: { username: 'admin@example.com', password: 'prod-valida-123' } });
+    r = await req('POST', '/api/login', { body: { username: TARGET_USER, password: RECOVERY_PASS } });
     r.data.token ? pass('Login con contraseña recuperada') : fail('Login post-recovery', 'sin token');
 
     // 2FA E2E completo
     const speakeasy = require('speakeasy');
     const secret = speakeasy.generateSecret({ name: 'ProdTest' }).base32;
-    db.prepare('UPDATE users SET totp_secret = ?, totp_enabled = 1 WHERE username = ?').run(secret, 'admin@example.com');
+    db.prepare('UPDATE users SET totp_secret = ?, totp_enabled = 1 WHERE username = ?').run(secret, TARGET_USER);
     const code = speakeasy.totp({ secret, encoding: 'base32' });
-    r = await req('POST', '/api/login', { body: { username: 'admin@example.com', password: 'prod-valida-123' } });
+    r = await req('POST', '/api/login', { body: { username: TARGET_USER, password: RECOVERY_PASS } });
     r.data.requires2FA ? pass('2FA: login exige código') : fail('2FA exigencia', JSON.stringify(r.data).slice(0, 50));
-    r = await req('POST', '/api/login', { body: { username: 'admin@example.com', password: 'prod-valida-123', totp_token: code } });
+    r = await req('POST', '/api/login', { body: { username: TARGET_USER, password: RECOVERY_PASS, totp_token: code } });
     r.data.token ? pass('2FA: login con TOTP válido') : fail('2FA login', 'sin token');
     // desactivar 2FA para dejar estado limpio
     const token2 = r.data.token;
     await req('POST', '/api/me/2fa/disable', { token: token2 });
     // restaurar contraseña original
-    db.prepare('UPDATE users SET password = ? WHERE username = ?').run(require('bcryptjs').hashSync('changeme123', 10), 'admin@example.com');
+    db.prepare('UPDATE users SET password = ? WHERE username = ?').run(require('bcryptjs').hashSync(TARGET_PASS, 10), TARGET_USER);
     pass('Estado 2FA restaurado (limpio)');
 
     // ═══ RESUMEN ═══

@@ -36,6 +36,7 @@
 - [02. Espacios (Venues)](07-administracion/02-espacios.md)
 - [03. Google Sheets](07-administracion/03-google-sheets.md)
 - [04. Google Sheets sincronización](07-administracion/04-google-sheets.md)
+- [12. Primer arranque (wizard)](07-administracion/12-primer-arranque.md)
 
 ## 08 — Integraciones
 - [02. Landing + QR](08-integraciones/02-landing-qr.md)
