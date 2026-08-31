@@ -4,14 +4,21 @@
  */
 
 require('dotenv').config();
-// Credenciales deterministas para el seed (no depender del .env ambiente).
-// v12.44.802: deben cumplir la política fuerte (rechaza las expuestas).
-process.env.ADMIN_EMAIL = 'ci-admin@check.local';
-process.env.ADMIN_PASSWORD = 'CiTest-Admin-2026';
+// v12.44.803: CERO credenciales literales en el repo (alerta GitGuardian).
+// Fixture de admin con contraseña aleatoria en runtime (ver backend.test.js).
 const request = require('supertest');
 const express = require('express');
+const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs');
 const { db } = require('../database');
 const { generateToken } = require('../src/security/jwt');
+
+(function ensureAdminFixture() {
+    const admin = db.prepare("SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1").get();
+    if (admin) return;
+    db.prepare("INSERT INTO users (id, username, password, role, status, display_name, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .run(uuidv4(), 'ci-admin@check.local', bcrypt.hashSync(uuidv4(), 10), 'ADMIN', 'APPROVED', 'Admin de pruebas', new Date().toISOString());
+})();
 
 function getAdminToken() {
     const admin = db.prepare("SELECT id, username, role FROM users WHERE role = 'ADMIN' LIMIT 1").get();

@@ -20,11 +20,18 @@ delete process.env.ADMIN_PASSWORD;
 
 const request = require('supertest');
 const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 const { db } = require('../database');
+
+// v12.44.803: CERO contraseñas literales en el repo (alerta GitGuardian).
+// Los datos de prueba se generan en runtime: cumplen la política fuerte
+// (mayúscula+minúscula+número, 10+) pero nunca quedan escritos en el código.
+const TEST_PASSWORD = 'Wz7' + uuidv4().replace(/-/g, '') + 'Qr';
+const OTHER_PASSWORD = 'Pq8' + uuidv4().replace(/-/g, '') + 'Rn';
 
 const ADMIN_PAYLOAD = {
     username: 'nuevo-admin@test.local',
-    password: 'Clave-Segura-2026',
+    password: TEST_PASSWORD,
     display_name: 'Admin del Wizard'
 };
 
@@ -87,7 +94,7 @@ describe('Setup Wizard: flujo de primer arranque', () => {
 
     test('Segundo POST /api/setup/admin → 403 (wizard cerrado para siempre)', async () => {
         const res = await request(app).post('/api/setup/admin').send({
-            username: 'intruso@test.local', password: 'Intento-2026-A', display_name: 'Intruso'
+            username: 'intruso@test.local', password: OTHER_PASSWORD, display_name: 'Intruso'
         });
         expect(res.status).toBe(403);
         expect(res.body.success).toBe(false);
@@ -107,7 +114,7 @@ describe('Setup Wizard: flujo de primer arranque', () => {
 
     test('Signup ignora el role del cliente → siempre PRODUCTOR/PENDING', async () => {
         const res = await request(app).post('/api/signup').send({
-            username: 'colado@test.local', password: 'Clave-Segura-2026', display_name: 'Colado', role: 'ADMIN'
+            username: 'colado@test.local', password: TEST_PASSWORD, display_name: 'Colado', role: 'ADMIN'
         });
         expect(res.status).toBe(200);
         const row = db.prepare("SELECT * FROM users WHERE username = 'colado@test.local'").get();
@@ -134,13 +141,13 @@ describe('Política de contraseñas (password-policy)', () => {
     });
 
     test('acepta una contraseña que cumple todo', () => {
-        expect(validatePasswordStrength('Clave-Segura-2026').valid).toBe(true);
+        expect(validatePasswordStrength(TEST_PASSWORD).valid).toBe(true);
     });
 
     test('detecta las contraseñas expuestas del repo', () => {
         expect(isExposedPassword('admin123')).toBe(true);
         expect(isExposedPassword('changeme123')).toBe(true);
-        expect(isExposedPassword('Clave-Segura-2026')).toBe(false);
+        expect(isExposedPassword(TEST_PASSWORD)).toBe(false);
     });
 
     test('rechaza las contraseñas expuestas como contraseña nueva', () => {

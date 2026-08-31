@@ -37,7 +37,7 @@ import { AiSecurity } from './modules/features/ai-security.js?v=12.44.765';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.802';
+const VERSION = '12.44.803';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');

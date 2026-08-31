@@ -66,7 +66,8 @@ jobs:
           DATA_PATH: /tmp/e2e-data
           JWT_SECRET: e2e-ci-secret-000000000000
           ADMIN_EMAIL: ci-admin@check.local
-          ADMIN_PASSWORD: CiOnly-Setup-2026
+          # v12.44.803: contraseña dinámica por run — CERO credenciales literales en el repo
+          ADMIN_PASSWORD: ci-run-${{ github.run_id }}-Aa1
           NODE_ENV: production
         run: |
           node server.js &
@@ -75,5 +76,5 @@ jobs:
       - name: Batería E2E grupo A (core)
         env:
           E2E_USER: ci-admin@check.local
-          E2E_PASS: CiOnly-Setup-2026
+          E2E_PASS: ci-run-${{ github.run_id }}-Aa1
         run: node scripts/test-all-features.js A

@@ -12,8 +12,9 @@ if (!TARGET_USER || !TARGET_PASS) {
     console.error('✗ Faltan credenciales: define VALIDATE_USER y VALIDATE_PASS (o E2E_USER/E2E_PASS) en el entorno.');
     process.exit(1);
 }
-// Contraseña temporal para el ciclo recovery (debe cumplir la política fuerte)
-const RECOVERY_PASS = 'Prod-Valida-2026';
+// Contraseña temporal para el ciclo recovery — generada en runtime (v12.44.803:
+// CERO contraseñas literales en el repo). Cumple la política fuerte.
+const RECOVERY_PASS = 'Pv' + require('crypto').randomBytes(6).toString('hex') + 'A1';
 const results = [];
 const pass = (n, x = '') => { results.push(`PASS ${n}${x ? ' — ' + x : ''}`); console.log(`✅ ${n}${x ? ' — ' + x : ''}`); };
 const fail = (n, e) => { results.push(`FAIL ${n} — ${e}`); console.log(`❌ ${n} — ${e}`); };

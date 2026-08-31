@@ -3,17 +3,23 @@
  * Cubre: auth, events, guests, public, webhooks, payments
  */
 require('dotenv').config();
-// Credenciales deterministas para el seed (evita carrera con .env ambiente).
-// v12.44.802: el seed solo funciona con env explícita y rechaza contraseñas
-// expuestas (admin123/changeme123), por eso la contraseña debe cumplir la
-// política fuerte de src/security/password-policy.
-process.env.ADMIN_EMAIL = 'ci-admin@check.local';
-process.env.ADMIN_PASSWORD = 'CiTest-Admin-2026';
+// v12.44.803: CERO credenciales literales en el repo (alerta GitGuardian).
+// Si la BD no tiene admin, se inserta un fixture con contraseña aleatoria
+// generada en runtime — los tests generan el JWT directamente, nunca
+// necesitan conocer la contraseña.
 const request = require('supertest');
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs');
 const { db } = require('../database');
 const { generateToken } = require('../src/security/jwt');
+
+(function ensureAdminFixture() {
+    const admin = db.prepare("SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1").get();
+    if (admin) return;
+    db.prepare("INSERT INTO users (id, username, password, role, status, display_name, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .run(uuidv4(), 'ci-admin@check.local', bcrypt.hashSync(uuidv4(), 10), 'ADMIN', 'APPROVED', 'Admin de pruebas', new Date().toISOString());
+})();
 
 // ─── HELPERS ───
 
