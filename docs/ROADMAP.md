@@ -8,11 +8,12 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.751 |
-| **Ultimos fixes completados** | SyntaxError app.js, i18n CSP, headers HTTP, 3D Planner, Ciclo 11 completo |
+| **Version** | v12.44.803 (tags `v12.44.802`/`v12.44.803` en remoto) |
+| **Sesión 2026-08-30/31** | ✅ Seguridad de primer arranque: fin de credenciales expuestas (P1-2), wizard de primer arranque (`/api/setup`), política de contraseñas (`src/security/password-policy.js`), signup fuerza PRODUCTOR. 279/279 tests. Instalación Docker verificada E2E desde clon fresco. v12.44.803: Chrome guarda claves del wizard + cero credenciales literales en tests/CI. |
 | **Todas las fases 0-4, S, backlog, Ciclos 2-10** | ✅ Completados al 100% |
 | **Ciclo 11 (9 features)** | ✅ Completado al 100% |
-| **Feature en curso** | **Fase H — Seguridad y Estabilidad (Post-Ciclo 11)** |
+| **Feature en curso** | **Fase H — Seguridad y Estabilidad** (P1-2 cerrado; ver `AUDIT_REPORT.md` y `ACTION_PLAN.md`) |
+| **Próximo paso** | Hardening `docker-compose.yml`: `env_file: .env` opcional (`required: false`) y quitar `container_name: check-app` duro — detectado en la verificación Docker del 2026-08-30 (detalles en `docs/STATUS_HISTORY.md`). Opcional: paso de 2FA en el wizard de primer arranque. |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
 
