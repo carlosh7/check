@@ -80,6 +80,7 @@ docker-compose.override.yml
 .opencode/
 .opencode/*.db
 .opencode/*.db-*
+.zcode/
 
 # --- Build output ---
 dist/

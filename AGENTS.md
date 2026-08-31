@@ -89,9 +89,9 @@ Flujo diario recomendado:
 
 ### Credenciales
 
-- **Check App:** admin@check.com / admin123
-- **Nginx Proxy Manager:** admin@example.com / changeme (cambiar al primer login)
-- **Portainer:** las que configuro el usuario
+**NUNCA escribir credenciales en este archivo — el repo es público.**
+Viven en el `.env` local (gitignored) y en la configuración de cada servicio
+(Portainer, Nginx Proxy Manager, Dolibarr). Si una tarea las necesita, pedirlas al usuario.
 
 ### Stack Docker
 
@@ -123,11 +123,6 @@ TU explicas plan → YO explico plan y espero confirmacion
 - [ ] Entender el objetivo del cambio
 - [ ] Explicar plan al usuario en espanol
 - [ ] Esperar confirmacion explicita del usuario
-
-**Durante la implementacion:**
-- [ ] Seguir convenciones del codigo existente
-- [ ] Revisar codigo de referencia en repos analizados (si aplica)
-- [ ] Informar progreso al usuario
 
 **Durante la implementacion:**
 - [ ] Seguir convenciones del codigo existente
@@ -242,14 +237,8 @@ git tag --sort=-version:refname | head -5
 
 ## Historial: Entorno Windows (Referencia)
 
-Este proyecto tambien se desarrollo originalmente en Windows con el siguiente setup.
-Se mantiene como referencia historica, pero **no es el entorno activo**.
-
-- **Repositorio Original:** `C:\Users\carlo\OneDrive\Documentos\APP\Registro`
-- **Contenedor de Pruebas:** `C:\Users\carlo\check`
-- **Puente:** `antigravity_bridge.ps1` via opencode-cli
-- **Comando:** `opencode-cli run "powershell.exe -ExecutionPolicy Bypass -File .\antigravity_bridge.ps1"`
-
+El proyecto se desarrolló originalmente en Windows (`C:\Users\carlo\OneDrive\Documentos\APP\Registro`,
+puente `antigravity_bridge.ps1` via opencode-cli). **No es el entorno activo.**
 Para el flujo Windows completo, revisar el git historico de este archivo.
 
 ## Auditoría 2026-08
