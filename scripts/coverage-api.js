@@ -153,7 +153,7 @@ console.log(`Endpoints backend: ${total} · con UI: ${cov} (${pct}%) · sin UI: 
 console.log('Informe: docs/COBERTURA_FE_BE.md');
 
 // Llamadas FE que no matchean NINGÚN endpoint (posibles rotas)
-const epPaths = endpoints.map(e => e.path.replace(/:[^/]+/g, '*'));
+endpoints.map(e => e.path.replace(/:[^/]+/g, '*'));
 const epBases = endpoints.map(e => e.path.replace(/:[^/]+/g, '*').split('?')[0].replace(/\/+$/, ''));
 const broken = feNorm.filter(c => {
     if (c === '/api' || c === '/api/') return false;

@@ -21,7 +21,7 @@ const { strongPasswordSchema } = require('./password-policy');
 
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = strongPasswordSchema;
-const uuidSchema = z.string().min(1, 'ID requerido');
+z.string().min(1, 'ID requerido');
 
 /**
  * Esquemas de validación Zod

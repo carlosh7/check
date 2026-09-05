@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
-const { logAction, AUDIT_ACTIONS } = require('../security/audit');
+const { logAction } = require('../security/audit');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 const { getEventDb } = require('../utils/event-db');
 const logger = require('../utils/logger');
@@ -84,7 +84,7 @@ router.post('/events/:eventId/checkout-session', (req, res) => {
 
         const finalAmount = Math.max(0, totalAmount - discountAmount);
         const transactionId = uuidv4();
-        const currency = (event.currency || 'USD').toLowerCase();
+        (event.currency || 'USD').toLowerCase();
         db.prepare("INSERT INTO transactions (id, event_id, amount, currency, provider, status, guest_name, guest_email, metadata_json, created_at) VALUES (?, ?, ?, ?, 'stripe', 'pending', ?, ?, ?, ?)").run(
             transactionId, req.params.eventId, finalAmount, event.currency || 'USD', name, email, JSON.stringify({ items: items, categories: categoriesUsed, coupon: coupon_code, discount: discountAmount }), new Date().toISOString()
         );
@@ -194,7 +194,7 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
                 // Check if cart (multiple items) or single item
                 let meta2 = {};
                 try { meta2 = JSON.parse(txn.metadata_json || '{}'); if (typeof meta2 === 'string') meta2 = JSON.parse(meta2); } catch(e) { meta2 = {}; }
-                const cartItems = (meta2 && meta2.categories) || (meta2.data && meta2.data.object && meta2.data.object.metadata);
+                (meta2 && meta2.categories) || (meta2.data && meta2.data.object && meta2.data.object.metadata);
 
                 if (txn.metadata_json) {
                     try {

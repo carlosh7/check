@@ -13,8 +13,6 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync, spawn } = require('child_process');
-const { v4: uuidv4 } = require('uuid');
-const bcrypt = require('bcryptjs');
 const Database = require('better-sqlite3');
 
 console.log('🔧 Configurando Check Pro...\n');

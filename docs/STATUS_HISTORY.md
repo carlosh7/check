@@ -3,6 +3,38 @@
 Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 (Regla: el estado vivo vive en `docs/ROADMAP.md`; el detalle fechado vive aquí, nunca en `AGENTS.md`.)
 
+
+---
+
+## 2026-09-05 (parte 3) — Tramo 3 ESLint + Wizard 2FA + decisiones arquitectónicas (v12.44.806)
+
+### Completado
+- **ESLint tramo 3**: warnings 538 → 504, 0 errores. 16 imports muertos puros eliminados/recortados
+  (bcrypt, uuid, castId, AUDIT_ACTIONS, CACHE_KEYS/del, AuditLog, verifyToken…), 52 bindings muertos
+  de riesgo cero retirados (calls await conservadas, comparaciones puras y getElementById sin uso),
+  7 sentencias puras muertas eliminadas. Composición del resto documentada: require-await 95 (contrato
+  de API async — convertir rompería .then() de terceros), no-await-in-loop 78 (patrón secuencial de
+  escrituras SQLite intencional), no-unused-vars restantes (requires con efectos de carga conservados
+  por orden de inicialización). CI: --max-warnings=520.
+- **Wizard 2FA (diferido cerrado)**: paso 4 opcional de 2FA TOTP. Backend: POST /api/setup/admin
+  devuelve token de sesión (solo posible con users=0, transacción atómica). Frontend: paso 3 ofrece
+  "Proteger con 2FA", paso 4 muestra QR + secreto, verifica código y activa. **Verificado E2E real**:
+  servidor local limpio + navegador → admin creado → QR renderizado → código TOTP calculado con
+  speakeasy → verificación OK → login exige código (requires2FA) → login con totp_token entrega JWT.
+  Test de regresión en tests/setup.test.js (16 tests).
+- **Decisiones documentadas en ARQUITECTURA_SISTEMA**: logger único (utils/logger estándar,
+  middleware/logger = request-logger HTTP), cache (NodeCache base + Redis opcional con fallback).
+
+### Hallazgos nuevos (documentados, no auto-fijables)
+- **P3-7 (producto)**: permisos canEdit/canRemove calculados y sin usar en render de usuarios,
+  chips de eventos/staff construidos y nunca renderizados, usableH ignorado en seat-layouts
+  (posible desborde de mapa de asientos) — requieren decisión de producto.
+- **Restricción CSP**: scriptSrcAttr/styleSrc no se pueden retirar sin modularizar app.js —
+  los handlers inline se generan dinámicamente en strings HTML (innerHTML) en todo el monolito.
+
+### Estado de tests
+300/301 (17 suites; +1 test de 2FA wizard). ESLint 0 errores / 504 warnings.
+
 ---
 
 ## 2026-09-05 (parte 2) — Tramo 2 ESLint + P2-1 cerrado + Redeploy y validación en producción (v12.44.805)

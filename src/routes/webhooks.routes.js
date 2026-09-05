@@ -91,7 +91,7 @@ const router = express.Router();
 // Get all webhooks (admin only or filtered by event access)
 router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
-        const filters = {};
+        {};
         
         // Non-admins can only see webhooks for events they have access to
         if (req.userRole !== 'ADMIN') {

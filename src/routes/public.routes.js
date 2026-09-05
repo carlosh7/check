@@ -55,7 +55,6 @@
 const express = require('express');
 const { db, getEventConnection, eventDatabaseExists } = require('../../database');
 const { generateCaptcha, verifyCaptcha } = require('../security/captcha');
-const { AuditLog } = require('../security/audit');
 
 const logger = require("../utils/logger");
 const router = express.Router();

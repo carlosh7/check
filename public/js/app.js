@@ -42,7 +42,7 @@ import { AiSecurity } from './modules/features/ai-security.js?v=12.44.765';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.805';
+const VERSION = '12.44.806';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -1947,12 +1947,11 @@ const App = window.App = {
     _highlightMatch: function(text, raw) {
         if (!raw) return App.esc(text || '');
         const escaped = App.esc(text || '');
-        const normalized = this._normalize(text || '');
         const searchNorm = this._normalize(raw);
         const words = searchNorm.split(' ').filter(w => w.length > 0);
         let result = escaped;
         words.forEach(word => {
-            const regex = new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
             const normResult = this._normalize(text || '');
             const idx = normResult.indexOf(word);
             if (idx >= 0) {
@@ -3085,7 +3084,7 @@ const App = window.App = {
         // Se llama desde handleBulkClientAction cuando action === 'edit'
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
-        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        isDark ? '#1e293b' : '#ffffff';
         const textMain = isDark ? '#f8fafc' : '#1e293b';
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
@@ -4215,7 +4214,7 @@ const App = window.App = {
         // Obtener eventos y grupos del usuario actual
         const userGroupId = this.state.user.group_id;
         const userEvents = this.state.allEvents?.filter(e => e.user_id === this.state.user.userId) || [];
-        const userGroupIds = this.state.allGroups?.filter(g => {
+        this.state.allGroups?.filter(g => {
             // Usuarios pertenece a este grupo
             return groups.some(ug => ug.user_id === this.state.user.userId && ug.group_id === g.id);
         })?.map(g => g.id) || [];
@@ -4265,10 +4264,7 @@ const App = window.App = {
             }
 
             tbody.innerHTML = users.map((u) => {
-                const isSelf = u.id === this.state.user?.userId;
-                const canEdit = isAdmin || (isProductor && u.role !== 'ADMIN');
-                const canRemoveGroup = isAdmin;
-                const canRemoveEvent = isAdmin || (isProductor && u.role !== 'ADMIN');
+                isAdmin || (isProductor && u.role !== 'ADMIN');
                 
                 // --- CHECKBOX DE SELECCIÓN ---
                 const checkbox = `<input type="checkbox" class="user-checkbox" data-user-id="${u.id}" style="width: 18px; height: 18px; cursor: pointer;" onchange="App.toggleUserSelection('${u.id}')" ${this.state.selectedUsers?.includes(u.id) ? 'checked' : ''}>`;
@@ -5238,12 +5234,11 @@ const App = window.App = {
                 if (isAssigned) {
                     await this.fetchAPI(`/events/${eventId}/users/${userId}`, { method: 'DELETE' });
                 } else {
-                    const res = await this.fetchAPI(`/events/${eventId}/users`, { method: 'POST', body: JSON.stringify({ user_id: userId }) });
+                    await this.fetchAPI(`/events/${eventId}/users`, { method: 'POST', body: JSON.stringify({ user_id: userId }) });
                 }
             }
             await this.loadUsersTable();
             // Debug: verificar que el usuario tiene el evento después de recargar
-            const reloadedUser = this.state.allUsers?.find(u => String(u.id) === String(userIds[0]));
             this.showEventSelectorForUsers(userIds);
         } catch (e) {
             console.error('[EVENT ASSIGN] Error:', e);
@@ -5274,7 +5269,6 @@ const App = window.App = {
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
-        const savedIds = App._savedSelectedUsers || [];
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -6389,7 +6383,6 @@ const App = window.App = {
 
     startScanner: function() {
         const video = document.getElementById('qr-video');
-        const canvas = document.getElementById('qr-canvas');
         if (!video) return;
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
             .then(stream => {
@@ -6496,23 +6489,81 @@ const App = window.App = {
     },
 
     _setSetupStep(step) {
-        [1, 2, 3].forEach(n => {
+        [1, 2, 3, 4].forEach(n => {
             const el = document.getElementById('setup-step-' + n);
             if (el) el.classList.toggle('hidden', n !== step);
         });
         const bar = document.getElementById('setup-progress-bar');
-        if (bar) bar.style.width = Math.min(step * 33, 100) + '%';
-        const firstInput = document.getElementById(step === 2 ? 'setup-name' : null);
-        if (firstInput) firstInput.focus();
+        if (bar) bar.style.width = Math.min(step * 25, 100) + '%';
+        const firstInput = document.getElementById(step === 2 ? 'setup-name' : (step === 4 ? 'setup-2fa-code' : null));
+        if (firstInput && step === 2) firstInput.focus();
     },
 
-    completeSetupWizard() {
+    // ── 2FA opcional del wizard (v12.44.806) ──
+    setup2faStart: async function() {
+        const msgEl = document.getElementById('setup-message-2fa');
+        if (!this._setup2faToken) {
+            if (msgEl) { msgEl.textContent = 'No hay sesión disponible para configurar 2FA. Inicia sesión y actívala desde tu perfil.'; msgEl.classList.remove('hidden'); }
+            this.completeSetupWizard();
+            return;
+        }
+        try {
+            const res = await fetch('/api/me/2fa/setup', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + this._setup2faToken }
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success && data.qrCode) {
+                document.getElementById('setup-2fa-qr').src = data.qrCode;
+                document.getElementById('setup-2fa-secret').textContent = data.secret || '';
+                document.getElementById('setup-2fa-qr-box')?.classList.remove('hidden');
+                document.getElementById('setup-2fa-code-box')?.classList.remove('hidden');
+            } else {
+                if (msgEl) { msgEl.textContent = data.error || 'No se pudo iniciar la configuración 2FA'; msgEl.classList.remove('hidden'); }
+            }
+        } catch (e) {
+            if (msgEl) { msgEl.textContent = 'No se pudo contactar con el servidor'; msgEl.classList.remove('hidden'); }
+        }
+    },
+
+    setup2faVerify: async function() {
+        const msgEl = document.getElementById('setup-message-2fa');
+        const code = document.getElementById('setup-2fa-code')?.value.trim();
+        if (!code || code.length !== 6) {
+            if (msgEl) { msgEl.textContent = 'Ingresa el código de 6 dígitos de tu app'; msgEl.classList.remove('hidden'); }
+            return;
+        }
+        const btn = document.getElementById('setup-2fa-verify-btn');
+        const prev = btn?.textContent;
+        if (btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
+        try {
+            const res = await fetch('/api/me/2fa/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + this._setup2faToken },
+                body: JSON.stringify({ token: code })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success) {
+                App._setup2faToken = null;
+                this.completeSetupWizard('Cuenta protegida con 2FA. Inicia sesión con tu contraseña y tu código.');
+            } else {
+                if (msgEl) { msgEl.textContent = data.error || 'Código inválido. Intenta de nuevo.'; msgEl.classList.remove('hidden'); }
+            }
+        } catch (e) {
+            if (msgEl) { msgEl.textContent = 'No se pudo contactar con el servidor'; msgEl.classList.remove('hidden'); }
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = prev; }
+        }
+    },
+
+    completeSetupWizard(customMessage) {
         this.setupWizardActive = false;
+        this._setup2faToken = null;
         const wizard = document.getElementById('setup-wizard');
         if (wizard) wizard.classList.add('hidden');
         this._showingView = null;
         this.showView('login');
-        this._notifyAction('Instalación protegida', 'Administrador creado. Inicia sesión con tu nueva cuenta.', 'success');
+        this._notifyAction('Instalación protegida', customMessage || 'Administrador creado. Inicia sesión con tu nueva cuenta.', 'success');
     },
 
     // Agenda
@@ -7136,8 +7187,8 @@ navigate(viewName, params = {}, push = true) {
                 document.body.classList.add('app-mode');
                 
                 // Verificar que los elementos críticos existen
-                const appContainer = document.getElementById('app-container');
-                const sidebar = document.getElementById('global-sidebar');
+                document.getElementById('app-container');
+                document.getElementById('global-sidebar');
                 
                 this.initTheme();
                 this.initSidebar();
@@ -7943,7 +7994,7 @@ navigate(viewName, params = {}, push = true) {
         const tbody = document.getElementById('events-tbody');
         if (!tbody) return;
         
-        const userRole = this.state.user?.role;
+        this.state.user?.role;
         const clientsMap = {};
         (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
         const groupsMap = {};
@@ -8612,7 +8663,7 @@ navigate(viewName, params = {}, push = true) {
         if (tableContainer) tableContainer.classList.remove('hidden');
         
         const userRole = this.state.user?.role;
-        const canDelete = userRole === 'ADMIN' || userRole === 'PRODUCTOR';
+        userRole === 'ADMIN' || userRole === 'PRODUCTOR';
         
         // Mapear clientes y grupos para lookup
         const clientsMap = {};
@@ -8869,7 +8920,7 @@ navigate(viewName, params = {}, push = true) {
             const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
             const total = ev.total_guests || 0;
             const attended = ev.attended_guests || 0;
-            const clientName = ev.client_id ? (clientsMap[ev.client_id] || '—') : '—';
+            ev.client_id ? (clientsMap[ev.client_id] || '—') : '—';
             const clientNames = ev.client_names ? ev.client_names.split(',').map(n => n.trim()).join(', ') : '—';
             const location = ev.location || '—';
             const status = this._getEventStatus(ev);
@@ -9191,7 +9242,7 @@ navigate(viewName, params = {}, push = true) {
         if (await this._confirmAction('¿Eliminar evento?', 'Esta acción es irreversible y borrará todos los datos asociados.')) {
             try {
                 // Guardar referencia al evento antes de eliminar
-                const eventToDelete = this.state.events?.find(e => String(e.id) === String(id));
+                this.state.events?.find(e => String(e.id) === String(id));
                 
                 // Eliminar del estado local PRIMERO (optimista)
                 const previousEvents = [...(this.state.events || [])];
@@ -10691,7 +10742,7 @@ navigate(viewName, params = {}, push = true) {
             const tbody = document.getElementById('compliance-access-tbody');
             const countEl = document.getElementById('compliance-access-count');
             const prevBtn = document.getElementById('btn-access-prev');
-            const nextBtn = document.getElementById('btn-access-next');
+            document.getElementById('btn-access-next');
             if (countEl) countEl.textContent = total + ' registros';
             if (prevBtn) prevBtn.disabled = page <= 1;
             if (!tbody) return;
@@ -11076,7 +11127,7 @@ navigate(viewName, params = {}, push = true) {
         const builder = document.getElementById('survey-builder');
         const dashboard = document.getElementById('survey-dashboard');
         const titleInput = document.getElementById('survey-builder-title');
-        const container = document.getElementById('survey-questions-container');
+        document.getElementById('survey-questions-container');
         if (list) list.classList.add('hidden');
         if (builder) builder.classList.remove('hidden');
         if (dashboard) dashboard.classList.add('hidden');
@@ -11274,7 +11325,7 @@ navigate(viewName, params = {}, push = true) {
 
             const respTbody = document.getElementById('survey-responses-tbody');
             if (respTbody) {
-                const responses = await this.fetchAPI('/events/templates/' + templateId + '/export/csv');
+                await this.fetchAPI('/events/templates/' + templateId + '/export/csv');
             }
         } catch(e) { console.error('[SURVEY] Dashboard error:', e.message); }
     },
@@ -11604,7 +11655,7 @@ navigate(viewName, params = {}, push = true) {
     addBadgeElement: function(type) {
         const els = this._badgeElements || [];
         const id = 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
-        const bw = parseInt(document.getElementById('badge-width-mm').value) || 90;
+        parseInt(document.getElementById('badge-width-mm').value) || 90;
         const el = { id, type, x: 10, y: 10, w: type === 'qr' ? 20 : 60, h: type === 'qr' ? 20 : 10 };
         if (type === 'text') { el.text = 'Nuevo texto'; el.fontSize = 12; el.color = '#ffffff'; el.align = 'center'; el.bold = false; }
         if (type === 'logo') { el.url = null; }
@@ -13017,7 +13068,7 @@ navigate(viewName, params = {}, push = true) {
         const eId = this.state.event?.id;
         if (!confirm('¿Generar certificados para todos los asistentes con check-in?')) return;
         try {
-            const res = await Swal.fire({ title: 'Generando certificados...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+            await Swal.fire({ title: 'Generando certificados...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
             const d = await this.fetchAPI('/certificates/' + eId + '/templates/' + templateId + '/generate', { method: 'POST', body: '{}' });
             Swal.close();
             const certs = d.certificates || d.generated || [];
@@ -14129,7 +14180,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     awardAchievement: async function(guestId) {
-        const eId = this.state.event?.id;
+        this.state.event?.id;
         const achievements = ['early_bird', 'first_checkin', 'networking_star', 'social_share', 'survey_responder'];
         const labels = ['🐤 Early Bird', '✅ Primer check-in', '🌟 Networking Star', '📢 Social Share', '📊 Encuesta'];
         const html = achievements.map(function(a, i) { return '<div class="cursor-pointer p-2 hover:bg-white/5 rounded" onclick="App.saveAchievement(\'' + guestId + '\',\'' + a + '\')">' + labels[i] + '</div>'; }).join('');
@@ -16605,7 +16656,7 @@ navigate(viewName, params = {}, push = true) {
         if (!container) return;
         
         const progressFill = document.getElementById('mailbox-progress-fill');
-        const progressTrack = document.getElementById('mailbox-progress-track');
+        document.getElementById('mailbox-progress-track');
         if (progress) {
             progress.classList.remove('hidden');
             if (progressFill) progressFill.style.width = '30%';
@@ -17674,7 +17725,7 @@ navigate(viewName, params = {}, push = true) {
         if (progressBar) progressBar.style.width = `${(step / 3) * 100}%`;
         
         // Actualizar label
-        const stepLabels = ['Destinatarios', 'Contenido', 'Programaci├│n'];
+        ['Destinatarios', 'Contenido', 'Programaci├│n'];
         const labelEl = document.getElementById('wizard-step-label');
         if (labelEl) labelEl.textContent = `Paso ${step} de 3`;
         
@@ -17975,7 +18026,7 @@ navigate(viewName, params = {}, push = true) {
         const eventId = this.state?.event?.id;
         if (!eventId) return;
         try {
-            const res = await this.fetchAPI('/google/events/' + eventId + '/export', { method: 'POST', body: JSON.stringify({ export_surveys: true }) });
+            await this.fetchAPI('/google/events/' + eventId + '/export', { method: 'POST', body: JSON.stringify({ export_surveys: true }) });
             Swal.fire({ icon: 'success', title: 'Encuestas exportadas', timer: 2000, showConfirmButton: false, background: '#0f172a', color: '#fff' });
         } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
     },
@@ -18779,6 +18830,9 @@ async function initApp() {
             if (res.ok && data.success) {
                 showSetupMessage('', false);
                 document.getElementById('setup-message')?.classList.add('hidden');
+                // v12.44.806: guardar el token de sesión del primer admin para
+                // el paso opcional de 2FA (solo se emite aquí, con users=0)
+                App._setup2faToken = data.token || null;
                 App._setSetupStep(3);
             } else {
                 const msg = (data.errors && data.errors.join('. ')) || data.error || 'No se pudo crear la cuenta';
@@ -18791,6 +18845,10 @@ async function initApp() {
         }
     });
     cl('setup-done-btn', () => App.completeSetupWizard());
+    // v12.44.806: 2FA opcional del wizard
+    cl('setup-2fa-offer-btn', () => { App._setSetupStep(4); App.setup2faStart(); });
+    cl('setup-2fa-verify-btn', () => App.setup2faVerify());
+    cl('setup-2fa-skip-btn', () => App.completeSetupWizard());
 
     // Modales Legales (Links del Login)
     async function openLegalModal(key, title) {
@@ -19993,7 +20051,7 @@ App.exportAttendance = function() {
 
 App.confirmExportAttendance = async function() {
     const format = document.querySelector('input[name="export-attendance-format"]:checked')?.value || 'excel';
-    const eventId = this.state.currentEventId;
+    this.state.currentEventId;
     const attendance = this.state.attendance || [];
     
     if (attendance.length === 0) {
@@ -20169,7 +20227,7 @@ App.editAttendance = function(clientIds) {
                     const checked = my ? 'checked' : '';
                     let seatHtml = '';
                     if (s._seats && s._seats.length > 0) {
-                        const takenSeatIds = {};
+                        {};
                         // Not ideal but we don't have taken seats here; rely on backend validation
                         const curSeat = (my && my.seat_id) || '';
                         seatHtml = ' <select class="session-seat-select text-[10px] input-field py-0.5 px-1" style="width:auto" data-session="' + s.id + '">' +
@@ -20476,10 +20534,10 @@ App.importContacts = async function() {
 };
 
 App.saveContact = function() {
-    const id = document.getElementById('contact-editor-id')?.value;
+    document.getElementById('contact-editor-id')?.value;
     const name = document.getElementById('contact-editor-name')?.value;
-    const email = document.getElementById('contact-editor-email')?.value;
-    const phone = document.getElementById('contact-editor-phone')?.value;
+    document.getElementById('contact-editor-email')?.value;
+    document.getElementById('contact-editor-phone')?.value;
     if (!name) return Swal.fire({ title: 'Atenci&oacute;n', text: 'El nombre es requerido', icon: 'warning', background: '#0f172a', color: '#fff' });
     Swal.fire({ title: 'Info', text: 'Funci&oacute;n en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
 };

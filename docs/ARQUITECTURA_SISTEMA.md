@@ -348,3 +348,23 @@ Ver analisis completo en `docs/SECURITY_IA.md`.
 
 *Documento generado el 29 de marzo de 2026*
 *Sistema Check Pro v12.44.520*
+---
+
+## Decisiones de Arquitectura (2026-09-05, v12.44.806)
+
+### Logger único
+- **`src/utils/logger.js`** es el logger estándar de toda la aplicación (33 módulos lo usan).
+- **`src/middleware/logger.js`** NO es un duplicado: es el request-logger HTTP de Express (se usa solo en `server.js`). Decisión: mantener ambos con roles distintos.
+- Los `console.log` de `database.js`/`plugin-engine` (boot/migraciones/seed) se conservan deliberadamente: corren antes de inicializar el logger y dan visibilidad directa en `docker logs`.
+
+### Cache
+- **`utils/cache.js` (NodeCache)** es el cache en memoria por defecto (`server.js` lo inicializa y lo expone como `global.cache`).
+- **`utils/redis-cache.js`** es opcional: si no hay Redis (p.ej. VPS sin Redis), la app arranca con fallback a NodeCache. Decisión: mantener el patrón opcional; no forzar Redis como dependencia dura.
+
+### Content-Security-Policy (restricción estructural)
+- `script-src` ya NO permite `'unsafe-inline'` (v12.44.804): los scripts estáticos viven en archivos.
+- `scriptSrcAttr` y `styleSrc` mantienen `'unsafe-inline'` **por diseño temporal**: `app.js` (monolito de 20k líneas) y las páginas generan atributos `onclick`/`style` dinámicamente en strings HTML inyectadas por `innerHTML`. Eliminar esa directiva exige modularizar esos renders — está ligado al plan de modularización de `app.js` (Fase 6 de ACTION_PLAN), no es un cambio aislado.
+
+### Wizard de primer arranque + 2FA (v12.44.806)
+- `POST /api/setup/admin` devuelve un **token de sesión de un solo uso funcional**: solo responde cuando la tabla `users` está vacía (transacción atómica), por lo que el token solo puede emitirse en el único arranque legítimo.
+- El wizard ofrece un **paso 4 opcional** de 2FA TOTP con ese token (endpoints `/api/me/2fa/*` existentes). Verificado E2E con navegador real y test de regresión en `tests/setup.test.js`.

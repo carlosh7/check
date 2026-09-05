@@ -6,7 +6,6 @@ const express = require('express');
 const { z } = require('zod');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
-const { castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const logger = require('../utils/logger');
 

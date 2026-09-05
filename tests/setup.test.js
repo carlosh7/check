@@ -42,6 +42,8 @@ afterAll(() => {
 
 describe('Setup Wizard: flujo de primer arranque', () => {
     let app;
+    let setupAdminToken; // v12.44.806: token que devuelve la creación del primer admin
+    let setupAdminTotpSecret;
 
     beforeAll(() => {
         app = express();
@@ -79,11 +81,52 @@ describe('Setup Wizard: flujo de primer arranque', () => {
         const res = await request(app).post('/api/setup/admin').send(ADMIN_PAYLOAD);
         expect(res.status).toBe(201);
         expect(res.body.success).toBe(true);
+        // v12.44.806: la creación devuelve token de sesión (única vez posible)
+        // para el paso opcional de 2FA del wizard
+        expect(res.body.token).toBeDefined();
+        expect(res.body.username).toBe(ADMIN_PAYLOAD.username.toLowerCase());
+        setupAdminToken = res.body.token;
 
         const row = db.prepare("SELECT * FROM users WHERE username = ?").get(ADMIN_PAYLOAD.username.toLowerCase());
         expect(row).toBeDefined();
         expect(row.role).toBe('ADMIN');
         expect(row.status).toBe('APPROVED');
+    });
+
+    test('v12.44.806: flujo 2FA del wizard con el token del setup (setup→verify→login exige código)', async () => {
+        const speakeasy = require('speakeasy');
+        // 1. Generar QR+secreto con el token del wizard
+        const setup = await request(app).post('/api/me/2fa/setup')
+            .set('Authorization', 'Bearer ' + setupAdminToken);
+        expect(setup.status).toBe(200);
+        expect(setup.body.success).toBe(true);
+        expect(setup.body.qrCode).toMatch(/^data:image/);
+        expect(setup.body.secret).toBeDefined();
+        setupAdminTotpSecret = setup.body.secret;
+
+        // 2. Verificar con un código TOTP válido del secreto
+        const code = speakeasy.totp({ secret: setup.body.secret, encoding: 'base32' });
+        const verify = await request(app).post('/api/me/2fa/verify')
+            .set('Authorization', 'Bearer ' + setupAdminToken)
+            .send({ token: code });
+        expect(verify.status).toBe(200);
+        expect(verify.body.success).toBe(true);
+
+        // 3. El login sin código ahora exige 2FA
+        const loginSin = await request(app).post('/api/login').send({
+            username: ADMIN_PAYLOAD.username, password: ADMIN_PAYLOAD.password
+        });
+        expect(loginSin.status).toBe(401);
+        expect(loginSin.body.requires2FA).toBe(true);
+
+        // 4. El login con código válido entrega el JWT
+        const code2 = speakeasy.totp({ secret: setup.body.secret, encoding: 'base32' });
+        const loginCon = await request(app).post('/api/login').send({
+            username: ADMIN_PAYLOAD.username, password: ADMIN_PAYLOAD.password, totp_token: code2
+        });
+        expect(loginCon.status).toBe(200);
+        expect(loginCon.body.success).toBe(true);
+        expect(loginCon.body.token).toBeDefined();
     });
 
     test('Tras crear el admin: GET status → needsSetup false', async () => {
@@ -102,9 +145,13 @@ describe('Setup Wizard: flujo de primer arranque', () => {
         expect(count).toBe(1);
     });
 
-    test('Login funciona con el admin creado por el wizard', async () => {
+    test('Login funciona con el admin creado por el wizard (con 2FA activado por el test anterior)', async () => {
+        // v12.44.806: el test de 2FA activó TOTP en este admin → hay que
+        // entregar un código válido junto con la contraseña
+        const speakeasy = require('speakeasy');
+        const code = speakeasy.totp({ secret: setupAdminTotpSecret, encoding: 'base32' });
         const res = await request(app).post('/api/login').send({
-            username: ADMIN_PAYLOAD.username, password: ADMIN_PAYLOAD.password
+            username: ADMIN_PAYLOAD.username, password: ADMIN_PAYLOAD.password, totp_token: code
         });
         expect(res.status).toBe(200);
         expect(res.body.success).toBe(true);

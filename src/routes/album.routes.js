@@ -7,7 +7,6 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { db } = require('../../database');
-const { castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();

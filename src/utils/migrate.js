@@ -126,7 +126,7 @@ function createMigration(name) {
         process.exit(1);
     }
     
-    const applied = getApplied();
+    getApplied();
     const allFiles = fs.existsSync(MIGRATIONS_DIR) 
         ? fs.readdirSync(MIGRATIONS_DIR).filter(f => f.endsWith('.sql') || f.endsWith('.js')).sort()
         : [];

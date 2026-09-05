@@ -20,7 +20,7 @@ const pass = (n, x = '') => { results.push(`PASS ${n}${x ? ' — ' + x : ''}`); 
 const fail = (n, e) => { results.push(`FAIL ${n} — ${e}`); console.log(`❌ ${n} — ${e}`); };
 
 (async () => {
-    const J = (r) => r.json();
+    (r) => r.json();
     const req = async (method, path, { token, body, raw } = {}) => {
         const headers = { 'Content-Type': 'application/json', Origin: BASE };
         if (token) headers['Authorization'] = 'Bearer ' + token;
@@ -57,7 +57,7 @@ const fail = (n, e) => { results.push(`FAIL ${n} — ${e}`); console.log(`❌ ${
     login = await req('POST', '/api/login', { body: { username: TARGET_USER, password: TARGET_PASS } });
     const TOKEN = login.data.token;
     TOKEN ? pass('Login válido + JWT') : fail('Login', 'sin token');
-    const AH = () => ({ token: TOKEN });
+    () => ({ token: TOKEN });
     r = await req('GET', '/api/events', {});
     r.status === 401 ? pass('API protege sin token') : fail('API sin token', r.status);
     r = await req('GET', '/api/me/2fa/status', { token: TOKEN });

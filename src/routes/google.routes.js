@@ -2,7 +2,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { db, getEventConnection, getDatabase } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
-const { logAction, AUDIT_ACTIONS } = require('../security/audit');
+const { logAction } = require('../security/audit');
 const { getValidId } = require('../utils/helpers');
 const { google } = require('googleapis');
 
@@ -561,7 +561,7 @@ router.post('/events/:eventId/import', authMiddleware(['ADMIN', 'PRODUCTOR']), a
         const sheets = google.sheets({ version: 'v4', auth: oauth2 });
 
         // Buscar el spreadsheet del evento
-        const spreadsheetTitle = (event.name || 'Evento') + ' - Check Pro';
+        (event.name || 'Evento') + ' - Check Pro';
         const spreadsheetId = req.body.spreadsheet_id || account.spreadsheet_id;
         if (!spreadsheetId) return res.status(400).json({ error: 'No hay spreadsheet vinculado. Exporta primero.' });
 

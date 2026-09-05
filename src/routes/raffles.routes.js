@@ -62,7 +62,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { db, getEventConnection, eventDatabaseExists } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
-const { logAction, AUDIT_ACTIONS } = require('../security/audit');
+const { logAction } = require('../security/audit');
 
 const logger = require("../utils/logger");
 const router = express.Router();

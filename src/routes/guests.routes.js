@@ -707,7 +707,7 @@ router.get('/:eventId/badges/zpl', authMiddleware(), (req, res) => {
         if (req.query.checked_in === '1') guests = guests.filter(function(g) { return g.checked_in === 1; });
         // Ancho etiqueta: 90mm (aprox 850 dots a 203dpi)
         const labelW = parseInt(req.query.width) || 850;
-        const labelH = parseInt(req.query.height) || 550;
+        parseInt(req.query.height) || 550;
         let zpl = '^XA\n';
         zpl += '^CF0,30\n';
         zpl += '^FO30,30^FD' + escZpl(event.name || 'Evento') + '^FS\n';

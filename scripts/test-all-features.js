@@ -18,7 +18,7 @@ const consoleErrors = [];
 const apiErrors = [];
 const ok = (n, x = '') => { results.push(`PASS ${n}${x ? ' — ' + x : ''}`); console.log(`✅ ${n}${x ? ' — ' + x : ''}`); };
 const fail = (n, e) => { results.push(`FAIL ${n} — ${e}`); console.log(`❌ ${n} — ${e}`); };
-const skip = (n, e) => { results.push(`SKIP ${n} — ${e}`); console.log(`⏭️  ${n} — ${e}`); };
+(n, e) => { results.push(`SKIP ${n} — ${e}`); console.log(`⏭️  ${n} — ${e}`); };
 
 (async () => {
     const BASE = 'http://localhost:3000';

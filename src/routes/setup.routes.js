@@ -30,6 +30,7 @@ const { validatePasswordStrength } = require('../security/password-policy');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { limiters } = require('../middleware/rate-limiter');
 const logger = require('../utils/logger');
+const { generateToken } = require('../security/jwt');
 
 const router = express.Router();
 
@@ -93,7 +94,16 @@ router.post('/admin', limiters.authLimiter, (req, res) => {
         logger.info('[SETUP] ✓ Administrador inicial creado mediante wizard de primer arranque');
         logAction(req, AUDIT_ACTIONS.SETUP_ADMIN_CREATED, { username: email, role: 'ADMIN', via: 'setup_wizard' });
 
-        res.status(201).json({ success: true, message: 'Administrador creado correctamente. Ya puedes iniciar sesión.' });
+        // v12.44.806: token de sesión en la única respuesta que este endpoint
+        // puede dar (solo fire cuando users=0). Permite el paso opcional de
+        // 2FA del wizard con los endpoints /api/me/2fa/* existentes.
+        const token = generateToken({ userId: createdId, username: email, role: 'ADMIN' });
+        res.status(201).json({
+            success: true,
+            message: 'Administrador creado correctamente. Ya puedes iniciar sesión.',
+            token,
+            username: email
+        });
     } catch (e) {
         if (e.message && e.message.includes('UNIQUE')) {
             return res.status(400).json({ success: false, error: 'Este email ya está registrado' });

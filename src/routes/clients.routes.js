@@ -7,7 +7,6 @@ const { z } = require('zod');
 const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
-const { CACHE_KEYS, del } = require('../utils/cache');
 
 const logger = require("../utils/logger");
 const router = express.Router();
