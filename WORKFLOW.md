@@ -66,8 +66,9 @@
 4. Método: **Repository**
 5. URL del repositorio: `https://github.com/carlosh7/check.git`
 6. Rama: `main`
-7. Archivo compose: `portainer-stack.yml`
-8. **Deploy the stack**
+7. Archivo compose: `portainer-stack-v2.yml` (v12.44.804; el `portainer-stack.yml` original queda como respaldo hasta verificar el v2)
+8. **Environment variables** → añadir `GITHUB_PAT` = Personal Access Token de GitHub (Contents read-only para `carlosh7/check` y `carlosh7/check-3d-planner`). El token vive SOLO en Portainer, nunca en el YAML.
+9. **Deploy the stack**
 
 ---
 
@@ -91,7 +92,7 @@
                                 │
                     ┌───────────┴───────────┐
                     │   Stack: check         │
-                    │   (portainer-stack.yml)│
+                    │   (portainer-stack-v2.yml)│
                     │                        │
                     │  ┌─────────────────┐   │
                     │  │  check-app       │   │

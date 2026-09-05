@@ -303,8 +303,8 @@ Para cambiar tu contraseña después:
 ├── app-shell.html      # Aplicación principal (SPA)
 ├── registro.html       # Página de registro público
 ├── survey.html         # Página de encuestas QR
-├── script.js          # Lógica de la aplicación
-├── style.css          # Estilos
+├── public/js/app.js    # Lógica de la aplicación (módulos en public/js/modules/)
+├── public/css/         # Estilos modulares (css/modules/)
 ├── server.js          # Servidor Express (API)
 ├── database.js        # Esquema y operaciones de BD
 ├── sw.js              # Service Worker (PWA)

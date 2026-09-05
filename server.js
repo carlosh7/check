@@ -47,22 +47,56 @@ function collectLocalOrigins(port) {
     return Array.from(origins);
 }
 
+// ─── POLÍTICA DE ORIGEN COMPARTIDA (Fase 2026-09, P3-5 + CORS LAN) ───
+// Una sola función para Express (cors) y Socket.io, evaluada en caliente:
+// lee ALLOWED_ORIGINS en cada petición, así el recálculo del arranque
+// (collectLocalOrigins) aplica a ambos sin mutar internals de engine.opts.
+// El auto-accept de IPs LAN privadas queda controlado por CORS_TRUST_LAN:
+// activo por defecto solo fuera de producción; en producción manda la
+// whitelist (que ya incluye los orígenes reales del host).
+const corsOriginCheck = function (origin, callback) {
+    // 1. Permitir peticiones sin origen (apps móviles, Postman o carga directa de assets)
+    if (!origin) return callback(null, true);
+
+    // 2. Red local / desarrollo solo si CORS_TRUST_LAN lo permite
+    const trustLan = process.env.CORS_TRUST_LAN === 'true' ||
+        (process.env.CORS_TRUST_LAN !== 'false' && process.env.NODE_ENV !== 'production');
+    const isLocal = trustLan &&
+        /^http:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.[0-9.]+|10\.[0-9.]+|172\.[0-9.]+)(:[0-9]+)?$/.test(origin);
+
+    // 3. Whitelist (ALLOWED_ORIGINS): env del usuario + orígenes reales del host
+    const isWhitelisted = ALLOWED_ORIGINS.includes(origin);
+
+    if (isLocal || isWhitelisted) {
+        callback(null, true);
+    } else {
+        logger.warn('CORS Bloqueado origin: ' + origin);
+        callback(new Error('Not allowed by CORS'));
+    }
+};
+
 async function findAvailablePort(preferredPort, maxAttempts = 20) {
     for (let i = 0; i < maxAttempts; i++) {
         const candidatePort = preferredPort + i;
         if (await isPortFree(candidatePort)) {
             if (i > 0) {
                 logger.warn(`Puerto ${preferredPort} ocupado. Usando puerto ${candidatePort} en su lugar.`);
-                // Actualizar .env con el puerto encontrado (PORT sí; orígenes se calculan dinámicos abajo)
-                try {
-                    const envPath = path.join(__dirname, '.env');
-                    let envContent = fs.readFileSync(envPath, 'utf8');
-                    envContent = envContent.replace(/^PORT=.*/m, `PORT=${candidatePort}`);
-                    fs.writeFileSync(envPath, envContent);
+                // Actualizar .env con el puerto encontrado — SOLO en desarrollo.
+                // En producción (contenedor) reescribir .env en runtime es un
+                // efecto lateral inesperado; los orígenes se calculan dinámicos abajo.
+                if (process.env.NODE_ENV !== 'production') {
+                    try {
+                        const envPath = path.join(__dirname, '.env');
+                        let envContent = fs.readFileSync(envPath, 'utf8');
+                        envContent = envContent.replace(/^PORT=.*/m, `PORT=${candidatePort}`);
+                        fs.writeFileSync(envPath, envContent);
+                        process.env.PORT = String(candidatePort);
+                        logger.info(`.env actualizado con PORT=${candidatePort}`);
+                    } catch (e) {
+                        logger.warn('No se pudo actualizar .env: ' + e.message);
+                    }
+                } else {
                     process.env.PORT = String(candidatePort);
-                    logger.info(`.env actualizado con PORT=${candidatePort}`);
-                } catch (e) {
-                    logger.warn('No se pudo actualizar .env: ' + e.message);
                 }
             }
             return candidatePort;
@@ -102,7 +136,11 @@ let detectedPort = parseInt(process.env.PORT) || 3000;
 // CORS whitelist — se inicializa después de detectar puerto
 let ALLOWED_ORIGINS = [];
 
-const io = initSocket(server, { cors: { origin: '*', methods: ['GET', 'POST'] } });
+// Socket.io usa la MISMA política de origen que Express (Fase 2026-09):
+// la función evalúa ALLOWED_ORIGINS en caliente, no hace falta el hack de
+// mutar io.engine.opts.cors.origin tras el arranque (cerraba una ventana
+// inicial con origin:'*').
+const io = initSocket(server, { cors: { origin: corsOriginCheck, methods: ['GET', 'POST'] } });
 
 // --- EMAIL SERVICE (Delegado al módulo email.routes.js) ---
 global.emailService = null;
@@ -121,9 +159,11 @@ function replaceTemplateVariables(template, data) {
     return result;
 }
 
-// Envío básico de emails transaccionales (legacy - para compatibilidad)
+// Envío básico de emails transaccionales (wrapper legacy).
+// v12.44.804: la migración real ya ocurrió — las rutas usan email-service.js
+// directamente (p.ej. auth.routes.js); este wrapper solo se mantiene por
+// compatibilidad y delega al mismo servicio. No elimina la simulación previa.
 async function sendEmail(to, subject, html, options = {}) {
-    logger.debug('sendEmail() legado llamado - migrar a email-service.js');
     // Si hay un servicio de email configurado, lo usamos
     if (global.emailService) {
         return global.emailService.sendEmail({ to, subject, html, ...options });
@@ -151,12 +191,15 @@ app.disable('x-powered-by'); // Deshabilitar exposición de tecnología
 app.use(helmet({
     // Content Security Policy (CSP) - proteger contra XSS e inyecciones
     // Fase 2026-08: endurecido gradualmente (P2-3): frameSrc acotado, CDNs minimizados.
-    // Próximo paso: extraer estilos inline a archivos y reemplazar 'unsafe-inline' por nonce/hashes.
+    // Fase 2026-09 (P2-3 parcial): scriptSrc SIN 'unsafe-inline' — todos los
+    // <script> inline de las páginas se externalizaron a /js/pages/*.js.
+    // Deuda documentada restante: scriptSrcAttr y styleSrc mantienen
+    // 'unsafe-inline' hasta migrar los ~450 atributos onclick/style de app-shell.html.
     contentSecurityPolicy: {
         useDefaults: true,
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
+            scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
             scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
@@ -200,23 +243,9 @@ const { requestCounterMiddleware } = require('./src/routes/stats.routes');
 app.use(requestCounterMiddleware);
 
 app.use(cors({
-    origin: function (origin, callback) {
-        // 1. Permitir peticiones sin origen (apps móviles, Postman o carga directa de assets)
-        if (!origin) return callback(null, true);
-
-        // 2. Permitir Red Local / Desarrollo (v12.44.398 Hybrid Check)
-        const isLocal = /^http:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.[0-9.]+|10\.[0-9.]+|172\.[0-9.]+)(:[0-9]+)?$/.test(origin);
-        
-        // 3. Permitir Dominios en Whitelist (ALLOWED_ORIGINS)
-        const isWhitelisted = ALLOWED_ORIGINS.includes(origin);
-
-        if (isLocal || isWhitelisted) {
-            callback(null, true);
-        } else {
-            logger.warn('CORS Bloqueado origin: ' + origin);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    // Política compartida con Socket.io (Fase 2026-09): ver corsOriginCheck arriba.
+    // Antes: regex LAN auto-accept siempre activo (laxo en producción).
+    origin: corsOriginCheck,
     credentials: true
 }));
 // Stripe webhook necesita raw body (antes de express.json)
@@ -479,8 +508,8 @@ try {
     process.env.ALLOWED_ORIGINS = ALLOWED_ORIGINS.join(',');
     setAllowedOrigins(ALLOWED_ORIGINS);
 
-    // Reconectar Socket.io con CORS correcto
-    io.engine.opts.cors.origin = ALLOWED_ORIGINS;
+    // Socket.io ya evalúa la política de origen en caliente (corsOriginCheck):
+    // no hace falta propagarle la lista tras el arranque.
 
     server.listen(detectedPort, '0.0.0.0', () => {
         logger.info(`CHECK PRO V${APP_VERSION} (Enterprise Grade + Backups + Rate Limiting): Puerto ${detectedPort}`);

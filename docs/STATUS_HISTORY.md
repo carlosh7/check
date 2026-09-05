@@ -5,6 +5,54 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-05 — Endurecimiento integral de 5 fases (v12.44.804)
+
+**Plan aprobado por el usuario:** análisis integral del proyecto → plan de resolución por fases (secretos/despliegue, seguridad de red y tokens, cableado de módulos, calidad, documentación).
+
+### Fase 1 — Secretos y despliegue
+- **`portainer-stack-v2.yml`** (nuevo, junto a `portainer-stack.yml` que queda como respaldo hasta verificación): token GitHub vía variable de entorno `GITHUB_PAT` de Portainer — nada literal en el YAML; guardia que aborta con mensaje claro si falta; Node 22 unificado con Dockerfile; **sin `chmod -R 777`** en la persistencia.
+- **`docker-compose.yml`**: `env_file` con `required: false`, sin `container_name` fijo.
+- **Pendiente del operador: rotar el PAT de GitHub** si alguna vez se pegó literal.
+
+### Fase 2 — Seguridad de red y tokens
+- **CORS** (`server.js`): política compartida `corsOriginCheck` para Express y Socket.io, evaluada en caliente. El auto-accept de IPs LAN ahora depende de `CORS_TRUST_LAN` (default: activo solo fuera de producción). Smoke test: LAN ajeno → 500, origen del propio host → 200, sin origen → 200.
+- **Socket.io**: ya no arranca con `origin: '*'` ni muta `io.engine.opts.cors.origin` (cierra P3-5).
+- **JWT por query string** (P2-1): `downloadBadges`/`downloadReport` en `app.js` usan fetch + header Authorization + blob; el fallback por query se conserva en `auth.js` por compatibilidad.
+- **CSP** (P2-3 parcial): `scriptSrc` sin `'unsafe-inline'` — 11 scripts inline externalizados a `public/js/pages/*.js` (index, calendar, kiosk, landing, portal, registro×2, survey×2, ticket, wheel), misma posición, cuerpos byte-exactos. Restante documentado: `scriptSrcAttr`/`styleSrc` (≈450 handlers/estilos inline en app-shell).
+- `findAvailablePort` ya no reescribe `.env` en producción.
+- Plantilla de importación: contraseña de ejemplo cumple política (`Ejemplo2024Aa`); eliminado archivo vacío `70`; `package.json` `main` → `server.js`; `jspdf` se queda (sí se usa en 5 rutas backend).
+
+### Hallazgo crítico colateral (P2-5) — registro público muerto desde v12.44.712
+El script inline de `registro.html` tenía una **llave de cierre sobrante** (entró en el commit del carrito, `5baf26b` v12.44.712): todo el bloque dejaba de parsear en el navegador → el formulario público de registro quedaba en "loading" para siempre en producción. Corregido y verificado con babel/acorn. También corregidos en páginas públicas: `escJs` inexistente en portal (álbum), `toast` inexistente en wheel (ruleta), Leaflet cargado de unpkg.com bloqueado por CSP (landing → movido a cdn.jsdelivr.net), `closeModal` duplicado en wheel.
+
+### Fase 3 — Cableado de módulos
+- `SessionManager`, `EventManager`, `GuestManager` exportados en el barrel `public/js/modules/index.js` e integrados en `App` (`App.sessionManager/eventManager/guestManager`) — incremental, nada sustitutivo. Tests de módulos verdes.
+- `?v=12.44.516` obsoleto → `?v=12.44.804` en los 25 imports de `app.js`.
+- `public/js/src/frontend/api.js|utils.js` se quedan: `app.js` los importa activamente (duplicado documentado como deuda, no eliminado).
+
+### Fase 4 — Calidad
+- **ESLint: 8 errores → 0** (override ESM para 3 tests de módulos en `eslint.config.js`, globals de páginas, fix de parseo de wheel.js). Baseline de warnings en CI ajustada a 2100 (tramo 1 de la campaña: 2100 → 1000 → 500 → 100 → 0).
+- **visual.test.js real** (P2-2): 20 tests estáticos (guardián CSP: ningún `<script>` inline + refs locales existentes) + modo live Playwright opcional contra `VISUAL_BASE_URL` (screenshots + errores de consola; se omite con aviso si no hay navegador).
+- **`test:coverage` + `coverageThreshold`**: ratchet en 37% statements / 18% branches / 26% functions / 37% lines (cobertura real medida).
+- **CVEs: 21 → 5** (`npm audit fix` + `nodemailer@10`; quedan solo moderadas transitive de uuid vía exceljs/googleapis — diferido, requiere majors).
+- `console.log` de runtime de `socket/index.js` → `logger`; los de boot/migraciones/seed se conservan deliberadamente (corren antes del logger, visibilidad en docker logs).
+
+### Fase 5 — Documentación
+- `AUDIT_REPORT.md`: P2-1 mitigado, P2-2/P3-4/P3-5 resueltos, P2-3/P3-1/P3-3 parciales con detalle; nuevos P1-4 (token en stack), P2-5 (registro muerto), P3-6 (bugs de páginas).
+- `ACTION_PLAN.md`: fila "Endurecimiento integral 12.44.804" en el registro.
+- `README.md` y `docs/ARQUITECTURA_SISTEMA.md`: drift corregido (BD maestra real `data/system/database.db`, estructura real de archivos).
+
+### Estado de tests
+**299/299** (21 suites; 279 previos + 20 visuales estáticos; 1 live omitido sin navegador). ESLint 0 errores. Smoke E2E local verificado (health/CSP/CORS en producción y desarrollo).
+
+### Pendiente para la próxima sesión
+1. Operador: **rotar PAT de GitHub** y **cambiar la contraseña admin** de 192.168.2.17:3000.
+2. Redeploy del stack check con `portainer-stack-v2.yml` (configurar `GITHUB_PAT` como variable del stack) y retirar `portainer-stack.yml` cuando esté verificado.
+3. Continuar campaña ESLint (tramo 2: warnings 2100 → 1000) y CSP resto (scriptSrcAttr/styleSrc de app-shell).
+4. Retirar fallback de token por query en `src/middleware/auth.js` una vez confirmado que nadie externo lo usa.
+
+---
+
 ## 2026-08-30/31 — Seguridad de primer arranque (v12.44.802) + hardening de credenciales (v12.44.803)
 
 **Commits:** `f56ba30` (seguridad, tag `v12.44.802`) · `ba0b5f2` (respaldo sesión anterior + `.zcode/` al `.gitignore`) · v12.44.803 (wizard Chrome + cero credenciales literales, tag `v12.44.803`)

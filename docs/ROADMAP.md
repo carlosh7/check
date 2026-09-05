@@ -8,12 +8,12 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.803 (tags `v12.44.802`/`v12.44.803` en remoto) |
-| **Sesión 2026-08-30/31** | ✅ Seguridad de primer arranque: fin de credenciales expuestas (P1-2), wizard de primer arranque (`/api/setup`), política de contraseñas (`src/security/password-policy.js`), signup fuerza PRODUCTOR. 279/279 tests. Instalación Docker verificada E2E desde clon fresco. v12.44.803: Chrome guarda claves del wizard + cero credenciales literales en tests/CI. |
+| **Version** | v12.44.804 (tag `v12.44.804`) |
+| **Sesión 2026-09-05** | ✅ **Endurecimiento integral (5 fases)**: `portainer-stack-v2.yml` (PAT por variable de entorno, Node 22, sin chmod 777) · CORS con `CORS_TRUST_LAN` + Socket.io sin `'*'` (P3-5) · JWT fuera de query strings (P2-1) · scriptSrc sin `unsafe-inline` con 11 scripts externalizados (P2-3 parcial) · **bug crítico corregido: registro público muerto desde v12.44.712** (llave sobrante, P2-5) · fixes de páginas (escJs/toast/Leaflet-CSP) · SessionManager/EventManager/GuestManager cableados en barrel · ESLint 0 errores · visual.test.js real (P2-2) · coverage con ratchet · CVEs 21→5. 299/299 tests. Detalle en `docs/STATUS_HISTORY.md`. |
 | **Todas las fases 0-4, S, backlog, Ciclos 2-10** | ✅ Completados al 100% |
 | **Ciclo 11 (9 features)** | ✅ Completado al 100% |
-| **Feature en curso** | **Fase H — Seguridad y Estabilidad** (P1-2 cerrado; ver `AUDIT_REPORT.md` y `ACTION_PLAN.md`) |
-| **Próximo paso** | Hardening `docker-compose.yml`: `env_file: .env` opcional (`required: false`) y quitar `container_name: check-app` duro — detectado en la verificación Docker del 2026-08-30 (detalles en `docs/STATUS_HISTORY.md`). Opcional: paso de 2FA en el wizard de primer arranque. |
+| **Feature en curso** | **Fase H — Seguridad y Estabilidad** (P1-2, P1-4, P2-2, P2-5, P3-4, P3-5 cerrados; ver `AUDIT_REPORT.md`) |
+| **Próximo paso** | 1) Operador: rotar PAT de GitHub + cambiar contraseña admin + Redeploy con `portainer-stack-v2.yml` (variable `GITHUB_PAT`) y retirar el stack v1 al verificar. 2) Campaña ESLint tramo 2 (warnings 2100→1000). 3) CSP resto: `scriptSrcAttr`/`styleSrc` de app-shell (~450 handlers inline). 4) Retirar fallback de token por query en `auth.js`. Opcional: 2FA en wizard de primer arranque. |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
 

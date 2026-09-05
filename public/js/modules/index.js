@@ -35,6 +35,13 @@ export { AuthServiceInstance } from './services/AuthService.js';
 export { EventServiceInstance } from './services/EventService.js';
 export { GuestServiceInstance } from './services/GuestService.js';
 
+// Auth (v12.44.804 — cableado del respaldo v12.44.802)
+export { SessionManager, SessionManagerInstance } from './auth/SessionManager.js';
+
+// Views pendientes (v12.44.804 — cableado del respaldo v12.44.802)
+export { EventManager, EventManagerInstance } from './views/EventManager.js';
+export { GuestManager, GuestManagerInstance } from './views/GuestManager.js';
+
 // Información de versión
 export const MODULES_VERSION = '1.0.0';
 export const MODULES_LAST_UPDATE = '2026-04-14';
@@ -72,5 +79,12 @@ export const MODULES_STATUS = {
         AuthService: '✅ Completo',
         EventService: '✅ Completo',
         GuestService: '✅ Completo',
+    },
+    auth: {
+        SessionManager: '✅ Completo (cableado v12.44.804)',
+    },
+    viewsPendientes: {
+        EventManager: '✅ Completo (cableado v12.44.804)',
+        GuestManager: '✅ Completo (cableado v12.44.804)',
     },
 };

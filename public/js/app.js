@@ -7,37 +7,42 @@ window.escapeHtml = function(str) {
 };
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.516';
-import { Config } from './modules/core/Config.js?v=12.44.516';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.516';
-import { AppStateManager } from './modules/core/State.js?v=12.44.516';
-import { Constants } from './modules/utils/Constants.js?v=12.44.516';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.516';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.516';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.516';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.516';
-import { TableManager } from './modules/components/Table.js?v=12.44.516';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.516';
-import { FormManager } from './modules/components/Form.js?v=12.44.516';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.516';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.516';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.516';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.516';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.516';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.516';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.516';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.516';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.516';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.516';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.804';
+import { Config } from './modules/core/Config.js?v=12.44.804';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.804';
+import { AppStateManager } from './modules/core/State.js?v=12.44.804';
+import { Constants } from './modules/utils/Constants.js?v=12.44.804';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.804';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.804';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.804';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.804';
+import { TableManager } from './modules/components/Table.js?v=12.44.804';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.804';
+import { FormManager } from './modules/components/Form.js?v=12.44.804';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.804';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.804';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.804';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.804';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.804';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.804';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.804';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.804';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.804';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.804';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.516';
-import PushModule from './modules/app-push.js?v=12.44.516';
-import ThemeModule from './modules/app-theme.js?v=12.44.516';
+// Módulos cableados en v12.44.804 (respaldo de v12.44.802, antes sin usar)
+import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.804';
+import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.804';
+import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.804';
+
+import ImportExportModule from './modules/app-import.js?v=12.44.804';
+import PushModule from './modules/app-push.js?v=12.44.804';
+import ThemeModule from './modules/app-theme.js?v=12.44.804';
 import { AiSecurity } from './modules/features/ai-security.js?v=12.44.765';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.803';
+const VERSION = '12.44.804';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -74,6 +79,11 @@ const App = window.App = {
     constants: { API_URL: Config.API_URL },
     fetchAPI(endpoint, options) { return API.fetchAPI(endpoint, options); },
     esc: window.escapeHtml,
+
+    // Módulos modulares cableados (v12.44.804) — complementan, no sustituyen
+    sessionManager: SessionManagerInstance,
+    eventManager: EventManagerInstance,
+    guestManager: GuestManagerInstance,
     
 
     router: RouterManager,
@@ -1200,13 +1210,28 @@ const App = window.App = {
         if (!eventId) return;
         const token = this.state.user?.token;
         if (!token) return;
-        var a = document.createElement('a');
-        a.href = '/api/guests/' + eventId + '/badges?token=' + encodeURIComponent(token);
-        a.download = 'Gafetes_' + eventId + '.pdf';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        // Fase 2026-09 (P2-1): JWT por header Authorization, no por query string.
+        try {
+            const response = await fetch(`/api/guests/${eventId}/badges`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'Gafetes_' + eventId + '.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch(e) {
+            console.error('[BADGES] Error descargando gafetes:', e);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo descargar los gafetes' });
+            }
+        }
     },
 
     downloadReport: async function() {
@@ -1214,13 +1239,28 @@ const App = window.App = {
         if (!eventId) return;
         const token = this.state.user?.token;
         if (!token) return;
-        var a = document.createElement('a');
-        a.href = '/api/guests/' + eventId + '/report?token=' + encodeURIComponent(token);
-        a.download = 'Reporte_' + eventId + '.pdf';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        // Fase 2026-09 (P2-1): JWT por header Authorization, no por query string.
+        try {
+            const response = await fetch(`/api/guests/${eventId}/report`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'Reporte_' + eventId + '.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch(e) {
+            console.error('[REPORT] Error descargando reporte:', e);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo descargar el reporte' });
+            }
+        }
     },
 
     // ── Sort Attendance Table ──

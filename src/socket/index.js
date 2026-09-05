@@ -5,6 +5,7 @@
  */
 
 const { Server } = require('socket.io');
+const logger = require('../utils/logger');
 
 let io = null;
 const activeEditors = new Map(); // eventId -> [{ userId, userName, guestId, guestName, joinedAt }]
@@ -14,12 +15,12 @@ function init(server, opts = {}) {
     io = new Server(server, { cors });
 
     io.on('connection', (socket) => {
-        console.log(`[Socket.io] Cliente conectado: ${socket.id}`);
+        logger.info('[Socket.io] Cliente conectado: ' + socket.id);
 
         socket.on('join_event', (eventId) => {
             socket.join(eventId);
             if (!activeEditors.has(eventId)) activeEditors.set(eventId, []);
-            console.log(`[Socket.io] ${socket.id} joined event ${eventId}`);
+            logger.debug('[Socket.io] ' + socket.id + ' joined event ' + eventId);
             io.to(eventId).emit('presence_update', { editors: activeEditors.get(eventId) || [] });
         });
 
@@ -83,14 +84,14 @@ function init(server, opts = {}) {
         });
 
         socket.on('disconnect', () => {
-            console.log(`[Socket.io] Cliente desconectado: ${socket.id}`);
+            logger.info('[Socket.io] Cliente desconectado: ' + socket.id);
             if (socket.editingData) {
                 removeEditor(socket, socket.editingData.eventId);
             }
         });
     });
 
-    console.log('✓ Socket.io inicializado con soporte colaborativo');
+    logger.info('Socket.io inicializado con soporte colaborativo');
     return io;
 }
 

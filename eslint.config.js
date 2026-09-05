@@ -46,6 +46,7 @@ module.exports = [
                 Chart: 'readonly', THREE: 'readonly', caches: 'readonly', FileReader: 'readonly',
                 Notification: 'readonly', requestAnimationFrame: 'readonly', cancelAnimationFrame: 'readonly',
                 crypto: 'readonly', btoa: 'readonly', atob: 'readonly', getComputedStyle: 'readonly',
+                Audio: 'readonly', JSConfetti: 'readonly', L: 'readonly',
                 matchMedia: 'readonly', ResizeObserver: 'readonly', MutationObserver: 'readonly',
                 IntersectionObserver: 'readonly', performance: 'readonly',                 Image: 'readonly', qrcode: 'readonly'
             }
@@ -159,5 +160,18 @@ module.exports = [
             'public/js/lib/**',
             '*.min.js'
         ]
+    },
+    {
+        // Tests ESM (import/export) — DEBE ir después del override commonjs de
+        // tests/** para ganar en flat config (v12.44.804)
+        files: ['tests/session-manager.test.js', 'tests/event-manager.test.js', 'tests/guest-manager.test.js'],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: 'module',
+            globals: {
+                describe: 'readonly', test: 'readonly', it: 'readonly', expect: 'readonly',
+                beforeEach: 'readonly', afterEach: 'readonly', jest: 'readonly'
+            }
+        }
     }
 ];

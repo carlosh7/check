@@ -3,7 +3,6 @@ version: '3.8'
 services:
   check-app:
     build: .
-    container_name: check-app
     working_dir: /usr/src/app
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
@@ -12,7 +11,8 @@ services:
       - .:/usr/src/app
       - node_modules:/usr/src/app/node_modules
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       - NODE_ENV=development
       - PORT=${PORT:-3000}

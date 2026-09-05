@@ -12,7 +12,7 @@ Sistema de gestión de invitados con soporte para múltiples bases de datos por 
 
 ```
 data/
-├── check_app.db              ← BASE DE DATOS MAESTRA (usuarios, eventos, configuración global)
+└── system/database.db        ← BASE DE DATOS MAESTRA (usuarios, eventos, configuración global) — v12.44.804 corrige drift
 │   ├── users                 → Usuarios del sistema
 │   ├── groups                → Empresas/Grupos
 │   ├── events                → Eventos (contiene campo has_own_db)
@@ -44,7 +44,7 @@ data/
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     BASE DE DATOS MAESTRA                       │
-│                     (check_app.db)                              │
+│                     (system/database.db)                              │
 ├─────────────────────────────────────────────────────────────────┤
 │  users    │  groups  │  events (has_own_db)  │  settings      │
 └───────────┴──────────┴───────────────────────┴────────────────┘
@@ -120,7 +120,7 @@ C:\Users\carlo\OneDrive\Documentos\APP\Registro\
 │       └── modern.css
 │
 └── data/
-    ├── check_app.db               ← BD Maestra
+    ├── system/database.db             ← BD Maestra
     └── events/                    ← Directorio de BDs de eventos
         └── (archivos .db por evento)
 ```
@@ -153,7 +153,7 @@ public.routes.js → Busca evento en BD maestra
               → Verifica has_own_db + existe BD del evento
                       ↓
               → SI tiene BD propia → usa {eventId}.db
-              → NO tiene BD propia → usa check_app.db
+              → NO tiene BD propia → usa system/database.db
                       ↓
               → Inserta invitado en la BD correspondiente
 ```
@@ -174,7 +174,7 @@ guests.routes.js → Llama getEventDb(eventId)
 
 ## TABLAS POR BASE DE DATOS
 
-### BD Maestra (check_app.db)
+### BD Maestra (system/database.db)
 
 | Tabla | Función |
 |-------|---------|
@@ -294,7 +294,7 @@ curl -X POST http://localhost:3000/api/events/{eventId}/database
 
 ### 2. Estructura de datos
 
-- BD maestra: `data/check_app.db`
+- BD maestra: `data/system/database.db`
 - BD de eventos: `data/events/{event_id}.db`
 
 ### 3. Verificar estado de BD del evento

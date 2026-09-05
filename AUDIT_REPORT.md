@@ -164,14 +164,17 @@ Revisión manual de rutas críticas: queries parametrizadas (prepared statements
 | P1-1 | P1 | `DATA_PATH=/home/data_check` imposible sin root; fallo silencioso→exit | .env.example:22, database.js:11-39 |
 | P1-2 | P1 | JWT_SECRET/ADMIN_PASSWORD con defaults débiles shipeados | ✅ **RESUELTO v12.44.802**: seeds eliminados + wizard de primer arranque + política de contraseñas (`src/security/password-policy.js`); `.env.example` sin ADMIN_* por defecto |
 | P1-3 | P1 | backend.test.js cuelga Jest (open handles sin --forceExit) | package.json:11 |
-| P2-1 | P2 | Token JWT aceptado por query string | src/middleware/auth.js:51 |
-| P2-2 | P2 | Suite visual.test.js sin tests (falsa señal de cobertura) | tests/visual.test.js |
-| P2-3 | P2 | CSP con unsafe-inline + frameSrc * | server.js:134-142 |
+| P2-1 | P2 | Token JWT aceptado por query string | 🟡 **MITIGADO v12.44.804**: el frontend ya no envía JWT por query (descargas con header Authorization); el fallback del middleware se conserva por compatibilidad — retirar en próxima fase |
+| P2-2 | P2 | Suite visual.test.js sin tests (falsa señal de cobertura) | ✅ **RESUELTO v12.44.804**: 20 tests estáticos (guardián CSP + refs locales) + modo live Playwright opcional (VISUAL_BASE_URL) |
+| P2-3 | P2 | CSP con unsafe-inline + frameSrc * | 🟡 **PARCIAL v12.44.804**: scriptSrc SIN 'unsafe-inline' (11 scripts inline externalizados a /js/pages/); restante: scriptSrcAttr/styleSrc por ~450 handlers/estilos inline de app-shell.html |
 | P2-4 | P2 | `logger` usado antes de definirse en catch de import sharp | src/routes/index.js:13,112 |
-| P3-1 | P3 | 23 vulnerabilidades en deps de producción (sharp/libvips high) | package.json deps |
+| P3-1 | P3 | 23 vulnerabilidades en deps de producción (sharp/libvips high) | 🟡 **PARCIAL v12.44.804**: npm audit fix + nodemailer@10 → quedan 5 moderadas (uuid transitive vía exceljs/googleapis; requiere majors — diferido) |
 | P3-2 | P3 | Caracteres chinos residuales en código (artefactos IA) | server.js:48,453; jwt.js:41 |
-| P3-3 | P3 | 85 console.log residuales en backend | src/, database.js, server.js |
-| P3-4 | P3 | Drift documental (check_app.db, script.css, estructura vieja) | README.md:297-360, docs/ROADMAP.md |
-| P3-5 | P3 | Socket.io CORS `'*'` inicial antes de corrección async | server.js:82,439 |
+| P3-3 | P3 | 85 console.log residuales en backend | 🟡 **PARCIAL v12.44.804**: runtime logs de socket/index.js → logger; los de boot/migraciones/seed (database.js, plugin-engine) se conservan deliberadamente: corren antes de inicializar logger y dan visibilidad en docker logs |
+| P3-4 | P3 | Drift documental (check_app.db, script.css, estructura vieja) | ✅ **RESUELTO v12.44.804**: README y ARQUITECTURA_SISTEMA actualizados a la estructura real |
+| P3-5 | P3 | Socket.io CORS `'*'` inicial antes de corrección async | ✅ **RESUELTO v12.44.804**: política `corsOriginCheck` compartida Express/Socket.io evaluada en caliente; sin `'*'` ni mutación de engine.opts |
+| P1-4 | P1 | Token GitHub (PAT) pegado literalmente en portainer-stack.yml | ✅ **RESUELTO v12.44.804**: `portainer-stack-v2.yml` usa variable de entorno GITHUB_PAT de Portainer (falla con mensaje claro si falta). **Pendiente del operador: rotar el PAT anterior** |
+| P2-5 | P2 | registro.html con llave de cierre sobrante desde v12.44.712: TODO el script inline dejaba de parsear → formulario público de registro muerto en producción (loading infinito) | ✅ **RESUELTO v12.44.804**: llave retirada + script externalizado a /js/pages/registro.js (verificado con babel) |
+| P3-6 | P3 | Bugs de runtime en páginas públicas: `escJs` usada sin definirse en portal (álbum roto con captions), `toast` llamada sin definirse en wheel (~15 sitios, ReferenceError cortaba guardado), Leaflet cargado de unpkg.com bloqueado por CSP en landing (mapa muerto) | ✅ **RESUELTOS v12.44.804**: escJs definida, toast() implementada con el markup existente, Leaflet movido a cdn.jsdelivr.net (dominio permitido) |
 
 *Limitaciones de auditoría: UX visual no evaluada en navegador; integraciones externas (Stripe/Twilio/Google) probadas solo hasta nivel de ruta; e2e/load excluidos según configuración del propio proyecto.*

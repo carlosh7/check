@@ -1,8 +1,8 @@
 {
   "name": "check",
-  "version": "12.44.803",
+  "version": "12.44.804",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
-  "main": "script.js",
+  "main": "server.js",
   "scripts": {
     "postinstall": "node scripts/bootstrap-env.js",
     "setup": "node setup.js",
@@ -13,7 +13,8 @@
     "test:ai": "jest tests/ai/ --passWithNoTests",
     "test:e2e": "jest tests/e2e.test.js --passWithNoTests --forceExit --detectOpenHandles",
     "test:visual": "node scripts/visual-check.js",
-    "prepare": "npx husky || true"
+    "prepare": "npx husky || true",
+    "test:coverage": "jest --coverage --testPathIgnorePatterns='/tests/e2e.test.js|/tests/load.test.js'"
   },
   "repository": {
     "type": "git",
@@ -46,7 +47,7 @@
     "mailparser": "^3.7.1",
     "multer": "^2.2.0",
     "node-cache": "^5.1.2",
-    "nodemailer": "^8.0.7",
+    "nodemailer": "^10.0.0",
     "pdf-parse": "^1.1.1",
     "qrcode": "^1.5.4",
     "redis": "^6.1.0",
@@ -74,5 +75,15 @@
     "supertest": "^7.2.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0"
+  },
+  "jest": {
+    "coverageThreshold": {
+      "global": {
+        "statements": 37,
+        "branches": 18,
+        "functions": 26,
+        "lines": 37
+      }
+    }
   }
 }
