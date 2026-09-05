@@ -5,6 +5,59 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-05 (parte 2) — Tramo 2 ESLint + P2-1 cerrado + Redeploy y validación en producción (v12.44.805)
+
+**Commits:** `3b9c018` (v12.44.804, endurecimiento integral) · `b40cc99` (v12.44.805, tramo 2 + P2-1)
+
+### Pendientes del roadmap cerrados
+- **ESLint tramo 2**: warnings 2086 → **538** (CI `--max-warnings=550`). Base: `eslint --fix`
+  (no-var→let mecánico, 922 líneas de formato en 8 archivos frontend) + `caughtErrors: 'none'`
+  justificado (616 `catch(e)` sin uso intencionales, auditados por clasificación de mensajes);
+  args/vars sin uso siguen señalados para el tramo 3 (require-await 95, no-await-in-loop 78,
+  no-unused-vars 129 asignaciones muertas reales).
+- **P2-1 RESUELTO**: retirado el fallback `req.query.token` de `src/middleware/auth.js`.
+  Verificado que ningún consumidor usa `?token=`. Test de producción: descarga con token falso
+  por query → 401 (ignorado).
+- **P2-4 verificado no reproducible**: `routes/index.js` define `logger` (línea 7) antes de uso.
+
+### Redeploy en VPS Contabo (185.234.69.61, /opt/check — NO git: rsync + compose build)
+- Backup previo del código en `/opt/check-backup-20260905-1806.tar.gz`.
+- rsync con excludes estrictos: `.env`, `data/`, `persistence/`, `node_modules/`, `.git` nunca
+  sincronizados; sin `--delete` para preservar archivos propios del VPS.
+- `docker compose build` + renovación del volumen `check_node_modules` + recreación del contenedor.
+- **Incidente resuelto**: el rsync sobrescribió el `docker-compose.yml` adaptado del VPS
+  (127.0.0.1:13000:3000, ALLOWED_ORIGINS=chek.smarteventos.co) por el local (puerto 3000, en uso)
+  → el contenedor no arrancó. Restaurado desde el backup en <2 min. **Lección: excluir
+  `docker-compose.yml` del rsync o parametrizarlo por env.** Corregido en el flujo documentado.
+- Otros proyectos del VPS (Nextcloud AIO, Dolibarr, Cueflow) intactos.
+
+### Validación en producción real (interna 127.0.0.1:13000 + externa https://chek.smarteventos.co)
+| Verificación | Resultado |
+|---|---|
+| /api/health interno y externo | ✅ 200 |
+| Versión servida (index.html) | ✅ `v=12.44.805` |
+| CSP `script-src` | ✅ sin `unsafe-inline` |
+| CORS: LAN ajeno | ✅ 500 (bloqueado) |
+| CORS: dominio propio | ✅ 200 |
+| registro.js en vivo | ✅ carga, parsea (20.449 bytes) y ejecuta: sin evento → "Evento no encontrado" (antes: loading eterno por el error de parseo) |
+| Ruleta (wheel) en vivo | ✅ canvas, `toast()` y `closeModal()` definidas, confetti cargado |
+| Login en navegador real | ✅ formulario completo; toggle de contraseña funciona (script externalizado ejecuta) |
+| `window.App` en producción | ✅ cargado + `sessionManager/eventManager/guestManager: true` (módulos cableados vivos) |
+| Login con credenciales erróneas | ✅ 401 limpio |
+| Descarga con token por query | ✅ 401 (fallback retirado) |
+| Headers de seguridad | ✅ nosniff, DENY, HSTS |
+
+### Notas
+- La tabla `events` de producción está vacía — no hay eventos reales para probar el flujo de
+  registro con carrito E2E; el despliegue se validó hasta el borde (JS ejecuta + API responde).
+- Las páginas standalone referencian sus JS con `?v=12.44.804` (versión en que ese archivo
+  cambió por última vez) — cache-busting correcto por archivo.
+- Pendiente exclusivo del operador: **rotar el PAT de GitHub** (solo posible desde la web de
+  GitHub) y **cambiar la contraseña del admin** (el admin de producción se creó por wizard;
+  las credenciales no están en ningún archivo).
+
+---
+
 ## 2026-09-05 — Endurecimiento integral de 5 fases (v12.44.804)
 
 **Plan aprobado por el usuario:** análisis integral del proyecto → plan de resolución por fases (secretos/despliegue, seguridad de red y tokens, cableado de módulos, calidad, documentación).

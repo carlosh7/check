@@ -8,12 +8,12 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.804 (tag `v12.44.804`) |
-| **Sesión 2026-09-05** | ✅ **Endurecimiento integral (5 fases)**: `portainer-stack-v2.yml` (PAT por variable de entorno, Node 22, sin chmod 777) · CORS con `CORS_TRUST_LAN` + Socket.io sin `'*'` (P3-5) · JWT fuera de query strings (P2-1) · scriptSrc sin `unsafe-inline` con 11 scripts externalizados (P2-3 parcial) · **bug crítico corregido: registro público muerto desde v12.44.712** (llave sobrante, P2-5) · fixes de páginas (escJs/toast/Leaflet-CSP) · SessionManager/EventManager/GuestManager cableados en barrel · ESLint 0 errores · visual.test.js real (P2-2) · coverage con ratchet · CVEs 21→5. 299/299 tests. Detalle en `docs/STATUS_HISTORY.md`. |
+| **Version** | v12.44.805 (tags `v12.44.804`/`v12.44.805` en remoto) |
+| **Sesión 2026-09-05 (parte 2)** | ✅ **Tramo 2 ESLint** (warnings 2086→538, CI 550) · **P2-1 RESUELTO** (sin token por query) · **P2-4 verificado** · **Redeploy y validación en producción real** (VPS Contabo /opt/check: v12.44.805 servida, CSP sin unsafe-inline, CORS bloqueando LAN, registro.js ejecutando en vivo — bug crítico verificado cerrado, ruleta/login/App verificados en navegador real). Detalle en `docs/STATUS_HISTORY.md`. |
 | **Todas las fases 0-4, S, backlog, Ciclos 2-10** | ✅ Completados al 100% |
 | **Ciclo 11 (9 features)** | ✅ Completado al 100% |
-| **Feature en curso** | **Fase H — Seguridad y Estabilidad** (P1-2, P1-4, P2-2, P2-5, P3-4, P3-5 cerrados; ver `AUDIT_REPORT.md`) |
-| **Próximo paso** | 1) Operador: rotar PAT de GitHub + cambiar contraseña admin + Redeploy con `portainer-stack-v2.yml` (variable `GITHUB_PAT`) y retirar el stack v1 al verificar. 2) Campaña ESLint tramo 2 (warnings 2100→1000). 3) CSP resto: `scriptSrcAttr`/`styleSrc` de app-shell (~450 handlers inline). 4) Retirar fallback de token por query en `auth.js`. Opcional: 2FA en wizard de primer arranque. |
+| **Feature en curso** | **Fase H — Seguridad y Estabilidad**: cerrados P1-2, P1-4, P2-1, P2-2, P2-4, P2-5, P3-4, P3-5; parciales documentados P2-3/P3-1/P3-3 |
+| **Próximo paso** | 1) Operador (solo manual): rotar PAT de GitHub (web de GitHub) y cambiar contraseña del admin de producción (creado por wizard, no está en archivos). 2) Tramo 3 ESLint: refactors reales (require-await 95, no-await-in-loop 78, vars muertas 129). 3) CSP resto: migrar ~450 handlers inline de app-shell (sesión dedicada). 4) Diferidos: 2FA en wizard, Wallet Passes, Portal v2. **Deploy VPS: excluir docker-compose.yml del rsync o parametrizar por env.** |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
 
