@@ -78,7 +78,11 @@ module.exports = [
             }
         },
         rules: {
-            'no-unused-vars': ['warn', { argsIgnorePattern: '^_|^req$|^res$|^next$' }],
+            // Tramo 2 (v12.44.805): caughtErrors 'none' — los catch(e) sin uso son
+            // intencionales en este código (616 casos auditados). Los args con
+            // prefijo _ y req/res/next de Express siguen exentos; el resto de
+            // vars/args sin uso sigue señalado para el tramo 3.
+            'no-unused-vars': ['warn', { argsIgnorePattern: '^_|^req$|^res$|^next$', caughtErrors: 'none', ignoreRestSiblings: true }],
             'no-undef': 'error',
             'no-constant-condition': 'warn',
             'no-empty': ['warn', { allowEmptyCatch: true }],

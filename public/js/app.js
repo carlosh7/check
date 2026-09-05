@@ -42,13 +42,13 @@ import { AiSecurity } from './modules/features/ai-security.js?v=12.44.765';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.804';
+const VERSION = '12.44.805';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
     if (v !== VERSION) {
         caches.keys().then(names => {
-            for (let name of names) caches.delete(name);
+            for (const name of names) caches.delete(name);
         }).then(() => {
             localStorage.clear();
             sessionStorage.clear();
@@ -976,10 +976,10 @@ const App = window.App = {
 
     loadGlobalAnalytics: async function() {
         try {
-            var data = await this.fetchAPI('/analytics?period=30');
+            const data = await this.fetchAPI('/analytics?period=30');
             if (!data) return;
             document.getElementById('global-analytics')?.classList.remove('hidden');
-            var setText = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val ?? '-'; };
+            const setText = function(id, val) { const el = document.getElementById(id); if (el) el.textContent = val ?? '-'; };
             setText('ga-total-events', data.totalEvents || 0);
             setText('ga-total-guests', data.totalGuests || 0);
             setText('ga-total-checked', data.totalChecked || 0);
@@ -996,9 +996,9 @@ const App = window.App = {
     },
 
     loadBiDashboard: async function() {
-        var period = document.getElementById('bi-period')?.value || 30;
+        const period = document.getElementById('bi-period')?.value || 30;
         try {
-            var data = await this.fetchAPI('/bi/dashboard?period=' + period);
+            const data = await this.fetchAPI('/bi/dashboard?period=' + period);
             if (!data) return;
             // A3: tendencias vs periodo anterior
             try {
@@ -1021,24 +1021,24 @@ const App = window.App = {
             this._biCharts.forEach(function(c) { try { c.destroy(); } catch(e) {} }); this._biCharts = [];
             if (typeof Chart === 'undefined') return;
 
-            var regsC = document.getElementById('bi-chart-regs');
+            const regsC = document.getElementById('bi-chart-regs');
             if (regsC && data.trends?.dailyRegistrations) {
-                var r = data.trends.dailyRegistrations;
+                const r = data.trends.dailyRegistrations;
                 this._biCharts.push(new Chart(regsC, { type: 'line', data: { labels: r.map(function(x) { return x.d; }), datasets: [{ label: 'Registros', data: r.map(function(x) { return x.c; }), borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }));
             }
-            var hrsC = document.getElementById('bi-chart-hours');
+            const hrsC = document.getElementById('bi-chart-hours');
             if (hrsC && data.hourlyDistribution) {
-                var h = data.hourlyDistribution;
+                const h = data.hourlyDistribution;
                 this._biCharts.push(new Chart(hrsC, { type: 'bar', data: { labels: h.map(function(x) { return x.h + ':00'; }), datasets: [{ label: 'Check-ins', data: h.map(function(x) { return x.c; }), backgroundColor: '#10b981' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }));
             }
-            var topC = document.getElementById('bi-chart-top');
+            const topC = document.getElementById('bi-chart-top');
             if (topC && data.topEvents) {
-                var t = data.topEvents.slice(0, 5);
+                const t = data.topEvents.slice(0, 5);
                 this._biCharts.push(new Chart(topC, { type: 'bar', data: { labels: t.map(function(x) { return (x.name || '').slice(0, 15); }), datasets: [{ label: 'Invitados', data: t.map(function(x) { return x.guests || 0; }), backgroundColor: '#0ea5e9' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, indexAxis: 'y' } }));
             }
-            var revC = document.getElementById('bi-chart-revenue');
+            const revC = document.getElementById('bi-chart-revenue');
             if (revC && data.revenueByMonth) {
-                var v = data.revenueByMonth;
+                const v = data.revenueByMonth;
                 this._biCharts.push(new Chart(revC, { type: 'line', data: { labels: v.map(function(x) { return x.m; }), datasets: [{ label: 'Ingresos', data: v.map(function(x) { return x.total || 0; }), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }));
             }
         } catch(e) { console.error('[BI] Error:', e.message); }
@@ -1219,7 +1219,7 @@ const App = window.App = {
             if (!response.ok) throw new Error('HTTP ' + response.status);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
-            var a = document.createElement('a');
+            const a = document.createElement('a');
             a.href = url;
             a.download = 'Gafetes_' + eventId + '.pdf';
             document.body.appendChild(a);
@@ -1248,7 +1248,7 @@ const App = window.App = {
             if (!response.ok) throw new Error('HTTP ' + response.status);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
-            var a = document.createElement('a');
+            const a = document.createElement('a');
             a.href = url;
             a.download = 'Reporte_' + eventId + '.pdf';
             document.body.appendChild(a);
@@ -4014,7 +4014,7 @@ const App = window.App = {
             const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
             let currentEvents = user ? (user.events || []) : [];
             currentEvents = currentEvents.map(String);
-            let newEvents = isSelected ? currentEvents.filter(id => id !== String(eventId)) : [...currentEvents, String(eventId)];
+            const newEvents = isSelected ? currentEvents.filter(id => id !== String(eventId)) : [...currentEvents, String(eventId)];
 
             const res = await this.fetchAPI(`/users/${userId}/events`, {
                 method: 'PUT', body: JSON.stringify({ events: newEvents })
@@ -9424,14 +9424,14 @@ navigate(viewName, params = {}, push = true) {
         }
     },
     loadAiReport: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) { this._notifyAction('Error', 'No hay evento', 'error'); return; }
         try {
             Swal.fire({ title: 'Generando insights...', allowOutsideClick: false, background: '#0f172a', color: '#fff', didOpen: function() { Swal.showLoading(); } });
-            var data = await this.fetchAPI('/reports/' + eId);
+            const data = await this.fetchAPI('/reports/' + eId);
             Swal.close();
             if (!data) return;
-            var html = '<div class="text-left space-y-3" style="max-height:400px;overflow-y:auto">';
+            let html = '<div class="text-left space-y-3" style="max-height:400px;overflow-y:auto">';
             html += '<div class="flex justify-between"><span>Total invitados:</span><span class="font-bold">' + (data.stats?.total || 0) + '</span></div>';
             html += '<div class="flex justify-between"><span>Asistieron:</span><span class="font-bold text-green-400">' + (data.stats?.checkedIn || 0) + '</span></div>';
             html += '<div class="flex justify-between"><span>Asistencia:</span><span class="font-bold">' + (data.stats?.conversionRate || 0) + '%</span></div>';
@@ -9443,30 +9443,30 @@ navigate(viewName, params = {}, push = true) {
     },
 
     addLiveEvent: function(data) {
-        var list = document.getElementById('live-feed-list');
-        var count = document.getElementById('live-count');
+        const list = document.getElementById('live-feed-list');
+        const count = document.getElementById('live-count');
         if (!list) return;
-        var name = (data && data.name) || 'Alguien';
-        var entry = document.createElement('div');
+        const name = (data && data.name) || 'Alguien';
+        const entry = document.createElement('div');
         entry.className = 'flex items-center gap-2 text-green-400 animate-fade-in';
         entry.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>✅ ' + name + ' hizo check-in';
         list.insertBefore(entry, list.firstChild);
         if (list.children.length > 20) list.removeChild(list.lastChild);
         if (count) count.textContent = parseInt(count.textContent) + 1 + ' hoy';
-        var feed = document.getElementById('live-feed');
+        const feed = document.getElementById('live-feed');
         if (feed) feed.style.borderLeftColor = '#22c55e';
     },
 
     showToast: function(msg, type) {
-        var container = document.getElementById('toast-container');
+        let container = document.getElementById('toast-container');
         if (!container) {
             container = document.createElement('div');
             container.id = 'toast-container';
             container.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px';
             document.body.appendChild(container);
         }
-        var toast = document.createElement('div');
-        var bg = type === 'error' ? '#ef4444' : type === 'info' ? '#3b82f6' : '#22c55e';
+        const toast = document.createElement('div');
+        const bg = type === 'error' ? '#ef4444' : type === 'info' ? '#3b82f6' : '#22c55e';
         toast.style.cssText = 'background:' + bg + ';color:#fff;padding:10px 18px;border-radius:8px;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2);animation:fadeIn 0.3s';
         toast.textContent = msg;
         container.appendChild(toast);
@@ -9474,7 +9474,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     showKeyboardShortcuts: function() {
-        var html = '<div class="p-6 space-y-3"><h2 class="text-lg font-bold mb-4">⌨️ Atajos de Teclado</h2>' +
+        const html = '<div class="p-6 space-y-3"><h2 class="text-lg font-bold mb-4">⌨️ Atajos de Teclado</h2>' +
             '<div class="grid grid-cols-2 gap-3 text-sm">' +
             '<div><kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">g</kbd> + <kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">g</kbd> <span class="text-slate-400 ml-2">Invitados</span></div>' +
             '<div><kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">g</kbd> + <kbd class="px-2 py-1 rounded bg-slate-700 text-xs font-mono">e</kbd> <span class="text-slate-400 ml-2">Eventos</span></div>' +
@@ -9494,19 +9494,19 @@ navigate(viewName, params = {}, push = true) {
     },
 
     updatePresence: function(editors) {
-        var container = document.getElementById('presence-editors');
+        let container = document.getElementById('presence-editors');
         if (!container) {
             container = document.createElement('div');
             container.id = 'presence-editors';
             container.className = 'flex flex-wrap gap-2 mb-2';
-            var headerEl = document.querySelector('.flex.items-center.gap-2.mb-4') || document.querySelector('.page-header');
+            const headerEl = document.querySelector('.flex.items-center.gap-2.mb-4') || document.querySelector('.page-header');
             if (headerEl) headerEl.parentNode.insertBefore(container, headerEl.nextSibling);
         }
         if (!editors || editors.length === 0) { container.style.display = 'none'; return; }
         container.style.display = 'flex';
         container.innerHTML = editors.map(function(e) {
-            var name = e.userName || 'Alguien';
-            var editing = e.guestName ? ' editando ' + e.guestName : '';
+            const name = e.userName || 'Alguien';
+            const editing = e.guestName ? ' editando ' + e.guestName : '';
             return '<span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-green-500/10 text-green-400 border border-green-500/20"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>' + name + editing + '</span>';
         }).join('');
     },
@@ -9530,8 +9530,8 @@ navigate(viewName, params = {}, push = true) {
             sv('stat-health', dietaryRestrictions);
             
             // Video conference (C8-05)
-            var videoUrl = this.state.event.video_conference_url;
-            var videoBtn = document.getElementById('video-conference-btn');
+            const videoUrl = this.state.event.video_conference_url;
+            let videoBtn = document.getElementById('video-conference-btn');
             if (videoUrl) {
                 if (!videoBtn) {
                     videoBtn = document.createElement('a');
@@ -9540,11 +9540,11 @@ navigate(viewName, params = {}, push = true) {
                     videoBtn.target = '_blank';
                     videoBtn.rel = 'noopener noreferrer';
                     videoBtn.innerHTML = '<span class="material-symbols-outlined">videocam</span> Unirse a Videollamada';
-                    var target = document.querySelector('.flex.items-center.gap-2.mb-4') || document.getElementById('page-guests')?.querySelector('.flex');
+                    const target = document.querySelector('.flex.items-center.gap-2.mb-4') || document.getElementById('page-guests')?.querySelector('.flex');
                     if (target && target.parentNode) target.parentNode.insertBefore(videoBtn, target.nextSibling);
                 }
-                var isMeet = videoUrl.includes('meet.google.com');
-                var isZoom = videoUrl.includes('zoom.us');
+                const isMeet = videoUrl.includes('meet.google.com');
+                const isZoom = videoUrl.includes('zoom.us');
                 videoBtn.href = videoUrl;
                 videoBtn.style.background = isMeet ? '#1a73e8' : isZoom ? '#2d8cff' : '#7c3aed';
                 videoBtn.style.color = '#fff';
@@ -9562,18 +9562,18 @@ navigate(viewName, params = {}, push = true) {
         if (typeof Chart === 'undefined') return;
         if (!this.state.charts) this.state.charts = {};
         
-        var configBtn = document.getElementById('widget-config-btn');
+        let configBtn = document.getElementById('widget-config-btn');
         if (!configBtn) {
             configBtn = document.createElement('button');
             configBtn.id = 'widget-config-btn';
             configBtn.className = 'text-xs text-slate-400 hover:text-white transition-colors ml-auto';
             configBtn.innerHTML = '⚙️ Personalizar';
             configBtn.onclick = function() { App.showWidgetConfig(); };
-            var chartsSection = document.getElementById('page-guests')?.querySelector('.space-y-4') || document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2');
+            const chartsSection = document.getElementById('page-guests')?.querySelector('.space-y-4') || document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2');
             if (chartsSection) chartsSection.parentNode.insertBefore(configBtn, chartsSection);
         }
         
-        var widgetConfig = this.getWidgetConfig();
+        const widgetConfig = this.getWidgetConfig();
         widgetConfig.forEach(function(w) {
             if (!w.visible) return;
             switch (w.id) {
@@ -9588,7 +9588,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     getWidgetConfig: function() {
-        var saved = localStorage.getItem('widget_config');
+        const saved = localStorage.getItem('widget_config');
         if (saved) { try { return JSON.parse(saved); } catch(e) {} }
         return [
             { id: 'flow', label: 'Flujo de Check-in', visible: true },
@@ -9601,16 +9601,16 @@ navigate(viewName, params = {}, push = true) {
     },
 
     toggleWidget: function(widgetId) {
-        var config = this.getWidgetConfig();
-        var w = config.find(function(c) { return c.id === widgetId; });
+        const config = this.getWidgetConfig();
+        const w = config.find(function(c) { return c.id === widgetId; });
         if (w) w.visible = !w.visible;
         localStorage.setItem('widget_config', JSON.stringify(config));
         this.updateStats();
     },
 
     showWidgetConfig: function() {
-        var config = this.getWidgetConfig();
-        var html = '<div class="p-4"><h3 class="text-lg font-bold mb-4">📊 Personalizar Dashboard</h3><div class="space-y-2">';
+        const config = this.getWidgetConfig();
+        let html = '<div class="p-4"><h3 class="text-lg font-bold mb-4">📊 Personalizar Dashboard</h3><div class="space-y-2">';
         config.forEach(function(w) {
             html += '<label class="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white/5">' +
                 '<input type="checkbox" ' + (w.visible ? 'checked' : '') + ' onchange="App.toggleWidget(\'' + w.id + '\')" class="w-4 h-4 accent-[var(--primary)]">' +
@@ -10571,10 +10571,10 @@ navigate(viewName, params = {}, push = true) {
 
     switchComplianceSubTab: function(tab) {
         if (tab === 'retention') this.loadRetention();
-        var tabs = ['classification', 'access', 'consent', 'retention'];
+        const tabs = ['classification', 'access', 'consent', 'retention'];
         tabs.forEach(function(t) {
-            var btn = document.getElementById('compliance-tab-' + t);
-            var content = document.getElementById('compliance-subtab-' + t);
+            const btn = document.getElementById('compliance-tab-' + t);
+            const content = document.getElementById('compliance-subtab-' + t);
             if (btn) {
                 if (t === tab) {
                     btn.className = 'px-4 py-2 rounded-xl bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold uppercase tracking-wider';
@@ -10593,17 +10593,17 @@ navigate(viewName, params = {}, push = true) {
 
     loadComplianceClassification: async function() {
         try {
-            var items = await this.fetchAPI('/compliance/classification') || [];
-            var tbody = document.getElementById('compliance-class-tbody');
+            const items = await this.fetchAPI('/compliance/classification') || [];
+            const tbody = document.getElementById('compliance-class-tbody');
             if (!tbody) return;
             if (items.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-500">Sin clasificaciones definidas</td></tr>';
                 return;
             }
-            var classLabels = { public: 'Público', internal: 'Interno', confidential: 'Confidencial', restricted: 'Restringido' };
-            var classColors = { public: '#10b981', internal: '#3b82f6', confidential: '#f59e0b', restricted: '#ef4444' };
+            const classLabels = { public: 'Público', internal: 'Interno', confidential: 'Confidencial', restricted: 'Restringido' };
+            const classColors = { public: '#10b981', internal: '#3b82f6', confidential: '#f59e0b', restricted: '#ef4444' };
             tbody.innerHTML = items.map(function(item) {
-                var cl = item.classification || 'internal';
+                const cl = item.classification || 'internal';
                 return '<tr class="hover:bg-white/[0.02] transition-colors">' +
                     '<td class="table-td text-slate-300">' + (item.table_name || '-') + '</td>' +
                     '<td class="table-td text-white font-mono text-xs">' + (item.column_name || '-') + '</td>' +
@@ -10618,7 +10618,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     openComplianceClassModal: function(item) {
-        var isEdit = !!item;
+        const isEdit = !!item;
         Swal.fire({
             title: isEdit ? 'Editar clasificación' : 'Nueva clasificación',
             html: '<div class="space-y-2">' +
@@ -10634,8 +10634,8 @@ navigate(viewName, params = {}, push = true) {
             showCancelButton: true,
             width: 520,
             preConfirm: function() {
-                var table = document.getElementById('swal-cc-table')?.value.trim();
-                var column = document.getElementById('swal-cc-column')?.value.trim();
+                const table = document.getElementById('swal-cc-table')?.value.trim();
+                const column = document.getElementById('swal-cc-column')?.value.trim();
                 if (!table || !column) { Swal.showValidationMessage('Tabla y columna requeridos'); return; }
                 return {
                     table_name: table,
@@ -10662,13 +10662,13 @@ navigate(viewName, params = {}, push = true) {
     },
 
     editComplianceClass: async function(id) {
-        var items = await this.fetchAPI('/compliance/classification') || [];
-        var item = items.find(function(x) { return x.id === id; });
+        const items = await this.fetchAPI('/compliance/classification') || [];
+        const item = items.find(function(x) { return x.id === id; });
         if (item) this.openComplianceClassModal(item);
     },
 
     deleteComplianceClass: async function(id) {
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar clasificación?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar clasificación?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try {
             await this.fetchAPI('/compliance/classification/' + id, { method: 'DELETE' });
@@ -10682,16 +10682,16 @@ navigate(viewName, params = {}, push = true) {
         if (!this.complianceAccessPage) this.complianceAccessPage = 1;
         if (direction === -1 && this.complianceAccessPage > 1) this.complianceAccessPage--;
         if (direction === 1) this.complianceAccessPage++;
-        var page = this.complianceAccessPage;
-        var action = document.getElementById('filter-access-action')?.value || '';
+        const page = this.complianceAccessPage;
+        const action = document.getElementById('filter-access-action')?.value || '';
         try {
-            var res = await this.fetchAPI('/compliance/access-logs?page=' + page + '&limit=30&action=' + action);
-            var logs = res?.data || [];
-            var total = res?.pagination?.total || 0;
-            var tbody = document.getElementById('compliance-access-tbody');
-            var countEl = document.getElementById('compliance-access-count');
-            var prevBtn = document.getElementById('btn-access-prev');
-            var nextBtn = document.getElementById('btn-access-next');
+            const res = await this.fetchAPI('/compliance/access-logs?page=' + page + '&limit=30&action=' + action);
+            const logs = res?.data || [];
+            const total = res?.pagination?.total || 0;
+            const tbody = document.getElementById('compliance-access-tbody');
+            const countEl = document.getElementById('compliance-access-count');
+            const prevBtn = document.getElementById('btn-access-prev');
+            const nextBtn = document.getElementById('btn-access-next');
             if (countEl) countEl.textContent = total + ' registros';
             if (prevBtn) prevBtn.disabled = page <= 1;
             if (!tbody) return;
@@ -10699,10 +10699,10 @@ navigate(viewName, params = {}, push = true) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Sin registros de acceso</td></tr>';
                 return;
             }
-            var actionLabels = { read: 'Lectura', export: 'Exportación', erasure: 'Eliminación' };
-            var sensitivityColors = { public: '#10b981', internal: '#3b82f6', confidential: '#f59e0b', restricted: '#ef4444' };
+            const actionLabels = { read: 'Lectura', export: 'Exportación', erasure: 'Eliminación' };
+            const sensitivityColors = { public: '#10b981', internal: '#3b82f6', confidential: '#f59e0b', restricted: '#ef4444' };
             tbody.innerHTML = logs.map(function(log) {
-                var sensColor = sensitivityColors[log.sensitivity] || '#64748b';
+                const sensColor = sensitivityColors[log.sensitivity] || '#64748b';
                 return '<tr class="hover:bg-white/[0.02] transition-colors">' +
                     '<td class="table-td text-slate-300">' + (log.user_name || log.user_id || '-') + '</td>' +
                     '<td class="table-td text-slate-400 text-xs">' + (log.table_name || '-') + '</td>' +
@@ -10717,7 +10717,7 @@ navigate(viewName, params = {}, push = true) {
     // Portabilidad de datos - exportar datos del invitado
     exportGuestData: async function(eventId, guestId) {
         try {
-            var data = await this.fetchAPI('/compliance/events/' + eventId + '/guests/' + guestId + '/export');
+            const data = await this.fetchAPI('/compliance/events/' + eventId + '/guests/' + guestId + '/export');
             if (!data) { Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron exportar los datos', background: '#0f172a', color: '#fff' }); return; }
             Swal.fire({
                 icon: 'info', title: 'Datos exportados',
@@ -10730,9 +10730,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     downloadJsonFile: function(jsonStr, filename) {
-        var blob = new Blob([jsonStr], { type: 'application/json' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
         a.href = url;
         a.download = filename;
         document.body.appendChild(a);
@@ -10743,7 +10743,7 @@ navigate(viewName, params = {}, push = true) {
 
     // Derecho al olvido - anonimizar datos del invitado
     eraseGuestData: async function(eventId, guestId, guestName) {
-        var confirm = await Swal.fire({
+        const confirm = await Swal.fire({
             icon: 'warning', title: '¿Eliminar datos personales?',
             html: '<p class="text-sm text-slate-400">Se anonimizarán los datos de <strong>' + (guestName || 'este invitado') + '</strong>.<br>Esta acción <strong class="text-red-400">NO se puede deshacer</strong>.</p>',
             showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Sí, eliminar datos',
@@ -10751,7 +10751,7 @@ navigate(viewName, params = {}, push = true) {
         });
         if (!confirm.isConfirmed) return;
         try {
-            var result = await this.fetchAPI('/compliance/events/' + eventId + '/guests/' + guestId + '/personal-data', { method: 'DELETE' });
+            const result = await this.fetchAPI('/compliance/events/' + eventId + '/guests/' + guestId + '/personal-data', { method: 'DELETE' });
             Swal.fire({ icon: 'success', title: 'Datos eliminados', text: result?.message || 'Datos personales anonimizados', background: '#0f172a', color: '#fff', timer: 2000 });
             if (typeof this.loadGuests === 'function') this.loadGuests();
         } catch(e) {
@@ -11040,22 +11040,22 @@ navigate(viewName, params = {}, push = true) {
     surveyBuilderQuestions: [],
 
     loadSurveyTemplates: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) { console.warn('[SURVEY] No hay evento seleccionado'); return; }
         try {
-            var list = document.getElementById('survey-templates-list');
+            const list = document.getElementById('survey-templates-list');
             if (!list) return;
-            var templates = await this.fetchAPI('/events/' + eId + '/templates');
-            var builder = document.getElementById('survey-builder');
-            var dashboard = document.getElementById('survey-dashboard');
+            const templates = await this.fetchAPI('/events/' + eId + '/templates');
+            const builder = document.getElementById('survey-builder');
+            const dashboard = document.getElementById('survey-dashboard');
             if (builder) builder.classList.add('hidden');
             if (dashboard) dashboard.classList.add('hidden');
             if (templates.length === 0) {
                 list.innerHTML = '<div class="text-center py-8 text-slate-500"><p>Crea tu primera encuesta</p></div>';
             } else {
                 list.innerHTML = templates.map(function(t) {
-                    var statusColor = t.status === 'published' ? 'text-green-400' : t.status === 'draft' ? 'text-amber-400' : 'text-slate-400';
-                    var statusIcon = t.status === 'published' ? 'check_circle' : t.status === 'draft' ? 'edit_note' : 'visibility';
+                    const statusColor = t.status === 'published' ? 'text-green-400' : t.status === 'draft' ? 'text-amber-400' : 'text-slate-400';
+                    const statusIcon = t.status === 'published' ? 'check_circle' : t.status === 'draft' ? 'edit_note' : 'visibility';
                     return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors">' +
                         '<div class="flex items-center gap-3">' +
                         '<span class="material-symbols-outlined text-[var(--primary)]">poll</span>' +
@@ -11072,11 +11072,11 @@ navigate(viewName, params = {}, push = true) {
     },
 
     openSurveyBuilder: async function(templateId) {
-        var list = document.getElementById('survey-templates-list');
-        var builder = document.getElementById('survey-builder');
-        var dashboard = document.getElementById('survey-dashboard');
-        var titleInput = document.getElementById('survey-builder-title');
-        var container = document.getElementById('survey-questions-container');
+        const list = document.getElementById('survey-templates-list');
+        const builder = document.getElementById('survey-builder');
+        const dashboard = document.getElementById('survey-dashboard');
+        const titleInput = document.getElementById('survey-builder-title');
+        const container = document.getElementById('survey-questions-container');
         if (list) list.classList.add('hidden');
         if (builder) builder.classList.remove('hidden');
         if (dashboard) dashboard.classList.add('hidden');
@@ -11084,11 +11084,11 @@ navigate(viewName, params = {}, push = true) {
 
         if (templateId) {
             try {
-                var tRes = await this.fetchAPI('/events/templates/' + templateId);
+                const tRes = await this.fetchAPI('/events/templates/' + templateId);
                 if (tRes) {
                     if (titleInput) titleInput.value = tRes.title || '';
                 }
-                var qRes = await this.fetchAPI('/events/templates/' + templateId + '/questions');
+                const qRes = await this.fetchAPI('/events/templates/' + templateId + '/questions');
                 if (Array.isArray(qRes)) this.surveyBuilderQuestions = qRes;
             } catch(e) { console.warn('[App] Carga opcional falló:', e); }
         } else {
@@ -11099,15 +11099,15 @@ navigate(viewName, params = {}, push = true) {
     },
 
     renderSurveyBuilderQuestions: function() {
-        var container = document.getElementById('survey-questions-container');
+        const container = document.getElementById('survey-questions-container');
         if (!container) return;
         if (this.surveyBuilderQuestions.length === 0) {
             container.innerHTML = '<div class="text-center py-8 text-slate-500 border-2 border-dashed border-slate-700 rounded-xl"><p class="text-sm">Haz clic en un tipo de pregunta para agregarla</p></div>';
             return;
         }
         container.innerHTML = this.surveyBuilderQuestions.map(function(q, i) {
-            var typeLabels = { short_text: '📝 Texto corto', paragraph: '📄 Párrafo', multiple_choice: '🔘 Opción múltiple', checkboxes: '✅ Casillas', dropdown: '🔽 Lista', linear_scale: '⭐ Escala', date: '📅 Fecha', time: '⏱ Hora' };
-            var preview = '';
+            const typeLabels = { short_text: '📝 Texto corto', paragraph: '📄 Párrafo', multiple_choice: '🔘 Opción múltiple', checkboxes: '✅ Casillas', dropdown: '🔽 Lista', linear_scale: '⭐ Escala', date: '📅 Fecha', time: '⏱ Hora' };
+            let preview = '';
             if (q.type === 'short_text') preview = '<input type="text" class="input-field w-full mt-2" placeholder="Respuesta corta" disabled>';
             else if (q.type === 'paragraph') preview = '<textarea class="input-field w-full mt-2" rows="2" placeholder="Respuesta larga" disabled></textarea>';
             else if (q.type === 'multiple_choice' && q.options) preview = q.options.map(function(o) { return '<label class="flex items-center gap-2 text-sm text-slate-300 mt-1"><input type="radio" disabled>' + o + '</label>'; }).join('');
@@ -11130,12 +11130,12 @@ navigate(viewName, params = {}, push = true) {
     },
 
     addSurveyQuestion: async function(type) {
-        var defaultTitles = { short_text: 'Nueva pregunta de texto', paragraph: 'Nueva pregunta de párrafo', multiple_choice: 'Nueva opción múltiple', checkboxes: 'Nuevas casillas', dropdown: 'Nueva lista', linear_scale: 'Nueva escala', date: 'Nueva fecha', time: 'Nueva hora' };
-        var defaultOptions = { multiple_choice: ['Opción 1', 'Opción 2', 'Opción 3'], checkboxes: ['Opción 1', 'Opción 2', 'Opción 3'], dropdown: ['Opción 1', 'Opción 2', 'Opción 3'] };
-        var q = { type: type, title: defaultTitles[type] || 'Nueva pregunta', description: '', options: defaultOptions[type] || null, required: true, order_index: this.surveyBuilderQuestions.length };
+        const defaultTitles = { short_text: 'Nueva pregunta de texto', paragraph: 'Nueva pregunta de párrafo', multiple_choice: 'Nueva opción múltiple', checkboxes: 'Nuevas casillas', dropdown: 'Nueva lista', linear_scale: 'Nueva escala', date: 'Nueva fecha', time: 'Nueva hora' };
+        const defaultOptions = { multiple_choice: ['Opción 1', 'Opción 2', 'Opción 3'], checkboxes: ['Opción 1', 'Opción 2', 'Opción 3'], dropdown: ['Opción 1', 'Opción 2', 'Opción 3'] };
+        const q = { type: type, title: defaultTitles[type] || 'Nueva pregunta', description: '', options: defaultOptions[type] || null, required: true, order_index: this.surveyBuilderQuestions.length };
         if (this._currentSurveyTemplateId) {
             try {
-                var res = await this.fetchAPI('/events/templates/' + this._currentSurveyTemplateId + '/questions', {
+                const res = await this.fetchAPI('/events/templates/' + this._currentSurveyTemplateId + '/questions', {
                     method: 'POST', body: JSON.stringify(q)
                 });
                 if (res && res.id) q.id = res.id;
@@ -11147,9 +11147,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     editSurveyQuestion: function(questionId) {
-        var q = this.surveyBuilderQuestions.find(function(x) { return x.id === questionId; });
+        const q = this.surveyBuilderQuestions.find(function(x) { return x.id === questionId; });
         if (!q) return;
-        var typeLabels = { short_text: 'Texto corto', paragraph: 'Párrafo', multiple_choice: 'Opción múltiple', checkboxes: 'Casillas', dropdown: 'Lista', linear_scale: 'Escala lineal', date: 'Fecha', time: 'Hora' };
+        const typeLabels = { short_text: 'Texto corto', paragraph: 'Párrafo', multiple_choice: 'Opción múltiple', checkboxes: 'Casillas', dropdown: 'Lista', linear_scale: 'Escala lineal', date: 'Fecha', time: 'Hora' };
         Swal.fire({
             title: 'Editar pregunta', width: '500px', background: '#0f172a', color: '#fff',
             html: '<div class="text-left space-y-3">' +
@@ -11170,7 +11170,7 @@ navigate(viewName, params = {}, push = true) {
             }
         }).then(async function(result) {
             if (!result.isConfirmed) return;
-            var data = result.value;
+            const data = result.value;
             q.type = data.type;
             q.title = data.title;
             q.description = data.description;
@@ -11186,7 +11186,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     deleteSurveyQuestion: async function(questionId) {
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar pregunta?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar pregunta?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         this.surveyBuilderQuestions = this.surveyBuilderQuestions.filter(function(q) { return q.id !== questionId; });
         if (questionId && !questionId.startsWith('tmp_')) {
@@ -11196,24 +11196,24 @@ navigate(viewName, params = {}, push = true) {
     },
 
     saveSurveyTemplate: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) { Swal.fire({ icon: 'warning', title: 'Selecciona un evento primero', background: '#0f172a', color: '#fff' }); return; }
-        var title = document.getElementById('survey-builder-title')?.value?.trim();
+        const title = document.getElementById('survey-builder-title')?.value?.trim();
         if (!title) { Swal.fire({ icon: 'warning', title: 'Título requerido', background: '#0f172a', color: '#fff' }); return; }
         try {
-            var templateId = this._currentSurveyTemplateId;
+            let templateId = this._currentSurveyTemplateId;
             if (templateId) {
                 await this.fetchAPI('/events/templates/' + templateId, { method: 'PUT', body: JSON.stringify({ title: title }) });
             } else {
-                var res = await this.fetchAPI('/events/' + eId + '/templates', { method: 'POST', body: JSON.stringify({ title: title }) });
+                const res = await this.fetchAPI('/events/' + eId + '/templates', { method: 'POST', body: JSON.stringify({ title: title }) });
                 if (res && res.id) templateId = res.id;
             }
             if (templateId) {
                 this._currentSurveyTemplateId = templateId;
-                for (var i = 0; i < this.surveyBuilderQuestions.length; i++) {
-                    var q = this.surveyBuilderQuestions[i];
+                for (let i = 0; i < this.surveyBuilderQuestions.length; i++) {
+                    const q = this.surveyBuilderQuestions[i];
                     if (!q.id || q.id.startsWith('tmp_')) {
-                        var res2 = await this.fetchAPI('/events/templates/' + templateId + '/questions', { method: 'POST', body: JSON.stringify({ type: q.type, title: q.title, description: q.description, options: q.options, required: q.required, order_index: i }) });
+                        const res2 = await this.fetchAPI('/events/templates/' + templateId + '/questions', { method: 'POST', body: JSON.stringify({ type: q.type, title: q.title, description: q.description, options: q.options, required: q.required, order_index: i }) });
                         if (res2 && res2.id) q.id = res2.id;
                     } else {
                         await this.fetchAPI('/events/questions/' + q.id, { method: 'PUT', body: JSON.stringify({ type: q.type, title: q.title, description: q.description, options: q.options, required: q.required, order_index: i }) });
@@ -11223,9 +11223,9 @@ navigate(viewName, params = {}, push = true) {
             Swal.fire({ icon: 'success', title: 'Encuesta guardada', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
             // F-UX: refrescar lista de plantillas y volver del builder
             await this.loadSurveyTemplates();
-            var lb2 = document.getElementById('survey-builder');
+            const lb2 = document.getElementById('survey-builder');
             if (lb2) lb2.classList.add('hidden');
-            var ld2 = document.getElementById('survey-dashboard');
+            const ld2 = document.getElementById('survey-dashboard');
             if (ld2) ld2.classList.remove('hidden');
         } catch(e) { console.error('[SURVEY] Error saving:', e.message); }
     },
@@ -11238,20 +11238,20 @@ navigate(viewName, params = {}, push = true) {
     },
 
     openSurveyDashboard: async function(templateId) {
-        var list = document.getElementById('survey-templates-list');
-        var builder = document.getElementById('survey-builder');
-        var dashboard = document.getElementById('survey-dashboard');
+        const list = document.getElementById('survey-templates-list');
+        const builder = document.getElementById('survey-builder');
+        const dashboard = document.getElementById('survey-dashboard');
         if (list) list.classList.add('hidden');
         if (builder) builder.classList.add('hidden');
         if (dashboard) dashboard.classList.remove('hidden');
         this._currentSurveyTemplateId = templateId;
         try {
-            var stats = await this.fetchAPI('/events/templates/' + templateId + '/stats');
+            const stats = await this.fetchAPI('/events/templates/' + templateId + '/stats');
             if (!stats) return;
-            var titleEl = document.getElementById('survey-dashboard-title');
+            const titleEl = document.getElementById('survey-dashboard-title');
             if (titleEl) titleEl.textContent = stats.template?.title || 'Dashboard';
 
-            var kpis = document.getElementById('survey-kpis');
+            const kpis = document.getElementById('survey-kpis');
             if (kpis) {
                 kpis.innerHTML = '<div class="card p-4 text-center"><p class="text-2xl font-bold text-white">' + (stats.kpis?.total || 0) + '</p><p class="text-xs text-slate-500">Total respuestas</p></div>' +
                     '<div class="card p-4 text-center"><p class="text-2xl font-bold text-green-400">' + (stats.kpis?.completed || 0) + '</p><p class="text-xs text-slate-500">Completadas</p></div>' +
@@ -11261,7 +11261,7 @@ navigate(viewName, params = {}, push = true) {
             }
 
             if (window.Chart && stats.dailyTrend) {
-                var ctx = document.getElementById('survey-chart-trend');
+                const ctx = document.getElementById('survey-chart-trend');
                 if (ctx && window._surveyTrendChart) window._surveyTrendChart.destroy();
                 if (ctx) {
                     window._surveyTrendChart = new Chart(ctx, {
@@ -11272,9 +11272,9 @@ navigate(viewName, params = {}, push = true) {
                 }
             }
 
-            var respTbody = document.getElementById('survey-responses-tbody');
+            const respTbody = document.getElementById('survey-responses-tbody');
             if (respTbody) {
-                var responses = await this.fetchAPI('/events/templates/' + templateId + '/export/csv');
+                const responses = await this.fetchAPI('/events/templates/' + templateId + '/export/csv');
             }
         } catch(e) { console.error('[SURVEY] Dashboard error:', e.message); }
     },
@@ -11286,7 +11286,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     deleteSurveyTemplate: async function(templateId) {
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar encuesta?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar encuesta?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try {
             await this.fetchAPI('/events/templates/' + templateId, { method: 'DELETE' });
@@ -11739,7 +11739,7 @@ navigate(viewName, params = {}, push = true) {
             });
             const data = await res.json();
             if (data.success) {
-                var el = (this._badgeElements || []).find(function(e) { return e.id === elId; });
+                const el = (this._badgeElements || []).find(function(e) { return e.id === elId; });
                 if (el) { el.url = data.url; this.renderBadgeEditor(); }
             }
         } catch(e) { console.error('[BADGE] Error:', e.message); }
@@ -11769,7 +11769,7 @@ navigate(viewName, params = {}, push = true) {
             email: gd.email || 'email@ejemplo.com',
             phone: gd.phone || '+52 123 456 7890',
             text: function(el) { return el.text || 'Texto'; },
-            qr: function(el) { var url = qrUrls && qrUrls[el.id]; return url ? '<img src="' + url + '" style="width:100%;height:100%;object-fit:contain">' : '<div style="width:80%;height:80%;margin:10%;background:#e5e5e5;border-radius:2px"></div>'; },
+            qr: function(el) { const url = qrUrls && qrUrls[el.id]; return url ? '<img src="' + url + '" style="width:100%;height:100%;object-fit:contain">' : '<div style="width:80%;height:80%;margin:10%;background:#e5e5e5;border-radius:2px"></div>'; },
             logo: function(el) { return el.url ? '<img src="' + el.url + '" style="width:100%;height:100%;object-fit:contain">' : ''; }
         };
         let html = '<div style="position:relative;width:' + w + 'px;height:' + h + 'px;background:#fff;overflow:hidden;';
@@ -11777,8 +11777,8 @@ navigate(viewName, params = {}, push = true) {
         html += '">';
         (elements || []).forEach(function(el) {
             if (!el.show && el.show !== undefined) return;
-            var l = (el.x || 0) * scale, t = (el.y || 0) * scale, ew = (el.w || 20) * scale, eh = (el.h || 10) * scale;
-            var opacityStyle = (el.type === 'logo' || el.type === 'qr') && el.opacity != null ? 'opacity:' + el.opacity + ';' : '';
+            const l = (el.x || 0) * scale, t = (el.y || 0) * scale, ew = (el.w || 20) * scale, eh = (el.h || 10) * scale;
+            const opacityStyle = (el.type === 'logo' || el.type === 'qr') && el.opacity != null ? 'opacity:' + el.opacity + ';' : '';
             html += '<div style="position:absolute;left:' + l + 'px;top:' + t + 'px;width:' + ew + 'px;height:' + eh + 'px;overflow:hidden;box-sizing:border-box;' + opacityStyle;
             if (el.type !== 'qr' && el.type !== 'logo') {
                 html += 'font-size:' + ((el.fontSize || 12) * scale / 2.83) + 'px;color:' + (el.color || '#000') + ';text-align:' + (el.align || 'center') + ';font-weight:' + (el.bold ? 'bold' : 'normal') + ';display:flex;align-items:center;justify-content:' + (el.align === 'left' ? 'flex-start' : el.align === 'right' ? 'flex-end' : 'center') + ';';
@@ -11795,18 +11795,18 @@ navigate(viewName, params = {}, push = true) {
     },
 
     showBadgePrintModal: async function(config, guestData) {
-        var container = document.getElementById('badge-print-container');
+        const container = document.getElementById('badge-print-container');
         if (!container) return;
-        var qrUrls = {};
-        var qrEls = (config.elements || []).filter(function(e) { return e.type === 'qr'; });
-        for (var i = 0; i < qrEls.length; i++) {
-            var text = (guestData && guestData.qr_token) || qrEls[i].qrText || 'https://check.app/guest/' + (qrEls[i].id || Date.now());
+        const qrUrls = {};
+        const qrEls = (config.elements || []).filter(function(e) { return e.type === 'qr'; });
+        for (let i = 0; i < qrEls.length; i++) {
+            const text = (guestData && guestData.qr_token) || qrEls[i].qrText || 'https://check.app/guest/' + (qrEls[i].id || Date.now());
             if (typeof QRCode !== 'undefined') {
                 try { qrUrls[qrEls[i].id] = await QRCode.toDataURL(text, { width: 200, margin: 1, color: { dark: '#000', light: '#fff' } }); } catch(e) { console.error('[QR] Error:', e.message); }
             }
         }
         container.innerHTML = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
-        var modal = document.getElementById('modal-badge-print');
+        const modal = document.getElementById('modal-badge-print');
         if (modal) {
             modal.setAttribute('data-guesttoken', guestData?.qr_token || '');
             modal.classList.remove('hidden');
@@ -11814,9 +11814,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     printBadgeFromModal: function() {
-        var container = document.getElementById('badge-print-container');
+        const container = document.getElementById('badge-print-container');
         if (!container || !container.innerHTML.trim()) return;
-        var win = window.open('', '_blank', 'width=400,height=600');
+        const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
         win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><style>body{margin:0;padding:20px;display:flex;justify-content:center}@media print{body{padding:0}}img{max-width:100%}</style></head><body>' + container.innerHTML + '</body></html>');
         win.document.close();
@@ -11825,32 +11825,32 @@ navigate(viewName, params = {}, push = true) {
     },
 
     printBadgeFromEdit: async function() {
-        var clientId = document.getElementById('edit-attendance-client-id')?.value;
+        const clientId = document.getElementById('edit-attendance-client-id')?.value;
         if (!clientId) return;
-        var attendance = this.state.attendance || [];
-        var current = attendance.find(function(a) { return String(a.client_id) === String(clientId); });
+        const attendance = this.state.attendance || [];
+        const current = attendance.find(function(a) { return String(a.client_id) === String(clientId); });
         if (!current) return;
-        var eventId = this.state.event?.id || this.state.currentEventId;
+        const eventId = this.state.event?.id || this.state.currentEventId;
         if (!eventId) return;
         try {
-            var cfgRes = await this.fetchAPI('/events/' + eventId + '/badge-config');
-            var badgeCfg = cfgRes?.badgeConfig || { badgeWidth: 90, badgeHeight: 55, checkinAction: 'modal', elements: this._getDefaultBadgeElements() };
-            var guestData = { name: current.client_name, organization: current.organization, cargo: current.cargo, email: current.client_email, phone: current.client_phone, qr_token: current.qr_token };
+            const cfgRes = await this.fetchAPI('/events/' + eventId + '/badge-config');
+            const badgeCfg = cfgRes?.badgeConfig || { badgeWidth: 90, badgeHeight: 55, checkinAction: 'modal', elements: this._getDefaultBadgeElements() };
+            const guestData = { name: current.client_name, organization: current.organization, cargo: current.cargo, email: current.client_email, phone: current.client_phone, qr_token: current.qr_token };
             await this.showBadgePrintModal(badgeCfg, guestData);
         } catch(e) { console.error('[BADGE_PRINT] Error:', e.message); }
     },
 
     printBadgeDirect: async function(config, guestData) {
-        var qrUrls = {};
-        var qrEls = (config.elements || []).filter(function(e) { return e.type === 'qr'; });
-        for (var i = 0; i < qrEls.length; i++) {
-            var text = (guestData && guestData.qr_token) || qrEls[i].qrText || 'https://check.app/guest/' + (qrEls[i].id || Date.now());
+        const qrUrls = {};
+        const qrEls = (config.elements || []).filter(function(e) { return e.type === 'qr'; });
+        for (let i = 0; i < qrEls.length; i++) {
+            const text = (guestData && guestData.qr_token) || qrEls[i].qrText || 'https://check.app/guest/' + (qrEls[i].id || Date.now());
             if (typeof QRCode !== 'undefined') {
                 try { qrUrls[qrEls[i].id] = await QRCode.toDataURL(text, { width: 200, margin: 1, color: { dark: '#000', light: '#fff' } }); } catch(e) { console.error('[QR] Error:', e.message); }
             }
         }
-        var html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
-        var win = window.open('', '_blank', 'width=400,height=600');
+        const html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
+        const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
         win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><style>body{margin:0;padding:20px;display:flex;justify-content:center}@media print{body{padding:0}}img{max-width:100%}</style></head><body>' + html + '</body></html>');
         win.document.close();
@@ -11864,19 +11864,19 @@ navigate(viewName, params = {}, push = true) {
             guestToken = document.getElementById('modal-badge-print')?.getAttribute('data-guesttoken');
         }
         if (!guestToken) { Swal.fire({ icon: 'warning', title: 'No hay datos del invitado' }); return; }
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         // Intentar descargar ESC/POS para impresión térmica
-        var token = this.state.user?.token;
-        var userId = this.state.user?.userId;
-        var url = '/api/guests/' + eId + '/badges/escpos?checked_in=1';
+        const token = this.state.user?.token;
+        const userId = this.state.user?.userId;
+        const url = '/api/guests/' + eId + '/badges/escpos?checked_in=1';
         Swal.fire({ title: 'Descargando para impresión térmica...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
         fetch(url, { headers: { 'Authorization': 'Bearer ' + token, 'x-user-id': userId || '' } })
         .then(function(r) { return r.blob(); })
         .then(function(blob) {
             Swal.close();
-            var urlBlob = URL.createObjectURL(blob);
-            var a = document.createElement('a');
+            const urlBlob = URL.createObjectURL(blob);
+            const a = document.createElement('a');
             a.href = urlBlob;
             a.download = 'gafetes_termico.bin';
             a.click();
@@ -11887,7 +11887,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     toggleDropdown: function(id) {
-        var el = document.getElementById(id);
+        const el = document.getElementById(id);
         if (el) el.classList.toggle('hidden');
         // Cerrar otros dropdowns abiertos
         document.querySelectorAll('[id$="-dropdown"]').forEach(function(d) {
@@ -11896,11 +11896,11 @@ navigate(viewName, params = {}, push = true) {
     },
 
     downloadZPL: function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
-        var token = this.state.user?.token;
-        var userId = this.state.user?.userId;
-        var a = document.createElement('a');
+        const token = this.state.user?.token;
+        const userId = this.state.user?.userId;
+        const a = document.createElement('a');
         a.href = '/api/guests/' + eId + '/badges/zpl';
         a.download = 'gafetes_' + eId.slice(0, 8) + '.zpl';
         a.style.display = 'none';
@@ -11911,8 +11911,8 @@ navigate(viewName, params = {}, push = true) {
             return r.text();
         })
         .then(function(zpl) {
-            var blob = new Blob([zpl], { type: 'application/x-zebra-zpl' });
-            var url = URL.createObjectURL(blob);
+            const blob = new Blob([zpl], { type: 'application/x-zebra-zpl' });
+            const url = URL.createObjectURL(blob);
             a.href = url;
             a.click();
             URL.revokeObjectURL(url);
@@ -11923,11 +11923,11 @@ navigate(viewName, params = {}, push = true) {
     },
 
     downloadESCPOS: function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
-        var token = this.state.user?.token;
-        var userId = this.state.user?.userId;
-        var a = document.createElement('a');
+        const token = this.state.user?.token;
+        const userId = this.state.user?.userId;
+        const a = document.createElement('a');
         a.style.display = 'none';
         document.body.appendChild(a);
         fetch('/api/guests/' + eId + '/badges/escpos?checked_in=1', { headers: { 'Authorization': 'Bearer ' + token, 'x-user-id': userId || '' } })
@@ -11936,7 +11936,7 @@ navigate(viewName, params = {}, push = true) {
             return r.blob();
         })
         .then(function(blob) {
-            var url = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(blob);
             a.href = url;
             a.download = 'gafetes_termico.bin';
             a.click();
@@ -11948,21 +11948,21 @@ navigate(viewName, params = {}, push = true) {
     },
 
     printBatchLabels: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var guests = await this.fetchAPI('/events/' + eId + '/badge-config');
-            var cfg = guests?.badgeConfig || { badgeWidth: 90, badgeHeight: 55, elements: this._getDefaultBadgeElements() };
-            var attendance = this.state.attendance || [];
-            var checkedIn = attendance.filter(function(a) { return a.status === 'present' || a.validated; });
+            const guests = await this.fetchAPI('/events/' + eId + '/badge-config');
+            const cfg = guests?.badgeConfig || { badgeWidth: 90, badgeHeight: 55, elements: this._getDefaultBadgeElements() };
+            const attendance = this.state.attendance || [];
+            const checkedIn = attendance.filter(function(a) { return a.status === 'present' || a.validated; });
             if (checkedIn.length === 0) { Swal.fire({ icon: 'info', title: 'Sin invitados con check-in' }); return; }
-            var labels = [];
-            for (var i = 0; i < checkedIn.length; i++) {
-                var guestData = { name: checkedIn[i].client_name, organization: checkedIn[i].organization, qr_token: checkedIn[i].qr_token };
+            const labels = [];
+            for (let i = 0; i < checkedIn.length; i++) {
+                const guestData = { name: checkedIn[i].client_name, organization: checkedIn[i].organization, qr_token: checkedIn[i].qr_token };
                 labels.push(this.renderBadgeHtml(cfg.elements, cfg.background?.url, cfg.badgeWidth, cfg.badgeHeight, {}, guestData));
             }
-            var allHtml = labels.join('<div style="page-break-after:always"></div>');
-            var win = window.open('', '_blank', 'width=400,height=600');
+            const allHtml = labels.join('<div style="page-break-after:always"></div>');
+            const win = window.open('', '_blank', 'width=400,height=600');
             if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
             win.document.write('<!DOCTYPE html><html><head><title>Gafetes</title>'
                 + '<style>body{margin:0;padding:0}@media print{@page{size:' + (cfg.badgeWidth || 90) + 'mm ' + (cfg.badgeHeight || 55) + 'mm;margin:0}}img{max-width:100%}</style>'
@@ -11987,8 +11987,8 @@ navigate(viewName, params = {}, push = true) {
                 return;
             }
             tbody.innerHTML = sessions.map(function(s) {
-                var cap = s.capacity > 0 ? s.capacity : 'Ilimitado';
-                var pct = s.capacity > 0 ? (s.guestCount >= s.capacity ? 'text-red-400' : 'text-green-400') : '';
+                const cap = s.capacity > 0 ? s.capacity : 'Ilimitado';
+                const pct = s.capacity > 0 ? (s.guestCount >= s.capacity ? 'text-red-400' : 'text-green-400') : '';
                 return '<tr class="hover:bg-white/[0.02] transition-colors">' +
                     '<td class="table-td font-medium text-white">' + (s.title || '') + (s.description ? '<br><span class="text-[10px] text-slate-500">' + s.description + '</span>' : '') + '</td>' +
                     '<td class="table-td">' + (s.date || '-') + '</td>' +
@@ -12005,7 +12005,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     openSessionModal: function(session) {
-        var modal = document.getElementById('modal-session');
+        const modal = document.getElementById('modal-session');
         if (!modal) return;
         document.getElementById('session-id')?.remove();
         document.getElementById('session-title').value = session?.title || '';
@@ -12016,13 +12016,13 @@ navigate(viewName, params = {}, push = true) {
         document.getElementById('session-capacity').value = session?.capacity || '';
         document.getElementById('session-location').value = session?.location || '';
         // Poblar selector de planos
-        var layoutSel = document.getElementById('session-layout-id');
+        const layoutSel = document.getElementById('session-layout-id');
         if (layoutSel) {
-            var eId = this.state.event?.id;
+            const eId = this.state.event?.id;
             if (eId) {
                 this.fetchAPI('/seat-layouts/' + eId).then(function(layouts) {
                     if (layouts && layoutSel) {
-                        var curId = session?.layout_id || '';
+                        const curId = session?.layout_id || '';
                         layoutSel.innerHTML = '<option value="">Sin plano</option>' + layouts.map(function(l) { return '<option value="' + l.id + '" ' + (l.id === curId ? 'selected' : '') + '>' + App.esc(l.name || '') + '</option>'; }).join('');
                     }
                 }).catch(function() {});
@@ -12031,7 +12031,7 @@ navigate(viewName, params = {}, push = true) {
             }
         }
         if (session) {
-            var input = document.createElement('input');
+            const input = document.createElement('input');
             input.type = 'hidden';
             input.id = 'session-id';
             input.value = session.id;
@@ -12041,21 +12041,21 @@ navigate(viewName, params = {}, push = true) {
     },
 
     editSession: function(sId) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         this.fetchAPI('/sessions/' + eId).then(function(sessions) {
-            var s = (sessions || []).find(function(s) { return s.id === sId; });
+            const s = (sessions || []).find(function(s) { return s.id === sId; });
             if (s) App.openSessionModal(s);
         });
     },
 
     saveSession: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
-        var title = document.getElementById('session-title')?.value.trim();
+        const title = document.getElementById('session-title')?.value.trim();
         if (!title) return Swal.fire({ icon: 'warning', title: 'Titulo requerido' });
-        var sId = document.getElementById('session-id')?.value;
-        var body = {
+        const sId = document.getElementById('session-id')?.value;
+        const body = {
             title: title,
             description: document.getElementById('session-description')?.value || '',
             date: document.getElementById('session-date')?.value || '',
@@ -12078,9 +12078,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     deleteSession: async function(sId) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar sesion?', text: 'Los invitados registrados seran liberados.', showCancelButton: true });
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar sesion?', text: 'Los invitados registrados seran liberados.', showCancelButton: true });
         if (!confirm.isConfirmed) return;
         try {
             await this.fetchAPI('/sessions/' + eId + '/' + sId, { method: 'DELETE' });
@@ -12102,7 +12102,7 @@ navigate(viewName, params = {}, push = true) {
                 return;
             }
             container.innerHTML = layouts.map(function(l) {
-                var cfg = l.config || {};
+                const cfg = l.config || {};
                 return '<div class="card p-3 cursor-pointer hover:border-[var(--primary)] transition-colors" onclick="App.openEditor3D(\'' + l.id + '\', \'' + (l.name || '').replace(/'/g, "\\'") + '\')">' +
                     '<div class="flex justify-between items-start"><div><h4 class="text-sm font-bold text-white">' + (l.name || '') + '</h4>' +
                     '<p class="text-[10px] text-slate-500">' + (cfg.rows || 0) + ' filas x ' + (cfg.cols || 0) + ' asientos</p></div>' +
@@ -12135,7 +12135,7 @@ navigate(viewName, params = {}, push = true) {
         if (!eId) return;
         try {
             const res = await this.fetchAPI('/seat-layouts/' + eId + '/' + layoutId + '/render');
-            var cfg = res.layout.config;
+            const cfg = res.layout.config;
             document.getElementById('seat-editor-title').textContent = 'Editar: ' + (res.layout.name || '');
             document.getElementById('seat-layout-type').value = cfg.layoutType || 'auditorium';
             document.getElementById('seat-room-width').value = cfg.roomWidth || 10;
@@ -12165,10 +12165,10 @@ navigate(viewName, params = {}, push = true) {
     },
 
     onSeatLayoutTypeChange: function() {
-        var type = document.getElementById('seat-layout-type').value;
-        var isAuditorium = type === 'auditorium';
-        var isHerringbone = type === 'herringbone';
-        var isBanquet = type === 'banquet';
+        const type = document.getElementById('seat-layout-type').value;
+        const isAuditorium = type === 'auditorium';
+        const isHerringbone = type === 'herringbone';
+        const isBanquet = type === 'banquet';
         document.getElementById('seat-param-rows').style.display = (isAuditorium || isHerringbone) ? '' : 'none';
         document.getElementById('seat-param-aisle').style.display = isAuditorium ? '' : 'none';
         document.getElementById('seat-param-stage').style.display = isAuditorium ? '' : 'none';
@@ -12180,13 +12180,13 @@ navigate(viewName, params = {}, push = true) {
     },
 
     renderSeatPreview: function() {
-        var canvas = document.getElementById('seat-canvas');
+        const canvas = document.getElementById('seat-canvas');
         if (!canvas) return;
-        var type = document.getElementById('seat-layout-type').value;
-        var roomW = parseFloat(document.getElementById('seat-room-width').value) || 10;
-        var roomH = parseFloat(document.getElementById('seat-room-length').value) || 8;
-        var scale = Math.min(600 / roomW, 400 / roomH);
-        var cw = roomW * scale, ch = roomH * scale;
+        const type = document.getElementById('seat-layout-type').value;
+        const roomW = parseFloat(document.getElementById('seat-room-width').value) || 10;
+        const roomH = parseFloat(document.getElementById('seat-room-length').value) || 8;
+        const scale = Math.min(600 / roomW, 400 / roomH);
+        const cw = roomW * scale, ch = roomH * scale;
         canvas.style.cssText = 'width:' + cw + 'px;height:' + ch + 'px;background:#f0f0f0;position:relative;border-radius:4px;';
         canvas.innerHTML = '';
 
@@ -12196,26 +12196,26 @@ navigate(viewName, params = {}, push = true) {
     },
 
     _renderAuditorium: function(canvas, roomW, roomH, scale) {
-        var rows = parseInt(document.getElementById('seat-rows').value) || 5;
-        var cols = parseInt(document.getElementById('seat-cols').value) || 8;
-        var aislePos = parseInt(document.getElementById('seat-aisle').value) || Math.floor(cols / 2);
-        var stagePos = document.getElementById('seat-stage').value || 'front';
-        var seatSize = parseFloat(document.getElementById('seat-size').value) || 0.5;
-        var seatPx = seatSize * scale, gap = 0.1 * scale, marginX = 0.5 * scale, marginY = 0.6 * scale;
+        const rows = parseInt(document.getElementById('seat-rows').value) || 5;
+        const cols = parseInt(document.getElementById('seat-cols').value) || 8;
+        const aislePos = parseInt(document.getElementById('seat-aisle').value) || Math.floor(cols / 2);
+        const stagePos = document.getElementById('seat-stage').value || 'front';
+        const seatSize = parseFloat(document.getElementById('seat-size').value) || 0.5;
+        const seatPx = seatSize * scale, gap = 0.1 * scale, marginX = 0.5 * scale, marginY = 0.6 * scale;
         // Stage
-        var st = this._createDiv(canvas, (stagePos === 'front') ? 'bottom:0' : 'top:0', '10%', '80%', (0.5 * scale) + 'px', '#7c3aed');
+        const st = this._createDiv(canvas, (stagePos === 'front') ? 'bottom:0' : 'top:0', '10%', '80%', (0.5 * scale) + 'px', '#7c3aed');
         st.textContent = 'ESCENARIO';
-        var totalW = (cols - 1) * (seatPx + gap);
-        var startX = marginX + (roomW * scale - marginX * 2 - totalW) / 2;
-        var rowLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        for (var r = 0; r < rows; r++) {
-            var label = rowLabels[r] || ('R' + (r + 1));
-            var colCount = 0;
-            for (var c = 0; c < cols; c++) {
+        const totalW = (cols - 1) * (seatPx + gap);
+        const startX = marginX + (roomW * scale - marginX * 2 - totalW) / 2;
+        const rowLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        for (let r = 0; r < rows; r++) {
+            const label = rowLabels[r] || ('R' + (r + 1));
+            let colCount = 0;
+            for (let c = 0; c < cols; c++) {
                 if (c === aislePos) continue;
-                var sx = startX + colCount * (seatPx + gap);
-                var sy = (stagePos === 'front') ? (roomH * scale - marginY - (rows - r) * (seatPx + gap)) : (marginY + r * (seatPx + gap));
-                var seat = this._createDiv(canvas, 'left:' + sx + 'px;top:' + sy + 'px', seatPx + 'px', seatPx + 'px', '', '#10b981');
+                const sx = startX + colCount * (seatPx + gap);
+                const sy = (stagePos === 'front') ? (roomH * scale - marginY - (rows - r) * (seatPx + gap)) : (marginY + r * (seatPx + gap));
+                const seat = this._createDiv(canvas, 'left:' + sx + 'px;top:' + sy + 'px', seatPx + 'px', seatPx + 'px', '', '#10b981');
                 seat.title = label + (c + 1);
                 colCount++;
             }
@@ -12223,50 +12223,50 @@ navigate(viewName, params = {}, push = true) {
     },
 
     _renderHerringbone: function(canvas, roomW, roomH, scale) {
-        var rows = parseInt(document.getElementById('seat-rows').value) || 5;
-        var cols = parseInt(document.getElementById('seat-cols').value) || 6;
-        var seatSize = parseFloat(document.getElementById('seat-size').value) || 0.5;
-        var seatPx = seatSize * scale, gap = 0.15 * scale, margin = 0.8 * scale, centerX = roomW / 2 * scale;
-        var rowLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        for (var r = 0; r < rows; r++) {
-            var label = rowLabels[r] || ('R' + (r + 1));
-            var yPos = margin + r * (seatPx + gap);
-            var xOff = (r % 2 === 0 ? 0 : (seatPx + gap) * 0.3);
-            var blockW = cols * (seatPx + gap);
-            var startX = centerX - blockW / 2 + xOff;
-            for (var c = 0; c < cols; c++) {
-                var sx = startX + c * (seatPx + gap);
-                var seat = this._createDiv(canvas, 'left:' + sx + 'px;top:' + yPos + 'px;transform:rotate(' + (r % 2 === 0 ? '-35' : '35') + 'deg)', seatPx + 'px', seatPx + 'px', '', '#0ea5e9');
+        const rows = parseInt(document.getElementById('seat-rows').value) || 5;
+        const cols = parseInt(document.getElementById('seat-cols').value) || 6;
+        const seatSize = parseFloat(document.getElementById('seat-size').value) || 0.5;
+        const seatPx = seatSize * scale, gap = 0.15 * scale, margin = 0.8 * scale, centerX = roomW / 2 * scale;
+        const rowLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        for (let r = 0; r < rows; r++) {
+            const label = rowLabels[r] || ('R' + (r + 1));
+            const yPos = margin + r * (seatPx + gap);
+            const xOff = (r % 2 === 0 ? 0 : (seatPx + gap) * 0.3);
+            const blockW = cols * (seatPx + gap);
+            const startX = centerX - blockW / 2 + xOff;
+            for (let c = 0; c < cols; c++) {
+                const sx = startX + c * (seatPx + gap);
+                const seat = this._createDiv(canvas, 'left:' + sx + 'px;top:' + yPos + 'px;transform:rotate(' + (r % 2 === 0 ? '-35' : '35') + 'deg)', seatPx + 'px', seatPx + 'px', '', '#0ea5e9');
                 seat.title = label + (c + 1);
             }
         }
     },
 
     _renderBanquet: function(canvas, roomW, roomH, scale) {
-        var tableDiam = (parseFloat(document.getElementById('seat-table-diam').value) || 1.8) * scale;
-        var chairs = parseInt(document.getElementById('seat-chairs-per-table').value) || 8;
-        var tableGap = (parseFloat(document.getElementById('seat-table-gap').value) || 0.8) * scale;
-        var margin = 0.5 * scale, cols = Math.floor(((roomW * scale) - margin * 2 + tableGap) / (tableDiam + tableGap));
-        var rows = Math.floor(((roomH * scale) - margin * 2 + tableGap) / (tableDiam + tableGap));
-        var startX = margin + ((roomW * scale) - margin * 2 - cols * (tableDiam + tableGap) + tableGap) / 2;
-        var chairR = tableDiam / 2 + 3;
-        for (var t = 0; t < Math.min(cols * rows, 20); t++) {
-            var tx = startX + (t % cols) * (tableDiam + tableGap) + tableDiam / 2;
-            var ty = margin + Math.floor(t / cols) * (tableDiam + tableGap) + tableDiam / 2;
-            var table = this._createDiv(canvas, 'left:' + (tx - tableDiam / 2) + 'px;top:' + (ty - tableDiam / 2) + 'px;border-radius:50%', tableDiam + 'px', tableDiam + 'px', '', '#94a3b8');
+        const tableDiam = (parseFloat(document.getElementById('seat-table-diam').value) || 1.8) * scale;
+        const chairs = parseInt(document.getElementById('seat-chairs-per-table').value) || 8;
+        const tableGap = (parseFloat(document.getElementById('seat-table-gap').value) || 0.8) * scale;
+        const margin = 0.5 * scale, cols = Math.floor(((roomW * scale) - margin * 2 + tableGap) / (tableDiam + tableGap));
+        const rows = Math.floor(((roomH * scale) - margin * 2 + tableGap) / (tableDiam + tableGap));
+        const startX = margin + ((roomW * scale) - margin * 2 - cols * (tableDiam + tableGap) + tableGap) / 2;
+        const chairR = tableDiam / 2 + 3;
+        for (let t = 0; t < Math.min(cols * rows, 20); t++) {
+            const tx = startX + (t % cols) * (tableDiam + tableGap) + tableDiam / 2;
+            const ty = margin + Math.floor(t / cols) * (tableDiam + tableGap) + tableDiam / 2;
+            const table = this._createDiv(canvas, 'left:' + (tx - tableDiam / 2) + 'px;top:' + (ty - tableDiam / 2) + 'px;border-radius:50%', tableDiam + 'px', tableDiam + 'px', '', '#94a3b8');
             table.title = 'Mesa ' + (t + 1);
-            for (var ch = 0; ch < chairs; ch++) {
-                var a = ch * (360 / chairs) * Math.PI / 180;
-                var cx = tx + chairR * Math.cos(a) - 5;
-                var cy = ty + chairR * Math.sin(a) - 5;
-                var seat = this._createDiv(canvas, 'left:' + cx + 'px;top:' + cy + 'px;border-radius:50%', '10px', '10px', '', '#10b981');
+            for (let ch = 0; ch < chairs; ch++) {
+                const a = ch * (360 / chairs) * Math.PI / 180;
+                const cx = tx + chairR * Math.cos(a) - 5;
+                const cy = ty + chairR * Math.sin(a) - 5;
+                const seat = this._createDiv(canvas, 'left:' + cx + 'px;top:' + cy + 'px;border-radius:50%', '10px', '10px', '', '#10b981');
                 seat.title = 'T' + (t + 1) + '-' + (ch + 1);
             }
         }
     },
 
     _createDiv: function(parent, pos, w, h, extra, bg) {
-        var el = document.createElement('div');
+        const el = document.createElement('div');
         el.style.cssText = 'position:absolute;' + pos + ';width:' + w + ';height:' + h + ';' + (extra || '') + ';background:' + bg + ';display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:bold;overflow:hidden;cursor:pointer;';
         parent.appendChild(el);
         return el;
@@ -12275,14 +12275,14 @@ navigate(viewName, params = {}, push = true) {
     saveSeatLayout: async function() {
         const eId = this.state.event?.id;
         if (!eId) return;
-        var name = '';
+        let name = '';
         if (!this._editingSeatLayoutId) {
-            var result = await Swal.fire({ input: 'text', inputLabel: 'Nombre del plano', inputPlaceholder: 'Sala principal, Auditorio...', background: '#0f172a', color: '#fff' });
+            const result = await Swal.fire({ input: 'text', inputLabel: 'Nombre del plano', inputPlaceholder: 'Sala principal, Auditorio...', background: '#0f172a', color: '#fff' });
             if (!result.isConfirmed || !result.value) return;
             name = result.value.trim();
         }
-        var type = document.getElementById('seat-layout-type')?.value || '';
-        var config = {
+        const type = document.getElementById('seat-layout-type')?.value || '';
+        const config = {
             layoutType: type,
             roomWidth: parseFloat(document.getElementById('seat-room-width')?.value),
             roomLength: parseFloat(document.getElementById('seat-room-length')?.value)
@@ -12315,7 +12315,7 @@ navigate(viewName, params = {}, push = true) {
     deleteSeatLayout: async function(layoutId) {
         const eId = this.state.event?.id;
         if (!eId) return;
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar plano?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar plano?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try {
             await this.fetchAPI('/seat-layouts/' + eId + '/' + layoutId, { method: 'DELETE' });
@@ -12332,14 +12332,14 @@ navigate(viewName, params = {}, push = true) {
         if (!eId) return;
         this.editor3DState = { eventId: eId, layoutId: layoutId || null, layoutName: layoutName || 'Nuevo plano', opened: true };
 
-        var overlay = document.getElementById('editor-3d-overlay');
-        var iframe = document.getElementById('editor-3d-iframe');
-        var status = document.getElementById('editor-3d-status');
+        const overlay = document.getElementById('editor-3d-overlay');
+        const iframe = document.getElementById('editor-3d-iframe');
+        const status = document.getElementById('editor-3d-status');
         if (!overlay || !iframe) return;
 
         // Auto-detectar entorno para 3D Planner
-        var loc = window.location;
-        var editorHost;
+        const loc = window.location;
+        let editorHost;
         if (loc.protocol === 'https:') {
             // En producción, usar el mismo dominio con puerto 3001
             editorHost = 'https://' + loc.hostname + ':3001';
@@ -12349,7 +12349,7 @@ navigate(viewName, params = {}, push = true) {
             // Usar la misma IP del host con puerto 3001
             editorHost = loc.protocol + '//' + loc.hostname + ':3001';
         }
-        var url = editorHost + '/editor?eventId=' + eId + '&jwt=' + (this.state.token || '');
+        let url = editorHost + '/editor?eventId=' + eId + '&jwt=' + (this.state.token || '');
         if (layoutId) url += '&layoutId=' + encodeURIComponent(layoutId);
         iframe.src = url;
         overlay.classList.remove('hidden');
@@ -12357,7 +12357,7 @@ navigate(viewName, params = {}, push = true) {
         status.textContent = 'Conectando con el editor 3D...';
 
         window.addEventListener('message', this._editorMessageHandler = function(event) {
-            var msg = event.data;
+            const msg = event.data;
             if (!msg || !msg.type) return;
             switch (msg.type) {
                 case 'connected':
@@ -12380,19 +12380,19 @@ navigate(viewName, params = {}, push = true) {
     },
 
     toggleEditorFullscreen: function() {
-        var panel = document.getElementById('editor-3d-panel');
+        const panel = document.getElementById('editor-3d-panel');
         if (panel) panel.classList.toggle('fullscreen');
     },
 
     closeEditor3D: function() {
-        var overlay = document.getElementById('editor-3d-overlay');
-        var iframe = document.getElementById('editor-3d-iframe');
+        const overlay = document.getElementById('editor-3d-overlay');
+        const iframe = document.getElementById('editor-3d-iframe');
         if (overlay) overlay.classList.add('hidden');
         document.getElementById('editor-3d-status')?.classList.add('hidden');
         if (iframe && iframe.contentWindow) iframe.contentWindow.postMessage({ type: 'close' }, '*');
-        var handler = this._editorMessageHandler;
+        const handler = this._editorMessageHandler;
         if (handler) window.removeEventListener('message', handler);
-        var state = this.editor3DState;
+        const state = this.editor3DState;
         if (state.layoutId) {
             this.loadSeatLayouts();
             if (typeof Swal !== 'undefined') Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Plano guardado', showConfirmButton: false, timer: 2000 });
@@ -12401,7 +12401,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     cleanupEditor3D: function() {
-        var iframe = document.getElementById('editor-3d-iframe');
+        const iframe = document.getElementById('editor-3d-iframe');
         if (iframe) iframe.src = '';
         this.editor3DState.opened = false;
     },
@@ -12601,10 +12601,10 @@ navigate(viewName, params = {}, push = true) {
     // ═══ Branding (BL-16) ═══
 
     loadBranding: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var data = await this.fetchAPI('/events/' + eId + '/branding');
+            const data = await this.fetchAPI('/events/' + eId + '/branding');
             if (!data) return;
             if (document.getElementById('brand-primary-color')) document.getElementById('brand-primary-color').value = data.brand_primary_color || '#7c3aed';
             if (document.getElementById('brand-logo-url')) document.getElementById('brand-logo-url').value = data.brand_logo_url || data.logo_url || data.reg_logo_url || '';
@@ -12616,9 +12616,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     saveBranding: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) { this._notifyAction('Error', 'No hay evento seleccionado', 'error'); return; }
-        var data = {
+        const data = {
             brand_primary_color: document.getElementById('brand-primary-color')?.value || '#7c3aed',
             brand_logo_url: document.getElementById('brand-logo-url')?.value || '',
             custom_css: document.getElementById('brand-custom-css')?.value || '',
@@ -12632,10 +12632,10 @@ navigate(viewName, params = {}, push = true) {
     },
 
     loadLandingConfig: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var data = await this.fetchAPI('/landing/' + eId + '/config');
+            const data = await this.fetchAPI('/landing/' + eId + '/config');
             if (!data) return;
             if (document.getElementById('landing-hero-title')) document.getElementById('landing-hero-title').value = data.hero_title || '';
             if (document.getElementById('landing-hero-subtitle')) document.getElementById('landing-hero-subtitle').value = data.hero_subtitle || '';
@@ -12649,9 +12649,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     saveLandingConfig: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
-        var data = {
+        const data = {
             hero_title: document.getElementById('landing-hero-title')?.value || '',
             hero_subtitle: document.getElementById('landing-hero-subtitle')?.value || '',
             about_text: document.getElementById('landing-about-text')?.value || '',
@@ -12670,14 +12670,14 @@ navigate(viewName, params = {}, push = true) {
     // ═══ Plugins (C11-09) ═══
 
     loadPlugins: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var plugins = await this.fetchAPI('/plugins');
-            var list = document.getElementById('plugins-list');
+            const plugins = await this.fetchAPI('/plugins');
+            const list = document.getElementById('plugins-list');
             if (!plugins || plugins.length === 0) { list.innerHTML = '<p class="text-xs text-slate-500 italic col-span-full">No hay plugins disponibles</p>'; return; }
             list.innerHTML = plugins.map(function(p) {
-                var hooksList = (p.hooks || []).join(', ') || '—';
+                const hooksList = (p.hooks || []).join(', ') || '—';
                 return '<div class="card p-3 flex flex-col gap-2">'
                     + '<div class="flex items-center gap-2"><span class="text-xl">' + (p.icon || '🧩') + '</span><div><p class="text-sm font-semibold text-white">' + App.esc(p.name) + '</p><p class="text-xs text-slate-400">v' + App.esc(p.version) + ' · ' + App.esc(p.author) + '</p></div></div>'
                     + '<p class="text-xs text-slate-500">' + App.esc(p.description || '') + '</p>'
@@ -12685,9 +12685,9 @@ navigate(viewName, params = {}, push = true) {
                     + '<button class="btn-primary text-xs self-start" onclick="App.installPlugin(\'' + p.id + '\')">Instalar en este evento</button></div>';
             }).join('');
             // Load installed plugins
-            var installed = await this.fetchAPI('/plugins/event/' + eId);
-            var installedSection = document.getElementById('plugins-installed-section');
-            var installedList = document.getElementById('plugins-installed-list');
+            const installed = await this.fetchAPI('/plugins/event/' + eId);
+            const installedSection = document.getElementById('plugins-installed-section');
+            const installedList = document.getElementById('plugins-installed-list');
             if (installed && installed.length > 0) {
                 installedSection.classList.remove('hidden');
                 installedList.innerHTML = installed.map(function(i) {
@@ -12699,13 +12699,13 @@ navigate(viewName, params = {}, push = true) {
                         + '<button class="btn-secondary text-xs text-red-400" onclick="App.uninstallPlugin(\'' + i.plugin_id + '\')">Desinstalar</button></div></div>';
                 }).join('');
                 // Load logs
-                var logs = await this.fetchAPI('/plugins/logs/' + eId);
-                var logsSection = document.getElementById('plugins-logs-section');
-                var logsList = document.getElementById('plugins-logs-list');
+                const logs = await this.fetchAPI('/plugins/logs/' + eId);
+                const logsSection = document.getElementById('plugins-logs-section');
+                const logsList = document.getElementById('plugins-logs-list');
                 if (logs && logs.length > 0) {
                     logsSection.classList.remove('hidden');
                     logsList.innerHTML = logs.map(function(l) {
-                        var color = l.status === 'success' ? 'text-green-400' : 'text-red-400';
+                        const color = l.status === 'success' ? 'text-green-400' : 'text-red-400';
                         return '<div class="text-xs ' + color + '">[' + (l.plugin_name || '') + '] ' + l.hook + ' → ' + l.status + (l.message ? ': ' + App.esc(l.message) : '') + '</div>';
                     }).join('');
                 }
@@ -12716,10 +12716,10 @@ navigate(viewName, params = {}, push = true) {
     },
 
     installPlugin: async function(pluginId) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var res = await this.fetchAPI('/plugins/' + pluginId + '/install', { method: 'POST', body: JSON.stringify({ event_id: eId }) });
+            const res = await this.fetchAPI('/plugins/' + pluginId + '/install', { method: 'POST', body: JSON.stringify({ event_id: eId }) });
             if (res && res.success) {
                 this._notifyAction('Instalado', 'Plugin instalado en el evento', 'success');
                 this.loadPlugins();
@@ -12728,10 +12728,10 @@ navigate(viewName, params = {}, push = true) {
     },
 
     uninstallPlugin: async function(pluginId) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var res = await this.fetchAPI('/plugins/' + pluginId + '/uninstall', { method: 'POST', body: JSON.stringify({ event_id: eId }) });
+            const res = await this.fetchAPI('/plugins/' + pluginId + '/uninstall', { method: 'POST', body: JSON.stringify({ event_id: eId }) });
             if (res && res.success) {
                 this._notifyAction('Desinstalado', 'Plugin desinstalado del evento', 'success');
                 this.loadPlugins();
@@ -12741,7 +12741,7 @@ navigate(viewName, params = {}, push = true) {
 
     togglePlugin: async function(instanceId, enabled) {
         try {
-            var res = await this.fetchAPI('/plugins/instance/' + instanceId, { method: 'PUT', body: JSON.stringify({ enabled: enabled }) });
+            const res = await this.fetchAPI('/plugins/instance/' + instanceId, { method: 'PUT', body: JSON.stringify({ enabled: enabled }) });
             if (res && res.success) this.loadPlugins();
         } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
@@ -12749,7 +12749,7 @@ navigate(viewName, params = {}, push = true) {
     // ═══ Presupuesto (BL-18) ═══
 
     loadBudget: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         // B3: P&L con ingresos reales
         try {
@@ -12763,8 +12763,8 @@ navigate(viewName, params = {}, push = true) {
             }
         } catch (_) {}
         try {
-            var data = await this.fetchAPI('/events/' + eId + '/budget');
-            var tbody = document.getElementById('budget-tbody');
+            const data = await this.fetchAPI('/events/' + eId + '/budget');
+            const tbody = document.getElementById('budget-tbody');
             if (!tbody) return;
             if (!data || !data.items || !data.items.length) {
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin gastos registrados</td></tr>';
@@ -12797,14 +12797,14 @@ navigate(viewName, params = {}, push = true) {
     },
 
     saveBudgetItem: async function() {
-        var eId = this.state.event?.id;
-        var id = document.getElementById('budget-item-id')?.value;
-        var concept = document.getElementById('budget-concept')?.value.trim();
-        var amount = document.getElementById('budget-amount')?.value;
-        var category = document.getElementById('budget-category')?.value || 'general';
-        var notes = document.getElementById('budget-notes')?.value || '';
+        const eId = this.state.event?.id;
+        const id = document.getElementById('budget-item-id')?.value;
+        const concept = document.getElementById('budget-concept')?.value.trim();
+        const amount = document.getElementById('budget-amount')?.value;
+        const category = document.getElementById('budget-category')?.value || 'general';
+        const notes = document.getElementById('budget-notes')?.value || '';
         if (!concept || !amount) { this._notifyAction('Error', 'Concepto y monto requeridos', 'error'); return; }
-        var body = { concept: concept, amount: parseFloat(amount), category: category, notes: notes };
+        const body = { concept: concept, amount: parseFloat(amount), category: category, notes: notes };
         try {
             await this.fetchAPI('/events/' + eId + '/budget' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) });
             this.closeBudgetModal();
@@ -12814,8 +12814,8 @@ navigate(viewName, params = {}, push = true) {
     },
 
     deleteBudgetItem: async function(id) {
-        var eId = this.state.event?.id;
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar gasto?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const eId = this.state.event?.id;
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar gasto?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try {
             await this.fetchAPI('/events/' + eId + '/budget/' + id, { method: 'DELETE' });
@@ -12867,20 +12867,20 @@ navigate(viewName, params = {}, push = true) {
     // ═══ F2 (2026-08): Transacciones · Intelligence · Certificados · Invitar usuario ═══
 
     loadTransactions: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var data = await this.fetchAPI('/events/' + eId + '/transactions');
-            var tbody = document.getElementById('transactions-tbody');
+            const data = await this.fetchAPI('/events/' + eId + '/transactions');
+            const tbody = document.getElementById('transactions-tbody');
             if (!tbody) return;
-            var rows = Array.isArray(data) ? data : (data.transactions || []);
+            const rows = Array.isArray(data) ? data : (data.transactions || []);
             if (!rows.length) {
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin transacciones registradas</td></tr>';
                 return;
             }
             tbody.innerHTML = rows.map(function(t) {
-                var status = String(t.status || 'pending');
-                var badge = status === 'succeeded' || status === 'completed' ? 'bg-green-500/10 text-green-400'
+                const status = String(t.status || 'pending');
+                const badge = status === 'succeeded' || status === 'completed' ? 'bg-green-500/10 text-green-400'
                     : status === 'failed' ? 'bg-red-500/10 text-red-400' : 'bg-yellow-500/10 text-yellow-400';
                 return '<tr class="hover:bg-white/[0.02]">' +
                     '<td class="table-td text-xs text-slate-400">' + (t.created_at ? new Date(t.created_at).toLocaleString() : '-') + '</td>' +
@@ -12915,24 +12915,24 @@ navigate(viewName, params = {}, push = true) {
 
 
     loadIntelligence: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var pred = await this.fetchAPI('/predict/' + eId);
+            const pred = await this.fetchAPI('/predict/' + eId);
             document.getElementById('intel-predicted').textContent = pred.predictedAttendance ?? pred.predicted ?? '—';
             document.getElementById('intel-analyzed').textContent = pred.totalGuests ?? pred.analyzed ?? '—';
-            var confEl = document.getElementById('intel-confidence');
+            const confEl = document.getElementById('intel-confidence');
             if (confEl) confEl.textContent = pred.confidence != null ? Math.round(pred.confidence * 100) / 100 : '—';
         } catch (e) { console.warn('[INTEL] predict:', e.message); }
         try {
-            var recs = await this.fetchAPI('/recommendations/' + eId);
-            var list = Array.isArray(recs) ? recs : (recs.recommendations || []);
-            var wrap = document.getElementById('intel-recommendations');
+            const recs = await this.fetchAPI('/recommendations/' + eId);
+            const list = Array.isArray(recs) ? recs : (recs.recommendations || []);
+            const wrap = document.getElementById('intel-recommendations');
             if (wrap) {
                 wrap.innerHTML = list.length ? list.map(function(r) {
-                    var txt = typeof r === 'string' ? r : (r.title || r.message || JSON.stringify(r));
-                    var pri = (r.priority || 'info');
-                    var color = pri === 'high' ? 'text-red-400 bg-red-500/10' : pri === 'medium' ? 'text-yellow-400 bg-yellow-500/10' : 'text-blue-400 bg-blue-500/10';
+                    const txt = typeof r === 'string' ? r : (r.title || r.message || JSON.stringify(r));
+                    const pri = (r.priority || 'info');
+                    const color = pri === 'high' ? 'text-red-400 bg-red-500/10' : pri === 'medium' ? 'text-yellow-400 bg-yellow-500/10' : 'text-blue-400 bg-blue-500/10';
                     return '<div class="flex items-start gap-3 p-3 rounded-xl ' + color.replace(/text-\S+/, '') + '">' +
                         '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase ' + color + '">' + pri + '</span>' +
                         '<p class="text-xs text-slate-300 flex-1">' + App.esc(txt) + '</p></div>';
@@ -12940,13 +12940,13 @@ navigate(viewName, params = {}, push = true) {
             }
         } catch (e) { console.warn('[INTEL] recommendations:', e.message); }
         try {
-            var tags = await this.fetchAPI('/intelligence/guests/' + eId + '/tags');
-            var tagWrap = document.getElementById('intel-tags');
+            const tags = await this.fetchAPI('/intelligence/guests/' + eId + '/tags');
+            const tagWrap = document.getElementById('intel-tags');
             if (tagWrap) {
-                var tagList = Array.isArray(tags) ? tags : (tags.tags || []);
+                const tagList = Array.isArray(tags) ? tags : (tags.tags || []);
                 tagWrap.innerHTML = tagList.length ? tagList.map(function(t) {
-                    var label = typeof t === 'string' ? t : (t.tag || t.name);
-                    var count = t.count != null ? ' <span class="opacity-60">(' + t.count + ')</span>' : '';
+                    const label = typeof t === 'string' ? t : (t.tag || t.name);
+                    const count = t.count != null ? ' <span class="opacity-60">(' + t.count + ')</span>' : '';
                     return '<span class="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-slate-300">' + App.esc(label) + count + '</span>';
                 }).join('') : '<p class="text-xs text-slate-500">Sin etiquetas aún.</p>';
             }
@@ -12954,9 +12954,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     addIntelligenceTag: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
-        var r = await Swal.fire({ title: 'Nueva etiqueta', input: 'text', inputPlaceholder: 'ej: VIP, Prensa...', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const r = await Swal.fire({ title: 'Nueva etiqueta', input: 'text', inputPlaceholder: 'ej: VIP, Prensa...', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!r.isConfirmed || !r.value) return;
         try {
             await this.fetchAPI('/guests/' + eId + '/tags', { method: 'POST', body: JSON.stringify({ name: r.value.trim() }) });
@@ -12966,13 +12966,13 @@ navigate(viewName, params = {}, push = true) {
     },
 
     loadCertificates: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
-        var tbody0 = document.getElementById('certificates-tbody');
+        const tbody0 = document.getElementById('certificates-tbody');
         if (tbody0) this.uiState('certificates-tbody', 'loading');
         try {
-            var templates = await this.fetchAPI('/certificates/' + eId + '/templates');
-            var tbody = document.getElementById('certificates-tbody');
+            const templates = await this.fetchAPI('/certificates/' + eId + '/templates');
+            const tbody = document.getElementById('certificates-tbody');
             if (!tbody) return;
             if (!templates.length) {
                 this.uiState('certificates-tbody', 'empty', { icon: 'workspace_premium', title: 'Sin plantillas de certificado', message: 'Crea una plantilla para poder generar certificados de asistencia.' });
@@ -13000,10 +13000,10 @@ navigate(viewName, params = {}, push = true) {
     },
 
     saveCertificateTemplate: async function() {
-        var eId = this.state.event?.id;
-        var name = document.getElementById('cert-tpl-name').value.trim();
-        var title = document.getElementById('cert-tpl-title').value.trim();
-        var subtitle = document.getElementById('cert-tpl-subtitle').value.trim();
+        const eId = this.state.event?.id;
+        const name = document.getElementById('cert-tpl-name').value.trim();
+        const title = document.getElementById('cert-tpl-title').value.trim();
+        const subtitle = document.getElementById('cert-tpl-subtitle').value.trim();
         if (!name || !title) return this._notifyAction('Error', 'Nombre y título requeridos', 'error');
         try {
             await this.fetchAPI('/certificates/' + eId + '/templates', { method: 'POST', body: JSON.stringify({ name: name, title: title, subtitle: subtitle }) });
@@ -13014,29 +13014,29 @@ navigate(viewName, params = {}, push = true) {
     },
 
     generateCertificates: async function(templateId) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!confirm('¿Generar certificados para todos los asistentes con check-in?')) return;
         try {
             const res = await Swal.fire({ title: 'Generando certificados...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-            var d = await this.fetchAPI('/certificates/' + eId + '/templates/' + templateId + '/generate', { method: 'POST', body: '{}' });
+            const d = await this.fetchAPI('/certificates/' + eId + '/templates/' + templateId + '/generate', { method: 'POST', body: '{}' });
             Swal.close();
-            var certs = d.certificates || d.generated || [];
+            const certs = d.certificates || d.generated || [];
             this._notifyAction('Certificados generados', certs.length + ' documento(s)', 'success');
             this.renderGeneratedCertificates(certs);
         } catch (e) { Swal.close(); this._notifyAction('Error', e.message, 'error'); }
     },
 
     listGeneratedCertificates: async function(templateId) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         try {
-            var d = await this.fetchAPI('/certificates/' + eId + '/templates/' + templateId + '/certificates');
+            const d = await this.fetchAPI('/certificates/' + eId + '/templates/' + templateId + '/certificates');
             this.renderGeneratedCertificates(Array.isArray(d) ? d : (d.certificates || []));
         } catch (e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
     renderGeneratedCertificates: function(certs) {
-        var wrap = document.getElementById('certificates-generated-wrap');
-        var box = document.getElementById('certificates-generated');
+        const wrap = document.getElementById('certificates-generated-wrap');
+        const box = document.getElementById('certificates-generated');
         if (!wrap || !box) return;
         wrap.classList.remove('hidden');
         box.innerHTML = certs.length ? certs.map(function(c) {
@@ -13056,10 +13056,10 @@ navigate(viewName, params = {}, push = true) {
     },
 
     submitInviteUser: async function() {
-        var email = document.getElementById('invite-email').value.trim().toLowerCase();
-        var pass = document.getElementById('invite-pass').value;
-        var role = document.getElementById('invite-role').value;
-        var name = document.getElementById('invite-name').value.trim();
+        const email = document.getElementById('invite-email').value.trim().toLowerCase();
+        const pass = document.getElementById('invite-pass').value;
+        const role = document.getElementById('invite-role').value;
+        const name = document.getElementById('invite-name').value.trim();
         if (!email || !pass) return this._notifyAction('Error', 'Email y contraseña temporal requeridos', 'error');
         if (pass.length < 8) return this._notifyAction('Error', 'La contraseña debe tener mínimo 8 caracteres', 'error');
         try {
@@ -13197,11 +13197,11 @@ navigate(viewName, params = {}, push = true) {
 
     // ═══ A2: Álbum del evento ═══
     loadAlbum: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var photos = await this.fetchAPI('/album/' + eId + '/admin');
-            var grid = document.getElementById('album-grid');
+            const photos = await this.fetchAPI('/album/' + eId + '/admin');
+            const grid = document.getElementById('album-grid');
             if (!grid) return;
             if (!photos.length) {
                 grid.innerHTML = '<div class="col-span-full empty-state"><span class="material-symbols-outlined icon">photo_library</span><h3>Álbum vacío</h3><p>Sube fotos del evento o aprueba las que envían los asistentes desde su portal.</p></div>';
@@ -13225,10 +13225,10 @@ navigate(viewName, params = {}, push = true) {
     },
 
     uploadAlbumPhoto: async function(input) {
-        var eId = this.state.event?.id;
-        var file = input?.files?.[0];
+        const eId = this.state.event?.id;
+        const file = input?.files?.[0];
         if (!file) return;
-        var fd = new FormData();
+        const fd = new FormData();
         fd.append('photo', file);
         fd.append('event_id', eId);
         try {
@@ -13244,7 +13244,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     approveAlbumPhoto: async function(photoId) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         try {
             await this.fetchAPI('/album/' + eId + '/' + photoId + '/approve', { method: 'PATCH', body: JSON.stringify({ approved: true }) });
             this.loadAlbum();
@@ -13252,7 +13252,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     deleteAlbumPhoto: async function(photoId) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!confirm('¿Eliminar esta foto?')) return;
         try {
             await this.fetchAPI('/album/' + eId + '/' + photoId, { method: 'DELETE' });
@@ -13263,11 +13263,11 @@ navigate(viewName, params = {}, push = true) {
     // ═══ F4: Builder de formulario público + Sponsors/Leads ═══
 
     loadRegFields: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var fields = await this.fetchAPI('/events/' + eId + '/reg-fields');
-            var tbody = document.getElementById('regfields-tbody');
+            const fields = await this.fetchAPI('/events/' + eId + '/reg-fields');
+            const tbody = document.getElementById('regfields-tbody');
             if (!tbody) return;
             this.state._regFields = Array.isArray(fields) ? fields : [];
             if (!fields.length) {
@@ -13295,8 +13295,8 @@ navigate(viewName, params = {}, push = true) {
 
     openRegFieldModal: async function() {
         // Modal ligero via SweetAlert encadenado
-        var eId = this.state.event?.id;
-        var r = await Swal.fire({
+        const eId = this.state.event?.id;
+        const r = await Swal.fire({
             title: 'Nuevo campo del formulario',
             html:
                 '<input id="_rf-label" class="swal2-input" placeholder="Etiqueta (ej: Empresa)">' +
@@ -13327,7 +13327,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     deleteRegField: async function(id) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!confirm('¿Eliminar este campo y sus respuestas?')) return;
         try {
             await this.fetchAPI('/events/' + eId + '/reg-fields/' + id, { method: 'DELETE' });
@@ -13336,8 +13336,8 @@ navigate(viewName, params = {}, push = true) {
     },
 
     savePlusOneQuota: async function() {
-        var eId = this.state.event?.id;
-        var q = parseInt(document.getElementById('plusone-quota-input')?.value, 10);
+        const eId = this.state.event?.id;
+        const q = parseInt(document.getElementById('plusone-quota-input')?.value, 10);
         if (isNaN(q) || q < 0) return this._notifyAction('Error', 'Cupo inválido', 'error');
         try {
             await this.fetchAPI('/events/' + eId, { method: 'PUT', body: JSON.stringify({ plus_one_quota: q }) });
@@ -13346,11 +13346,11 @@ navigate(viewName, params = {}, push = true) {
     },
 
     loadSponsors: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var sponsors = await this.fetchAPI('/events/' + eId + '/sponsors');
-            var tbody = document.getElementById('sponsors-tbody');
+            const sponsors = await this.fetchAPI('/events/' + eId + '/sponsors');
+            const tbody = document.getElementById('sponsors-tbody');
             if (!tbody) return;
             if (!sponsors.length) {
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin patrocinadores registrados</td></tr>';
@@ -13368,8 +13368,8 @@ navigate(viewName, params = {}, push = true) {
             }
             // ROI summary
             try {
-                var roi = await this.fetchAPI('/events/' + eId + '/sponsors-roi/summary');
-                var wrap = document.getElementById('sponsors-roi');
+                const roi = await this.fetchAPI('/events/' + eId + '/sponsors-roi/summary');
+                const wrap = document.getElementById('sponsors-roi');
                 if (wrap && Array.isArray(roi)) {
                     wrap.innerHTML = roi.map(r =>
                         '<div class="card px-4 py-3"><p class="text-[10px] uppercase tracking-widest text-slate-500 font-black">' + App.esc(r.tier) + '</p>' +
@@ -13382,7 +13382,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     openSponsorModal: async function() {
-        var r = await Swal.fire({
+        const r = await Swal.fire({
             title: 'Nuevo patrocinador',
             html:
                 '<input id="_sp-name" class="swal2-input" placeholder="Nombre">' +
@@ -13415,7 +13415,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     scanSponsorLead: async function(sponsorId) {
-        var r = await Swal.fire({
+        const r = await Swal.fire({
             title: 'Escanear credencial del invitado',
             input: 'text',
             inputPlaceholder: 'QR token o ID del invitado',
@@ -13555,9 +13555,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     openApiKeyModal: async function() {
-        var scopes = await this.fetchAPI('/api-keys/scopes').catch(() => null);
-        var scopeList = Array.isArray(scopes) ? scopes : ['events:read', 'guests:read'];
-        var r = await Swal.fire({
+        const scopes = await this.fetchAPI('/api-keys/scopes').catch(() => null);
+        const scopeList = Array.isArray(scopes) ? scopes : ['events:read', 'guests:read'];
+        const r = await Swal.fire({
             title: 'Generar API key',
             html:
                 '<input id="_ak-name" class="swal2-input" placeholder="Nombre (ej: Zapier)">' +
@@ -13618,7 +13618,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     openCrmModal: async function() {
-        var r = await Swal.fire({
+        const r = await Swal.fire({
             title: 'Conectar CRM',
             html:
                 '<select id="_crm-platform" class="swal2-input">' +
@@ -13786,18 +13786,18 @@ navigate(viewName, params = {}, push = true) {
     // ═══ Ponentes (BL-19) ═══
 
     loadSpeakers: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var speakers = await this.fetchAPI('/events/' + eId + '/speakers');
-            var tbody = document.getElementById('speakers-tbody');
+            const speakers = await this.fetchAPI('/events/' + eId + '/speakers');
+            const tbody = document.getElementById('speakers-tbody');
             if (!tbody) return;
             if (!speakers || !speakers.length) {
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin ponentes registrados</td></tr>';
                 return;
             }
             tbody.innerHTML = speakers.map(function(s) {
-                var social = [];
+                const social = [];
                 if (s.social_twitter) social.push('🐦');
                 if (s.social_linkedin) social.push('💼');
                 if (s.social_web) social.push('🌐');
@@ -13830,10 +13830,10 @@ navigate(viewName, params = {}, push = true) {
     },
 
     editSpeaker: async function(id) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         try {
-            var speakers = await this.fetchAPI('/events/' + eId + '/speakers');
-            var s = speakers.find(function(x) { return x.id === id; });
+            const speakers = await this.fetchAPI('/events/' + eId + '/speakers');
+            const s = speakers.find(function(x) { return x.id === id; });
             if (!s) return;
             document.getElementById('speaker-id').value = s.id;
             document.getElementById('speaker-name').value = s.name || '';
@@ -13849,11 +13849,11 @@ navigate(viewName, params = {}, push = true) {
     },
 
     saveSpeaker: async function() {
-        var eId = this.state.event?.id;
-        var id = document.getElementById('speaker-id')?.value;
-        var name = document.getElementById('speaker-name')?.value.trim();
+        const eId = this.state.event?.id;
+        const id = document.getElementById('speaker-id')?.value;
+        const name = document.getElementById('speaker-name')?.value.trim();
         if (!name) { this._notifyAction('Error', 'Nombre requerido', 'error'); return; }
-        var body = {
+        const body = {
             name: name,
             topic: document.getElementById('speaker-topic')?.value || '',
             bio: document.getElementById('speaker-bio')?.value || '',
@@ -13871,8 +13871,8 @@ navigate(viewName, params = {}, push = true) {
     },
 
     deleteSpeaker: async function(id) {
-        var eId = this.state.event?.id;
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar ponente?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const eId = this.state.event?.id;
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar ponente?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try {
             await this.fetchAPI('/events/' + eId + '/speakers/' + id, { method: 'DELETE' });
@@ -13883,15 +13883,15 @@ navigate(viewName, params = {}, push = true) {
     // ═══ Propuestas Públicas (BL-20) ═══
 
     loadProposals: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var data = await this.fetchAPI('/events/' + eId + '/proposals/admin');
-            var tbody = document.getElementById('proposals-tbody');
+            const data = await this.fetchAPI('/events/' + eId + '/proposals/admin');
+            const tbody = document.getElementById('proposals-tbody');
             if (!tbody) return;
             if (!data || !data.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin propuestas recibidas</td></tr>'; return; }
             tbody.innerHTML = data.map(function(p) {
-                var badge = p.status === 'approved' ? 'text-green-500' : p.status === 'rejected' ? 'text-red-500' : 'text-amber-500';
+                const badge = p.status === 'approved' ? 'text-green-500' : p.status === 'rejected' ? 'text-red-500' : 'text-amber-500';
                 return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-medium text-white">' + (p.title || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (p.guest_name || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-300">' + (p.votes || 0) + '</td>' +
@@ -13906,7 +13906,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     updateProposalStatus: async function(id, status) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         try {
             await this.fetchAPI('/events/' + eId + '/proposals/' + id, { method: 'PUT', body: JSON.stringify({ status: status }) });
         } catch(e) { console.error(e); }
@@ -13915,16 +13915,16 @@ navigate(viewName, params = {}, push = true) {
     // ═══ Automatizaciones (C3-06) ═══
 
     loadAutomationRules: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var rules = await this.fetchAPI('/events/' + eId + '/automation');
-            var tbody = document.getElementById('automation-tbody');
+            const rules = await this.fetchAPI('/events/' + eId + '/automation');
+            const tbody = document.getElementById('automation-tbody');
             if (!tbody) return;
             if (!rules || !rules.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-slate-500">Sin reglas configuradas</td></tr>'; return; }
             tbody.innerHTML = rules.map(function(r) {
-                var actions = JSON.parse(r.actions_json || '{}');
-                var actionLabel = { send_email: 'Email', send_sms: 'SMS', send_whatsapp: 'WhatsApp', webhook: 'Webhook' }[actions.type || ''] || actions.type || '-';
+                const actions = JSON.parse(r.actions_json || '{}');
+                const actionLabel = { send_email: 'Email', send_sms: 'SMS', send_whatsapp: 'WhatsApp', webhook: 'Webhook' }[actions.type || ''] || actions.type || '-';
                 return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-medium text-white">' + (r.name || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (r.trigger_event || '') + ' → ' + actionLabel + '</td>' +
                     '<td class="table-td"><span class="text-xs font-bold ' + (r.enabled ? 'text-green-500' : 'text-slate-500') + '">' + (r.enabled ? 'Activo' : 'Inactivo') + '</span></td>' +
@@ -13957,7 +13957,7 @@ navigate(viewName, params = {}, push = true) {
         document.getElementById('auto-webhook-url').value = '';
         this.onAutoActionChange();
         // Load email templates
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (eId) this.loadEmailTemplatesDropdown();
         document.getElementById('modal-automation')?.classList.remove('hidden');
     },
@@ -13965,31 +13965,31 @@ navigate(viewName, params = {}, push = true) {
     closeAutomationModal: function() { document.getElementById('modal-automation')?.classList.add('hidden'); },
 
     onAutoActionChange: function() {
-        var action = document.getElementById('auto-action')?.value;
+        const action = document.getElementById('auto-action')?.value;
         document.getElementById('auto-email-config').style.display = action === 'send_email' ? 'block' : 'none';
         document.getElementById('auto-message-config').style.display = (action === 'send_sms' || action === 'send_whatsapp') ? 'block' : 'none';
         document.getElementById('auto-webhook-config').style.display = action === 'webhook' ? 'block' : 'none';
     },
 
     loadEmailTemplatesDropdown: function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         this.fetchAPI('/events/' + eId + '/templates').then(function(templates) {
-            var sel = document.getElementById('auto-email-template');
+            const sel = document.getElementById('auto-email-template');
             if (!sel) return;
             sel.innerHTML = '<option value="">Seleccionar...</option>' + (templates || []).map(function(t) { return '<option value="' + t.id + '">' + (t.name || t.title || 'Sin nombre') + '</option>'; }).join('');
         }).catch(function() {});
     },
 
     saveAutomationRule: async function() {
-        var eId = this.state.event?.id;
-        var id = document.getElementById('auto-id')?.value;
-        var name = document.getElementById('auto-name')?.value.trim();
-        var trigger = document.getElementById('auto-trigger')?.value;
-        var action = document.getElementById('auto-action')?.value;
-        var enabled = document.getElementById('auto-enabled')?.checked;
+        const eId = this.state.event?.id;
+        const id = document.getElementById('auto-id')?.value;
+        const name = document.getElementById('auto-name')?.value.trim();
+        const trigger = document.getElementById('auto-trigger')?.value;
+        const action = document.getElementById('auto-action')?.value;
+        const enabled = document.getElementById('auto-enabled')?.checked;
         if (!name || !trigger || !action) { this._notifyAction('Error', 'Completa todos los campos', 'error'); return; }
-        var actions = { type: action };
+        const actions = { type: action };
         if (action === 'send_email') actions.template_id = document.getElementById('auto-email-template')?.value;
         if (action === 'send_sms' || action === 'send_whatsapp') actions.message = document.getElementById('auto-message')?.value;
         if (action === 'webhook') actions.url = document.getElementById('auto-webhook-url')?.value;
@@ -14001,16 +14001,16 @@ navigate(viewName, params = {}, push = true) {
     },
 
     editAutomationRule: async function(ruleId) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         try {
-            var rules = await this.fetchAPI('/events/' + eId + '/automation');
-            var r = rules.find(function(x) { return x.id === ruleId; });
+            const rules = await this.fetchAPI('/events/' + eId + '/automation');
+            const r = rules.find(function(x) { return x.id === ruleId; });
             if (!r) return;
             document.getElementById('auto-id').value = r.id;
             document.getElementById('auto-name').value = r.name || '';
             document.getElementById('auto-trigger').value = r.trigger_event || 'guest.created';
             document.getElementById('auto-enabled').checked = r.enabled !== 0;
-            var actions = {};
+            let actions = {};
             try { actions = JSON.parse(r.actions_json || '{}'); } catch(e) {}
             document.getElementById('auto-action').value = actions.type || 'send_email';
             this.onAutoActionChange();
@@ -14022,8 +14022,8 @@ navigate(viewName, params = {}, push = true) {
     },
 
     deleteAutomationRule: async function(ruleId) {
-        var eId = this.state.event?.id;
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar regla?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const eId = this.state.event?.id;
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar regla?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try { await this.fetchAPI('/events/' + eId + '/automation/' + ruleId, { method: 'DELETE' }); this.loadAutomationRules(); } catch(e) { console.error(e); }
     },
@@ -14031,16 +14031,16 @@ navigate(viewName, params = {}, push = true) {
     // ═══ Cupones (C4-06) ═══
 
     loadCoupons: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var coupons = await this.fetchAPI('/events/' + eId + '/coupons');
-            var tbody = document.getElementById('coupons-tbody');
+            const coupons = await this.fetchAPI('/events/' + eId + '/coupons');
+            const tbody = document.getElementById('coupons-tbody');
             if (!tbody) return;
             if (!coupons || !coupons.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Sin cupones</td></tr>'; return; }
             tbody.innerHTML = coupons.map(function(c) {
-                var label = c.discount_type === 'percentage' ? c.discount_value + '%' : '$' + parseFloat(c.discount_value).toFixed(2);
-                var exp = c.expires_at ? new Date(c.expires_at).toLocaleDateString() : '-';
+                const label = c.discount_type === 'percentage' ? c.discount_value + '%' : '$' + parseFloat(c.discount_value).toFixed(2);
+                const exp = c.expires_at ? new Date(c.expires_at).toLocaleDateString() : '-';
                 return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-bold text-white">' + c.code + '</td>' +
                     '<td class="table-td text-xs text-green-400">' + label + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (c.current_uses || 0) + '/' + (c.max_uses || '∞') + '</td>' +
@@ -14064,10 +14064,10 @@ navigate(viewName, params = {}, push = true) {
     closeCouponModal: function() { document.getElementById('modal-coupon')?.classList.add('hidden'); },
 
     editCoupon: async function(id) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         try {
-            var coupons = await this.fetchAPI('/events/' + eId + '/coupons');
-            var c = coupons.find(function(x) { return x.id === id; });
+            const coupons = await this.fetchAPI('/events/' + eId + '/coupons');
+            const c = coupons.find(function(x) { return x.id === id; });
             if (!c) return;
             document.getElementById('coupon-id').value = c.id; document.getElementById('coupon-code').value = c.code || '';
             document.getElementById('coupon-type').value = c.discount_type || 'percentage';
@@ -14080,13 +14080,13 @@ navigate(viewName, params = {}, push = true) {
     },
 
     saveCoupon: async function() {
-        var eId = this.state.event?.id;
-        var id = document.getElementById('coupon-id')?.value;
-        var code = document.getElementById('coupon-code')?.value.trim();
-        var type = document.getElementById('coupon-type')?.value;
-        var value = document.getElementById('coupon-value')?.value;
+        const eId = this.state.event?.id;
+        const id = document.getElementById('coupon-id')?.value;
+        const code = document.getElementById('coupon-code')?.value.trim();
+        const type = document.getElementById('coupon-type')?.value;
+        const value = document.getElementById('coupon-value')?.value;
         if (!code || !value) { this._notifyAction('Error', 'Código y valor requeridos', 'error'); return; }
-        var body = { code: code, discount_type: type, discount_value: parseFloat(value), max_uses: parseInt(document.getElementById('coupon-uses')?.value) || 0, expires_at: document.getElementById('coupon-expires')?.value || null, is_active: document.getElementById('coupon-active')?.checked };
+        const body = { code: code, discount_type: type, discount_value: parseFloat(value), max_uses: parseInt(document.getElementById('coupon-uses')?.value) || 0, expires_at: document.getElementById('coupon-expires')?.value || null, is_active: document.getElementById('coupon-active')?.checked };
         const saveBtn = document.querySelector('#modal-coupon button[type="submit"], #modal-coupon .btn-primary');
         if (saveBtn) { saveBtn.disabled = true; saveBtn.dataset.orig = saveBtn.textContent; saveBtn.textContent = 'Guardando…'; }
         try {
@@ -14103,19 +14103,19 @@ navigate(viewName, params = {}, push = true) {
     },
 
     deleteCoupon: async function(id) {
-        var eId = this.state.event?.id;
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar cupón?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const eId = this.state.event?.id;
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar cupón?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try { await this.fetchAPI('/events/' + eId + '/coupons/' + id, { method: 'DELETE' }); this.loadCoupons(); } catch(e) { console.error(e); }
     },
 
     // ═══ Networking (C5-05) ═══
     loadNetwork: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var guests = await this.fetchAPI('/guests/' + eId + '/network');
-            var tbody = document.getElementById('network-tbody');
+            const guests = await this.fetchAPI('/guests/' + eId + '/network');
+            const tbody = document.getElementById('network-tbody');
             if (!tbody) return;
             if (!guests || !guests.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin invitados</td></tr>'; return; }
             tbody.innerHTML = guests.slice(0, 50).map(function(g) {
@@ -14129,30 +14129,30 @@ navigate(viewName, params = {}, push = true) {
     },
 
     awardAchievement: async function(guestId) {
-        var eId = this.state.event?.id;
-        var achievements = ['early_bird', 'first_checkin', 'networking_star', 'social_share', 'survey_responder'];
-        var labels = ['🐤 Early Bird', '✅ Primer check-in', '🌟 Networking Star', '📢 Social Share', '📊 Encuesta'];
-        var html = achievements.map(function(a, i) { return '<div class="cursor-pointer p-2 hover:bg-white/5 rounded" onclick="App.saveAchievement(\'' + guestId + '\',\'' + a + '\')">' + labels[i] + '</div>'; }).join('');
+        const eId = this.state.event?.id;
+        const achievements = ['early_bird', 'first_checkin', 'networking_star', 'social_share', 'survey_responder'];
+        const labels = ['🐤 Early Bird', '✅ Primer check-in', '🌟 Networking Star', '📢 Social Share', '📊 Encuesta'];
+        const html = achievements.map(function(a, i) { return '<div class="cursor-pointer p-2 hover:bg-white/5 rounded" onclick="App.saveAchievement(\'' + guestId + '\',\'' + a + '\')">' + labels[i] + '</div>'; }).join('');
         Swal.fire({ title: '🏆 Dar logro', html: html, showConfirmButton: false, background: '#0f172a', color: '#fff' });
     },
 
     saveAchievement: async function(guestId, achievement) {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         try { await this.fetchAPI('/guests/' + eId + '/achievements/' + guestId, { method: 'POST', body: JSON.stringify({ achievement: achievement }) }); Swal.close(); this._notifyAction('Logro otorgado', '', 'success'); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
     editProfile: async function(guestId) {
-        var eId = this.state.event?.id;
-        var { value: form } = await Swal.fire({ title: 'Editar perfil', html: '<input id="swal-bio" class="input-field w-full mb-2" placeholder="Bio"><input id="swal-interests" class="input-field w-full mb-2" placeholder="Intereses"><input id="swal-linkedin" class="input-field w-full" placeholder="LinkedIn URL">', focusConfirm: false, background: '#0f172a', color: '#fff', preConfirm: function() { return { bio: document.getElementById('swal-bio').value, interests: document.getElementById('swal-interests').value, social_linkedin: document.getElementById('swal-linkedin').value }; } });
+        const eId = this.state.event?.id;
+        const { value: form } = await Swal.fire({ title: 'Editar perfil', html: '<input id="swal-bio" class="input-field w-full mb-2" placeholder="Bio"><input id="swal-interests" class="input-field w-full mb-2" placeholder="Intereses"><input id="swal-linkedin" class="input-field w-full" placeholder="LinkedIn URL">', focusConfirm: false, background: '#0f172a', color: '#fff', preConfirm: function() { return { bio: document.getElementById('swal-bio').value, interests: document.getElementById('swal-interests').value, social_linkedin: document.getElementById('swal-linkedin').value }; } });
         if (form) { try { await this.fetchAPI('/guests/' + eId + '/guests/' + guestId + '/profile', { method: 'PUT', body: JSON.stringify(form) }); this._notifyAction('Perfil actualizado', '', 'success'); } catch(e) { this._notifyAction('Error', e.message, 'error'); } }
     },
 
     publishToSocial: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         try {
-            var res = await this.fetchAPI('/guests/' + eId + '/social-publish', { method: 'POST' });
+            const res = await this.fetchAPI('/guests/' + eId + '/social-publish', { method: 'POST' });
             if (res.success) {
-                var msg = 'Twitter: ' + (res.twitter === 'published' ? '✅' : '⚠️ No config') + '\nLinkedIn: ' + (res.linkedin === 'published' ? '✅' : '⚠️ No config');
+                const msg = 'Twitter: ' + (res.twitter === 'published' ? '✅' : '⚠️ No config') + '\nLinkedIn: ' + (res.linkedin === 'published' ? '✅' : '⚠️ No config');
                 Swal.fire({ icon: 'info', title: 'Publicación', text: msg, background: '#0f172a', color: '#fff' });
             }
         } catch(e) { this._notifyAction('Error', e.message, 'error'); }
@@ -14211,12 +14211,12 @@ navigate(viewName, params = {}, push = true) {
             title:'Nueva Ruleta', width:'400px', background:'#0f172a', color:'#fff',
             html:'<div class="text-left"><label class="text-xs font-bold text-slate-400">Nombre</label><input id="swal-wheel-name" class="input-field w-full" placeholder="Ej: Sorteo Principal"></div>',
             showCancelButton:true, confirmButtonText:'Crear',
-            preConfirm:function(){var n=document.getElementById('swal-wheel-name')?.value?.trim();if(!n){Swal.showValidationMessage('Nombre requerido');return}return n}
+            preConfirm:function(){const n=document.getElementById('swal-wheel-name')?.value?.trim();if(!n){Swal.showValidationMessage('Nombre requerido');return}return n}
         }).then(async function(r){
             if(!r.isConfirmed)return;
-            var eId=App.state.event?.id;if(!eId)return;
+            const eId=App.state.event?.id;if(!eId)return;
             try{
-                var res=await App.fetchAPI('/raffles/events/'+eId+'/raffles',{method:'POST',body:JSON.stringify({name:r.value})});
+                const res=await App.fetchAPI('/raffles/events/'+eId+'/raffles',{method:'POST',body:JSON.stringify({name:r.value})});
                 if(res&&res.id){App.openWheelEditor(res.id);App.loadWheelList()}
             }catch(e){console.error(e)}
         });
@@ -14229,13 +14229,13 @@ navigate(viewName, params = {}, push = true) {
     },
 
     loadWheelList: function() {
-        var eId=this.state.event?.id;if(!eId)return;
-        var list=document.getElementById('wheel-list-view');if(!list)return;
+        const eId=this.state.event?.id;if(!eId)return;
+        const list=document.getElementById('wheel-list-view');if(!list)return;
         list.innerHTML='<p class="text-xs text-slate-500 italic">Cargando...</p>';
         this.fetchAPI('/raffles/events/'+eId+'/raffles').then(function(raffles){
             if(!raffles||!raffles.length){list.innerHTML='<div class="text-center py-8 text-slate-500"><p>No hay ruletas. Crea una nueva.</p></div>';return}
             list.innerHTML=raffles.map(function(r){
-                var cfg=r.config||{},stats=r.stats||{};
+                const cfg=r.config||{},stats=r.stats||{};
                 return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors cursor-pointer" onclick="App.openWheelEditor(\''+r.id+'\')">'+
                     '<div class="flex items-center gap-3"><span class="text-lg">🎡</span>'+
                     '<div><p class="text-sm font-bold text-white">'+(r.name||'Sin nombre')+'</p>'+
@@ -14247,24 +14247,24 @@ navigate(viewName, params = {}, push = true) {
 
     openWheelEditor: async function(id) {
         document.getElementById('wheel-list-view')?.classList.add('hidden');
-        var ed=document.getElementById('wheel-editor-view');if(ed)ed.classList.remove('hidden');
+        const ed=document.getElementById('wheel-editor-view');if(ed)ed.classList.remove('hidden');
         this._wheelState.currentId=id;this._wheelState.participants=[];this._wheelState.winners=[];this._wheelState.rotation=0;
         try{
-            var r=await this.fetchAPI('/raffles/'+id);if(!r)return;
-            var cfg=r.config||{};
+            const r=await this.fetchAPI('/raffles/'+id);if(!r)return;
+            const cfg=r.config||{};
             this.setWheelFormValues(r.name||'',cfg);
             this._wheelState.segColors=cfg.wheel_colors||['#ff7878','#7eecec','#fff171','#7280fd'];
             this.renderWheelThemes();
             this.renderWheelSegColorInputs();
             // Load participants
-            var parts=await this.fetchAPI('/raffles/'+id+'/participants');
-            var names=(parts||[]).map(function(p){return p.name||p.email}).filter(Boolean);
-            var ta=document.getElementById('wheel-participants-text');
+            const parts=await this.fetchAPI('/raffles/'+id+'/participants');
+            const names=(parts||[]).map(function(p){return p.name||p.email}).filter(Boolean);
+            const ta=document.getElementById('wheel-participants-text');
             if(ta){ta.value=names.join('\n')}
             this._wheelState.participants=names;
             this.updateWheelParticipantCount();
             // Load results
-            var results=await this.fetchAPI('/raffles/'+id+'/results');
+            const results=await this.fetchAPI('/raffles/'+id+'/results');
             this._wheelState.results=results||[];
             this.renderWheelCanvas(0);
             this.onWheelConfigChange();
@@ -14273,8 +14273,8 @@ navigate(viewName, params = {}, push = true) {
     },
 
     setWheelFormValues: function(name,cfg){
-        var s=function(id,val){var el=document.getElementById(id);if(el)el.value=val};
-        var c=function(id,val){var el=document.getElementById(id);if(el)el.checked=val!==false};
+        const s=function(id,val){const el=document.getElementById(id);if(el)el.value=val};
+        const c=function(id,val){const el=document.getElementById(id);if(el)el.checked=val!==false};
         s('wheel-name',name);
         s('wheel-title',cfg.title||'');
         s('wheel-desc',cfg.description||'');
@@ -14289,7 +14289,7 @@ navigate(viewName, params = {}, push = true) {
         c('wheel-capture-leads',cfg.capture_leads===true);
         this._wheelState.soundEnabled=cfg.play_sounds!==false;
 
-        var s2=function(id,val){var el=document.getElementById(id);if(el)el.value=val};
+        const s2=function(id,val){const el=document.getElementById(id);if(el)el.value=val};
         s2('wheel-bg-color',cfg.page_background_color||'#D1E4FF');
         s2('wheel-txt-color',cfg.wheel_slices_text_color||'#000000');
         s2('wheel-border-color',cfg.wheel_border_color||'#111111');
@@ -14298,46 +14298,46 @@ navigate(viewName, params = {}, push = true) {
         s2('wheel-lines-size',String(cfg.wheel_lines_size||2));
 
         // Source selector
-        var srcEl=document.getElementById('wheel-source');
+        const srcEl=document.getElementById('wheel-source');
         if(srcEl)srcEl.value=cfg.data_source||'manual';
         this.onWheelSourceChange();
 
         // Logo
         this._wheelState.logoDataUrl=cfg.logo||null;
-        var li=document.getElementById('wheel-logo-img');
-        var lp=document.getElementById('wheel-logo-preview');
-        var rb=document.getElementById('wheel-btn-remove-logo');
+        const li=document.getElementById('wheel-logo-img');
+        const lp=document.getElementById('wheel-logo-preview');
+        const rb=document.getElementById('wheel-btn-remove-logo');
         if(cfg.logo){li.src=cfg.logo;li.classList.remove('hidden');lp.classList.add('hidden');if(rb)rb.classList.remove('hidden')}
         else{li.classList.add('hidden');lp.classList.remove('hidden');if(rb)rb.classList.add('hidden')}
     },
 
     loadWheelSurveyTemplates: function(){
-        var eId=this.state.event?.id;if(!eId)return;
+        const eId=this.state.event?.id;if(!eId)return;
         this.fetchAPI('/events/'+eId+'/templates').then(function(t){
-            var sel=document.getElementById('wheel-survey-template');
+            const sel=document.getElementById('wheel-survey-template');
             if(sel)sel.innerHTML='<option value="">Seleccionar encuesta...</option>'+(t||[]).map(function(t){return '<option value="'+t.id+'">'+(t.title||'Sin título')+'</option>'}).join('')
         }).catch(function(){})
     },
 
     toggleWheelSection: function(s){
-        var b=document.getElementById('wheel-sec-'+s);if(!b)return;
+        const b=document.getElementById('wheel-sec-'+s);if(!b)return;
         b.classList.toggle('hidden');
-        var h=b.closest('.wheel-section')?.querySelector('.wheel-section-header');
+        const h=b.closest('.wheel-section')?.querySelector('.wheel-section-header');
         if(h)h.classList.toggle('collapsed')
     },
 
     onWheelConfigChange: function(){
-        var title=document.getElementById('wheel-preview-title');
-        var desc=document.getElementById('wheel-preview-desc');
-        var btn=document.getElementById('wheel-preview-btn');
-        var texts=document.getElementById('wheel-preview-texts');
+        const title=document.getElementById('wheel-preview-title');
+        const desc=document.getElementById('wheel-preview-desc');
+        const btn=document.getElementById('wheel-preview-btn');
+        const texts=document.getElementById('wheel-preview-texts');
 
-        var showTitle=document.getElementById('wheel-show-title')?.checked!==false;
-        var showDesc=document.getElementById('wheel-show-desc')?.checked!==false;
-        var showBtn=document.getElementById('wheel-show-btn')?.checked!==false;
-        var titleVal=document.getElementById('wheel-title')?.value||'Mi Ruleta';
-        var descVal=document.getElementById('wheel-desc')?.value||'';
-        var btnVal=document.getElementById('wheel-btn-text')?.value||'Girar';
+        const showTitle=document.getElementById('wheel-show-title')?.checked!==false;
+        const showDesc=document.getElementById('wheel-show-desc')?.checked!==false;
+        const showBtn=document.getElementById('wheel-show-btn')?.checked!==false;
+        const titleVal=document.getElementById('wheel-title')?.value||'Mi Ruleta';
+        const descVal=document.getElementById('wheel-desc')?.value||'';
+        const btnVal=document.getElementById('wheel-btn-text')?.value||'Girar';
 
         if(texts)texts.style.display=(showTitle||showDesc)?'block':'none';
         if(title){title.textContent=titleVal;title.style.display=showTitle?'block':'none'}
@@ -14348,22 +14348,22 @@ navigate(viewName, params = {}, push = true) {
     },
 
     onWheelSourceChange: function(){
-        var src=document.getElementById('wheel-source')?.value||'manual';
-        var btn=document.getElementById('wheel-btn-import');
-        var st=document.getElementById('wheel-survey-template');
+        const src=document.getElementById('wheel-source')?.value||'manual';
+        const btn=document.getElementById('wheel-btn-import');
+        const st=document.getElementById('wheel-survey-template');
         if(btn)btn.classList.toggle('hidden',src==='manual');
         if(st)st.classList.toggle('hidden',src!=='survey');
         if(src==='survey')this.loadWheelSurveyTemplates();
     },
 
     importWheelParticipants: function(){
-        var id=this._wheelState.currentId;if(!id)return;
-        var src=document.getElementById('wheel-source')?.value||'guests';
+        const id=this._wheelState.currentId;if(!id)return;
+        const src=document.getElementById('wheel-source')?.value||'guests';
         Swal.fire({title:'Importando...',text:'Cargando participantes',allowOutsideClick:false,background:'#0f172a',color:'#fff',didOpen:function(){Swal.showLoading()}});
         this.fetchAPI('/raffles/'+id+'/populate',{method:'POST'}).then(function(r){
             Swal.close();
             if(r&&r.participants&&r.participants.length){
-                var ta=document.getElementById('wheel-participants-text');
+                const ta=document.getElementById('wheel-participants-text');
                 if(ta){ta.value=r.participants.join('\n')}
                 App._wheelState.participants=r.participants;
                 App.updateWheelParticipantCount();
@@ -14376,8 +14376,8 @@ navigate(viewName, params = {}, push = true) {
     },
 
     onWheelParticipantsChange: function(){
-        var ta=document.getElementById('wheel-participants-text');
-        var names=(ta?.value||'').split('\n').map(function(s){return s.trim()}).filter(Boolean);
+        const ta=document.getElementById('wheel-participants-text');
+        const names=(ta?.value||'').split('\n').map(function(s){return s.trim()}).filter(Boolean);
         this._wheelState.participants=names;
         this.updateWheelParticipantCount();
         if(!document.getElementById('wheel-advanced-mode')?.checked){
@@ -14386,36 +14386,36 @@ navigate(viewName, params = {}, push = true) {
     },
 
     updateWheelParticipantCount: function(){
-        var el=document.getElementById('wheel-participant-count');
+        const el=document.getElementById('wheel-participant-count');
         if(el)el.textContent=this._wheelState.participants.length+' participantes';
-        var btn=document.getElementById('wheel-preview-btn');
+        const btn=document.getElementById('wheel-preview-btn');
         if(btn)btn.disabled=this._wheelState.participants.length<2;
     },
 
     sortWheelParticipants: function(){
-        var ta=document.getElementById('wheel-participants-text');if(!ta)return;
-        var lines=ta.value.split('\n').map(function(s){return s.trim()}).filter(Boolean).sort();
+        const ta=document.getElementById('wheel-participants-text');if(!ta)return;
+        const lines=ta.value.split('\n').map(function(s){return s.trim()}).filter(Boolean).sort();
         ta.value=lines.join('\n');
         this.onWheelParticipantsChange()
     },
 
     shuffleWheelParticipants: function(){
-        var ta=document.getElementById('wheel-participants-text');if(!ta)return;
-        var lines=ta.value.split('\n').map(function(s){return s.trim()}).filter(Boolean);
-        for(var i=lines.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=lines[i];lines[i]=lines[j];lines[j]=t}
+        const ta=document.getElementById('wheel-participants-text');if(!ta)return;
+        const lines=ta.value.split('\n').map(function(s){return s.trim()}).filter(Boolean);
+        for(let i=lines.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=lines[i];lines[i]=lines[j];lines[j]=t}
         ta.value=lines.join('\n');
         this.onWheelParticipantsChange()
     },
 
     clearWheelParticipants: function(){
-        var ta=document.getElementById('wheel-participants-text');if(!ta)return;
+        const ta=document.getElementById('wheel-participants-text');if(!ta)return;
         ta.value='';this.onWheelParticipantsChange()
     },
 
     toggleWheelAdvancedMode: function(){
-        var adv=document.getElementById('wheel-advanced-mode')?.checked;
-        var list=document.getElementById('wheel-advanced-list');
-        var btn=document.getElementById('wheel-add-entry-btn');
+        const adv=document.getElementById('wheel-advanced-mode')?.checked;
+        const list=document.getElementById('wheel-advanced-list');
+        const btn=document.getElementById('wheel-add-entry-btn');
         if(!list||!btn)return;
         if(adv){
             list.classList.remove('hidden');btn.classList.remove('hidden');
@@ -14424,9 +14424,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     renderWheelAdvancedList: function(){
-        var list=document.getElementById('wheel-advanced-list');if(!list)return;
+        const list=document.getElementById('wheel-advanced-list');if(!list)return;
         list.innerHTML=this._wheelState.participants.map(function(n,i){
-            var chance=Math.round(100/App._wheelState.participants.length);
+            const chance=Math.round(100/App._wheelState.participants.length);
             return '<div class="wheel-adv-row" data-idx="'+i+'">'+
                 '<input type="text" class="input-field text-xs" value="'+n+'" onchange="App._wheelState.participants['+i+']=this.value;App.renderWheelCanvas(App._wheelState.rotation)">'+
                 '<select class="input-field text-xs" onchange="console.log(\'chance\')"><option value="-1">Auto</option><option value="5">5%</option><option value="10">10%</option><option value="25">25%</option><option value="50">50%</option></select>'+
@@ -14438,7 +14438,7 @@ navigate(viewName, params = {}, push = true) {
         this._wheelState.participants.splice(idx,1);
         this.renderWheelAdvancedList();
         this.updateWheelParticipantCount();
-        var ta=document.getElementById('wheel-participants-text');
+        const ta=document.getElementById('wheel-participants-text');
         if(ta)ta.value=this._wheelState.participants.join('\n');
         this.renderWheelCanvas(this._wheelState.rotation)
     },
@@ -14446,16 +14446,16 @@ navigate(viewName, params = {}, push = true) {
     addWheelEntry: function(){
         this._wheelState.participants.push('');
         this.renderWheelAdvancedList();
-        var ta=document.getElementById('wheel-participants-text');
+        const ta=document.getElementById('wheel-participants-text');
         if(ta)ta.value=this._wheelState.participants.join('\n');
         this.updateWheelParticipantCount()
     },
 
     renderWheelThemes: function(){
-        var c=document.getElementById('wheel-themes');var q=document.getElementById('wheel-quick-themes');if(!c&&!q)return;
-        var html='';var qhtml='';
+        const c=document.getElementById('wheel-themes');const q=document.getElementById('wheel-quick-themes');if(!c&&!q)return;
+        let html='';let qhtml='';
         this._wheelThemes.forEach(function(t,i){
-            var s=t.colors.map(function(c){return '<span style="background:'+c+'"></span>'}).join('');
+            const s=t.colors.map(function(c){return '<span style="background:'+c+'"></span>'}).join('');
             html+='<div class="wheel-palette" onclick="App.useWheelTheme('+i+')" title="'+t.name+'">'+s+'</div>';
             qhtml+='<div class="quick-theme" onclick="App.useWheelTheme('+i+')" title="'+t.name+'">'+s.slice(0,2)+'</div>'
         });
@@ -14464,14 +14464,14 @@ navigate(viewName, params = {}, push = true) {
     },
 
     useWheelTheme: function(idx){
-        var t=this._wheelThemes[idx];if(!t)return;
+        const t=this._wheelThemes[idx];if(!t)return;
         this._wheelState.segColors=t.colors.slice();
         this.renderWheelSegColorInputs();
         this.renderWheelCanvas(this._wheelState.rotation)
     },
 
     renderWheelSegColorInputs: function(){
-        var c=document.getElementById('wheel-seg-colors');if(!c)return;
+        const c=document.getElementById('wheel-seg-colors');if(!c)return;
         c.innerHTML=this._wheelState.segColors.map(function(cl,i){
             return '<div class="color-input-pill"><span>'+cl+'</span><input type="color" value="'+cl+'" onchange="App._wheelState.segColors['+i+']=this.value;App.renderWheelCanvas(App._wheelState.rotation)"></div>'
         }).join('')
@@ -14483,40 +14483,40 @@ navigate(viewName, params = {}, push = true) {
     },
 
     updateWheelPreviewColors: function(){
-        var p=document.getElementById('wheel-preview');
+        const p=document.getElementById('wheel-preview');
         if(!p)return;
-        var bg=document.getElementById('wheel-bg-color')?.value||'#FFFFFF';
-        var mc=document.getElementById('wheel-main-color')?.value||'#333333';
+        const bg=document.getElementById('wheel-bg-color')?.value||'#FFFFFF';
+        const mc=document.getElementById('wheel-main-color')?.value||'#333333';
         p.style.background=bg;
         // Update pointer color
-        var pp=document.querySelector('.wheel-pointer path');
+        const pp=document.querySelector('.wheel-pointer path');
         if(pp)pp.setAttribute('fill',document.getElementById('wheel-pointer-color')?.value||'#FF0000');
         // Update title/desc colors
-        var t=document.getElementById('wheel-preview-title');if(t)t.style.color=mc;
-        var d=document.getElementById('wheel-preview-desc');if(d)d.style.color=mc+'99';
-        var w=document.getElementById('wheel-preview-winner-name');if(w)w.style.color=mc;
-        var bl=document.getElementById('wheel-preview-btn');
+        const t=document.getElementById('wheel-preview-title');if(t)t.style.color=mc;
+        const d=document.getElementById('wheel-preview-desc');if(d)d.style.color=mc+'99';
+        const w=document.getElementById('wheel-preview-winner-name');if(w)w.style.color=mc;
+        const bl=document.getElementById('wheel-preview-btn');
         if(bl)bl.style.background='linear-gradient(135deg,'+mc+','+this.lightenColor(mc,30)+')'
     },
 
     lightenColor: function(hex,pct){
-        var num=parseInt(hex.replace('#',''),16);
-        var r=(num>>16)+Math.round((255-(num>>16))*pct/100);
-        var g=((num>>8)&0x00FF)+Math.round((255-((num>>8)&0x00FF))*pct/100);
-        var b=(num&0x0000FF)+Math.round((255-(num&0x0000FF))*pct/100);
+        const num=parseInt(hex.replace('#',''),16);
+        const r=(num>>16)+Math.round((255-(num>>16))*pct/100);
+        const g=((num>>8)&0x00FF)+Math.round((255-((num>>8)&0x00FF))*pct/100);
+        const b=(num&0x0000FF)+Math.round((255-(num&0x0000FF))*pct/100);
         return '#'+(0x1000000+(r<255?r:255)*0x10000+(g<255?g:255)*0x100+(b<255?b:255)).toString(16).slice(1)
     },
 
     uploadWheelLogo: function(){
-        var inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+        const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
         inp.onchange=function(e){
-            var file=e.target.files[0];if(!file)return;
-            var reader=new FileReader();
+            const file=e.target.files[0];if(!file)return;
+            const reader=new FileReader();
             reader.onload=function(ev){
                 App._wheelState.logoDataUrl=ev.target.result;
-                var img=document.getElementById('wheel-logo-img');
-                var ph=document.getElementById('wheel-logo-preview');
-                var rb=document.getElementById('wheel-btn-remove-logo');
+                const img=document.getElementById('wheel-logo-img');
+                const ph=document.getElementById('wheel-logo-preview');
+                const rb=document.getElementById('wheel-btn-remove-logo');
                 if(img){img.src=ev.target.result;img.classList.remove('hidden')}
                 if(ph)ph.classList.add('hidden');
                 if(rb)rb.classList.remove('hidden');
@@ -14529,49 +14529,49 @@ navigate(viewName, params = {}, push = true) {
 
     removeWheelLogo: function(){
         this._wheelState.logoDataUrl=null;
-        var img=document.getElementById('wheel-logo-img');if(img)img.classList.add('hidden');
-        var ph=document.getElementById('wheel-logo-preview');if(ph)ph.classList.remove('hidden');
-        var rb=document.getElementById('wheel-btn-remove-logo');if(rb)rb.classList.add('hidden');
+        const img=document.getElementById('wheel-logo-img');if(img)img.classList.add('hidden');
+        const ph=document.getElementById('wheel-logo-preview');if(ph)ph.classList.remove('hidden');
+        const rb=document.getElementById('wheel-btn-remove-logo');if(rb)rb.classList.add('hidden');
         this.renderWheelCanvas(this._wheelState.rotation)
     },
 
     renderWheelCanvas: function(rotation){
-        var cv=document.getElementById('wheel-canvas');if(!cv)return;
-        var cx=cv.getContext('2d');var w=cv.width,h=cv.height;
+        const cv=document.getElementById('wheel-canvas');if(!cv)return;
+        const cx=cv.getContext('2d');const w=cv.width,h=cv.height;
         cx.clearRect(0,0,w,h);cx.save();cx.translate(w/2,h/2);cx.rotate(rotation||0);
-        var parts=this._wheelState.participants;var n=parts.length;
+        const parts=this._wheelState.participants;const n=parts.length;
         if(!n){cx.restore();this.drawWheelCenter(cx,w,h);return}
-        var a=2*Math.PI/n;var cols=this._wheelState.segColors;
-        var tc=document.getElementById('wheel-txt-color')?.value||'#000000';
-        var lw=parseInt(document.getElementById('wheel-lines-size')?.value)||0;
-        var fs=n<10?14:n<20?11:n<40?9:n<80?7:n<150?5:0;
+        const a=2*Math.PI/n;const cols=this._wheelState.segColors;
+        const tc=document.getElementById('wheel-txt-color')?.value||'#000000';
+        const lw=parseInt(document.getElementById('wheel-lines-size')?.value)||0;
+        const fs=n<10?14:n<20?11:n<40?9:n<80?7:n<150?5:0;
         parts.forEach(function(nm,i){
-            var s=i*a,e=(i+1)*a;
+            const s=i*a,e=(i+1)*a;
             cx.beginPath();cx.moveTo(0,0);cx.arc(0,0,w/2-8,s,e);cx.closePath();
             cx.fillStyle=cols[i%cols.length];cx.fill();
             if(lw>0){cx.strokeStyle='rgba(0,0,0,0.08)';cx.lineWidth=lw;cx.stroke()}
             if(fs>0){
                 cx.save();cx.rotate(s+a/2);cx.textAlign='right';cx.fillStyle=tc;
                 cx.font='bold '+fs+'px Inter';cx.shadowColor='rgba(0,0,0,0.3)';cx.shadowBlur=2;
-                var d=nm;if(nm.length>12&&fs>7)d=nm.slice(0,10)+'..';
+                let d=nm;if(nm.length>12&&fs>7)d=nm.slice(0,10)+'..';
                 else if(nm.length>18&&fs<=7)d=nm.slice(0,14)+'..';
                 cx.fillText(d,w/2-18,fs/3);cx.restore()
             }
         });
         // Pins
-        var pinR=Math.min(w,h)/60;
-        for(var i=0;i<n;i++){var an=i*a;cx.beginPath();cx.arc(Math.cos(an)*(w/2-12),Math.sin(an)*(w/2-12),pinR,0,2*Math.PI);cx.fillStyle='rgba(255,255,255,0.5)';cx.fill()}
+        const pinR=Math.min(w,h)/60;
+        for(let i=0;i<n;i++){const an=i*a;cx.beginPath();cx.arc(Math.cos(an)*(w/2-12),Math.sin(an)*(w/2-12),pinR,0,2*Math.PI);cx.fillStyle='rgba(255,255,255,0.5)';cx.fill()}
         this.drawWheelCenter(cx,w,h);
         cx.restore()
     },
 
     drawWheelCenter: function(cx,w,h){
-        var r=w>=500?55:28;
+        const r=w>=500?55:28;
         cx.beginPath();cx.arc(0,0,r,0,2*Math.PI);cx.fillStyle='#fff';cx.fill();
         cx.strokeStyle='rgba(0,0,0,0.1)';cx.lineWidth=2;cx.stroke();
         if(this._wheelState.logoDataUrl){
             try{
-                var limg=new Image();limg.src=this._wheelState.logoDataUrl;
+                const limg=new Image();limg.src=this._wheelState.logoDataUrl;
                 cx.save();cx.beginPath();cx.arc(0,0,r-4,0,2*Math.PI);cx.clip();
                 cx.drawImage(limg,-r+4,-r+4,(r-4)*2,(r-4)*2);cx.restore()
             }catch(e){}
@@ -14581,32 +14581,32 @@ navigate(viewName, params = {}, push = true) {
     spinWheelPreview: function(){
         if(this._wheelState.isSpinning||this._wheelState.participants.length<2)return;
         this._wheelState.isSpinning=true;
-        var btn=document.getElementById('wheel-preview-btn');if(btn)btn.disabled=true;
+        const btn=document.getElementById('wheel-preview-btn');if(btn)btn.disabled=true;
         document.getElementById('wheel-preview-winner')?.classList.add('hidden');
-        var dur=parseInt(document.getElementById('wheel-duration')?.value||6)*1000;
-        var extra=4+Math.random()*3;
-        var target=this._wheelState.rotation+extra*2*Math.PI;
-        var start=Date.now();var startRot=this._wheelState.rotation;
+        const dur=parseInt(document.getElementById('wheel-duration')?.value||6)*1000;
+        const extra=4+Math.random()*3;
+        const target=this._wheelState.rotation+extra*2*Math.PI;
+        const start=Date.now();const startRot=this._wheelState.rotation;
 
         if(this._wheelState.soundEnabled)this.playWheelTick();
 
-        var self=this;
+        const self=this;
         function animate(){
-            var p=Math.min((Date.now()-start)/dur,1);
-            var ease=1-Math.pow(1-p,4);
+            const p=Math.min((Date.now()-start)/dur,1);
+            const ease=1-Math.pow(1-p,4);
             self._wheelState.rotation=startRot+(target-startRot)*ease;
             self.renderWheelCanvas(self._wheelState.rotation);
             if(p<1)requestAnimationFrame(animate);
             else{
                 self._wheelState.isSpinning=false;if(btn)btn.disabled=false;
-                var segAngle=2*Math.PI/self._wheelState.participants.length;
-                var f=(-self._wheelState.rotation)%(2*Math.PI);if(f<0)f+=2*Math.PI;
-                var idx=Math.floor(f/segAngle)%self._wheelState.participants.length;
-                var win=self._wheelState.participants[idx];
+                const segAngle=2*Math.PI/self._wheelState.participants.length;
+                let f=(-self._wheelState.rotation)%(2*Math.PI);if(f<0)f+=2*Math.PI;
+                const idx=Math.floor(f/segAngle)%self._wheelState.participants.length;
+                const win=self._wheelState.participants[idx];
                 self.showWheelWinner(win);
                 if(document.getElementById('wheel-auto-remove')?.checked){
                     self._wheelState.participants.splice(idx,1);
-                    var ta=document.getElementById('wheel-participants-text');
+                    const ta=document.getElementById('wheel-participants-text');
                     if(ta)ta.value=self._wheelState.participants.join('\n');
                     self.updateWheelParticipantCount()
                 }
@@ -14621,8 +14621,8 @@ navigate(viewName, params = {}, push = true) {
 
     playWheelTick: function(){
         try{
-            var actx=new(window.AudioContext||window.webkitAudioContext)();
-            var o=actx.createOscillator(),g=actx.createGain();
+            const actx=new(window.AudioContext||window.webkitAudioContext)();
+            const o=actx.createOscillator(),g=actx.createGain();
             o.connect(g);g.connect(actx.destination);
             o.frequency.value=800+Math.random()*400;g.gain.value=0.08;
             o.start();o.stop(actx.currentTime+0.04)
@@ -14630,16 +14630,16 @@ navigate(viewName, params = {}, push = true) {
     },
 
     showWheelWinner: function(name){
-        var w=document.getElementById('wheel-preview-winner');
-        var wn=document.getElementById('wheel-preview-winner-name');
+        const w=document.getElementById('wheel-preview-winner');
+        const wn=document.getElementById('wheel-preview-winner-name');
         if(wn)wn.textContent='🏆 '+name;
         if(w){w.classList.remove('hidden');w.style.display='block'}
         if(document.getElementById('wheel-confetti')?.checked)this.fireConfetti()
     },
 
     fireConfetti: function(){
-        var cl=['#FF6B6B','#4ECDC4','#7c3aed','#fbbf24','#34d399','#f472b6','#60a5fa'];
-        for(var i=0;i<50;i++){
+        const cl=['#FF6B6B','#4ECDC4','#7c3aed','#fbbf24','#34d399','#f472b6','#60a5fa'];
+        for(let i=0;i<50;i++){
             var e=document.createElement('div');
             e.className='fixed pointer-events-none z-50';
             e.style.cssText='left:'+Math.random()*100+'vw;top:-10px;width:'+(Math.random()*6+3)+'px;height:'+(Math.random()*6+3)+'px;background:'+cl[Math.floor(Math.random()*cl.length)]+';border-radius:'+(Math.random()>.5?'50%':'2px');
@@ -14653,38 +14653,38 @@ navigate(viewName, params = {}, push = true) {
         this._wheelState.isSpinning=false;
         this.renderWheelCanvas(0);
         document.getElementById('wheel-preview-winner')?.classList.add('hidden');
-        var btn=document.getElementById('wheel-preview-btn');if(btn)btn.disabled=false
+        const btn=document.getElementById('wheel-preview-btn');if(btn)btn.disabled=false
     },
 
     toggleWheelWinners: function(){
-        var el=document.getElementById('wheel-preview-winners');
+        const el=document.getElementById('wheel-preview-winners');
         if(!el)return;
         el.classList.toggle('hidden');
         if(!el.classList.contains('hidden'))this.updateWheelWinnersList()
     },
 
     updateWheelWinnersList: function(){
-        var el=document.getElementById('wheel-preview-winners');if(!el)return;
+        const el=document.getElementById('wheel-preview-winners');if(!el)return;
         if(!this._wheelState.winners.length){el.classList.add('hidden');return}
         el.innerHTML='<div class="font-bold mb-1 text-xs">🏆 Ganadores</div>'+
             this._wheelState.winners.map(function(w,i){
-                var m=i===0?'🥇':i===1?'🥈':i===2?'🥉':'🎁';
+                const m=i===0?'🥇':i===1?'🥈':i===2?'🥉':'🎁';
                 return '<div class="py-0.5 text-xs">'+m+' '+w+'</div>'
             }).join('')
     },
 
     toggleWheelSound: function(){
         this._wheelState.soundEnabled=!this._wheelState.soundEnabled;
-        var btn=document.getElementById('wheel-sound-btn');
+        const btn=document.getElementById('wheel-sound-btn');
         if(btn)btn.textContent=this._wheelState.soundEnabled?'🔊':'🔇'
     },
 
     saveWheel: async function(){
-        var id=this._wheelState.currentId;
+        const id=this._wheelState.currentId;
         if(!id){Swal.fire({icon:'warning',title:'Primero crea la ruleta',background:'#0f172a',color:'#fff'});return}
-        var name=document.getElementById('wheel-name')?.value?.trim();
+        const name=document.getElementById('wheel-name')?.value?.trim();
         if(!name){Swal.fire({icon:'warning',title:'Nombre requerido',background:'#0f172a',color:'#fff'});return}
-        var cfg={
+        const cfg={
             title:document.getElementById('wheel-title')?.value||'',
             description:document.getElementById('wheel-desc')?.value||'',
             start_button:document.getElementById('wheel-btn-text')?.value||'Girar',
@@ -14709,7 +14709,7 @@ navigate(viewName, params = {}, push = true) {
         try{
             await this.fetchAPI('/raffles/'+id,{method:'PUT',body:JSON.stringify({name:name,config:cfg})});
             // Save participants
-            var names=this._wheelState.participants.map(function(n){return{name:n}});
+            const names=this._wheelState.participants.map(function(n){return{name:n}});
             await this.fetchAPI('/raffles/'+id+'/participants/batch',{method:'POST',body:JSON.stringify({participants:names})});
             Swal.fire({icon:'success',title:'Guardado',timer:1500,showConfirmButton:false,background:'#0f172a',color:'#fff'});
             this.loadWheelList()
@@ -14717,7 +14717,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     deleteCurrentWheel: function(id){
-        var wid=id||this._wheelState.currentId;if(!wid)return;
+        const wid=id||this._wheelState.currentId;if(!wid)return;
         Swal.fire({icon:'warning',title:'Eliminar ruleta?',showCancelButton:true,background:'#0f172a',color:'#fff'}).then(async function(r){
             if(!r.isConfirmed)return;
             try{
@@ -14729,9 +14729,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     playWheel: function(){
-        var id=this._wheelState.currentId;
+        const id=this._wheelState.currentId;
         if(!id){Swal.fire({icon:'warning',title:'Guarda la ruleta primero',background:'#0f172a',color:'#fff'});return}
-        var name=(this.state.event?.name||'evento').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+        const name=(this.state.event?.name||'evento').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
         window.open('/'+name+'/raffle/'+id,'_blank')
     },
 
@@ -15470,7 +15470,7 @@ navigate(viewName, params = {}, push = true) {
         const searchTerm = document.getElementById('config-staff-search')?.value.toLowerCase() || '';
         const users = this.state.configStaffUsers || [];
         
-        let tbody = document.getElementById('config-staff-tbody');
+        const tbody = document.getElementById('config-staff-tbody');
         if (!tbody) return;
         
         const filtered = users.filter(u => 
@@ -15571,19 +15571,19 @@ navigate(viewName, params = {}, push = true) {
     },
 
     updateLangButtons: function() {
-        var lang = (window.i18n && window.i18n.getLang()) || 'es';
-        var esBtn = document.getElementById('btn-lang-es');
-        var enBtn = document.getElementById('btn-lang-en');
+        const lang = (window.i18n && window.i18n.getLang()) || 'es';
+        const esBtn = document.getElementById('btn-lang-es');
+        const enBtn = document.getElementById('btn-lang-en');
         if (esBtn) esBtn.className = lang === 'es' ? 'btn-primary !px-5 btn-py4 text-xs font-bold' : 'btn-secondary !px-5 btn-py4 text-xs font-bold';
         if (enBtn) enBtn.className = lang === 'en' ? 'btn-primary !px-5 btn-py4 text-xs font-bold' : 'btn-secondary !px-5 btn-py4 text-xs font-bold';
     },
 
     loadUserGoogleStatus: async function() {
         try {
-            var status = await this.fetchAPI('/google/user/status');
-            var statusEl = document.getElementById('profile-google-status');
-            var connectBtn = document.getElementById('btn-connect-google');
-            var disconnectBtn = document.getElementById('btn-disconnect-google');
+            const status = await this.fetchAPI('/google/user/status');
+            const statusEl = document.getElementById('profile-google-status');
+            const connectBtn = document.getElementById('btn-connect-google');
+            const disconnectBtn = document.getElementById('btn-disconnect-google');
             if (!statusEl) return;
             if (status && status.connected) {
                 statusEl.innerHTML = '<p class="text-sm"><span class="text-green-400 font-bold">✅ Conectada:</span> <span class="text-white">' + App.esc(status.email || '') + '</span></p><p class="text-xs text-slate-500 mt-1">Vinculada desde ' + (status.connectedAt ? new Date(status.connectedAt).toLocaleDateString() : 'siempre') + '</p>';
@@ -15599,7 +15599,7 @@ navigate(viewName, params = {}, push = true) {
 
     connectUserGoogleAccount: async function() {
         try {
-            var res = await this.fetchAPI('/google/user/auth');
+            const res = await this.fetchAPI('/google/user/auth');
             if (res && res.url) {
                 window.addEventListener('focus', function handler() {
                     window.removeEventListener('focus', handler);
@@ -15611,7 +15611,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     disconnectUserGoogleAccount: async function() {
-        var confirm = await Swal.fire({
+        const confirm = await Swal.fire({
             icon: 'warning', title: 'Desconectar cuenta Google?',
             text: 'Los eventos sin cuenta asignada dejar&aacute;n de sincronizarse.',
             showCancelButton: true, confirmButtonText: 'Desconectar', background: '#0f172a', color: '#fff'
@@ -17705,14 +17705,14 @@ navigate(viewName, params = {}, push = true) {
 
     loadGoogleTab: async function() {
         try {
-            var res = await this.fetchAPI('/google/');
-            var configured = res && res.configured;
+            const res = await this.fetchAPI('/google/');
+            const configured = res && res.configured;
             if (configured) {
-                var configRes = await this.fetchAPI('/settings');
+                const configRes = await this.fetchAPI('/settings');
                 if (configRes) {
-                    var cid = document.getElementById('google-client-id');
-                    var csec = document.getElementById('google-client-secret');
-                    var redir = document.getElementById('google-redirect-uri');
+                    const cid = document.getElementById('google-client-id');
+                    const csec = document.getElementById('google-client-secret');
+                    const redir = document.getElementById('google-redirect-uri');
                     if (cid) cid.value = configRes.google_client_id || '';
                     if (csec) csec.value = configRes.google_client_secret || '';
                     if (redir) redir.value = configRes.google_redirect_uri || '';
@@ -17720,19 +17720,19 @@ navigate(viewName, params = {}, push = true) {
                 this.loadGoogleGroupsFilter();
                 this.loadGoogleAccounts();
             } else {
-                var list = document.getElementById('google-accounts-list');
+                const list = document.getElementById('google-accounts-list');
                 if (list) list.innerHTML = '<p class="text-xs text-slate-500 italic">Configura las credenciales OAuth de Google primero.</p>';
             }
         } catch(e) { console.error('[GOOGLE] Error loading tab:', e.message); }
     },
 
     loadGoogleGroupsFilter: async function() {
-        var sel = document.getElementById('google-filter-group');
+        const sel = document.getElementById('google-filter-group');
         if (!sel) return;
         try {
-            var groups = await this.fetchAPI('/groups');
+            const groups = await this.fetchAPI('/groups');
             if (Array.isArray(groups)) {
-                var current = sel.value;
+                const current = sel.value;
                 sel.innerHTML = '<option value="">Seleccionar empresa...</option>' +
                     groups.map(function(g) { return '<option value="' + g.id + '">' + (g.name || 'Sin nombre') + '</option>'; }).join('');
                 if (current) sel.value = current;
@@ -17742,11 +17742,11 @@ navigate(viewName, params = {}, push = true) {
     },
 
     loadGoogleAccounts: async function() {
-        var sel = document.getElementById('google-filter-group');
-        var list = document.getElementById('google-accounts-list');
-        var addForm = document.getElementById('google-add-account-form');
+        const sel = document.getElementById('google-filter-group');
+        const list = document.getElementById('google-accounts-list');
+        const addForm = document.getElementById('google-add-account-form');
         if (!sel || !list) return;
-        var groupId = sel.value;
+        const groupId = sel.value;
         if (!groupId) {
             list.innerHTML = '<p class="text-xs text-slate-500 italic">Selecciona una empresa para ver sus cuentas.</p>';
             if (addForm) addForm.classList.add('hidden');
@@ -17754,7 +17754,7 @@ navigate(viewName, params = {}, push = true) {
         }
         if (addForm) addForm.classList.remove('hidden');
         try {
-            var accounts = await this.fetchAPI('/google/groups/' + groupId + '/accounts');
+            const accounts = await this.fetchAPI('/google/groups/' + groupId + '/accounts');
             if (accounts.length === 0) {
                 list.innerHTML = '<p class="text-xs text-slate-500 italic">Sin cuentas conectadas. Agrega una cuenta abajo.</p>';
             } else {
@@ -17770,9 +17770,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     saveGoogleOAuthConfig: async function() {
-        var clientId = document.getElementById('google-client-id')?.value?.trim();
-        var clientSecret = document.getElementById('google-client-secret')?.value?.trim();
-        var redirectUri = document.getElementById('google-redirect-uri')?.value?.trim();
+        const clientId = document.getElementById('google-client-id')?.value?.trim();
+        const clientSecret = document.getElementById('google-client-secret')?.value?.trim();
+        const redirectUri = document.getElementById('google-redirect-uri')?.value?.trim();
         try {
             if (clientId) await this.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ key: 'google_client_id', value: clientId }) });
             if (clientSecret) await this.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ key: 'google_client_secret', value: clientSecret }) });
@@ -17783,13 +17783,13 @@ navigate(viewName, params = {}, push = true) {
     },
 
     connectGoogleAccount: async function() {
-        var sel = document.getElementById('google-filter-group');
-        var labelInput = document.getElementById('google-new-account-label');
-        var groupId = sel?.value;
-        var label = labelInput?.value?.trim() || 'Mi cuenta Google';
+        const sel = document.getElementById('google-filter-group');
+        const labelInput = document.getElementById('google-new-account-label');
+        const groupId = sel?.value;
+        const label = labelInput?.value?.trim() || 'Mi cuenta Google';
         if (!groupId) { Swal.fire({ icon: 'warning', title: 'Selecciona una empresa', background: '#0f172a', color: '#fff' }); return; }
         try {
-            var res = await this.fetchAPI('/google/auth?group_id=' + groupId + '&label=' + encodeURIComponent(label));
+            const res = await this.fetchAPI('/google/auth?group_id=' + groupId + '&label=' + encodeURIComponent(label));
             if (res && res.url) {
                 window.addEventListener('focus', function handler() {
                     window.removeEventListener('focus', handler);
@@ -17801,7 +17801,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     editGoogleAccountLabel: async function(accountId, currentLabel) {
-        var result = await Swal.fire({
+        const result = await Swal.fire({
             title: 'Editar etiqueta',
             input: 'text',
             inputValue: currentLabel || '',
@@ -17809,7 +17809,7 @@ navigate(viewName, params = {}, push = true) {
             showCancelButton: true, confirmButtonText: 'Guardar'
         });
         if (result.isConfirmed && result.value?.trim()) {
-            var sel = document.getElementById('google-filter-group');
+            const sel = document.getElementById('google-filter-group');
             if (sel) {
                 await this.fetchAPI('/google/groups/' + sel.value + '/accounts/' + accountId, { method: 'PUT', body: JSON.stringify({ label: result.value.trim() }) });
                 this.loadGoogleAccounts();
@@ -17818,7 +17818,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     deleteGoogleAccount: async function(groupId, accountId) {
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar cuenta?', text: 'Los eventos que usan esta cuenta se desvincular&aacute;n.', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar cuenta?', text: 'Los eventos que usan esta cuenta se desvincular&aacute;n.', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try {
             await this.fetchAPI('/google/groups/' + groupId + '/accounts/' + accountId, { method: 'DELETE' });
@@ -17827,8 +17827,8 @@ navigate(viewName, params = {}, push = true) {
     },
 
     onGoogleAccountChange: async function() {
-        var sel = document.getElementById('evs-google-account');
-        var status = document.getElementById('evs-google-status');
+        const sel = document.getElementById('evs-google-account');
+        const status = document.getElementById('evs-google-status');
         if (sel && status) {
             if (sel.value) {
                 status.innerHTML = '<p class="text-green-400">Cuenta seleccionada. Guarda la configuraci&oacute;n para aplicar.</p>';
@@ -17839,34 +17839,34 @@ navigate(viewName, params = {}, push = true) {
     },
 
     onGoogleSyncModeChange: function() {
-        var mode = document.querySelector('input[name="evs-google-sync"]:checked')?.value;
-        var intervalGroup = document.getElementById('evs-google-interval-group');
+        const mode = document.querySelector('input[name="evs-google-sync"]:checked')?.value;
+        const intervalGroup = document.getElementById('evs-google-interval-group');
         if (intervalGroup) intervalGroup.classList.toggle('hidden', mode !== 'scheduled');
     },
 
     loadGoogleEventConfigData: async function() {
-        var eventId = this.state?.event?.id;
+        const eventId = this.state?.event?.id;
         if (!eventId) return;
         try {
-            var event = await this.fetchAPI('/events/' + eventId);
+            const event = await this.fetchAPI('/events/' + eventId);
             if (!event) return;
-            var sel = document.getElementById('evs-google-account');
+            const sel = document.getElementById('evs-google-account');
             if (!sel) return;
 
-            var options = '<option value="">-- Sin conexi&oacute;n --</option>';
+            let options = '<option value="">-- Sin conexi&oacute;n --</option>';
 
             // Agregar cuenta personal del usuario logueado
             try {
-                var userStatus = await this.fetchAPI('/google/user/status');
+                const userStatus = await this.fetchAPI('/google/user/status');
                 if (userStatus && userStatus.connected) {
                     options += '<option value="__user__">🙋 Mi cuenta (' + (userStatus.email || 'personal') + ')</option>';
                 }
             } catch(e) {}
 
             // Agregar cuentas del grupo
-            var groupId = event.group_id;
+            const groupId = event.group_id;
             if (groupId) {
-                var accounts = await this.fetchAPI('/google/groups/' + groupId + '/accounts');
+                const accounts = await this.fetchAPI('/google/groups/' + groupId + '/accounts');
                 options += accounts.map(function(a) {
                     return '<option value="' + a.id + '">' + (a.label || 'Sin etiqueta') + (a.google_email ? ' (' + a.google_email + ')' : '') + '</option>';
                 }).join('');
@@ -17881,12 +17881,12 @@ navigate(viewName, params = {}, push = true) {
     loadGoogleEventConfig: async function(eventId) {
         if (!eventId) return;
         try {
-            var event = await this.fetchAPI('/events/' + eventId);
+            const event = await this.fetchAPI('/events/' + eventId);
             if (!event) return;
-            var googleAccountId = document.getElementById('evs-google-account');
-            var googleSyncMode = document.querySelectorAll('input[name="evs-google-sync"]');
-            var googleInterval = document.getElementById('evs-google-interval');
-            var googleStatus = document.getElementById('evs-google-status');
+            const googleAccountId = document.getElementById('evs-google-account');
+            const googleSyncMode = document.querySelectorAll('input[name="evs-google-sync"]');
+            const googleInterval = document.getElementById('evs-google-interval');
+            const googleStatus = document.getElementById('evs-google-status');
 
             if (googleAccountId) googleAccountId.value = event.google_account_id || '';
 
@@ -17897,7 +17897,7 @@ navigate(viewName, params = {}, push = true) {
             if (googleInterval) googleInterval.value = event.google_sync_interval || 60;
 
             if (googleStatus) {
-                var lastSync = event.google_last_sync_at ? new Date(event.google_last_sync_at).toLocaleString() : 'Nunca';
+                const lastSync = event.google_last_sync_at ? new Date(event.google_last_sync_at).toLocaleString() : 'Nunca';
                 googleStatus.innerHTML = '<p class="text-xs text-slate-500">Modo: <strong class="text-white">' + (event.google_auto_sync_mode || 'manual') + '</strong> | Última sincronizaci&oacute;n: <strong class="text-white">' + lastSync + '</strong></p>';
             }
 
@@ -17908,18 +17908,18 @@ navigate(viewName, params = {}, push = true) {
     // ═══ Google Calendar Sync (C3-02) ═══
 
     checkGcalStatus: async function() {
-        var el = document.getElementById('gcal-status');
+        const el = document.getElementById('gcal-status');
         if (!el) return;
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) { el.textContent = '❌ No hay evento seleccionado'; return; }
         el.textContent = '✅ Listo para sincronizar. Haz clic en "Sincronizar con Calendar".';
     },
 
     syncEventToCalendar: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) { this._notifyAction('Error', 'No hay evento', 'error'); return; }
         try {
-            var res = await this.fetchAPI('/google/events/' + eId + '/sync-calendar', { method: 'POST' });
+            const res = await this.fetchAPI('/google/events/' + eId + '/sync-calendar', { method: 'POST' });
             if (res.success) {
                 document.getElementById('gcal-status').innerHTML = '✅ Sincronizado. <a href="' + (res.htmlLink || '#') + '" target="_blank" class="text-[var(--primary)] underline">Ver en Google Calendar</a>';
                 this._notifyAction('Sincronizado', 'Evento agregado a Google Calendar', 'success');
@@ -17928,21 +17928,21 @@ navigate(viewName, params = {}, push = true) {
     },
 
     unsyncEventFromCalendar: async function() {
-        var eId = this.state.event?.id;
+        const eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var res = await this.fetchAPI('/google/events/' + eId + '/sync-calendar', { method: 'DELETE' });
+            const res = await this.fetchAPI('/google/events/' + eId + '/sync-calendar', { method: 'DELETE' });
             if (res.success) { document.getElementById('gcal-status').textContent = '✅ Eliminado de Google Calendar'; this._notifyAction('Eliminado', 'Evento quitado de Calendar', 'success'); }
         } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
     saveGoogleEventConfig: async function() {
-        var eventId = this.state?.event?.id;
+        const eventId = this.state?.event?.id;
         if (!eventId) { Swal.fire({ icon: 'warning', title: 'Selecciona un evento', background: '#0f172a', color: '#fff' }); return; }
-        var rawId = document.getElementById('evs-google-account')?.value || null;
-        var accountId = rawId === '__user__' ? null : rawId;
-        var mode = document.querySelector('input[name="evs-google-sync"]:checked')?.value || 'manual';
-        var interval = parseInt(document.getElementById('evs-google-interval')?.value) || 60;
+        const rawId = document.getElementById('evs-google-account')?.value || null;
+        const accountId = rawId === '__user__' ? null : rawId;
+        const mode = document.querySelector('input[name="evs-google-sync"]:checked')?.value || 'manual';
+        const interval = parseInt(document.getElementById('evs-google-interval')?.value) || 60;
         try {
             await this.fetchAPI('/google/events/' + eventId + '/sync-config', {
                 method: 'PUT',
@@ -17953,17 +17953,17 @@ navigate(viewName, params = {}, push = true) {
     },
 
     exportEventToSheets: async function() {
-        var eventId = this.state?.event?.id;
+        const eventId = this.state?.event?.id;
         if (!eventId) return;
         try {
-            var res = await this.fetchAPI('/google/events/' + eventId + '/export', { method: 'POST' });
+            const res = await this.fetchAPI('/google/events/' + eventId + '/export', { method: 'POST' });
             if (res && res.success) {
                 Swal.fire({
                     icon: 'success', title: 'Exportado correctamente',
                     html: '<p class="text-sm text-slate-400 mb-3">' + res.guestCount + ' invitados sincronizados. Reporte PDF y gafetes generados.</p><a href="' + res.folderUrl + '" target="_blank" class="btn-primary text-xs px-4 py-2">Abrir carpeta en Drive</a>',
                     background: '#0f172a', color: '#fff', showConfirmButton: false
                 });
-                var status = document.getElementById('evs-google-status');
+                const status = document.getElementById('evs-google-status');
                 if (status) status.innerHTML = '<p class="text-xs text-green-400">Última sincronizaci&oacute;n: ahora</p>';
             } else {
                 Swal.fire({ icon: 'error', title: 'Error', text: res?.error || 'Error al exportar', background: '#0f172a', color: '#fff' });
@@ -17972,10 +17972,10 @@ navigate(viewName, params = {}, push = true) {
     },
 
     exportSurveyToDrive: async function() {
-        var eventId = this.state?.event?.id;
+        const eventId = this.state?.event?.id;
         if (!eventId) return;
         try {
-            var res = await this.fetchAPI('/google/events/' + eventId + '/export', { method: 'POST', body: JSON.stringify({ export_surveys: true }) });
+            const res = await this.fetchAPI('/google/events/' + eventId + '/export', { method: 'POST', body: JSON.stringify({ export_surveys: true }) });
             Swal.fire({ icon: 'success', title: 'Encuestas exportadas', timer: 2000, showConfirmButton: false, background: '#0f172a', color: '#fff' });
         } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
     },
@@ -17985,10 +17985,10 @@ navigate(viewName, params = {}, push = true) {
     runDbMaintenance: async function() {
         Swal.fire({ title: 'Optimizando...', allowOutsideClick: false, background: '#0f172a', color: '#fff', didOpen: function() { Swal.showLoading(); } });
         try {
-            var res = await this.fetchAPI('/db/maintenance', { method: 'POST', body: JSON.stringify({ action: 'all' }) });
+            const res = await this.fetchAPI('/db/maintenance', { method: 'POST', body: JSON.stringify({ action: 'all' }) });
             Swal.close();
             if (res.success) {
-                var msg = '✅ Analyze OK\n✅ Integrity: ' + (res.result?.integrity || 'N/A') + '\n✅ Optimize OK\n🧹 ' + (res.result?.clean_logs || '');
+                const msg = '✅ Analyze OK\n✅ Integrity: ' + (res.result?.integrity || 'N/A') + '\n✅ Optimize OK\n🧹 ' + (res.result?.clean_logs || '');
                 Swal.fire({ icon: 'success', title: 'BD Optimizada', text: msg, background: '#0f172a', color: '#fff' });
             }
         } catch(e) { Swal.close(); this._notifyAction('Error', e.message, 'error'); }
@@ -17996,9 +17996,9 @@ navigate(viewName, params = {}, push = true) {
 
     runDbStats: async function() {
         try {
-            var res = await this.fetchAPI('/db/maintenance', { method: 'POST', body: JSON.stringify({ action: 'stats' }) });
+            const res = await this.fetchAPI('/db/maintenance', { method: 'POST', body: JSON.stringify({ action: 'stats' }) });
             if (res.success && res.result?.stats) {
-                var s = res.result.stats;
+                const s = res.result.stats;
                 Swal.fire({ icon: 'info', title: 'Estadísticas BD',
                     html: '📦 Tamaño: ' + s.db_size_kb + ' KB<br>📊 Tablas: ' + s.tables + '<br>📑 Índices: ' + s.indexes + '<br>📄 Páginas: ' + s.page_count,
                     background: '#0f172a', color: '#fff' });
@@ -18007,16 +18007,16 @@ navigate(viewName, params = {}, push = true) {
     },
 
     importEventFromSheets: async function() {
-        var eventId = this.state?.event?.id;
+        const eventId = this.state?.event?.id;
         if (!eventId) return;
-        var confirm = await Swal.fire({
+        const confirm = await Swal.fire({
             icon: 'question', title: 'Importar desde Sheets?',
             text: 'Se importar&aacute;n los invitados desde la hoja vinculada. Los duplicados se omitir&aacute;n.',
             showCancelButton: true, confirmButtonText: 'Importar', background: '#0f172a', color: '#fff'
         });
         if (!confirm.isConfirmed) return;
         try {
-            var res = await this.fetchAPI('/google/events/' + eventId + '/import', { method: 'POST' });
+            const res = await this.fetchAPI('/google/events/' + eventId + '/import', { method: 'POST' });
             if (res && res.success) {
                 Swal.fire({ icon: 'success', title: 'Importados ' + res.imported + ' invitados', timer: 2000, showConfirmButton: false, background: '#0f172a', color: '#fff' });
             } else {
@@ -18031,16 +18031,16 @@ navigate(viewName, params = {}, push = true) {
 
     loadWebhooks: async function() {
         try {
-            var webhooks = await this.fetchAPI('/webhooks');
-            var tbody = document.getElementById('webhooks-tbody');
+            const webhooks = await this.fetchAPI('/webhooks');
+            const tbody = document.getElementById('webhooks-tbody');
             if (!tbody) return;
             if (!webhooks || webhooks.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">No hay webhooks. Crea uno nuevo.</td></tr>';
                 return;
             }
             tbody.innerHTML = webhooks.map(function(w) {
-                var evCount = (w.events || []).length;
-                var statusClass = w.status === 'ACTIVE' ? 'text-green-500' : 'text-slate-500';
+                const evCount = (w.events || []).length;
+                const statusClass = w.status === 'ACTIVE' ? 'text-green-500' : 'text-slate-500';
                 return '<tr class="hover:bg-white/[0.02] transition-colors">' +
                     '<td class="table-td font-medium text-white">' + (w.name || 'Sin nombre') + '</td>' +
                     '<td class="table-td text-xs text-slate-400 max-w-[200px] truncate">' + (w.url || '') + '</td>' +
@@ -18057,7 +18057,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     openWebhookModal: async function(id) {
-        var modal = document.getElementById('modal-webhook');
+        const modal = document.getElementById('modal-webhook');
         if (!modal) return;
         document.getElementById('webhook-id').value = '';
         document.getElementById('webhook-name').value = '';
@@ -18069,13 +18069,13 @@ navigate(viewName, params = {}, push = true) {
         // Load available events
         if (!this._webhookEvents) {
             try {
-                var res = await this.fetchAPI('/webhooks/events/available');
+                const res = await this.fetchAPI('/webhooks/events/available');
                 this._webhookEvents = res.events;
             } catch(e) { this._webhookEvents = {}; }
         }
-        var grid = document.getElementById('webhook-events-grid');
+        const grid = document.getElementById('webhook-events-grid');
         if (grid) {
-            var evs = this._webhookEvents || {};
+            const evs = this._webhookEvents || {};
             grid.innerHTML = Object.keys(evs).map(function(k) {
                 return '<label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:bg-white/[0.02] p-1 rounded">' +
                     '<input type="checkbox" class="webhook-event-cb" value="' + evs[k] + '" style="accent-color:#7c3aed"> ' + k + '</label>';
@@ -18084,7 +18084,7 @@ navigate(viewName, params = {}, push = true) {
 
         if (id) {
             try {
-                var w = await this.fetchAPI('/webhooks/' + id);
+                const w = await this.fetchAPI('/webhooks/' + id);
                 if (!w) return;
                 document.getElementById('webhook-id').value = w.id;
                 document.getElementById('webhook-name').value = w.name || '';
@@ -18108,16 +18108,16 @@ navigate(viewName, params = {}, push = true) {
     },
 
     saveWebhook: async function() {
-        var id = document.getElementById('webhook-id')?.value;
-        var name = document.getElementById('webhook-name')?.value.trim();
-        var url = document.getElementById('webhook-url')?.value.trim();
-        var secret = document.getElementById('webhook-secret')?.value.trim();
-        var status = document.getElementById('webhook-status')?.value || 'ACTIVE';
+        const id = document.getElementById('webhook-id')?.value;
+        const name = document.getElementById('webhook-name')?.value.trim();
+        const url = document.getElementById('webhook-url')?.value.trim();
+        const secret = document.getElementById('webhook-secret')?.value.trim();
+        const status = document.getElementById('webhook-status')?.value || 'ACTIVE';
         if (!name || !url) { Swal.fire({ icon: 'warning', title: 'Nombre y URL requeridos', background: '#0f172a', color: '#fff' }); return; }
-        var events = [];
+        const events = [];
         document.querySelectorAll('.webhook-event-cb:checked').forEach(function(cb) { events.push(cb.value); });
         if (events.length === 0) { Swal.fire({ icon: 'warning', title: 'Selecciona al menos un evento', background: '#0f172a', color: '#fff' }); return; }
-        var body = { name: name, url: url, events: events, status: status };
+        const body = { name: name, url: url, events: events, status: status };
         if (secret) body.secret = secret;
         try {
             if (id) {
@@ -18132,13 +18132,13 @@ navigate(viewName, params = {}, push = true) {
 
     testWebhook: async function(id) {
         try {
-            var res = await this.fetchAPI('/webhooks/' + id + '/test', { method: 'POST' });
+            const res = await this.fetchAPI('/webhooks/' + id + '/test', { method: 'POST' });
             Swal.fire({ icon: res.success ? 'success' : 'error', title: res.success ? 'Enviado' : 'Error', text: res.message || res.error, background: '#0f172a', color: '#fff' });
         } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
     },
 
     deleteWebhook: async function(id) {
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar webhook?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar webhook?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try {
             await this.fetchAPI('/webhooks/' + id, { method: 'DELETE' });
@@ -18148,18 +18148,18 @@ navigate(viewName, params = {}, push = true) {
 
     viewWebhookLogs: async function(id) {
         document.getElementById('modal-webhook-logs').classList.remove('hidden');
-        var tbody = document.getElementById('webhook-logs-tbody');
+        const tbody = document.getElementById('webhook-logs-tbody');
         if (!tbody) return;
         tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-500">Cargando...</td></tr>';
         try {
-            var logs = await this.fetchAPI('/webhooks/' + id + '/logs');
+            const logs = await this.fetchAPI('/webhooks/' + id + '/logs');
             if (!logs || logs.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-500">Sin entregas registradas</td></tr>';
                 return;
             }
             tbody.innerHTML = logs.map(function(l) {
-                var statusText = l.success ? '✅ ' + (l.response_status || 'OK') : '❌ ' + (l.response_status || 'Error');
-                var dateStr = l.created_at ? new Date(l.created_at).toLocaleString() : '-';
+                const statusText = l.success ? '✅ ' + (l.response_status || 'OK') : '❌ ' + (l.response_status || 'Error');
+                const dateStr = l.created_at ? new Date(l.created_at).toLocaleString() : '-';
                 return '<tr class="hover:bg-white/[0.02] text-xs">' +
                     '<td class="table-td text-slate-400">' + dateStr + '</td>' +
                     '<td class="table-td text-slate-300">' + (l.event_type || '-') + '</td>' +
@@ -18172,8 +18172,8 @@ navigate(viewName, params = {}, push = true) {
     },
 
     clearWebhookLogs: function() {
-        var tbody = document.getElementById('webhook-logs-tbody');
-        var id = tbody?._webhookLogId;
+        const tbody = document.getElementById('webhook-logs-tbody');
+        const id = tbody?._webhookLogId;
         if (!id) return;
         Swal.fire({ icon: 'warning', title: 'Borrar logs?', showCancelButton: true, background: '#0f172a', color: '#fff' }).then(function(r) {
             if (!r.isConfirmed) return;
@@ -18184,7 +18184,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     webhookPreset: function(type) {
-        var urlInput = document.getElementById('webhook-url');
+        const urlInput = document.getElementById('webhook-url');
         if (!urlInput) return;
         if (type === 'slack') {
             urlInput.value = 'https://hooks.slack.com/services/YOUR/TEAM/ID';
@@ -18194,7 +18194,7 @@ navigate(viewName, params = {}, push = true) {
             urlInput.placeholder = 'https://discord.com/api/webhooks/...';
         }
         // Auto-check relevant events for Slack/Discord
-        var grid = document.getElementById('webhook-events-grid');
+        const grid = document.getElementById('webhook-events-grid');
         if (grid) {
             grid.querySelectorAll('.webhook-event-cb').forEach(function(cb) {
                 cb.checked = true;
@@ -18203,9 +18203,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     generateWebhookSecret: function() {
-        var arr = new Uint8Array(32);
+        const arr = new Uint8Array(32);
         crypto.getRandomValues(arr);
-        var hex = Array.from(arr).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+        const hex = Array.from(arr).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
         document.getElementById('webhook-secret').value = hex;
     },
 
@@ -18213,7 +18213,7 @@ navigate(viewName, params = {}, push = true) {
 
     loadSmsSettings: async function() {
         try {
-            var res = await this.fetchAPI('/sms/settings');
+            const res = await this.fetchAPI('/sms/settings');
             if (res.account_sid !== undefined) document.getElementById('sms-account-sid').value = res.account_sid;
             if (res.from_number !== undefined) document.getElementById('sms-from-number').value = res.from_number;
             if (document.getElementById('sms-enabled')) document.getElementById('sms-enabled').checked = res.enabled || false;
@@ -18223,7 +18223,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     saveSmsSettings: async function() {
-        var data = {
+        const data = {
             account_sid: document.getElementById('sms-account-sid')?.value || '',
             auth_token: document.getElementById('sms-auth-token')?.value || '',
             from_number: document.getElementById('sms-from-number')?.value || '',
@@ -18240,10 +18240,10 @@ navigate(viewName, params = {}, push = true) {
     },
 
     sendTestSms: async function() {
-        var to = document.getElementById('sms-test-number')?.value.trim();
+        const to = document.getElementById('sms-test-number')?.value.trim();
         if (!to) { this._notifyAction('Error', 'Número requerido', 'error'); return; }
         try {
-            var res = await this.fetchAPI('/sms/send', { method: 'POST', body: JSON.stringify({ to: to, message: 'Test SMS desde Check Pro - ' + new Date().toLocaleString() }) });
+            const res = await this.fetchAPI('/sms/send', { method: 'POST', body: JSON.stringify({ to: to, message: 'Test SMS desde Check Pro - ' + new Date().toLocaleString() }) });
             if (res.success) this._notifyAction('Enviado', 'SMS enviado correctamente (SID: ' + res.sid + ')', 'success');
             else this._notifyAction('Error', res.error, 'error');
         } catch(e) { this._notifyAction('Error', e.message, 'error'); }
@@ -18252,7 +18252,7 @@ navigate(viewName, params = {}, push = true) {
     // ═══ WhatsApp (C3-01) ═══
     loadWaSettings: async function() {
         try {
-            var res = await this.fetchAPI('/whatsapp/settings');
+            const res = await this.fetchAPI('/whatsapp/settings');
             if (res.phone_number_id !== undefined) document.getElementById('wa-phone-id').value = res.phone_number_id;
             if (res.from_phone !== undefined) document.getElementById('wa-from').value = res.from_phone;
             if (document.getElementById('wa-enabled')) document.getElementById('wa-enabled').checked = res.enabled || false;
@@ -18261,22 +18261,22 @@ navigate(viewName, params = {}, push = true) {
         } catch(e) { console.error('[WA] Error:', e.message); }
     },
     saveWaSettings: async function() {
-        var data = { phone_number_id: document.getElementById('wa-phone-id')?.value || '', access_token: document.getElementById('wa-token')?.value || '', from_phone: document.getElementById('wa-from')?.value || '', enabled: document.getElementById('wa-enabled')?.checked || false };
+        const data = { phone_number_id: document.getElementById('wa-phone-id')?.value || '', access_token: document.getElementById('wa-token')?.value || '', from_phone: document.getElementById('wa-from')?.value || '', enabled: document.getElementById('wa-enabled')?.checked || false };
         try { await this.fetchAPI('/whatsapp/settings', { method: 'POST', body: JSON.stringify(data) }); this._notifyAction('Guardado', 'Config WhatsApp guardada', 'success'); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
     testWa: function() { document.getElementById('wa-test-section')?.classList.toggle('hidden'); },
     sendTestWa: async function() {
-        var to = document.getElementById('wa-test-number')?.value.trim();
+        const to = document.getElementById('wa-test-number')?.value.trim();
         if (!to) { this._notifyAction('Error', 'Número requerido', 'error'); return; }
-        try { var res = await this.fetchAPI('/whatsapp/send', { method: 'POST', body: JSON.stringify({ to: to, message: 'Test WhatsApp desde Check Pro' }) }); if (res.success) this._notifyAction('Enviado', 'WhatsApp enviado', 'success'); else this._notifyAction('Error', res.error, 'error'); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
+        try { const res = await this.fetchAPI('/whatsapp/send', { method: 'POST', body: JSON.stringify({ to: to, message: 'Test WhatsApp desde Check Pro' }) }); if (res.success) this._notifyAction('Enviado', 'WhatsApp enviado', 'success'); else this._notifyAction('Error', res.error, 'error'); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
     // ═══ Tenants / Multi-tenant (C3-07) ═══
 
     loadTenants: async function() {
         try {
-            var tenants = await this.fetchAPI('/tenants');
-            var tbody = document.getElementById('tenants-tbody');
+            const tenants = await this.fetchAPI('/tenants');
+            const tbody = document.getElementById('tenants-tbody');
             if (!tbody) return;
             if (!tenants || !tenants.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin tenants configurados</td></tr>'; return; }
             tbody.innerHTML = tenants.map(function(t) {
@@ -18300,8 +18300,8 @@ navigate(viewName, params = {}, push = true) {
 
     editTenant: async function(id) {
         try {
-            var tenants = await this.fetchAPI('/tenants');
-            var t = tenants.find(function(x) { return x.id === id; });
+            const tenants = await this.fetchAPI('/tenants');
+            const t = tenants.find(function(x) { return x.id === id; });
             if (!t) return;
             document.getElementById('tenant-id').value = t.id; document.getElementById('tenant-name').value = t.name || '';
             document.getElementById('tenant-slug').value = t.slug || ''; document.getElementById('tenant-domain').value = t.domain || '';
@@ -18312,16 +18312,16 @@ navigate(viewName, params = {}, push = true) {
     },
 
     saveTenant: async function() {
-        var id = document.getElementById('tenant-id')?.value;
-        var name = document.getElementById('tenant-name')?.value.trim();
-        var slug = document.getElementById('tenant-slug')?.value.trim();
+        const id = document.getElementById('tenant-id')?.value;
+        const name = document.getElementById('tenant-name')?.value.trim();
+        const slug = document.getElementById('tenant-slug')?.value.trim();
         if (!name || !slug) { this._notifyAction('Error', 'Nombre y slug requeridos', 'error'); return; }
-        var body = { name: name, slug: slug, domain: document.getElementById('tenant-domain')?.value || '', logo_url: document.getElementById('tenant-logo')?.value || '', primary_color: document.getElementById('tenant-color')?.value || '#7c3aed', welcome_text: document.getElementById('tenant-welcome')?.value || '', is_active: document.getElementById('tenant-active')?.checked };
+        const body = { name: name, slug: slug, domain: document.getElementById('tenant-domain')?.value || '', logo_url: document.getElementById('tenant-logo')?.value || '', primary_color: document.getElementById('tenant-color')?.value || '#7c3aed', welcome_text: document.getElementById('tenant-welcome')?.value || '', is_active: document.getElementById('tenant-active')?.checked };
         try { await this.fetchAPI('/tenants' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) }); this.closeTenantModal(); this.loadTenants(); } catch(e) { this._notifyAction('Error', e.message, 'error'); }
     },
 
     deleteTenant: async function(id) {
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar tenant?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar tenant?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try { await this.fetchAPI('/tenants/' + id, { method: 'DELETE' }); this.loadTenants(); } catch(e) { console.error(e); }
     }
@@ -18517,35 +18517,35 @@ async function initApp() {
         App._keyBuffer += e.key.toLowerCase();
         if (App._keyBuffer.length > 3) App._keyBuffer = App._keyBuffer.slice(-3);
         
-        var buffer = App._keyBuffer;
+        const buffer = App._keyBuffer;
         
         if (buffer === 'gg') {
             App._keyBuffer = '';
-            var guestsTab = document.querySelector('[data-tab="guests"]');
+            const guestsTab = document.querySelector('[data-tab="guests"]');
             if (guestsTab) guestsTab.click();
             App.showToast('📋 Invitados', 'info');
         }
         else if (buffer === 'ge') {
             App._keyBuffer = '';
-            var evTab = document.querySelector('[data-tab="events"], [data-view="events"]');
+            const evTab = document.querySelector('[data-tab="events"], [data-view="events"]');
             if (evTab) evTab.click();
             App.showToast('📅 Eventos', 'info');
         }
         else if (buffer === 'gd') {
             App._keyBuffer = '';
-            var dashTab = document.querySelector('[data-tab="dashboard"], [data-view="dashboard"]');
+            const dashTab = document.querySelector('[data-tab="dashboard"], [data-view="dashboard"]');
             if (dashTab) dashTab.click();
             App.showToast('📊 Dashboard', 'info');
         }
         else if (buffer === 'gs') {
             App._keyBuffer = '';
-            var settingsTab = document.querySelector('[data-tab="settings"], [data-view="settings"]');
+            const settingsTab = document.querySelector('[data-tab="settings"], [data-view="settings"]');
             if (settingsTab) settingsTab.click();
             App.showToast('⚙️ Configuración', 'info');
         }
         else if (buffer === 'gt') {
             App._keyBuffer = '';
-            var statsTab = document.querySelector('[data-tab="stats"]');
+            const statsTab = document.querySelector('[data-tab="stats"]');
             if (statsTab) statsTab.click();
             App.showToast('📈 Estadísticas', 'info');
         }
@@ -18560,7 +18560,7 @@ async function initApp() {
         }
         else if (e.key === '/' && buffer === '/') {
             App._keyBuffer = '';
-            var search = document.getElementById('guest-search') || document.querySelector('[type="search"], input[placeholder*="buscar"], input[placeholder*="search"]');
+            const search = document.getElementById('guest-search') || document.querySelector('[type="search"], input[placeholder*="buscar"], input[placeholder*="search"]');
             if (search) search.focus();
         }
     });
@@ -18599,8 +18599,8 @@ async function initApp() {
         });
         // Heartbeat de presencia cada 25 segundos
         setInterval(function() {
-            var eventId = App.state.event?.id;
-            var userId = App.state.user?.id;
+            const eventId = App.state.event?.id;
+            const userId = App.state.user?.id;
             if (eventId && userId && App.state.socket) {
                 App.state.socket.emit('presence_heartbeat', { eventId: eventId, userId: userId, userName: App.state.user?.display_name || App.state.user?.username });
             }
@@ -19376,11 +19376,11 @@ App.changeGuestStatus = async function(guestId, newStatus) {
 },
 
 App.verifyOtpCheckin = async function() {
-    var code = document.getElementById('otp-input')?.value.trim();
+    const code = document.getElementById('otp-input')?.value.trim();
     if (!code || code.length < 4) { App._notifyAction('Error', 'Código inválido', 'error'); return; }
     try {
-        var res = await App.fetchAPI('/guests/otp/verify', { method: 'POST', body: JSON.stringify({ code: code }) });
-        var resultDiv = document.getElementById('otp-result');
+        const res = await App.fetchAPI('/guests/otp/verify', { method: 'POST', body: JSON.stringify({ code: code }) });
+        const resultDiv = document.getElementById('otp-result');
         resultDiv.classList.remove('hidden');
         if (res.valid) {
             resultDiv.className = 'text-center p-3 rounded-lg bg-green-500/10 text-green-400';
@@ -19418,7 +19418,7 @@ App.sendGuestMessage = async function(channel, guestId, guestName) {
 
 App.generateOtpCode = async function(clientId) {
     try {
-        var res = await App.fetchAPI('/guests/otp/generate/' + clientId, { method: 'POST' });
+        const res = await App.fetchAPI('/guests/otp/generate/' + clientId, { method: 'POST' });
         if (res.success) {
             Swal.fire({ title: 'Código OTP', text: 'Código: ' + res.code, icon: 'info', confirmButtonText: 'Copiar', background: '#0f172a', color: '#fff' }).then(function(r) {
                 if (r.isConfirmed) navigator.clipboard.writeText(res.code).then(function() { App._notifyAction('Copiado', 'Código copiado', 'success'); }).catch(function(){});
@@ -19475,7 +19475,7 @@ App.toggleValidateAttendance = async function(clientId) {
                     elements: this._getDefaultBadgeElements()
                 };
                 const action = badgeCfg.checkinAction || 'modal';
-                var guestData = { name: current.client_name, organization: current.organization, cargo: current.cargo, email: current.client_email, phone: current.client_phone, qr_token: current.qr_token };
+                const guestData = { name: current.client_name, organization: current.organization, cargo: current.cargo, email: current.client_email, phone: current.client_phone, qr_token: current.qr_token };
                 if (action === 'modal') {
                     this.showBadgePrintModal(badgeCfg, guestData);
                 } else if (action === 'print') {
@@ -19752,7 +19752,7 @@ App.processAttendanceImportFile = async function(file) {
                     const fieldsList = document.getElementById('mapping-fields-list');
                     mappingContainer.classList.remove('hidden');
                     
-                    var fields = [
+                    const fields = [
                         { id: 'att-map-name', label: 'Nombre Completo *', key: 'name', icon: 'person', required: true },
                         { id: 'att-map-email', label: 'Email *', key: 'email', icon: 'mail', required: true },
                         { id: 'att-map-phone', label: 'Teléfono', key: 'phone', icon: 'phone' },
@@ -19764,8 +19764,8 @@ App.processAttendanceImportFile = async function(file) {
                     
                     fieldsList.innerHTML = fields.map(function(f) {
                         // Use smart detection: prefer detected field, then column name match
-                        var detectedColIdx = null;
-                        for (var idx in App._detectedFields) {
+                        let detectedColIdx = null;
+                        for (const idx in App._detectedFields) {
                             if (App._detectedFields[idx] === f.key) { detectedColIdx = idx; break; }
                         }
                         return '<div class="flex flex-col gap-1.5">' +
@@ -19775,10 +19775,10 @@ App.processAttendanceImportFile = async function(file) {
                             '<select id="' + f.id + '" class="premium-select !bg-[var(--bg-main)] !py-2 !text-xs">' +
                                 '<option value="">-- No importar --</option>' +
                                 App._availableColumns.map(function(col) {
-                                    var isSelected = '';
+                                    let isSelected = '';
                                     if (detectedColIdx !== null && parseInt(col.index) === parseInt(detectedColIdx)) isSelected = 'selected';
                                     else if (!detectedColIdx) {
-                                        var ln = col.name.toLowerCase();
+                                        const ln = col.name.toLowerCase();
                                         isSelected = ln.includes(f.key) ? 'selected' : '';
                                     }
                                     return '<option value="' + col.index + '" ' + isSelected + '>' + col.name + '</option>';
@@ -19861,11 +19861,11 @@ App.updateAttendanceImportStats = function(availableColumns, previewRows, stats)
 };
 
 App.renderAttPreview = function() {
-    var allRows = this._allImportRows || [];
-    var cols = this._availableColumns || [];
-    var container = document.getElementById('import-attendance-preview');
-    var thead = document.getElementById('att-preview-header');
-    var tbody = document.getElementById('att-preview-body');
+    const allRows = this._allImportRows || [];
+    const cols = this._availableColumns || [];
+    const container = document.getElementById('import-attendance-preview');
+    const thead = document.getElementById('att-preview-header');
+    const tbody = document.getElementById('att-preview-body');
     if (!container || !thead || !tbody) return;
     if (allRows.length === 0) { container.classList.add('hidden'); return; }
     container.classList.remove('hidden');
@@ -19874,11 +19874,11 @@ App.renderAttPreview = function() {
     thead.innerHTML = cols.map(function(c) { return '<th class="table-th text-[10px]">' + (c.name || '') + '</th>'; }).join('');
 
     // Paginate
-    var page = this._attPreviewPage || 0;
-    var perPage = this._attPreviewPerPage || 25;
-    var start = page * perPage;
-    var pageRows = allRows.slice(start, start + perPage);
-    var totalPages = Math.ceil(allRows.length / perPage);
+    const page = this._attPreviewPage || 0;
+    const perPage = this._attPreviewPerPage || 25;
+    const start = page * perPage;
+    const pageRows = allRows.slice(start, start + perPage);
+    const totalPages = Math.ceil(allRows.length / perPage);
 
     document.getElementById('att-preview-info').textContent = (start + 1) + '-' + Math.min(start + perPage, allRows.length) + ' / ' + allRows.length;
     document.getElementById('btn-att-prev').disabled = page <= 0;
@@ -19886,7 +19886,7 @@ App.renderAttPreview = function() {
 
     tbody.innerHTML = pageRows.map(function(row) {
         return '<tr class="hover:bg-white/[0.02]">' + cols.map(function(c, ci) {
-            var val = (row[ci] !== undefined && row[ci] !== null) ? row[ci].toString() : '';
+            const val = (row[ci] !== undefined && row[ci] !== null) ? row[ci].toString() : '';
             return '<td class="table-td text-[10px] max-w-[120px] truncate" title="' + val.replace(/"/g, '&quot;') + '">' + (val || '') + '</td>';
         }).join('') + '</tr>';
     }).join('');
@@ -20148,30 +20148,30 @@ App.editAttendance = function(clientIds) {
             this.fetchAPI('/sessions/' + eId),
             this.fetchAPI('/sessions/' + eId + '/my-sessions/' + clientId)
         ]).then(function(results) {
-            var sessions = results[0] || [];
-            var mySessions = results[1] || [];
-            var myMap = {};
+            const sessions = results[0] || [];
+            const mySessions = results[1] || [];
+            const myMap = {};
             (mySessions || []).forEach(function(s) { myMap[s.id] = s; });
-            var container = document.getElementById('edit-attendance-sessions');
+            const container = document.getElementById('edit-attendance-sessions');
             if (!container) return;
             if (sessions.length === 0) {
                 container.innerHTML = '<p class="text-xs text-slate-500 italic">No hay sesiones disponibles</p>';
                 return;
             }
             // Cargar renders de sesiones con plano
-            var renderPromises = [];
+            const renderPromises = [];
             sessions.forEach(function(s) {
                 if (s.layout_id) renderPromises.push(App.fetchAPI('/seat-layouts/' + eId + '/' + s.layout_id + '/render').then(function(r) { s._seats = r.seats || []; }).catch(function() { s._seats = []; }));
             });
             Promise.all(renderPromises).then(function() {
                 container.innerHTML = sessions.map(function(s) {
-                    var my = myMap[s.id];
-                    var checked = my ? 'checked' : '';
-                    var seatHtml = '';
+                    const my = myMap[s.id];
+                    const checked = my ? 'checked' : '';
+                    let seatHtml = '';
                     if (s._seats && s._seats.length > 0) {
-                        var takenSeatIds = {};
+                        const takenSeatIds = {};
                         // Not ideal but we don't have taken seats here; rely on backend validation
-                        var curSeat = (my && my.seat_id) || '';
+                        const curSeat = (my && my.seat_id) || '';
                         seatHtml = ' <select class="session-seat-select text-[10px] input-field py-0.5 px-1" style="width:auto" data-session="' + s.id + '">' +
                             '<option value="">Sin asiento</option>' +
                             s._seats.filter(function(se) { return se.type === 'seat'; }).map(function(se) {
@@ -20207,21 +20207,21 @@ App.editAttendance = function(clientIds) {
          await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, { method: 'PUT', body: JSON.stringify(data) });
          
          // Sincronizar sesiones del invitado
-          var sessionCheckboxes = document.querySelectorAll('#edit-attendance-sessions .session-checkbox');
-          var sessionSeatSelects = document.querySelectorAll('#edit-attendance-sessions .session-seat-select');
-          var seatMap = {};
+          const sessionCheckboxes = document.querySelectorAll('#edit-attendance-sessions .session-checkbox');
+          const sessionSeatSelects = document.querySelectorAll('#edit-attendance-sessions .session-seat-select');
+          const seatMap = {};
           sessionSeatSelects.forEach(function(sel) { seatMap[sel.dataset.session] = sel.value; });
-          var sessionOps = [];
+          const sessionOps = [];
           sessionCheckboxes.forEach(function(cb) {
-              var sId = cb.dataset.session;
+              const sId = cb.dataset.session;
               sessionOps.push({ sessionId: sId, register: cb.checked, seatId: seatMap[sId] || null });
           });
          // Obtener sesiones actuales del invitado
-         var currentSessions = await this.fetchAPI('/sessions/' + eventId + '/my-sessions/' + clientId) || [];
-         var currentIds = {};
+         const currentSessions = await this.fetchAPI('/sessions/' + eventId + '/my-sessions/' + clientId) || [];
+         const currentIds = {};
          (currentSessions || []).forEach(function(s) { currentIds[s.id] = true; });
-         for (var i = 0; i < sessionOps.length; i++) {
-             var op = sessionOps[i];
+         for (let i = 0; i < sessionOps.length; i++) {
+             const op = sessionOps[i];
               if (op.register && !currentIds[op.sessionId]) {
                   await this.fetchAPI('/sessions/' + eventId + '/' + op.sessionId + '/register', { method: 'POST', body: JSON.stringify({ guest_id: clientId, seat_id: op.seatId || null }) });
               } else if (op.register && currentIds[op.sessionId] && op.seatId) {
@@ -20264,7 +20264,7 @@ App.manageAttendance = function(clientIds) {
     
     // Seleccionar estado actual
     const statusRadios = document.getElementsByName('manage-attendance-status');
-    for (let r of statusRadios) {
+    for (const r of statusRadios) {
         r.checked = r.value === (a.status || 'PENDIENTE');
     }
     

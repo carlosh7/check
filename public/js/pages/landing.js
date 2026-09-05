@@ -1,23 +1,23 @@
-var API='/api',eventData=null,cdInterval=null;
+let API='/api',eventData=null,cdInterval=null;
 
 function downloadQR(){
-  var img=document.getElementById('qr-img');
+  const img=document.getElementById('qr-img');
   if(!img||!img.src)return;
-  var a=document.createElement('a');
+  const a=document.createElement('a');
   a.href=img.src;a.download='qrevento.png';
   a.click()
 }
 
 function updateCountdown(){
   if(!eventData||!eventData.date)return;
-  var target=new Date(eventData.date).getTime(),now=Date.now(),diff=target-now;
+  const target=new Date(eventData.date).getTime(),now=Date.now(),diff=target-now;
   if(diff<=0){
     document.getElementById('countdown').style.display='none';
     document.getElementById('event-passed').style.display='block';
     if(cdInterval)clearInterval(cdInterval);
     return
   }
-  var d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),
+  const d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),
       m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
   document.getElementById('cd-days').textContent=String(d).padStart(2,'0');
   document.getElementById('cd-hours').textContent=String(h).padStart(2,'0');
@@ -26,10 +26,10 @@ function updateCountdown(){
 }
 
 async function load(){
-  var p=window.location.pathname.split('/'),eventId=null,idx=p.indexOf('landing');
+  let p=window.location.pathname.split('/'),eventId=null,idx=p.indexOf('landing');
   if(idx>0)eventId=p[idx-1];
   if(!eventId||eventId==='event'){
-    var params=new URLSearchParams(window.location.search);
+    const params=new URLSearchParams(window.location.search);
     eventId=params.get('event')
   }
   if(!eventId){
@@ -38,7 +38,7 @@ async function load(){
     document.getElementById('main').style.display='block';return
   }
   try{
-    var r=await fetch(API+'/event/'+eventId);
+    const r=await fetch(API+'/event/'+eventId);
     if(!r.ok)throw Error('No encontrado');
     eventData=await r.json();
     document.getElementById('loading').classList.add('hidden');
@@ -51,18 +51,18 @@ async function load(){
     document.getElementById('btn-register').href='/registro.html?event='+eventId;
     // Calendar links
     if(eventData.date){
-      var startTxt=new Date(eventData.date).toISOString().replace(/-|:|\.\d+/g,'');
-      var endTxt=eventData.end_date?new Date(eventData.end_date).toISOString().replace(/-|:|\.\d+/g,'') : new Date(new Date(eventData.date).getTime()+7200000).toISOString().replace(/-|:|\.\d+/g,'');
-      var txt=encodeURIComponent(eventData.name||'Evento');
-      var loc=encodeURIComponent(eventData.location||'');
-      var desc=encodeURIComponent(eventData.description||'');
+      const startTxt=new Date(eventData.date).toISOString().replace(/-|:|\.\d+/g,'');
+      const endTxt=eventData.end_date?new Date(eventData.end_date).toISOString().replace(/-|:|\.\d+/g,'') : new Date(new Date(eventData.date).getTime()+7200000).toISOString().replace(/-|:|\.\d+/g,'');
+      const txt=encodeURIComponent(eventData.name||'Evento');
+      const loc=encodeURIComponent(eventData.location||'');
+      const desc=encodeURIComponent(eventData.description||'');
       document.getElementById('btn-calendar').href='/api/event/'+eventId+'/ics';
     }
     // Generate QR for event registration link
-    var regUrl=window.location.origin+'/registro.html?event='+eventId;
+    const regUrl=window.location.origin+'/registro.html?event='+eventId;
     try{
-      var qrRes=await fetch(API+'/event/'+eventId+'/qr');
-      if(qrRes.ok){var blob=await qrRes.blob();document.getElementById('qr-img').src=URL.createObjectURL(blob)}
+      const qrRes=await fetch(API+'/event/'+eventId+'/qr');
+      if(qrRes.ok){const blob=await qrRes.blob();document.getElementById('qr-img').src=URL.createObjectURL(blob)}
     }catch(e){}
     // Show map if coordinates exist
     if(eventData.music_url){
@@ -76,7 +76,7 @@ async function load(){
     if(eventData.latitude&&eventData.longitude){
       document.getElementById('map-container').style.display='block';
       try{
-        var map=L.map('event-map').setView([eventData.latitude,eventData.longitude],eventData.map_zoom||14);
+        const map=L.map('event-map').setView([eventData.latitude,eventData.longitude],eventData.map_zoom||14);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'OSM'}).addTo(map);
         L.marker([eventData.latitude,eventData.longitude]).addTo(map).bindPopup(eventData.name||'Evento')
       }catch(e){}

@@ -44,12 +44,13 @@ function authMiddleware(roles = []) {
 
         let userId = null;
 
-        // JWT desde header Authorization o query param (para descargas directas)
+        // v12.44.805 (P2-1 cerrado): JWT SOLO desde el header Authorization.
+        // El fallback por query string (req.query.token) se retiró: filtraba
+        // tokens en logs de acceso. Las descargas del frontend ya usan
+        // fetch + Authorization + blob (v12.44.804).
         let token = null;
         if (authHeader && authHeader.startsWith('Bearer ')) {
             token = authHeader.substring(7);
-        } else if (req.query.token) {
-            token = req.query.token;
         }
         if (token) {
             const decoded = verifyToken(token);

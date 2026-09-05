@@ -1,15 +1,15 @@
-var API = '/api';
-var eventId = null;
-var selectedGuest = null;
-var resetTimeout = null;
-var html5QrCode = null;
+const API = '/api';
+let eventId = null;
+let selectedGuest = null;
+let resetTimeout = null;
+let html5QrCode = null;
 
 function getEventFromUrl() {
-  var path = window.location.pathname.split('/');
-  var slug = path[1];
+  const path = window.location.pathname.split('/');
+  const slug = path[1];
   if (!slug) return;
-  var params = new URLSearchParams(window.location.search);
-  var eid = params.get('eid');
+  const params = new URLSearchParams(window.location.search);
+  const eid = params.get('eid');
   if (eid) { loadEvent(eid); return; }
   // Try to get event by slug
   fetch(API + '/event-by-slug/' + slug).then(function(r) { return r.json(); }).then(function(ev) {
@@ -43,10 +43,10 @@ function updateStats() {
 }
 
 // Search
-var searchTimer = null;
+let searchTimer = null;
 document.getElementById('search-input').addEventListener('input', function() {
   clearTimeout(searchTimer);
-  var q = this.value.trim();
+  const q = this.value.trim();
   if (q.length < 2) { document.getElementById('results').innerHTML = ''; return; }
   searchTimer = setTimeout(function() { searchGuests(q); }, 300);
 });
@@ -55,15 +55,15 @@ function searchGuests(q) {
   if (!eventId) return;
   hideError();
   fetch(API + '/kiosk/' + eventId + '/search?q=' + encodeURIComponent(q)).then(function(r) { return r.json(); }).then(function(guests) {
-    var c = document.getElementById('results');
+    const c = document.getElementById('results');
     if (!guests || guests.length === 0) {
       c.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);font-size:13px">Sin resultados</div>';
       return;
     }
     c.innerHTML = guests.map(function(g) {
-      var statusClass = g.checked_in ? 'done' : 'pending';
-      var statusText = g.checked_in ? '✅ Ingresó' : '⏳ Pendiente';
-      var disabledClass = g.checked_in ? 'disabled' : '';
+      const statusClass = g.checked_in ? 'done' : 'pending';
+      const statusText = g.checked_in ? '✅ Ingresó' : '⏳ Pendiente';
+      const disabledClass = g.checked_in ? 'disabled' : '';
       return '<div class="result-item ' + disabledClass + '" onclick="' + (g.checked_in ? '' : 'selectGuest(\'' + g.id + '\',\'' + escJs(g.name) + '\',\'' + escJs(g.email || '') + '\',\'' + escJs(g.organization || '') + '\')') + '">'
         + '<div class="info"><div class="name">' + escHtml(g.name) + '</div>'
         + '<div class="detail">' + escHtml(g.email || g.organization || '') + '</div></div>'
@@ -126,8 +126,8 @@ function cancelCheckin() {
 }
 
 function startResetTimer(displayId) {
-  var seconds = 5;
-  var el = document.getElementById(displayId);
+  let seconds = 5;
+  const el = document.getElementById(displayId);
   el.textContent = seconds;
   clearInterval(resetTimeout);
   resetTimeout = setInterval(function() {
@@ -154,7 +154,7 @@ function resetKiosk() {
 }
 
 function toggleQR() {
-  var reader = document.getElementById('reader');
+  const reader = document.getElementById('reader');
   if (reader.style.display === 'block') {
     reader.style.display = 'none';
     if (html5QrCode) { html5QrCode.stop(); html5QrCode = null; }
@@ -166,7 +166,7 @@ function toggleQR() {
     html5QrCode.start({ facingMode: 'environment' }, { fps: 10, qrbox: 250 },
       function(qrText) {
         // QR scanned - extract guest token from URL
-        var token = qrText.split('/').pop();
+        const token = qrText.split('/').pop();
         if (token && token.length > 5) {
           handleQRToken(token);
         }
@@ -193,7 +193,7 @@ function handleQRToken(token) {
 }
 
 function showError(msg) {
-  var el = document.getElementById('error-msg');
+  const el = document.getElementById('error-msg');
   el.textContent = msg;
   el.style.display = 'block';
   setTimeout(function() { el.style.display = 'none'; }, 4000);

@@ -164,10 +164,10 @@ Revisión manual de rutas críticas: queries parametrizadas (prepared statements
 | P1-1 | P1 | `DATA_PATH=/home/data_check` imposible sin root; fallo silencioso→exit | .env.example:22, database.js:11-39 |
 | P1-2 | P1 | JWT_SECRET/ADMIN_PASSWORD con defaults débiles shipeados | ✅ **RESUELTO v12.44.802**: seeds eliminados + wizard de primer arranque + política de contraseñas (`src/security/password-policy.js`); `.env.example` sin ADMIN_* por defecto |
 | P1-3 | P1 | backend.test.js cuelga Jest (open handles sin --forceExit) | package.json:11 |
-| P2-1 | P2 | Token JWT aceptado por query string | 🟡 **MITIGADO v12.44.804**: el frontend ya no envía JWT por query (descargas con header Authorization); el fallback del middleware se conserva por compatibilidad — retirar en próxima fase |
+| P2-1 | P2 | Token JWT aceptado por query string | ✅ **RESUELTO v12.44.805**: fallback `req.query.token` retirado de `src/middleware/auth.js` (el frontend ya usaba header desde v12.44.804; verificado que ningún consumidor usa `?token=`) — los JWT ya no aparecen en logs de acceso |
 | P2-2 | P2 | Suite visual.test.js sin tests (falsa señal de cobertura) | ✅ **RESUELTO v12.44.804**: 20 tests estáticos (guardián CSP + refs locales) + modo live Playwright opcional (VISUAL_BASE_URL) |
 | P2-3 | P2 | CSP con unsafe-inline + frameSrc * | 🟡 **PARCIAL v12.44.804**: scriptSrc SIN 'unsafe-inline' (11 scripts inline externalizados a /js/pages/); restante: scriptSrcAttr/styleSrc por ~450 handlers/estilos inline de app-shell.html |
-| P2-4 | P2 | `logger` usado antes de definirse en catch de import sharp | src/routes/index.js:13,112 |
+| P2-4 | P2 | `logger` usado antes de definirse en catch de import sharp | ✅ **VERIFICADO RESUELTO v12.44.805**: `src/routes/index.js` define `logger` (línea 7) antes de cualquier uso; el hallazgo original ya no es reproducible |
 | P3-1 | P3 | 23 vulnerabilidades en deps de producción (sharp/libvips high) | 🟡 **PARCIAL v12.44.804**: npm audit fix + nodemailer@10 → quedan 5 moderadas (uuid transitive vía exceljs/googleapis; requiere majors — diferido) |
 | P3-2 | P3 | Caracteres chinos residuales en código (artefactos IA) | server.js:48,453; jwt.js:41 |
 | P3-3 | P3 | 85 console.log residuales en backend | 🟡 **PARCIAL v12.44.804**: runtime logs de socket/index.js → logger; los de boot/migraciones/seed (database.js, plugin-engine) se conservan deliberadamente: corren antes de inicializar logger y dan visibilidad en docker logs |

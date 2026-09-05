@@ -32,7 +32,7 @@ function renderCalendar(year, month, events) {
     grid.innerHTML += '<div class="cal-day ' + (isToday ? 'today' : '') + '" data-date="' + dateStr + '"><div class="day-num">' + d + '</div>' +
       dayEvents.map(e => '<div class="event-chip" onclick="location.href=\'/?event=' + e.id + '\'">' + e.name + ' <span class="count">(' + (e.checked_in_count || 0) + '/' + (e.guest_count || 0) + ')</span></div>').join('') + '</div>';
   }
-  let remaining = 7 - ((firstDay + daysInMonth) % 7);
+  const remaining = 7 - ((firstDay + daysInMonth) % 7);
   if (remaining < 7) {
     for (let i = 1; i <= (remaining === 7 ? 0 : remaining); i++) {
       grid.innerHTML += '<div class="cal-day other-month"><div class="day-num">' + i + '</div></div>';

@@ -1,5 +1,5 @@
-var API='/api',guestData=null,deferredPrompt=null;
-var tabs=['ticket','agenda','participate','networking','event'];
+let API='/api',guestData=null,deferredPrompt=null;
+const tabs=['ticket','agenda','participate','networking','event'];
 
 // PWA Install
 window.addEventListener('beforeinstallprompt',function(e){
@@ -9,7 +9,7 @@ window.addEventListener('beforeinstallprompt',function(e){
 document.getElementById('btn-install')?.addEventListener('click',async function(){
   if(!deferredPrompt)return;
   deferredPrompt.prompt();
-  var result=await deferredPrompt.userChoice;
+  const result=await deferredPrompt.userChoice;
   if(result.outcome==='accepted')document.getElementById('install-bar').classList.remove('show');
   deferredPrompt=null;
 });
@@ -45,14 +45,14 @@ function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt
 function escJs(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\\'").replace(/"/g,'&quot;')}
 
 function loadPortalPolls(){
-  var eId=guestData?.event?.id;
+  const eId=guestData?.event?.id;
   if(!eId){document.getElementById('portal-polls-list').innerHTML='<p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Evento no disponible</p>';return}
   fetch(API+'/polls/public/'+eId+'/active').then(function(r){return r.json()}).then(function(polls){
-    var c=document.getElementById('portal-polls-list');
+    const c=document.getElementById('portal-polls-list');
     if(!polls||polls.length===0){c.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">No hay encuestas activas</p>';return}
     c.innerHTML=polls.map(function(p){
-      var opts=p.options||[];
-      var optionsHtml=opts.map(function(o,idx){
+      const opts=p.options||[];
+      const optionsHtml=opts.map(function(o,idx){
         return '<label style="display:flex;align-items:center;gap:8px;padding:10px;margin:4px 0;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;cursor:pointer;font-size:13px">'
           +'<input type="'+(p.type==='multiple'?'checkbox':'radio')+'" name="poll_'+p.id+'" value="'+o.id+'" style="accent-color:#7c3aed">'
           +escHtml(o.label)+'</label>';
@@ -66,12 +66,12 @@ function loadPortalPolls(){
 }
 
 function votePoll(btn){
-  var pollId=btn.getAttribute('data-pollid');
-  var selected=document.querySelectorAll('input[name="poll_'+pollId+'"]:checked');
+  const pollId=btn.getAttribute('data-pollid');
+  const selected=document.querySelectorAll('input[name="poll_'+pollId+'"]:checked');
   if(selected.length===0){btn.style.background='#dc2626';setTimeout(function(){btn.style.background=''},500);return}
-  var optionIds=[];
+  const optionIds=[];
   selected.forEach(function(cb){optionIds.push(cb.value)});
-  var qrToken=guestData?.guest?.qr_token;
+  const qrToken=guestData?.guest?.qr_token;
   if(!qrToken){alert('Debes estar registrado para votar');return}
   fetch(API+'/polls/public/'+pollId+'/vote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({guest_token:qrToken,option_id:optionIds[0]})})
   .then(function(r){return r.json()})
@@ -92,15 +92,15 @@ function votePoll(btn){
 }
 
 function loadPortalLeaderboard(){
-  var eId=guestData?.event?.id;
+  const eId=guestData?.event?.id;
   if(!eId)return;
   fetch(API+'/leaderboard/'+eId).then(function(r){return r.json()}).then(function(entries){
-    var c=document.getElementById('portal-leaderboard-list');
+    const c=document.getElementById('portal-leaderboard-list');
     if(!entries||entries.length===0){c.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Sin datos aún</p>';return}
     c.innerHTML='<div style="display:flex;flex-direction:column;gap:4px">'
       +entries.map(function(e,i){
-        var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-        var isMe=e.guest_id===guestData?.guest?.id;
+        const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+        const isMe=e.guest_id===guestData?.guest?.id;
         return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:'+(isMe?'rgba(124,58,237,0.1)':'transparent')+';border-radius:10px;border:1px solid '+(isMe?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.04)')+'">'
           +'<span style="font-size:16px;font-weight:700;color:'+(i<3?'#fbbf24':'rgba(255,255,255,0.3)')+';min-width:28px;text-align:center">'+medal+'</span>'
           +'<div style="flex:1"><span style="font-size:13px;font-weight:600;color:#e2e8f0">'+escHtml(e.guest_name||'Anónimo')+'</span>'
@@ -113,11 +113,11 @@ function loadPortalLeaderboard(){
 }
 
 function loadPortalBadges(){
-  var eId=guestData?.event?.id;
-  var gId=guestData?.guest?.id;
+  const eId=guestData?.event?.id;
+  const gId=guestData?.guest?.id;
   if(!eId||!gId)return;
   fetch(API+'/leaderboard/'+eId+'/guest/'+gId+'/badges').then(function(r){return r.json()}).then(function(badges){
-    var c=document.getElementById('portal-badges-list');
+    const c=document.getElementById('portal-badges-list');
     if(!badges||badges.length===0){c.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">No tienes insignias aún. ¡Participa en encuestas para ganarlas!</p>';return}
     c.innerHTML=badges.map(function(b){
       return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0">'
@@ -131,14 +131,14 @@ function loadPortalBadges(){
 async function requestNotif(){
   if(!('Notification' in window)){document.getElementById('notif-card').innerHTML='<p class="granted">❌ Notificaciones no soportadas</p>';return}
   if(Notification.permission==='granted'){document.getElementById('notif-card').innerHTML='<p class="granted">✅ Notificaciones activadas</p>';return}
-  var perm=await Notification.requestPermission();
+  const perm=await Notification.requestPermission();
   if(perm==='granted'){
     document.getElementById('notif-card').innerHTML='<p class="granted">✅ Notificaciones activadas</p>';
     // Register push subscription
     if('serviceWorker' in navigator&&'PushManager' in window){
       try{
-        var reg=await navigator.serviceWorker.ready;
-        var sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array('{{VAPID_PUBLIC_KEY}}')});
+        const reg=await navigator.serviceWorker.ready;
+        const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array('{{VAPID_PUBLIC_KEY}}')});
         await fetch(API+'/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:sub,guestId:guestData?.guest?.id})});
       }catch(e){console.error('Push sub error:',e)}
     }
@@ -147,22 +147,22 @@ async function requestNotif(){
   }
 }
 function urlBase64ToUint8Array(base64String){
-  var padding='='.repeat((4-base64String.length%4)%4);
-  var base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
-  var rawData=window.atob(base64);
+  const padding='='.repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  const rawData=window.atob(base64);
   return Uint8Array.from(rawData.split('').map(function(c){return c.charCodeAt(0)}));
 }
 
 // ── Networking ──
-var netQrCode = null;
+let netQrCode = null;
 
 function loadNetworking() {
   if (!guestData) return;
-  var guestId = guestData.guest?.id;
-  var eventId = guestData.event?.id;
+  const guestId = guestData.guest?.id;
+  const eventId = guestData.event?.id;
   if (!guestId || !eventId) return;
   // Load QR
-  var qrUrl = window.location.origin + '/api/guests/qr/' + guestId;
+  const qrUrl = window.location.origin + '/api/guests/qr/' + guestId;
   document.getElementById('networking-qr-img').src = qrUrl;
   // Load score
   fetch(API + '/networking/' + eventId + '/guest/' + guestId + '/score').then(function(r) { return r.json(); }).then(function(data) {
@@ -173,7 +173,7 @@ function loadNetworking() {
   }).catch(function() {});
   // Load connections list
   fetch(API + '/networking/' + eventId + '/guest/' + guestId).then(function(r) { return r.json(); }).then(function(conns) {
-    var c = document.getElementById('net-connections-list');
+    const c = document.getElementById('net-connections-list');
     if (!conns || conns.length === 0) { c.innerHTML = '<p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">Aún no tienes conexiones. Escanea el QR de otros asistentes.</p>'; return; }
     c.innerHTML = conns.map(function(n) {
       return '<div onclick="openNetProfile(\'' + n.connected_guest_id + '\')" style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:10px;margin:4px 0;cursor:pointer">'
@@ -185,7 +185,7 @@ function loadNetworking() {
   }).catch(function() {});
   // A4: Sugerencias de networking
   fetch(API + '/networking/' + eventId + '/guest/' + guestId + '/suggestions').then(function(r) { return r.json(); }).then(function(sugs) {
-    var box = document.getElementById('net-suggestions-list');
+    const box = document.getElementById('net-suggestions-list');
     if (!box) return;
     if (!sugs || sugs.length === 0) { box.innerHTML = '<p style="font-size:12px;color:rgba(255,255,255,0.3);padding:10px;text-align:center">Aún no hay sugerencias. Conéctate con alguien para desbloquear recomendaciones.</p>'; return; }
     box.innerHTML = sugs.slice(0, 5).map(function(sg) {
@@ -201,8 +201,8 @@ function loadNetworking() {
 
 function connectSuggestion(toToken, name) {
   if (!guestData) return;
-  var eventId = guestData.event?.id;
-  var myToken = guestData.guest?.qr_token;
+  const eventId = guestData.event?.id;
+  const myToken = guestData.guest?.qr_token;
   fetch(API + '/networking/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ event_id: eventId, from_guest_token: myToken, to_guest_token: toToken })
   }).then(function(r) { return r.json(); }).then(function(res) {
@@ -212,7 +212,7 @@ function connectSuggestion(toToken, name) {
 }
 
 function toggleNetQR() {
-  var reader = document.getElementById('net-reader');
+  const reader = document.getElementById('net-reader');
   if (reader.style.display === 'block') {
     reader.style.display = 'none';
     if (netQrCode) { netQrCode.stop(); netQrCode = null; }
@@ -223,7 +223,7 @@ function toggleNetQR() {
     netQrCode = new Html5Qrcode('net-reader');
     netQrCode.start({ facingMode: 'environment' }, { fps: 10, qrbox: 250 },
       function(qrText) {
-        var token = qrText.split('/').pop();
+        const token = qrText.split('/').pop();
         if (token && token.length > 5) {
           handleNetQR(token);
         }
@@ -236,8 +236,8 @@ function toggleNetQR() {
 
 function handleNetQR(token) {
   if (!guestData) return;
-  var eventId = guestData.event?.id;
-  var myToken = guestData.guest?.qr_token;
+  const eventId = guestData.event?.id;
+  const myToken = guestData.guest?.qr_token;
   if (!eventId || !myToken) { alert('Error: datos de invitado no disponibles'); return; }
   if (token === myToken) { alert('¡Este es tu propio código!'); return; }
   fetch(API + '/networking/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -259,10 +259,10 @@ function handleNetQR(token) {
 // ── Álbum de fotos ──
 
 function loadPortalAlbum() {
-  var eId = guestData?.event?.id;
+  const eId = guestData?.event?.id;
   if (!eId) return;
   fetch(API + '/album/' + eId).then(function(r) { return r.json(); }).then(function(photos) {
-    var c = document.getElementById('portal-album-grid');
+    const c = document.getElementById('portal-album-grid');
     if (!photos || photos.length === 0) { c.innerHTML = '<p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px;grid-column:1/-1">Aún no hay fotos. ¡Sé el primero en subir!</p>'; return; }
     c.innerHTML = photos.map(function(p) {
       return '<div style="position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1;background:rgba(255,255,255,0.03)"><img src="' + p.url + '" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="viewPhoto(\'' + p.url + '\',\'' + escJs(p.caption||'') + '\')">'
@@ -274,11 +274,11 @@ function loadPortalAlbum() {
 
 function uploadPortalPhoto(input) {
   if (!input || !input.files || !input.files[0]) return;
-  var eId = guestData?.event?.id;
-  var token = guestData?.guest?.qr_token;
+  const eId = guestData?.event?.id;
+  const token = guestData?.guest?.qr_token;
   if (!eId || !token) { alert('Debes estar registrado'); return; }
-  var caption = document.getElementById('portal-photo-caption').value.trim();
-  var formData = new FormData();
+  const caption = document.getElementById('portal-photo-caption').value.trim();
+  const formData = new FormData();
   formData.append('photo', input.files[0]);
   formData.append('guest_token', token);
   formData.append('event_id', eId);
@@ -298,22 +298,22 @@ function uploadPortalPhoto(input) {
 }
 
 function viewPhoto(url, caption) {
-  var html = '<div style="max-width:90vw;max-height:80vh"><img src="' + url + '" style="max-width:100%;max-height:70vh;border-radius:12px">'
+  const html = '<div style="max-width:90vw;max-height:80vh"><img src="' + url + '" style="max-width:100%;max-height:70vh;border-radius:12px">'
     + (caption ? '<p style="margin-top:8px;font-size:13px;color:rgba(255,255,255,0.7)">' + escHtml(caption) + '</p>' : '') + '</div>';
   Swal.fire({ html: html, showConfirmButton: false, background: '#0f172a', backdrop: 'rgba(0,0,0,0.9)', showCloseButton: true });
 }
 
 async function load(){
-  var p=window.location.pathname.split('/'),params=new URLSearchParams(window.location.search);
-  var guestId=params.get('g');
+  const p=window.location.pathname.split('/'),params=new URLSearchParams(window.location.search);
+  const guestId=params.get('g');
   if(!guestId){document.getElementById('loading').classList.add('hidden');document.getElementById('main').innerHTML='<div style="padding:40px;text-align:center"><h2 style="color:#ef4444">Enlace inválido</h2></div>';document.getElementById('main').style.display='block';return}
   try{
-    var r=await fetch(API+'/portal/'+guestId);if(!r.ok)throw Error('No encontrado');
+    const r=await fetch(API+'/portal/'+guestId);if(!r.ok)throw Error('No encontrado');
     guestData=await r.json();
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('main').style.display='block';
 
-    var g=guestData.guest||{},ev=guestData.event||{};
+    const g=guestData.guest||{},ev=guestData.event||{};
     document.title='Portal | '+(ev.name||'Evento');
     document.getElementById('event-name-header').textContent=ev.name||'Evento';
     document.getElementById('event-date-header').textContent=ev.date?new Date(ev.date).toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'}):'';
@@ -321,12 +321,12 @@ async function load(){
     document.getElementById('guest-email').textContent=g.email||'';
 
     // Status
-    var statusEl=document.getElementById('checkin-status');
+    const statusEl=document.getElementById('checkin-status');
     if(g.checked_in){statusEl.textContent='✅ Check-in realizado';statusEl.className='status ok'}
     else{statusEl.textContent='⏳ Pendiente';statusEl.className='status pending'}
 
     // QR
-    var qrUrl=window.location.origin+'/api/guests/qr/'+guestId;
+    const qrUrl=window.location.origin+'/api/guests/qr/'+guestId;
     document.getElementById('qr-img').src=qrUrl;
 
     // Event stats
@@ -334,7 +334,7 @@ async function load(){
     document.getElementById('stat-location').textContent=ev.location||'—';
 
     // Agenda
-    var sessions=guestData.sessions||[];
+    const sessions=guestData.sessions||[];
     if(sessions.length>0){
       document.getElementById('agenda-section').style.display='block';
       document.getElementById('agenda-list').innerHTML=sessions.map(function(s){
@@ -352,20 +352,20 @@ async function load(){
       navigator.serviceWorker.register('/sw.js').catch(function(){});
       // Cache guest data for offline access
       if(guestData && guestData.guest){
-        var cacheData = { guest: guestData.guest, event: guestData.event };
+        const cacheData = { guest: guestData.guest, event: guestData.event };
         try{ localStorage.setItem('portal_guest_' + guestId, JSON.stringify(cacheData)); }catch(e){}
       }
     }
     // Online/offline detection
-    var offlineBar = document.getElementById('offline-bar');
+    const offlineBar = document.getElementById('offline-bar');
     window.addEventListener('online', function() { if(offlineBar)offlineBar.style.display='none'; });
     window.addEventListener('offline', function() { if(offlineBar)offlineBar.style.display='flex'; });
     // Check if we're offline and have cached data
     if(!navigator.onLine){
-      var cached = localStorage.getItem('portal_guest_' + guestId);
+      const cached = localStorage.getItem('portal_guest_' + guestId);
       if(cached && !guestData){
         try{
-          var cd = JSON.parse(cached);
+          const cd = JSON.parse(cached);
           document.getElementById('guest-name').textContent = cd.guest?.name || 'Invitado';
           document.getElementById('guest-email').textContent = cd.guest?.email || '';
           document.getElementById('event-name-header').textContent = cd.event?.name || 'Evento';
@@ -385,18 +385,18 @@ load();
   // M4: Perfil de networking + conexiones en común
   function openNetProfile(guestId) {
     if (!guestData) return;
-    var eventId = guestData.event?.id;
-    var myId = guestData.guest?.id;
+    const eventId = guestData.event?.id;
+    const myId = guestData.guest?.id;
     fetch(API + '/networking/profile/' + guestId + '?event_id=' + eventId).then(function(r){ return r.json(); }).then(function(prof) {
       fetch(API + '/networking/' + eventId + '/guest/' + guestId + '/mutual?other=' + myId).then(function(r){ return r.json(); }).then(function(mutual) {
-        var mutualNames = Array.isArray(mutual) ? mutual.map(function(x){ return x.name || x; }) : [];
-        var sessionsHtml = (prof.sessions || []).map(function(s2){
+        const mutualNames = Array.isArray(mutual) ? mutual.map(function(x){ return x.name || x; }) : [];
+        const sessionsHtml = (prof.sessions || []).map(function(s2){
           return '<div style="font-size:12px;color:#94a3b8">• ' + escHtml(s2.title) + (s2.start_time ? ' · ' + s2.start_time : '') + '</div>';
         }).join('') || '<div style="font-size:12px;color:rgba(255,255,255,0.3)">Sin sesiones registradas</div>';
-        var mutualHtml = mutualNames.length
+        const mutualHtml = mutualNames.length
           ? '<p style="font-size:12px;color:#34d399;margin:8px 0 2px">🤝 ' + mutualNames.length + ' conexión(es) en común: ' + escHtml(mutualNames.slice(0,5).join(', ')) + (mutualNames.length>5?'…':'') + '</p>'
           : '<p style="font-size:12px;color:rgba(255,255,255,0.3);margin:8px 0 2px">Sin conexiones en común</p>';
-        var ov = document.createElement('div');
+        const ov = document.createElement('div');
         ov.id = 'net-profile-overlay';
         ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
         ov.innerHTML = '<div style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:16px;max-width:380px;width:100%;padding:24px;color:#e2e8f0">'

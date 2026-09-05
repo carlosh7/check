@@ -98,7 +98,7 @@
                 // Fallback: promedio como rating general
                 let totalRating = 0;
                 let count = 0;
-                for (let value of formData.values()) {
+                for (const value of formData.values()) {
                     if (!isNaN(value)) { totalRating += parseInt(value); count++; }
                 }
                 payload = { responses: { general_rating: count > 0 ? Math.round(totalRating / count) : 5 }, comment: comment };

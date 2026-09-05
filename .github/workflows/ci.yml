@@ -34,7 +34,7 @@ jobs:
         run: npm test -- --runInBand
 
       - name: Lint (baseline progresiva — bajar al limpiar código)
-        run: npx eslint . --max-warnings=2100  # tramo 1 (2083 actuales) → tramo 2: 1000 → 500 → 100 → 0
+        run: npx eslint . --max-warnings=550  # tramo 2 (v12.44.805, 538 actuales) → tramo 3: refactor require-await/no-await-in-loop/vars sin uso
 
   secrets:
     name: Detección de secretos filtrados

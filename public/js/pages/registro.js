@@ -1,38 +1,38 @@
         const API_URL = '/api';
         let eventData = null;
         let categories = [];
-        let cart = {};
+        const cart = {};
 
         function updateCart(catId, delta) {
             cart[catId] = Math.max(0, (cart[catId] || 0) + delta);
-            var el = document.getElementById('qty-' + catId);
+            const el = document.getElementById('qty-' + catId);
             if (el) el.textContent = cart[catId] || 0;
             updateCartTotal();
         }
-        var _appliedCoupon = null;
+        let _appliedCoupon = null;
         function updateCartTotal() {
-            var total = 0; var hasItems = false;
+            let total = 0; let hasItems = false;
             categories.forEach(function(c) {
-                var qty = cart[c.id] || 0;
+                const qty = cart[c.id] || 0;
                 if (qty > 0) { total += c.price * qty; hasItems = true; }
             });
             document.getElementById('coupon-section').classList.toggle('hidden', !hasItems);
-            var totalEl = document.getElementById('cart-total');
-            var summaryEl = document.getElementById('payment-summary');
-            var btn = document.getElementById('submit-btn');
+            const totalEl = document.getElementById('cart-total');
+            const summaryEl = document.getElementById('payment-summary');
+            const btn = document.getElementById('submit-btn');
             if (totalEl) { totalEl.classList.toggle('hidden', !hasItems); totalEl.textContent = 'Total: $' + total.toFixed(2) + ' ' + (eventData?.currency || 'USD'); }
             if (summaryEl) summaryEl.classList.toggle('hidden', !hasItems);
             if (btn) btn.textContent = hasItems ? 'Pagar con Stripe' : 'Confirmar Registro';
             _appliedCoupon = null; document.getElementById('coupon-result').classList.add('hidden');
         }
         async function applyCoupon() {
-            var code = document.getElementById('coupon-input')?.value.trim();
+            const code = document.getElementById('coupon-input')?.value.trim();
             if (!code) return;
-            var items = []; categories.forEach(function(c) { var q = cart[c.id] || 0; if (q > 0) items.push({ category_id: c.id, quantity: q }); });
+            const items = []; categories.forEach(function(c) { const q = cart[c.id] || 0; if (q > 0) items.push({ category_id: c.id, quantity: q }); });
             try {
-                var r = await fetch(API_URL + '/events/' + eventData.id + '/coupons/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: code, items: items }) });
-                var d = await r.json();
-                var el = document.getElementById('coupon-result');
+                const r = await fetch(API_URL + '/events/' + eventData.id + '/coupons/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: code, items: items }) });
+                const d = await r.json();
+                const el = document.getElementById('coupon-result');
                 if (d.valid) {
                     _appliedCoupon = code;
                     el.className = 'text-xs mt-1 text-green-400';
@@ -44,7 +44,7 @@
 
         // Check if returning from payment
         (function() {
-            var params = new URLSearchParams(window.location.search);
+            const params = new URLSearchParams(window.location.search);
             if (params.get('success') === '1') {
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('main-content').classList.remove('hidden');
@@ -111,11 +111,11 @@
                 // Load categories and check payment
                 if (eventData.payment_required) {
                     try {
-                        var catRes = await fetch(API_URL + '/guests/' + eventData.id + '/categories');
+                        const catRes = await fetch(API_URL + '/guests/' + eventData.id + '/categories');
                         if (catRes.ok) {
                             categories = await catRes.json();
-                            var catContainer = document.getElementById('field-category');
-                            var cartDiv = document.getElementById('cart-items');
+                            const catContainer = document.getElementById('field-category');
+                            const cartDiv = document.getElementById('cart-items');
                             if (categories && categories.length > 0 && cartDiv) {
                                 catContainer.classList.remove('hidden');
                                 cartDiv.innerHTML = categories
@@ -230,7 +230,7 @@
                 const depEl = document.querySelector(`[name="cf-${f.show_if_field_id}"]`);
                 const wrapEl = document.querySelector(`[data-field-id="${f.id}"]`);
                 if (!depEl || !wrapEl) return;
-                let val = depEl.type === 'checkbox' ? (depEl.checked ? 'true' : '') : (depEl.value || '');
+                const val = depEl.type === 'checkbox' ? (depEl.checked ? 'true' : '') : (depEl.value || '');
                 const show = f.show_if_value === '*' ? !!val : val === f.show_if_value;
                 wrapEl.classList.toggle('hidden', !show);
                 if (!show) { depEl.value = ''; if (depEl.type === 'checkbox') depEl.checked = false; }
@@ -298,20 +298,20 @@
 
             // F4: campos personalizados + acompañantes
             body.custom_fields = collectCustomFields();
-            var _pos = collectPlusOnes();
+            const _pos = collectPlusOnes();
             if (_pos.length > 0) body.plus_ones = _pos;
 
             // Payment flow (cart)
-            var cartItems = [];
+            const cartItems = [];
             categories.forEach(function(c) {
-                var qty = cart[c.id] || 0;
+                const qty = cart[c.id] || 0;
                 if (qty > 0) cartItems.push({ category_id: c.id, quantity: qty });
             });
             if (eventData.payment_required && cartItems.length > 0) {
                 try {
-                    var checkoutBody = { name: body.name, email: body.email, items: cartItems };
+                    const checkoutBody = { name: body.name, email: body.email, items: cartItems };
                     if (_appliedCoupon) checkoutBody.coupon_code = _appliedCoupon;
-                    var checkoutRes = await fetch(API_URL + '/events/' + eventData.id + '/checkout-session', {
+                    const checkoutRes = await fetch(API_URL + '/events/' + eventData.id + '/checkout-session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(checkoutBody)
@@ -320,7 +320,7 @@
                     // (presente desde v12.44.712) que cerraba la arrow del submit
                     // antes de tiempo y dejaba TODO el script sin parsear: el
                     // formulario público de registro quedaba muerto en "loading".
-                    var checkoutData = await checkoutRes.json();
+                    const checkoutData = await checkoutRes.json();
                     if (checkoutData.success && checkoutData.url) {
                         window.location.href = checkoutData.url;
                         return;
