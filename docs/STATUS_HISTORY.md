@@ -32,8 +32,14 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 - **Restricción CSP**: scriptSrcAttr/styleSrc no se pueden retirar sin modularizar app.js —
   los handlers inline se generan dinámicamente en strings HTML (innerHTML) en todo el monolito.
 
+### Resolución de P3-7 (adenda, v12.44.807)
+Decisión del operador: aplicar lo recomendado. Chips de borrador y filtros muertos eliminados;
+permisos de usuarios verificados server-side (no había agujero); **seat-layouts valida ahora que
+las filas quepan en la sala** (400 con mensaje claro en vez de plano desbordado). Deploy y
+validación en producción OK.
+
 ### Estado de tests
-300/301 (17 suites; +1 test de 2FA wizard). ESLint 0 errores / 504 warnings.
+300/301 (17 suites; +1 test de 2FA wizard). ESLint 0 errores / 499 warnings.
 
 ---
 
