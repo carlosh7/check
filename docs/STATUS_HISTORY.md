@@ -6,6 +6,33 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-06 — Duplicados en App, CVEs a 0, tramo 4 ESLint, auto-deploy (v12.44.808)
+
+### Completado
+- **P3-8 (hallazgo nuevo, crítico para deuda)**: 6 métodos definidos dos veces en el objeto App
+  (fetchAPI, deleteEvent, deleteSurveyQuestion, switchEventTab, _confirmAction, loadMailingData) —
+  la segunda definición sombreaba a la primera. Verificado caso por caso que la tardía (la viva)
+  es la evolucionada; eliminadas las tempranas (comportamiento preservado). El guard
+  `typeof Swal === 'undefined'` del _confirmAction temprano se fusionó en la tardía.
+- **CVEs: 0 vulnerabilidades** (antes 5 moderadas): override uuid ≥11.1.1 en package.json para
+  forzar exceljs/gaxios/googleapis-common fuera de la versión vulnerable (todas usan solo uuid.v4).
+- **Tramo 4 ESLint**: 504 → 455 warnings, 0 errores. 26 handlers backend de-async (Express 5
+  captura throws síncronos), var→let en 18 líneas seguras, initializers muertos fuera. Se
+  CONSERVAN con decisión documentada: require-await en frontend/SDK (contrato público async),
+  no-await-in-loop (escrituras SQLite secuenciales intencionales), 16 var con hoisting real
+  entre bloques (convertir a let rompería el flujo), no-unused-vars restantes (requires con
+  efectos de carga por orden de inicialización).
+- **C6-14 auto-deploy (código listo)**: /api/deploy/webhook ahora soporta modo script
+  (DEPLOY_SCRIPT_PATH) para hosts sin Portainer, con logs en deploy_logs; script
+  scripts/vps-redeploy.sh creado. ACTIVACIÓN PENDIENTE DEL OPERADOR: requiere dar al contenedor
+  acceso al host (socket docker o servicio host) — decisión de seguridad, no montado por defecto.
+
+### Estado de tests
+300/301 (17 suites). ESLint 0 errores / 455 warnings. Deploy v12.44.808 en VPS validado
+(versión servida, health, CSP, auth 401).
+
+---
+
 ## 2026-09-05 (parte 3) — Tramo 3 ESLint + Wizard 2FA + decisiones arquitectónicas (v12.44.806)
 
 ### Completado
