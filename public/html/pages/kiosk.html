@@ -4,57 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Kiosko | Check Pro</title>
-<style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center}
-#app{width:100%;max-width:500px;padding:24px;text-align:center}
-.logo{margin-bottom:24px}
-.logo h1{font-size:24px;font-weight:800;color:#a78bfa}
-.logo p{font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px}
-.search-box{position:relative;margin-bottom:16px}
-.search-box input{width:100%;padding:16px 20px;border-radius:16px;border:2px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:#fff;font-size:18px;font-weight:500;outline:none;text-align:center;transition:border-color .2s}
-.search-box input:focus{border-color:#a78bfa}
-.search-box input::placeholder{color:rgba(255,255,255,0.2)}
-.qr-section{margin:16px 0}
-.qr-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;border-radius:16px;border:2px dashed rgba(255,255,255,0.1);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.4);font-size:15px;cursor:pointer;transition:all .2s}
-.qr-btn:hover{border-color:#a78bfa;color:#a78bfa}
-.qr-btn .icon{font-size:24px}
-#reader{display:none;margin:16px 0;border-radius:16px;overflow:hidden}
-#reader video{border-radius:16px;width:100%}
-.results{margin-top:8px;text-align:left}
-.result-item{display:flex;align-items:center;justify-content:space-between;padding:16px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);margin-bottom:6px;cursor:pointer;transition:all .2s}
-.result-item:hover{background:rgba(124,58,237,0.1);border-color:#a78bfa}
-.result-item .info .name{font-size:15px;font-weight:600;color:#e2e8f0}
-.result-item .info .detail{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px}
-.result-item .status{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600}
-.result-item .status.done{background:rgba(16,185,129,0.15);color:#34d399}
-.result-item .status.pending{background:rgba(251,191,36,0.15);color:#fbbf24}
-.result-item.disabled{opacity:0.4;pointer-events:none}
-.confirm-screen{display:none;padding:24px}
-.confirm-screen .icon{font-size:48px;margin-bottom:16px}
-.confirm-screen .name{font-size:22px;font-weight:700;color:#e2e8f0;margin-bottom:4px}
-.confirm-screen .detail{font-size:14px;color:rgba(255,255,255,0.4);margin-bottom:24px}
-.confirm-screen .checkin-btn{width:100%;padding:18px;border:none;border-radius:16px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;font-size:17px;font-weight:700;cursor:pointer;margin-bottom:8px;transition:transform .1s}
-.confirm-screen .checkin-btn:active{transform:scale(0.97)}
-.confirm-screen .cancel-btn{background:none;border:none;color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer;padding:8px}
-.success-screen{display:none;padding:40px 24px}
-.success-screen .icon{font-size:64px;margin-bottom:16px;display:block;animation:pop .3s ease}
-@keyframes pop{0%{transform:scale(0)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
-.success-screen .name{font-size:24px;font-weight:700;color:#34d399;margin-bottom:4px}
-.success-screen .detail{font-size:14px;color:rgba(255,255,255,0.4)}
-.success-screen .timer{font-size:60px;font-weight:800;color:#a78bfa;margin-top:24px}
-.already-screen{display:none;padding:40px 24px}
-.already-screen .icon{font-size:48px;margin-bottom:16px}
-.already-screen .name{font-size:20px;font-weight:600;color:#fbbf24;margin-bottom:4px}
-.error-msg{color:#ef4444;font-size:13px;margin-top:8px;display:none}
-.stats{display:flex;gap:12px;margin:16px 0;justify-content:center}
-.stats-item{padding:10px 16px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
-.stats-item .num{font-size:20px;font-weight:700;color:#a78bfa;display:block}
-.stats-item .lbl{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-top:2px}
-@media(max-width:480px){#app{padding:16px}.search-box input{font-size:16px}}
-#reset-timer{font-size:13px;color:rgba(255,255,255,0.2);margin-top:32px;transition:color .2s;cursor:pointer;display:none}
-#reset-timer:hover{color:rgba(255,255,255,0.5)}
-</style>
+<link rel="stylesheet" href="/css/pages/kiosk-page.css?v=12.44.810">
 </head>
 <body role="document" aria-label="Kiosko de check-in">
 <div id="app">
@@ -110,6 +60,6 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
-<script src="/js/pages/kiosk.js?v=12.44.809"></script>
+<script src="/js/pages/kiosk.js?v=12.44.810"></script>
 </body>
 </html>

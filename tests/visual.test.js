@@ -56,6 +56,21 @@ describe('CSP guard: páginas sin scripts inline (v12.44.804)', () => {
         }
     });
 
+    // v12.44.810: styleSrc ya no permite 'unsafe-inline' para ELEMENTOS <style>
+    // (los atributos style="" siguen permitidos vía styleSrcAttr). Este guard
+    // evita que vuelva a meterse un <style> inline que la CSP bloquearía.
+    test.each(HTML_PAGES)('%s no tiene <style> inline (CSP styleSrc estricta)', (rel) => {
+        const html = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+        const re = /<style\b([^>]*)>([\s\S]*?)<\/style>/g;
+        let m;
+        while ((m = re.exec(html))) {
+            expect({ file: rel, inlineStyle: m[2].trim().slice(0, 80) }).toEqual({
+                file: rel,
+                inlineStyle: '',
+            });
+        }
+    });
+
     test.each(HTML_PAGES)('%s: todos los recursos locales existen', (rel) => {
         const html = fs.readFileSync(path.join(ROOT, rel), 'utf8');
         for (const ref of localRefs(html)) {

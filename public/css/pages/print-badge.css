@@ -1,0 +1,8 @@
+/* Ventanas de impresión de gafetes (v12.44.810).
+   Antes eran <style> inline en document.write de app.js — la CSP ya no permite
+   elementos <style> inline. El @page dinámico por tamaño de gafete se inyecta
+   por CSSOM (adoptedStyleSheets), que no está sujeto a style-src. */
+body { margin: 0; padding: 20px; display: flex; justify-content: center; }
+body.batch { padding: 0; display: block; }
+@media print { body { padding: 0; } }
+img { max-width: 100%; }

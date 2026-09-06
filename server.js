@@ -193,15 +193,21 @@ app.use(helmet({
     // Fase 2026-08: endurecido gradualmente (P2-3): frameSrc acotado, CDNs minimizados.
     // Fase 2026-09 (P2-3 parcial): scriptSrc SIN 'unsafe-inline' — todos los
     // <script> inline de las páginas se externalizaron a /js/pages/*.js.
-    // Deuda documentada restante: scriptSrcAttr y styleSrc mantienen
-    // 'unsafe-inline' hasta migrar los ~450 atributos onclick/style de app-shell.html.
+    // v12.44.810 (P2-3): styleSrc SIN 'unsafe-inline' — los 11 bloques <style>
+    // inline se externalizaron a /css/pages/*.css y las ventanas de impresión
+    // de gafetes usan CSS externo + @page por CSSOM (no sujeto a CSP).
+    // Deuda restante documentada: scriptSrcAttr y styleSrcAttr mantienen
+    // 'unsafe-inline' por los ~450 atributos onclick/style de app-shell.html
+    // y los handlers/estilos generados dinámicamente en strings de app.js —
+    // se retiran con la modularización del monolito.
     contentSecurityPolicy: {
         useDefaults: true,
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
             scriptSrcAttr: ["'unsafe-inline'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+            styleSrc: ["'self'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+            styleSrcAttr: ["'unsafe-inline'"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
             imgSrc: ["'self'", "data:", "https:", "blob:"],
             connectSrc: ["'self'", "wss:", "https:"],

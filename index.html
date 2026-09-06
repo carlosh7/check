@@ -11,15 +11,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="/css/modules/base.css?v=12.44.809">
+  <link rel="stylesheet" href="/css/modules/base.css?v=12.44.810">
   <!-- FIX v12.44.801: el app-shell se inyecta aquí dentro; necesita TODOS los módulos CSS -->
-  <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.809">
-  <link rel="stylesheet" href="/css/modules/components.css?v=12.44.809">
-  <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.809">
-  <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.809">
-  <link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.809">
-  <link rel="stylesheet" href="/css/modules/login.css?v=12.44.809">
-  <style>.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;min-width:44px;min-height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border-radius:6px}.password-toggle:hover{color:var(--text-primary);background:var(--bg-hover)}.password-toggle .material-symbols-outlined{font-size:20px}</style>
+  <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.810">
+  <link rel="stylesheet" href="/css/modules/components.css?v=12.44.810">
+  <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.810">
+  <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.810">
+  <link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.810">
+  <link rel="stylesheet" href="/css/modules/login.css?v=12.44.810">
+  <link rel="stylesheet" href="/css/pages/login-page.css?v=12.44.810">
 </head>
 <body>
     <a href="#form-login" class="skip-to-content">Ir al formulario de acceso</a>
@@ -213,8 +213,9 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5"></script>
-  <script src="/js/pages/password-toggle.js?v=12.44.809"></script>
-  <script type="module" src="/js/app.js?v=12.44.809"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.min.css"><!-- v12.44.810: CSS externo — la CSP ya no permite el <style> que Swal inyecta -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5"></script>
+  <script src="/js/pages/password-toggle.js?v=12.44.810"></script>
+  <script type="module" src="/js/app.js?v=12.44.810"></script>
 </body>
 </html>

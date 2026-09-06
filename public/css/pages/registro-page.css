@@ -1,0 +1,14 @@
+        :root {
+            --color-primary: #7c3aed;
+            --color-primary-light: #a78bfa;
+            --color-primary-dark: #5b21b6;
+        }
+
+        input[type="radio"] { accent-color: #7c3aed; }
+        #policy-text h2 { color: #f8fafc; font-weight: 800; font-size: 14px; margin-bottom: 8px; margin-top: 12px; }
+        #policy-text p { margin-bottom: 8px; }
+        #policy-text ul, #policy-text ol { padding-left: 18px; margin-bottom: 8px; list-style: inherit; }
+        #policy-text b, #policy-text strong { color: #a78bfa; font-weight: 700; }
+        .registro-payment-summary { background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(168,85,247,0.05)); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; padding: 16px; text-align: center; }
+        .registro-payment-amount { font-size: 24px; font-weight: 800; color: #a78bfa; display: block; }
+        .registro-payment-desc { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; }
