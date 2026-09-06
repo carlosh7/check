@@ -6,6 +6,32 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-06 (parte 2) — Deuda CSS estructural resuelta: estilos externalizados + CSP styleSrc estricta (v12.44.810)
+
+### Qué se hizo
+- **11 bloques <style> inline extraídos** (9 páginas, ~31KB) a /css/pages/*.css byte-exact
+  preservando el orden de cascada: login-page, shell-page, calendar/kiosk/landing/portal/
+  registro/ticket/wheel-page + print-badge (impresión de gafetes). Ahora cacheables,
+  versionados y auditables.
+- **CSP styleSrc SIN 'unsafe-inline'** (elementos <style>): un atacante que logre inyección
+  HTML ya no puede meter hojas de estilo arbitrarias. Queda styleSrcAttr documentado para
+  atributos style="" (los genera app.js dinámicamente — ligado a su modularización).
+- **Ventanas de impresión de gafetes** (3 document.write en app.js): CSS externo +
+  @page dinámico por CSSOM (adoptedStyleSheets — no sujeto a CSP).
+- **SweetAlert2**: su <style> inyectado quedaba BLOQUEADO por la CSP nueva (regresión
+  detectada y corregida en verificación): CSS oficial 11.14.5 cargado por link desde
+  jsdelivr en index/app-shell/portal; popups verificados estilizados (512px/radius 5px).
+- **Guardián anti-regresión**: tests/visual.test.js ahora prohíbe <style> inline en todas
+  las páginas (10 tests nuevos — misma lógica que ya existía para <script>).
+
+### Verificación
+Navegador: hojas /css/pages/ cargadas con reglas aplicándose en las 9 páginas, 0 estilos
+inline vivos, Swal estilizado, sin overflow móvil (375px). Producción: style-src sin
+unsafe-inline en headers, CSS servido (200), wheel.html sin <style> inline, render y
+flujo de error de registro verificados en vivo. Suite 310/311.
+
+---
+
 ## 2026-09-06 — Auditoría responsive móvil/tablet + fixes UI/UX (v12.44.809)
 
 ### Metodología
