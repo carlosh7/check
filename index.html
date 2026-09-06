@@ -11,14 +11,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="/css/modules/base.css?v=12.44.806">
+  <link rel="stylesheet" href="/css/modules/base.css?v=12.44.807">
   <!-- FIX v12.44.801: el app-shell se inyecta aquí dentro; necesita TODOS los módulos CSS -->
-  <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.806">
-  <link rel="stylesheet" href="/css/modules/components.css?v=12.44.806">
-  <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.806">
-  <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.806">
-  <link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.806">
-  <link rel="stylesheet" href="/css/modules/login.css?v=12.44.806">
+  <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.807">
+  <link rel="stylesheet" href="/css/modules/components.css?v=12.44.807">
+  <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.807">
+  <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.807">
+  <link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.807">
+  <link rel="stylesheet" href="/css/modules/login.css?v=12.44.807">
   <style>.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:6px}.password-toggle:hover{color:var(--text-primary);background:var(--bg-hover)}.password-toggle .material-symbols-outlined{font-size:20px}</style>
 </head>
 <body>
@@ -159,7 +159,7 @@
           </div>
           <div class="form-group">
             <label class="form-label" for="setup-email">Email</label>
-            <!-- v12.44.806: autocomplete="username" + name — así Chrome sugiere/guarda la clave asociada a este usuario -->
+            <!-- v12.44.807: autocomplete="username" + name — así Chrome sugiere/guarda la clave asociada a este usuario -->
             <input type="email" id="setup-email" name="email" class="input" placeholder="tu@email.com" autocomplete="username" required>
           </div>
           <div class="form-group">
@@ -186,12 +186,12 @@
       <div id="setup-step-3" class="hidden">
         <h1 class="login-title">¡Todo listo!</h1>
         <p class="login-subtitle">Tu cuenta de administrador fue creada. Ahora inicia sesión con tu email y tu nueva contraseña.</p>
-        <!-- v12.44.806: paso opcional de 2FA recomendado -->
+        <!-- v12.44.807: paso opcional de 2FA recomendado -->
         <button type="button" id="setup-2fa-offer-btn" class="btn btn-primary btn-lg w-full">Proteger con 2FA (recomendado)</button>
         <button type="button" id="setup-done-btn" class="btn btn-secondary btn-lg w-full" style="margin-top:10px">Ir al inicio de sesión</button>
       </div>
 
-      <!-- Paso 4 (v12.44.806): 2FA opcional — usa el token de la creación del primer admin -->
+      <!-- Paso 4 (v12.44.807): 2FA opcional — usa el token de la creación del primer admin -->
       <div id="setup-step-4" class="hidden">
         <h1 class="login-title">Protege tu cuenta con 2FA</h1>
         <p class="login-subtitle">Escanea el código QR con tu app de autenticación (Google Authenticator, Authy…) e ingresa el código de 6 dígitos.</p>
@@ -214,7 +214,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5"></script>
-  <script src="/js/pages/password-toggle.js?v=12.44.806"></script>
-  <script type="module" src="/js/app.js?v=12.44.806"></script>
+  <script src="/js/pages/password-toggle.js?v=12.44.807"></script>
+  <script type="module" src="/js/app.js?v=12.44.807"></script>
 </body>
 </html>

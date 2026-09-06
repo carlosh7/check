@@ -42,7 +42,7 @@ import { AiSecurity } from './modules/features/ai-security.js?v=12.44.765';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.806';
+const VERSION = '12.44.807';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -1719,19 +1719,9 @@ const App = window.App = {
         if (tbody) {
             tbody.innerHTML = filtered.map(c => {
                 const clientEvents = c.events || [];
-                const eventChips = clientEvents.map(e => `
-                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                        ${App.esc(e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name)}
-                    </span>
-                `).join('');
-                
+
                 const clientStaff = c.staff || [];
-                const staffChips = clientStaff.map(u => `
-                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                        ${App.esc(u.display_name || u.username)}
-                    </span>
-                `).join('');
-                
+
                 return `
                 <tr class="user-row-premium">
                     <td class="px-4 py-3" style="width: 40px;">
@@ -4213,11 +4203,6 @@ const App = window.App = {
         
         // Obtener eventos y grupos del usuario actual
         const userGroupId = this.state.user.group_id;
-        const userEvents = this.state.allEvents?.filter(e => e.user_id === this.state.user.userId) || [];
-        this.state.allGroups?.filter(g => {
-            // Usuarios pertenece a este grupo
-            return groups.some(ug => ug.user_id === this.state.user.userId && ug.group_id === g.id);
-        })?.map(g => g.id) || [];
         
         // PRODUCTOR solo ve usuarios de su empresa
         if (isProductor && userGroupId) {
@@ -4264,8 +4249,6 @@ const App = window.App = {
             }
 
             tbody.innerHTML = users.map((u) => {
-                isAdmin || (isProductor && u.role !== 'ADMIN');
-                
                 // --- CHECKBOX DE SELECCIÓN ---
                 const checkbox = `<input type="checkbox" class="user-checkbox" data-user-id="${u.id}" style="width: 18px; height: 18px; cursor: pointer;" onchange="App.toggleUserSelection('${u.id}')" ${this.state.selectedUsers?.includes(u.id) ? 'checked' : ''}>`;
                 

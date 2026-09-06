@@ -84,6 +84,7 @@ router.get('/:eventId/:layoutId/render', authMiddleware(), (req, res) => {
         const seats = generateSeats(cfg);
         res.json({ layout: { id: layout.id, name: layout.name, config: cfg }, seats });
     } catch (err) {
+        if (err.statusCode === 400) return res.status(400).json({ error: err.message });
         logger.error('[SEAT_LAYOUTS] Error:', err.message);
         res.status(500).json({ error: 'Error al renderizar plano' });
     }
@@ -109,6 +110,14 @@ function generateAuditorium(cfg) {
     const totalW = (cols - 1) * (seatSize + gap);
     const startX = marginX + (roomW - marginX * 2 - totalW) / 2;
     const usableH = roomH - marginY - 0.6;
+    // v12.44.807 (P3-7): validación que faltaba — si las filas no caben en el
+    // largo útil de la sala, el plano se dibujaba desbordado sin aviso.
+    const neededH = rows * (seatSize + gap);
+    if (neededH > usableH + 1e-9) {
+        const fitErr = new Error(`Las filas no caben en la sala: ${rows} filas necesitan ~${neededH.toFixed(2)} m y el largo útil es de ${usableH.toFixed(2)} m. Reduce filas o aumenta el largo de la sala.`);
+        fitErr.statusCode = 400;
+        throw fitErr;
+    }
     for (let r = 0; r < rows; r++) {
         const label = rowLabels[r] || ('R' + (r + 1));
         let colCount = 0;
