@@ -42,6 +42,14 @@
 .survey-label-click {
     cursor: pointer;
     padding: 8px 12px;
+    /* v12.44.809: touch target mínimo 44px (Apple HIG / Material) — antes los
+       radios de valoración eran impossible-taps de ~20px en móvil */
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     border-radius: var(--radius-md);
     transition: all var(--transition-fast);
 }

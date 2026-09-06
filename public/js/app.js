@@ -7,42 +7,42 @@ window.escapeHtml = function(str) {
 };
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.804';
-import { Config } from './modules/core/Config.js?v=12.44.804';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.804';
-import { AppStateManager } from './modules/core/State.js?v=12.44.804';
-import { Constants } from './modules/utils/Constants.js?v=12.44.804';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.804';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.804';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.804';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.804';
-import { TableManager } from './modules/components/Table.js?v=12.44.804';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.804';
-import { FormManager } from './modules/components/Form.js?v=12.44.804';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.804';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.804';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.804';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.804';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.804';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.804';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.804';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.804';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.804';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.804';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.809';
+import { Config } from './modules/core/Config.js?v=12.44.809';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.809';
+import { AppStateManager } from './modules/core/State.js?v=12.44.809';
+import { Constants } from './modules/utils/Constants.js?v=12.44.809';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.809';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.809';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.809';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.809';
+import { TableManager } from './modules/components/Table.js?v=12.44.809';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.809';
+import { FormManager } from './modules/components/Form.js?v=12.44.809';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.809';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.809';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.809';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.809';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.809';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.809';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.809';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.809';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.809';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.809';
 
 // Módulos cableados en v12.44.804 (respaldo de v12.44.802, antes sin usar)
-import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.804';
-import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.804';
-import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.804';
+import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.809';
+import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.809';
+import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.809';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.804';
-import PushModule from './modules/app-push.js?v=12.44.804';
-import ThemeModule from './modules/app-theme.js?v=12.44.804';
-import { AiSecurity } from './modules/features/ai-security.js?v=12.44.765';
+import ImportExportModule from './modules/app-import.js?v=12.44.809';
+import PushModule from './modules/app-push.js?v=12.44.809';
+import ThemeModule from './modules/app-theme.js?v=12.44.809';
+import { AiSecurity } from './modules/features/ai-security.js?v=12.44.809';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.808';
+const VERSION = '12.44.809';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -10972,7 +10972,7 @@ navigate(viewName, params = {}, push = true) {
     _gm: null,
     async _g() {
         if (!this._gm) {
-            const m = await import('./modules/app-gamification.js?v=12.44.759');
+            const m = await import('./modules/app-gamification.js?v=12.44.809');
             this._gm = m.default || window.GamificationModule || {};
             // Bind App reference for module functions that use window.App
             if (this._gm._init) this._gm._init();

@@ -15,10 +15,10 @@
                         // Booleana (Sí/No) — valores 5/1 mantienen compatibilidad con dashboard
                         inputHtml = `
                             <div style="display: flex; gap: 2rem; justify-content: center; margin: 1rem 0;">
-                                <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+                                <label style="cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 0.5rem; font-size: 1.1rem;">
                                     <input type="radio" name="q-${q.id}" value="5" required style="width: 20px; height: 20px;"> ✅ ${q.options[0].label}
                                 </label>
-                                <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+                                <label style="cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 0.5rem; font-size: 1.1rem;">
                                     <input type="radio" name="q-${q.id}" value="1" required style="width: 20px; height: 20px;"> ❌ ${q.options[1].label}
                                 </label>
                             </div>
@@ -27,7 +27,7 @@
                         inputHtml = `
                             <div style="display: flex; gap: 1rem; justify-content: center; margin: 1rem 0;">
                                 ${[1,2,3,4,5].map(v => `
-                                    <label style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.25rem;">
+                                    <label style="cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 0.25rem;">
                                         <input type="radio" name="q-${q.id}" value="${v}" required>
                                         <span style="font-size: 0.8rem;">${v}★</span>
                                     </label>
@@ -38,7 +38,7 @@
                         inputHtml = `
                             <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; margin: 1rem 0;">
                                 ${q.options.map(o => `
-                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem; font-size: 1rem;">
+                                    <label style="cursor: pointer; display: flex; align-items: center; min-height: 44px; gap: 0.4rem; font-size: 1rem;">
                                         <input type="radio" name="q-${q.id}" value="${o.label.replace(/"/g, '&quot;')}" required> ${o.label}
                                     </label>
                                 `).join('')}
@@ -71,7 +71,7 @@
                         <label style="font-size: 1.1rem; font-weight: 600;">¿Cómo calificarías tu experiencia general?</label>
                         <div style="display: flex; gap: 1rem; justify-content: center; margin: 1.5rem 0;">
                             ${[1,2,3,4,5].map(v => `
-                                <label style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.25rem;">
+                                <label style="cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 0.25rem;">
                                     <input type="radio" name="rating" value="${v}" required>
                                     <span style="font-size: 0.8rem;">${v}★</span>
                                 </label>
