@@ -6,6 +6,40 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-06 — Auditoría responsive móvil/tablet + fixes UI/UX (v12.44.809)
+
+### Metodología
+Matriz 9 páginas (login, shell/admin, registro, ticket, survey, kiosk, wheel, portal, landing) ×
+2 viewports (375×812 móvil, 768×1024 tablet) en navegador real, midiendo overflow horizontal,
+elementos desbordados, touch targets (<40px), viewport meta efectivo y layout real. Admin probado
+con sesión ADMIN autenticada (sidebar, vistas).
+
+### Hallazgos y fixes (todos verificados en navegador + producción)
+1. **app-shell.html sin meta viewport** (fragmento sin <head>): el admin completo en móvil/tablet
+   renderizaba layout de 980px escalado (texto ilegible). Fix: meta viewport en el fragmento.
+   Verificado: layout 375 real, sidebar off-canvas funcional (hamburguesa abre drawer de 375px),
+   sin overflow en móvil ni tablet.
+2. **wheel: panel de config de 320px fijos desbordaba +26px** en móvil. Fix: media query ≤768px
+   apila el panel sobre la ruleta, canvas acotado a min(92vw,--ws), botones de opciones 44px.
+3. **survey: radios de valoración con targets de 13-20px** (imposible-tap): CSS estático a 44px +
+   5 labels generados por JS parcheados. Verificado 44x44 en navegador.
+4. **portal bloqueaba el zoom** (user-scalable=no — anti-patrón accesibilidad en el teléfono del
+   invitado). Habilitado. Kiosk se mantiene sin zoom (tablet dedicada, deliberado).
+5. **login: botón mostrar-contraseña** con área táctil 44px (antes ~28px).
+6. **Cache-busting inconsistente**: 65 referencias ?v= mezclaban 6 versiones (496→808) — los
+   invitados podían recibir CSS viejo de caché. Unificadas a 12.44.809.
+
+### Análisis CSS (sano en general)
+- Sistema modular css/modules/ con breakpoints 640/768/1024 coherentes; tablas admin con
+  .table-scroll overflow-x:auto ✓; páginas públicas mayormente fluidas sin overflow.
+- Deuda conocida: registro/ticket/survey usan CSS inline propio sin media queries (funcionan por
+  diseño fluido, pero heredan frágil); styleSrc CSP aún con unsafe-inline (ligado a modularización).
+
+Tests 300/301 · ESLint 0 errores · deploy v12.44.809 en VPS validado (versión, health, viewport,
+fixes wheel/survey servidos).
+
+---
+
 ## 2026-09-06 — Duplicados en App, CVEs a 0, tramo 4 ESLint, auto-deploy (v12.44.808)
 
 ### Completado
