@@ -6,7 +6,7 @@ const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
 
-const BASE_URL = 'http://localhost:3001';
+const BASE_URL = 'http://localhost:3000'; // v12.44.814: era 3001 (puerto del 3d-planner)
 const SCREENSHOT_DIR = path.join(__dirname, '..', 'screenshots');
 
 // v12.44.802: credenciales SOLO desde entorno (sin defaults expuestos)

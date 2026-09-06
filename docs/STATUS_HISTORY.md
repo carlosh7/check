@@ -6,6 +6,27 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-06 (parte 5) — Transitorio BI eliminado + deudas menores (v12.44.814)
+
+### Transitorio de carga (causa raíz encontrada y fijada)
+Muestreo temporal (50/150/300/600/1200ms) al cambiar de tab: el 100% de los desbordes
+transitorios eran **canvas de gráficos del dashboard BI** dentro de `.card p-4` — se renderizan
+con su ancho inherente (hasta 477px sobre vw=310) hasta que Chart.js re-escala. Los otros 3
+tabs (account/activity/compliance) ya estaban limpios con el wrap del 813.
+Fix: `.app-main-content canvas { max-width: 100%; height: auto }` — el canvas nace clavado al
+contenedor desde el primer frame. Re-muestreo post-fix: **0 desbordes en las 5 muestras**.
+
+### Otras deudas cerradas
+- **P3-3 residual**: console.log del plugin-engine (Loaded/Seeded) → logger estructurado
+  (los console.log dentro de los scripts de plugins demo son intencionales; los de boot de
+  database.js se conservan por diseño documentado).
+- **Drift documental**: footer de ARQUITECTURA_SISTEMA.md (v12.44.520/2026-03 → v12.44.814/2026-09).
+- **scripts/visual-check.js**: BASE_URL apuntaba al puerto 3001 (3d-planner) → 3000.
+
+Tests 330/331 · ESLint 0 errores.
+
+---
+
 ## 2026-09-06 (parte 4) — Auditoría UI/UX integral móvil/tablet/desktop (v12.44.813)
 
 ### Metodología

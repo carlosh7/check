@@ -346,8 +346,8 @@ Ver analisis completo en `docs/SECURITY_IA.md`.
 
 ---
 
-*Documento generado el 29 de marzo de 2026*
-*Sistema Check Pro v12.44.520*
+*Documento actualizado por última vez: 2026-09-06*
+*Sistema Check Pro v12.44.814*
 ---
 
 ## Decisiones de Arquitectura (2026-09-05, v12.44.806)

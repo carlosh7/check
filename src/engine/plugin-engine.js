@@ -6,6 +6,7 @@
  * Cuando un hook se dispara, se ejecutan todos los plugins suscritos.
  */
 const vm = require('vm');
+const logger = require('../utils/logger'); // v12.44.814: P3-3
 const { db } = require('../../database');
 
 const HOOKS = {
@@ -43,7 +44,7 @@ function unloadPlugin(pluginId) {
 function initPlugins() {
     const plugins = db.prepare("SELECT * FROM plugins WHERE enabled = 1").all();
     plugins.forEach(loadPlugin);
-    console.log('[PLUGIN] Loaded ' + plugins.length + ' plugins');
+    logger.info('[PLUGIN] Loaded ' + plugins.length + ' plugins');
 }
 
 // Disparar un hook: ejecuta todos los plugins suscritos
@@ -126,7 +127,7 @@ function seedDefaultPlugins() {
     plugins.forEach(function(p) {
         try { insert.run(p.id, p.name, p.description, p.version, p.author, p.icon, p.hooks, p.script, p.is_system); } catch(e) {}
     });
-    console.log('[PLUGIN] Seeded ' + plugins.length + ' default plugins');
+    logger.info('[PLUGIN] Seeded ' + plugins.length + ' default plugins');
 }
 
 module.exports = { initPlugins, triggerHook, loadPlugin, unloadPlugin, seedDefaultPlugins, HOOKS };

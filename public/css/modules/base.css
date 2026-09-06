@@ -451,3 +451,9 @@ h6 { font-size: var(--text-base); font-weight: 500; }
   .lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
   .lg\:grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
 }
+
+/* v12.44.814: los canvas de gráficos (Chart.js) se renderizan con su ancho
+   inherente antes del primer resize — sin esto, en móvil se ve un salto con
+   el canvas desbordado durante la carga (system:bi). max-width lo clava
+   al contenedor desde el primer frame. */
+.app-main-content canvas { max-width: 100%; height: auto; }
