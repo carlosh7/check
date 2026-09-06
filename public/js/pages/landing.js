@@ -34,7 +34,7 @@ async function load(){
   }
   if(!eventId){
     document.getElementById('loading').classList.add('hidden');
-    document.getElementById('main').innerHTML='<div class="card"><h1 style="color:#ef4444">Invitación no válida</h1><p style="color:rgba(255,255,255,0.5)">El enlace no es válido o ha expirado.</p></div>';
+    document.getElementById('main').innerHTML='<div class="card"><h1 data-style="color:#ef4444">Invitación no válida</h1><p data-style="color:rgba(255,255,255,0.5)">El enlace no es válido o ha expirado.</p></div>';
     document.getElementById('main').style.display='block';return
   }
   try{
@@ -85,7 +85,7 @@ async function load(){
     cdInterval=setInterval(updateCountdown,1000)
   }catch(e){
     document.getElementById('loading').classList.add('hidden');
-    document.getElementById('main').innerHTML='<div class="card"><h1 style="color:#ef4444">Invitación no disponible</h1><p style="color:rgba(255,255,255,0.5)">No se pudo cargar la invitación.</p></div>';
+    document.getElementById('main').innerHTML='<div class="card"><h1 data-style="color:#ef4444">Invitación no disponible</h1><p data-style="color:rgba(255,255,255,0.5)">No se pudo cargar la invitación.</p></div>';
     document.getElementById('main').style.display='block'
   }
 }

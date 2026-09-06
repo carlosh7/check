@@ -7,42 +7,43 @@ window.escapeHtml = function(str) {
 };
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.810';
-import { Config } from './modules/core/Config.js?v=12.44.810';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.810';
-import { AppStateManager } from './modules/core/State.js?v=12.44.810';
-import { Constants } from './modules/utils/Constants.js?v=12.44.810';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.810';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.810';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.810';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.810';
-import { TableManager } from './modules/components/Table.js?v=12.44.810';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.810';
-import { FormManager } from './modules/components/Form.js?v=12.44.810';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.810';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.810';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.810';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.810';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.810';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.810';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.810';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.810';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.810';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.810';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.811';
+import { Config } from './modules/core/Config.js?v=12.44.811';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.811';
+import { AppStateManager } from './modules/core/State.js?v=12.44.811';
+import { Constants } from './modules/utils/Constants.js?v=12.44.811';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.811';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.811';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.811';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.811';
+import { TableManager } from './modules/components/Table.js?v=12.44.811';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.811';
+import { FormManager } from './modules/components/Form.js?v=12.44.811';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.811';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.811';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.811';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.811';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.811';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.811';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.811';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.811';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.811';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.811';
 
 // Módulos cableados en v12.44.804 (respaldo de v12.44.802, antes sin usar)
-import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.810';
-import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.810';
-import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.810';
+import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.811';
+import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.811';
+import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.811';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.810';
-import PushModule from './modules/app-push.js?v=12.44.810';
-import ThemeModule from './modules/app-theme.js?v=12.44.810';
-import { AiSecurity } from './modules/features/ai-security.js?v=12.44.810';
+import ImportExportModule from './modules/app-import.js?v=12.44.811';
+import PushModule from './modules/app-push.js?v=12.44.811';
+import ThemeModule from './modules/app-theme.js?v=12.44.811';
+import { AiSecurity } from './modules/features/ai-security.js?v=12.44.811';
+import './modules/core/DelegatedEvents.js?v=12.44.811';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.810';
+const VERSION = '12.44.811';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -1103,7 +1104,7 @@ const App = window.App = {
                         '<div class="flex items-center gap-2">' +
                         '<span class="w-20 truncate text-[var(--text-secondary)]">' + App.esc(o.organization || '-') + '</span>' +
                         '<div class="flex-1 h-3 rounded-full bg-[var(--bg-secondary)] overflow-hidden">' +
-                        '<div class="h-full rounded-full bg-[var(--primary)]" style="width:' + Math.round((o.count / maxCount) * 100) + '%"></div></div>' +
+                        '<div class="h-full rounded-full bg-[var(--primary)]" data-style="width:' + Math.round((o.count / maxCount) * 100) + '%"></div></div>' +
                         '<span class="w-6 text-right font-bold text-white text-[10px]">' + o.count + '</span></div>'
                     ).join('');
                 }
@@ -1140,7 +1141,7 @@ const App = window.App = {
             const healthEl = document.getElementById('analytics-health');
             if (healthEl) {
                 const alerts = res.healthAlerts || 0;
-                healthEl.innerHTML = '<div class="flex items-center gap-2 cursor-pointer hover:opacity-80" onclick="App.scrollToRestricted()"><span class="text-sm ' + (alerts > 0 ? 'text-amber-400' : 'text-green-400') + '">' +
+                healthEl.innerHTML = '<div class="flex items-center gap-2 cursor-pointer hover:opacity-80" data-act="call" data-call="scrollToRestricted"><span class="text-sm ' + (alerts > 0 ? 'text-amber-400' : 'text-green-400') + '">' +
                     (alerts > 0 ? '<span class="material-symbols-outlined text-sm">warning</span>' : '<span class="material-symbols-outlined text-sm">check_circle</span>') +
                     '</span><span class="font-bold text-white text-sm">' + alerts + '</span><span class="text-[var(--text-secondary)] text-xs">' + (alerts === 1 ? 'alerta' : 'alertas') + '</span></div>';
             }
@@ -1496,35 +1497,35 @@ const App = window.App = {
                     const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
                     const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(u.display_name || u.username)}</span>
                         </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
                     
                     const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
                     const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name)}</span>
                         </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
                     
                     const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                     const clientRows = groupClients.length > 0 ? groupClients.map(c => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name)}</span>
                         </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
                     
                     return `
                     <tr class="user-row-premium">
-                        <td class="px-4 py-3" style="width: 40px;">
-                            <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
+                        <td class="px-4 py-3" data-style="width: 40px;">
+                            <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" data-style="width: 16px; height: 16px; cursor: pointer;" data-act="call" data-call="toggleGroupSelection" data-a1="${g.id}">
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">business</span>
+                                <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">business</span>
                                 <div class="flex flex-col">
                                     <div class="font-bold text-sm text-[var(--text-main)]">${App.esc(g.name)}</div>
                                     <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${App.esc(g.email || '-')}</div>
@@ -1576,28 +1577,28 @@ const App = window.App = {
                     const clientEvents = c.events || [];
                     const eventRows = clientEvents.length > 0 ? clientEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name)}</span>
                         </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`;
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`;
                     
                     // Staff asignado al cliente con iconos
                     const clientStaff = c.staff || [];
                     const staffRows = clientStaff.length > 0 ? clientStaff.map(u => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">badge</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">badge</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(u.display_name || u.username)}</span>
                         </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">badge</span><span class="text-xs text-slate-500 italic">Sin staff</span></div>`;
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">badge</span><span class="text-xs text-slate-500 italic">Sin staff</span></div>`;
                     
                     return `
                     <tr class="user-row-premium">
-                        <td class="px-4 py-3" style="width: 40px;">
-                            <input type="checkbox" class="client-checkbox" data-client-id="${c.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleClientSelection('${c.id}')">
+                        <td class="px-4 py-3" data-style="width: 40px;">
+                            <input type="checkbox" class="client-checkbox" data-client-id="${c.id}" data-style="width: 16px; height: 16px; cursor: pointer;" data-act="call" data-call="toggleClientSelection" data-a1="${c.id}">
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
+                                <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                                 <div>
                                     <div class="font-bold text-sm text-[var(--text-main)]">${App.esc(c.name)}</div>
                                     <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${App.esc(c.email || '-')}</div>
@@ -1607,7 +1608,7 @@ const App = window.App = {
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                                <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">domain</span>
+                                <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">domain</span>
                                 <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(c.company_name || 'Sin empresa')}</span>
                             </div>
                         </td>
@@ -1705,12 +1706,12 @@ const App = window.App = {
 
                 return `
                 <tr class="user-row-premium">
-                    <td class="px-4 py-3" style="width: 40px;">
-                        <input type="checkbox" class="client-checkbox" data-client-id="${c.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleClientSelection('${c.id}')">
+                    <td class="px-4 py-3" data-style="width: 40px;">
+                        <input type="checkbox" class="client-checkbox" data-client-id="${c.id}" data-style="width: 16px; height: 16px; cursor: pointer;" data-act="call" data-call="toggleClientSelection" data-a1="${c.id}">
                     </td>
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                             <div class="flex flex-col">
                                 <div class="font-bold text-sm text-[var(--text-main)]">${App.esc(c.name)}</div>
                                 <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${App.esc(c.email || '-')}</div>
@@ -1720,27 +1721,27 @@ const App = window.App = {
                     <td class="px-4 py-3">
                         ${c.company_name ? `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">corporate_fare</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">corporate_fare</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(c.company_name.length > 15 ? c.company_name.substring(0, 15) + '...' : c.company_name)}</span>
                         </div>` : `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">corporate_fare</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">corporate_fare</span>
                             <span class="text-xs text-slate-500 italic">Sin empresa</span>
                         </div>`}
                     </td>
                     <td class="px-4 py-3">
                         ${clientStaff.length > 0 ? clientStaff.map(u => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${App.esc((u.display_name || u.username).length > 15 ? (u.display_name || u.username).substring(0, 15) + '...' : (u.display_name || u.username))}</span>
-                        </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-slate-500 italic">Sin staff</span></div>`}
+                        </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-slate-500 italic">Sin staff</span></div>`}
                     </td>
                     <td class="px-4 py-3">
                         ${clientEvents.length > 0 ? clientEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name)}</span>
-                        </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`}
+                        </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`}
                     </td>
                     <td class="px-4 py-3 text-left">
                         <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
@@ -1897,17 +1898,17 @@ const App = window.App = {
         container.innerHTML = top.map((s, i) => {
             const safeText = s.text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
             return `
-            <div onclick="App.selectSuggestion('${safeText}')" 
+            <div data-act="call" data-call="selectSuggestion" data-a1="${safeText}" 
                  class="group-suggestion-item" 
-                 style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
+                 data-style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
                  onmouseover="this.style.background='rgba(124,58,237,0.15)'" 
                  onmouseout="this.style.background='transparent'">
-                <span class="material-symbols-outlined" style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
+                <span class="material-symbols-outlined" data-style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
                 <div class="flex-1 min-w-0">
-                    <div style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this._highlightMatch(s.text, raw)}</div>
-                    <div style="font-size: 11px; color: #64748b; margin-top: 1px;">${App.esc(s.subtext)}</div>
+                    <div data-style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this._highlightMatch(s.text, raw)}</div>
+                    <div data-style="font-size: 11px; color: #64748b; margin-top: 1px;">${App.esc(s.subtext)}</div>
                 </div>
-                <span style="font-size: 10px; color: #475569; text-transform: uppercase; font-weight: 600; flex-shrink: 0;">${App.esc(s.type)}</span>
+                <span data-style="font-size: 10px; color: #475569; text-transform: uppercase; font-weight: 600; flex-shrink: 0;">${App.esc(s.type)}</span>
             </div>
         `}).join('');
 
@@ -1928,7 +1929,7 @@ const App = window.App = {
             if (idx >= 0) {
                 const origSub = text.substring(idx, idx + word.length);
                 const escSub = App.esc(origSub);
-                result = result.replace(escSub, `<mark style="background: rgba(124,58,237,0.3); color: #c4b5fd; border-radius: 2px; padding: 0 2px;">${escSub}</mark>`);
+                result = result.replace(escSub, `<mark data-style="background: rgba(124,58,237,0.3); color: #c4b5fd; border-radius: 2px; padding: 0 2px;">${escSub}</mark>`);
             }
         });
         return result;
@@ -2018,35 +2019,35 @@ const App = window.App = {
                 const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
                 const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(u.display_name || u.username)}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
 
                 const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
                 const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name)}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
 
                 const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 const clientRows = groupClients.length > 0 ? groupClients.map(c => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${App.esc(c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name)}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
 
                 return `
                 <tr class="user-row-premium">
-                    <td class="px-4 py-3" style="width: 40px;">
-                        <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
+                    <td class="px-4 py-3" data-style="width: 40px;">
+                        <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" data-style="width: 16px; height: 16px; cursor: pointer;" data-act="call" data-call="toggleGroupSelection" data-a1="${g.id}">
                     </td>
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">business</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">business</span>
                             <div class="flex flex-col">
                                 <div class="font-bold text-sm text-[var(--text-main)]">${App.esc(g.name)}</div>
                                 <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${App.esc(g.email || '-')}</div>
@@ -2197,16 +2198,16 @@ const App = window.App = {
         Swal.fire({
             title: '🎤 Permiso de micrófono requerido',
             html: `
-                <div style="text-align: left; font-size: 13px; color: #94a3b8;">
-                    <p style="margin-bottom: 12px;">El navegador bloqueó el acceso al micrófono. Para habilitarlo:</p>
-                    <ol style="padding-left: 20px; line-height: 1.8;">
-                        <li>Haz clic en el <b style="color: #e2e8f0;">ícono de candado 🔒</b> a la izquierda de la URL</li>
-                        <li>Busca <b style="color: #e2e8f0;">"Micrófono"</b> en la lista</li>
-                        <li>Cambia a <b style="color: #22c55e;">"Permitir"</b></li>
-                        <li><b style="color: #e2e8f0;">Recarga la página</b> (F5)</li>
+                <div data-style="text-align: left; font-size: 13px; color: #94a3b8;">
+                    <p data-style="margin-bottom: 12px;">El navegador bloqueó el acceso al micrófono. Para habilitarlo:</p>
+                    <ol data-style="padding-left: 20px; line-height: 1.8;">
+                        <li>Haz clic en el <b data-style="color: #e2e8f0;">ícono de candado 🔒</b> a la izquierda de la URL</li>
+                        <li>Busca <b data-style="color: #e2e8f0;">"Micrófono"</b> en la lista</li>
+                        <li>Cambia a <b data-style="color: #22c55e;">"Permitir"</b></li>
+                        <li><b data-style="color: #e2e8f0;">Recarga la página</b> (F5)</li>
                     </ol>
-                    <p style="margin-top: 12px; font-size: 11px; color: #64748b;">
-                        O ve a <b style="color: #e2e8f0;">chrome://settings/content/microphone</b> y verifica que el sitio no esté bloqueado.
+                    <p data-style="margin-top: 12px; font-size: 11px; color: #64748b;">
+                        O ve a <b data-style="color: #e2e8f0;">chrome://settings/content/microphone</b> y verifica que el sitio no esté bloqueado.
                     </p>
                 </div>
             `,
@@ -2255,18 +2256,18 @@ const App = window.App = {
         toast.style.border = `1px solid ${isResult ? 'rgba(34, 197, 94, 0.4)' : isTimeout ? 'rgba(251, 191, 36, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`;
 
         const wavesHTML = isListening ? `
-            <div class="voice-waves" style="display: flex; align-items: center; gap: 3px; height: 24px;">
-                <div class="voice-wave-bar" style="width: 3px; height: 8px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out infinite;"></div>
-                <div class="voice-wave-bar" style="width: 3px; height: 16px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.1s infinite;"></div>
-                <div class="voice-wave-bar" style="width: 3px; height: 24px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.2s infinite;"></div>
-                <div class="voice-wave-bar" style="width: 3px; height: 16px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.3s infinite;"></div>
-                <div class="voice-wave-bar" style="width: 3px; height: 8px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.4s infinite;"></div>
+            <div class="voice-waves" data-style="display: flex; align-items: center; gap: 3px; height: 24px;">
+                <div class="voice-wave-bar" data-style="width: 3px; height: 8px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out infinite;"></div>
+                <div class="voice-wave-bar" data-style="width: 3px; height: 16px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.1s infinite;"></div>
+                <div class="voice-wave-bar" data-style="width: 3px; height: 24px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.2s infinite;"></div>
+                <div class="voice-wave-bar" data-style="width: 3px; height: 16px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.3s infinite;"></div>
+                <div class="voice-wave-bar" data-style="width: 3px; height: 8px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.4s infinite;"></div>
             </div>
         ` : '';
 
         toast.innerHTML = `
             ${wavesHTML}
-            <span style="color: #f1f5f9; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${message}</span>
+            <span data-style="color: #f1f5f9; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${message}</span>
         `;
 
         if (isNew) {
@@ -2428,15 +2429,15 @@ const App = window.App = {
         }
 
         container.innerHTML = top.map((s, i) => `
-            <div onclick="App.selectClientSuggestion('${s.text.replace(/'/g, "\\'")}')" 
+            <div data-act="call" data-call="selectClientSuggestion" data-a1="${s.text.replace(/"/g, '&quot;')}" 
                  class="client-suggestion-item" 
-                 style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
+                 data-style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
                  onmouseover="this.style.background='rgba(16,185,129,0.15)'" 
                  onmouseout="this.style.background='transparent'">
-                <span class="material-symbols-outlined" style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
+                <span class="material-symbols-outlined" data-style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
                 <div class="flex-1 min-w-0">
-                    <div style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this._highlightMatch(s.text, raw)}</div>
-                    <div style="font-size: 11px; color: #64748b; margin-top: 1px;">${s.subtext}</div>
+                    <div data-style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this._highlightMatch(s.text, raw)}</div>
+                    <div data-style="font-size: 11px; color: #64748b; margin-top: 1px;">${s.subtext}</div>
                 </div>
             </div>
         `).join('');
@@ -2491,32 +2492,32 @@ const App = window.App = {
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const subtitleText = selectedClients.length === 1 ? `${selectedClients[0].name}` : `${selectedClients.length} clientes seleccionados`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
+            <div class="space-y-5" data-style="padding-right: 8px;">
                 <!-- Barra de navegación 5 botones -->
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleClient" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageClientAction" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showCompanySelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button data-act="call" data-call="showStaffSelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button data-act="call" data-call="showEventSelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <!-- Título + botón crear -->
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Cliente</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Editar Cliente</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span>
                     </div>
-                    <button onclick="App.navigateToCreateClient()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                    <button data-act="call" data-call="navigateToCreateClient" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
                 <!-- Lista de clientes seleccionados -->
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${selectedClients.map(c => {
                         const statusColor = c.status === 'ACTIVE' ? '#22c55e' : '#94a3b8';
-                        return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(16,185,129,0.2); color: #10b981;">${(c.name || 'C').charAt(0).toUpperCase()}</div>
+                        return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" data-style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" data-style="background: rgba(16,185,129,0.2); color: #10b981;">${(c.name || 'C').charAt(0).toUpperCase()}</div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'} • <span style="color: ${statusColor};">${c.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</span></div>
+                                <div class="text-sm font-bold" data-style="color: ${textMain};">${c.name}</div>
+                                <div class="text-[11px]" data-style="color: ${textSecondary};">${c.email || 'Sin email'} • <span data-style="color: ${statusColor};">${c.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</span></div>
                             </div>
                         </div>`;
                     }).join('')}
@@ -2560,39 +2561,39 @@ const App = window.App = {
         const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
         
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
+            <div class="space-y-5" data-style="padding-right: 8px;">
                 <!-- Barra de navegación 5 botones -->
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleClient" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageClientAction" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showCompanySelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button data-act="call" data-call="showStaffSelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button data-act="call" data-call="showEventSelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <!-- Título + Guardar -->
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Cliente</span>
-                        <span class="text-xs" style="color: ${textMain};">${client.name}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Editar Cliente</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${client.name}</span>
                     </div>
-                    <button onclick="App.saveClientEditInline()" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                    <button data-act="call" data-call="saveClientEditInline" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" data-style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
                     </button>
                 </div>
                 <!-- Campos edit inline -->
-                <div class="p-4 rounded-2xl" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                <div class="p-4 rounded-2xl" data-style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
                     <div class="space-y-5">
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nombre</label>
-                            <input id="edit-client-name-${client.id}" type="text" value="${client.name || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del cliente">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Nombre</label>
+                            <input id="edit-client-name-${client.id}" type="text" value="${client.name || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del cliente">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Email</label>
-                            <input id="edit-client-email-${client.id}" type="email" value="${client.email || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del cliente">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Email</label>
+                            <input id="edit-client-email-${client.id}" type="email" value="${client.email || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del cliente">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Teléfono</label>
-                            <input id="edit-client-phone-${client.id}" type="text" value="${client.phone || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Teléfono del cliente">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Teléfono</label>
+                            <input id="edit-client-phone-${client.id}" type="text" value="${client.phone || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Teléfono del cliente">
                         </div>
                     </div>
                 </div>
@@ -2635,7 +2636,7 @@ const App = window.App = {
             return;
         }
         
-        const saveBtn = document.querySelector('[onclick="App.saveClientEditInline()"]');
+        const saveBtn = document.querySelector('[data-act="call" data-call="saveClientEditInline"]');
         if (saveBtn) {
             saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
             saveBtn.style.opacity = '0.6';
@@ -2688,33 +2689,33 @@ const App = window.App = {
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleClient" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageClientAction" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showCompanySelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button data-act="call" data-call="showStaffSelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button data-act="call" data-call="showEventSelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <!-- Título debajo de la barra -->
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Gestionar Cliente</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Gestionar Cliente</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span>
                     </div>
                 </div>
                 <div class="space-y-3">
-                <div onclick="App.handleBulkClientActionDirect('activate')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
-                    <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${ids.length} cliente(s)</div></div>
+                <div data-act="call" data-call="handleBulkClientActionDirect" data-a1="activate" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" data-style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" data-style="color: #22c55e;">Activar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Activar ${ids.length} cliente(s)</div></div>
                 </div>
-                <div onclick="App.handleBulkClientActionDirect('deactivate')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
-                    <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Desactivar</div><div class="text-[11px]" style="color: ${textSecondary};">Desactivar ${ids.length} cliente(s)</div></div>
+                <div data-act="call" data-call="handleBulkClientActionDirect" data-a1="deactivate" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" data-style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" data-style="color: #f59e0b;">Desactivar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Desactivar ${ids.length} cliente(s)</div></div>
                 </div>
-                <div onclick="App.handleBulkClientActionDirect('delete')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
-                    <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${ids.length} cliente(s)</div></div>
+                <div data-act="call" data-call="handleBulkClientActionDirect" data-a1="delete" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" data-style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" data-style="color: #ef4444;">Eliminar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Eliminar ${ids.length} cliente(s)</div></div>
                 </div>
                 </div>
             </div>`;
@@ -2791,29 +2792,29 @@ const App = window.App = {
         const primaryLight = isDark ? 'rgba(124,58,237,0.2)' : 'rgba(124,58,237,0.15)';
         const subtitleText = selectedClients.length === 1 ? `${selectedClients[0].name}` : `${selectedClients.length} clientes seleccionados`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleClient" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageClientAction" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showCompanySelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button data-act="call" data-call="showStaffSelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button data-act="call" data-call="showEventSelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Empresa a Cliente</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
-                    <button onclick="App.openCreateGroupFromClientCarousel()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Empresa a Cliente</span><span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span></div>
+                    <button data-act="call" data-call="openCreateGroupFromClientCarousel" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
-                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar empresa..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" data-style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar empresa..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" data-style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${groups.map(g => {
                         const isAssigned = selectedClients.some(c => String(c.group_id) === String(g.id));
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignCompanyToClientsFromModal('${g.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">corporate_fare</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'}</div></div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        return `<div data-act="call" data-call="assignCompanyToClientsFromModal" data-a1="${g.id}" data-a2="${isAssigned}" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">corporate_fare</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${g.name}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${g.email || 'Sin email'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
                         </div>`;
                     }).join('')}
                 </div>
@@ -2914,29 +2915,29 @@ const App = window.App = {
         const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
         const subtitleText = selectedClients.length === 1 ? `${selectedClients[0].name}` : `${selectedClients.length} clientes seleccionados`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleClient" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageClientAction" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showCompanySelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button data-act="call" data-call="showStaffSelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button data-act="call" data-call="showEventSelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff a Cliente</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
-                    <button onclick="App.openCreateStaffFromClientCarousel()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Staff a Cliente</span><span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span></div>
+                    <button data-act="call" data-call="openCreateStaffFromClientCarousel" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
-                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar staff..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" data-style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar staff..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" data-style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${users.map(u => {
                         const isAssigned = selectedClients.some(c => c.staff && c.staff.some(s => String(s.id) === String(u.id)));
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignStaffToClientsFromModal('${u.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">badge</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div><div class="text-[11px]" style="color: ${textSecondary};">${u.role || 'Staff'}</div></div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        return `<div data-act="call" data-call="assignStaffToClientsFromModal" data-a1="${u.id}" data-a2="${isAssigned}" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">badge</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${u.display_name || u.username}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${u.role || 'Staff'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
                         </div>`;
                     }).join('')}
                 </div>
@@ -2991,29 +2992,29 @@ const App = window.App = {
         const primaryLight = isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)';
         const subtitleText = selectedClients.length === 1 ? `${selectedClients[0].name}` : `${selectedClients.length} clientes seleccionados`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleClient" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageClientAction" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showCompanySelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button data-act="call" data-call="showStaffSelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button data-act="call" data-call="showEventSelectorForClients" data-a1="@app:_savedSelectedClients" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Cliente</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
-                    <button onclick="App.openCreateEventFromClientCarousel()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Evento a Cliente</span><span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span></div>
+                    <button data-act="call" data-call="openCreateEventFromClientCarousel" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
-                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" data-style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar evento..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" data-style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${events.map(e => {
                         const isAssigned = selectedClients.some(c => c.events && c.events.some(ev => String(ev.id) === String(e.id)));
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignEventToClientsFromModal('${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'}</div></div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        return `<div data-act="call" data-call="assignEventToClientsFromModal" data-a1="${e.id}" data-a2="${isAssigned}" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${e.name}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${e.date || 'Sin fecha'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
                         </div>`;
                     }).join('')}
                 </div>
@@ -3065,20 +3066,20 @@ const App = window.App = {
             title: 'Editar Cliente',
             html: `<div class="space-y-4 text-left">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Nombre *</label>
-                    <input id="edit-client-name" type="text" value="${client.name || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1" data-style="color: ${textSecondary};">Nombre *</label>
+                    <input id="edit-client-name" type="text" value="${client.name || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Email</label>
-                    <input id="edit-client-email" type="email" value="${client.email || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1" data-style="color: ${textSecondary};">Email</label>
+                    <input id="edit-client-email" type="email" value="${client.email || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Teléfono</label>
-                    <input id="edit-client-phone" type="text" value="${client.phone || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1" data-style="color: ${textSecondary};">Teléfono</label>
+                    <input id="edit-client-phone" type="text" value="${client.phone || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Estado</label>
-                    <select id="edit-client-status" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1" data-style="color: ${textSecondary};">Estado</label>
+                    <select id="edit-client-status" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
                         <option value="ACTIVE" ${client.status === 'ACTIVE' ? 'selected' : ''}>Activo</option>
                         <option value="INACTIVE" ${client.status === 'INACTIVE' ? 'selected' : ''}>Inactivo</option>
                     </select>
@@ -3255,7 +3256,7 @@ const App = window.App = {
                     <p class="text-sm text-[var(--text-secondary)]">Clientes seleccionados: ${this.state.selectedClients.length}</p>
                     <div>
                         <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Eventos *</label>
-                        <select id="assign-events-select" class="swal2-input" multiple size="6" style="height: auto;">
+                        <select id="assign-events-select" class="swal2-input" multiple size="6" data-style="height: auto;">
                             ${eventOptions}
                         </select>
                         <small class="text-[var(--text-muted)]">Mantén Ctrl/Cmd presionado para seleccionar varios</small>
@@ -3312,7 +3313,7 @@ const App = window.App = {
                     <p class="text-sm text-[var(--text-secondary)]">Clientes seleccionados: ${this.state.selectedClients.length}</p>
                     <div>
                         <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Staff *</label>
-                        <select id="assign-staff-select" class="swal2-input" multiple size="6" style="height: auto;">
+                        <select id="assign-staff-select" class="swal2-input" multiple size="6" data-style="height: auto;">
                             ${userOptions}
                         </select>
                         <small class="text-[var(--text-muted)]">Mantén Ctrl/Cmd presionado para seleccionar varios</small>
@@ -3432,51 +3433,51 @@ const App = window.App = {
         const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSelectedGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
+                    <button data-act="call" data-call="showManageGroupAction" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar">
                         <span class="material-symbols-outlined text-sm">settings</span>
                     </button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
+                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente">
                         <span class="material-symbols-outlined text-sm">person</span>
                     </button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
+                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff">
                         <span class="material-symbols-outlined text-sm">badge</span>
                     </button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento">
+                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento">
                         <span class="material-symbols-outlined text-sm">event</span>
                     </button>
                 </div>
 
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente a Empresa${selectedGroups.length > 1 ? 's' : ''}</span>
-                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length === 1 ? selectedGroups[0].name : selectedGroups.length + ' empresas seleccionadas'}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Cliente a Empresa${selectedGroups.length > 1 ? 's' : ''}</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${selectedGroups.length === 1 ? selectedGroups[0].name : selectedGroups.length + ' empresas seleccionadas'}</span>
                     </div>
-                    <button onclick="App.openCreateClientModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
+                    <button data-act="call" data-call="openCreateClientModal" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm">add</span> Crear
                     </button>
                 </div>
 
                 <div class="relative group mt-6 mb-6">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
-                    <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" data-style="color: ${textSecondary};">search</span>
+                    <input type="text" placeholder="Buscar cliente..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" 
+                        data-style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
                 </div>
 
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${clients.map(c => {
                         const isAssigned = groupIds.some(gid => String(c.group_id) === String(gid));
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">person</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div></div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        return `<div data-act="call" data-call="assignClientToGroupsFromModal" data-a1="${groupIds.join(',')}" data-a2="${c.id}" data-a3="@fn:isAssigned" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">person</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${c.name}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${c.email || 'Sin email'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
                         </div>`;
                     }).join('')}
                 </div>
@@ -3546,56 +3547,56 @@ const App = window.App = {
         const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
         const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar">
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSelectedGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
+                    <button data-act="call" data-call="showManageGroupAction" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar">
                         <span class="material-symbols-outlined text-sm">settings</span>
                     </button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
+                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente">
                         <span class="material-symbols-outlined text-sm">person</span>
                     </button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
+                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff">
                         <span class="material-symbols-outlined text-sm">badge</span>
                     </button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento">
+                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento">
                         <span class="material-symbols-outlined text-sm">event</span>
                     </button>
                 </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Empresa${selectedGroups.length > 1 ? 's' : ''}</span>
-                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length === 1 ? selectedGroups[0].name : selectedGroups.length + ' empresas seleccionadas'}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Editar Empresa${selectedGroups.length > 1 ? 's' : ''}</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${selectedGroups.length === 1 ? selectedGroups[0].name : selectedGroups.length + ' empresas seleccionadas'}</span>
                         <span id="group-edit-msg" class="hidden text-xs font-bold mt-1"></span>
                     </div>
-                    <button onclick="App.saveGroupEditInline()" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                    <button data-act="call" data-call="saveGroupEditInline" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" data-style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
                     </button>
                 </div>
-                <div class="max-h-96 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-96 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${selectedGroups.map(g => `
-                        <div class="p-4 rounded-2xl mb-3" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                        <div class="p-4 rounded-2xl mb-3" data-style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
                             <div class="flex items-center gap-3 mb-3">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">corporate_fare</span></div>
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" data-style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">corporate_fare</span></div>
                                 <div class="flex-1">
-                                    <div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div>
-                                    <div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'} • ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</div>
+                                    <div class="text-sm font-bold" data-style="color: ${textMain};">${g.name}</div>
+                                    <div class="text-[11px]" data-style="color: ${textSecondary};">${g.email || 'Sin email'} • ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</div>
                                 </div>
                             </div>
                             <div class="space-y-3">
                                 <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nombre</label>
-                                    <input id="edit-group-name-${g.id}" type="text" value="${g.name}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre de la empresa">
+                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Nombre</label>
+                                    <input id="edit-group-name-${g.id}" type="text" value="${g.name}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre de la empresa">
                                 </div>
                                 <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Email</label>
-                                    <input id="edit-group-email-${g.id}" type="email" value="${g.email || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email de contacto">
+                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Email</label>
+                                    <input id="edit-group-email-${g.id}" type="email" value="${g.email || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email de contacto">
                                 </div>
                                 <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Descripción</label>
-                                    <textarea id="edit-group-desc-${g.id}" rows="2" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all resize-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Descripción (opcional)">${g.description || ''}</textarea>
+                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Descripción</label>
+                                    <textarea id="edit-group-desc-${g.id}" rows="2" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all resize-none" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Descripción (opcional)">${g.description || ''}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -3627,7 +3628,7 @@ const App = window.App = {
         let originalHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar';
 
         // Mostrar indicador de carga inline
-        const saveBtn = document.querySelector('[onclick="App.saveGroupEditInline()"]');
+        const saveBtn = document.querySelector('[data-act="call" data-call="saveGroupEditInline"]');
         if (saveBtn) {
             originalHTML = saveBtn.innerHTML;
             saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
@@ -3702,42 +3703,42 @@ const App = window.App = {
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
+                    <button data-act="call" data-call="editSelectedGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
+                    <button data-act="call" data-call="showManageGroupAction" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar">
                         <span class="material-symbols-outlined text-sm">settings</span>
                     </button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
+                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente">
                         <span class="material-symbols-outlined text-sm">person</span>
                     </button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
+                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff">
                         <span class="material-symbols-outlined text-sm">badge</span>
                     </button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento">
+                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento">
                         <span class="material-symbols-outlined text-sm">event</span>
                     </button>
                 </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Gestionar Empresa${selectedGroups.length > 1 ? 's' : ''}</span>
-                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length === 1 ? selectedGroups[0].name : selectedGroups.length + ' empresas seleccionadas'}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Gestionar Empresa${selectedGroups.length > 1 ? 's' : ''}</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${selectedGroups.length === 1 ? selectedGroups[0].name : selectedGroups.length + ' empresas seleccionadas'}</span>
                     </div>
                 </div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    <div onclick="App.handleBulkGroupActionDirect('activate')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
-                        <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${selectedGroups.length} empresa(s)</div></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
+                    <div data-act="call" data-call="handleBulkGroupActionDirect" data-a1="activate" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
+                        <div class="flex-1"><div class="text-sm font-bold" data-style="color: #22c55e;">Activar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Activar ${selectedGroups.length} empresa(s)</div></div>
                     </div>
-                    <div onclick="App.handleBulkGroupActionDirect('deactivate')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
-                        <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Desactivar</div><div class="text-[11px]" style="color: ${textSecondary};">Desactivar ${selectedGroups.length} empresa(s)</div></div>
+                    <div data-act="call" data-call="handleBulkGroupActionDirect" data-a1="deactivate" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
+                        <div class="flex-1"><div class="text-sm font-bold" data-style="color: #f59e0b;">Desactivar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Desactivar ${selectedGroups.length} empresa(s)</div></div>
                     </div>
-                    <div onclick="App.handleBulkGroupActionDirect('delete')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
-                        <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${selectedGroups.length} empresa(s)</div></div>
+                    <div data-act="call" data-call="handleBulkGroupActionDirect" data-a1="delete" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
+                        <div class="flex-1"><div class="text-sm font-bold" data-style="color: #ef4444;">Eliminar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Eliminar ${selectedGroups.length} empresa(s)</div></div>
                     </div>
                 </div>
             </div>`;
@@ -3804,29 +3805,29 @@ const App = window.App = {
         const subtitleText = selectedGroups.length === 1 ? `${selectedGroups[0].name}` : `${selectedGroups.length} empresas seleccionadas`;
         const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSelectedGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageGroupAction" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Empresas</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
-                    <button onclick="App.openCreateEventModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Evento a Empresas</span><span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span></div>
+                    <button data-act="call" data-call="openCreateEventModal" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
-                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" data-style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar evento..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" data-style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${events.map(e => {
                         const isAssigned = groupIds.some(gid => String(e.group_id) === String(gid));
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignEventToGroupsFromModal('${groupIds.join(',')}', '${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div></div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        return `<div data-act="call" data-call="assignEventToGroupsFromModal" data-a1="${groupIds.join(',')}" data-a2="${e.id}" data-a3="@fn:isAssigned" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${e.name}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
                         </div>`;
                     }).join('')}
                 </div>
@@ -3885,29 +3886,29 @@ const App = window.App = {
         const subtitleText = selectedGroups.length === 1 ? `${selectedGroups[0].name}` : `${selectedGroups.length} empresas seleccionadas`;
         const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSelectedGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageGroupAction" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff a Empresas</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
-                    <button onclick="App.openCreateUserModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Staff a Empresas</span><span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span></div>
+                    <button data-act="call" data-call="openCreateUserModal" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
-                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar staff..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" data-style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar staff..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" data-style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${users.map(u => {
                         const isAssigned = u.groups && u.groups.some(g => groupIds.includes(g.id));
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignUserToGroupsFromModal('${groupIds.join(',')}', '${u.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div><div class="text-[11px]" style="color: ${textSecondary};">${u.role || 'STAFF'}</div></div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        return `<div data-act="call" data-call="assignUserToGroupsFromModal" data-a1="${groupIds.join(',')}" data-a2="${u.id}" data-a3="@fn:isAssigned" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${u.display_name || u.username}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${u.role || 'STAFF'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
                         </div>`;
                     }).join('')}
                 </div>
@@ -4009,13 +4010,13 @@ const App = window.App = {
                         <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Vincular a Evento</span>
                         <span class="text-xs text-slate-400">Selecciona el evento para este colaborador</span>
                     </div>
-                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs">
+                    <button data-act="call" data-call="navigateToCreateEvent" class="btn-primary !py-2 !px-4 !text-xs">
                         + NUEVO EVENTO
                     </button>
                 </div>
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${events.map(e => `
-                        <div onclick="App.toggleEventToUser('${userId}', '${e.id}', ${selectedEventIds.includes(String(e.id))})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-orange-500/40 hover:bg-orange-500/5 transition-all cursor-pointer group shadow-sm ${selectedEventIds.includes(String(e.id)) ? 'ring-1 ring-orange-500/50 bg-orange-500/10' : ''}">
+                        <div data-act="call" data-call="toggleEventToUser" data-a1="${userId}" data-a2="${e.id}" data-a3="${selectedEventIds.includes(String(e.id))}" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-orange-500/40 hover:bg-orange-500/5 transition-all cursor-pointer group shadow-sm ${selectedEventIds.includes(String(e.id)) ? 'ring-1 ring-orange-500/50 bg-orange-500/10' : ''}">
                             <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 <span class="material-symbols-outlined">event</span>
                             </div>
@@ -4231,12 +4232,12 @@ const App = window.App = {
 
             tbody.innerHTML = users.map((u) => {
                 // --- CHECKBOX DE SELECCIÓN ---
-                const checkbox = `<input type="checkbox" class="user-checkbox" data-user-id="${u.id}" style="width: 18px; height: 18px; cursor: pointer;" onchange="App.toggleUserSelection('${u.id}')" ${this.state.selectedUsers?.includes(u.id) ? 'checked' : ''}>`;
+                const checkbox = `<input type="checkbox" class="user-checkbox" data-user-id="${u.id}" data-style="width: 18px; height: 18px; cursor: pointer;" data-act="call" data-call="toggleUserSelection" data-a1="${u.id}" ${this.state.selectedUsers?.includes(u.id) ? 'checked' : ''}>`;
                 
                 // --- COLUMNA 1: STAFF ---
                 const colStaff = `
                     <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                         <div class="flex flex-col gap-0.5">
                             <div class="font-bold text-sm text-[var(--text-main)]">${u.display_name || 'Sin nombre'}</div>
                             <div class="text-xs text-[var(--text-secondary)] font-mono">${u.username}</div>
@@ -4247,35 +4248,35 @@ const App = window.App = {
                 // --- COLUMNA 2: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">corporate_fare</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">corporate_fare</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">corporate_fare</span><span class="text-xs text-slate-500 italic">Sin empresa</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">corporate_fare</span><span class="text-xs text-slate-500 italic">Sin empresa</span></div>`;
                 const colEmpresa = `<div class="flex flex-col max-w-[200px]">${groupDisplay}</div>`;
 
                 // --- COLUMNA 3: CLIENTES ---
                 const userClients = (u.clients && u.clients.length > 0) ? u.clients.map(client => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${client.name.length > 15 ? client.name.substring(0, 15) + '...' : client.name}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
                 const colClientes = `<div class="flex flex-col max-w-[200px]">${userClients}</div>`;
 
                 // --- COLUMNA 4: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventRows = userEvents.length > 0 ? userEvents.map(e => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
                 const colEventos = `<div class="flex flex-col max-w-[200px]">${eventRows}</div>`;
 
                 // --- COLUMNA 5: ROL ---
                 const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', ORGANIZER: '#06b6d4', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
                 const roleColor = roleColors[u.role] || '#64748b';
-                const colRol = `<span class="text-xs font-bold" style="color: ${roleColor}; background: ${roleColor}22; border-radius: 6px; padding: 2px 8px;">${u.role}</span>`;
+                const colRol = `<span class="text-xs font-bold" data-style="color: ${roleColor}; background: ${roleColor}22; border-radius: 6px; padding: 2px 8px;">${u.role}</span>`;
 
                 // --- COLUMNA 6: ESTADO ---
                 const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
@@ -4416,16 +4417,16 @@ const App = window.App = {
         container.innerHTML = top.map((s, i) => {
             const safeText = s.text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
             return `
-            <div onclick="App.selectUserSuggestion('${safeText}')" 
-                 style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
+            <div data-act="call" data-call="selectUserSuggestion" data-a1="${safeText}" 
+                 data-style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
                  onmouseover="this.style.background='rgba(59,130,246,0.15)'" 
                  onmouseout="this.style.background='transparent'">
-                <span class="material-symbols-outlined" style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
+                <span class="material-symbols-outlined" data-style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
                 <div class="flex-1 min-w-0">
-                    <div style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${App.esc(s.text)}</div>
-                    <div style="font-size: 11px; color: #64748b; margin-top: 1px;">${App.esc(s.subtext)}</div>
+                    <div data-style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${App.esc(s.text)}</div>
+                    <div data-style="font-size: 11px; color: #64748b; margin-top: 1px;">${App.esc(s.subtext)}</div>
                 </div>
-                <span style="font-size: 10px; color: #475569; text-transform: uppercase; font-weight: 600; flex-shrink: 0;">${App.esc(s.type)}</span>
+                <span data-style="font-size: 10px; color: #475569; text-transform: uppercase; font-weight: 600; flex-shrink: 0;">${App.esc(s.type)}</span>
             </div>
         `}).join('');
             App.dropdown.showById('user-suggestions');
@@ -4649,34 +4650,34 @@ const App = window.App = {
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
+            <div class="space-y-5" data-style="padding-right: 8px;">
                 <!-- Barra de navegación 6 botones -->
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título + botón crear -->
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Staff</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Editar Staff</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span>
                     </div>
-                    <button onclick="App.openCreateStaffModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                    <button data-act="call" data-call="openCreateStaffModal" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
                 <!-- Lista de staff seleccionado -->
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${selectedUsers.map(u => {
                         const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', ORGANIZER: '#06b6d4', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
                         const roleColor = roleColors[u.role] || '#64748b';
-                        return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(59,130,246,0.2); color: #3b82f6;">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
+                        return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" data-style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" data-style="background: rgba(59,130,246,0.2); color: #3b82f6;">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${u.username} • <span style="color: ${roleColor};">${u.role}</span></div>
+                                <div class="text-sm font-bold" data-style="color: ${textMain};">${u.display_name || u.username}</div>
+                                <div class="text-[11px]" data-style="color: ${textSecondary};">${u.username} • <span data-style="color: ${roleColor};">${u.role}</span></div>
                             </div>
                         </div>`;
                     }).join('')}
@@ -4730,57 +4731,57 @@ const App = window.App = {
         if (isConfigContext) {
             // Solo 4 botones para configuración del evento
             navButtons = `
-                <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
             `;
         } else {
             // 6 botones para sistema normal
             navButtons = `
-                <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
             `;
         }
         
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
+            <div class="space-y-5" data-style="padding-right: 8px;">
                 <!-- Barra de navegación -->
-                <div class="flex items-center justify-${isConfigContext ? 'center gap-3' : 'between'} p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center justify-${isConfigContext ? 'center gap-3' : 'between'} p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     ${navButtons}
                 </div>
                 <!-- Título + Guardar -->
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Staff</span>
-                        <span class="text-xs" style="color: ${textMain};">${user.display_name || user.username}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Editar Staff</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${user.display_name || user.username}</span>
                     </div>
-                    <button onclick="App.saveUserEditInline()" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                    <button data-act="call" data-call="saveUserEditInline" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" data-style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
                     </button>
                 </div>
                 <!-- Campos编辑 inline -->
-                <div class="p-4 rounded-2xl" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                <div class="p-4 rounded-2xl" data-style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
                     <div class="space-y-5">
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nombre</label>
-                            <input id="edit-user-name-${user.id}" type="text" value="${user.display_name || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del staff">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Nombre</label>
+                            <input id="edit-user-name-${user.id}" type="text" value="${user.display_name || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del staff">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Email</label>
-                            <input id="edit-user-email-${user.id}" type="email" value="${user.username || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del staff">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Email</label>
+                            <input id="edit-user-email-${user.id}" type="email" value="${user.username || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del staff">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nueva Contraseña <span class="normal-case font-normal">(dejar vacío para mantener)</span></label>
-                            <input id="edit-user-password-${user.id}" type="password" value="" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nueva contraseña">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Nueva Contraseña <span class="normal-case font-normal">(dejar vacío para mantener)</span></label>
+                            <input id="edit-user-password-${user.id}" type="password" value="" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nueva contraseña">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Rol</label>
-                            <select id="edit-user-role-${user.id}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Rol</label>
+                            <select id="edit-user-role-${user.id}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
                                 ${roleOptions}
                             </select>
                         </div>
@@ -4827,7 +4828,7 @@ const App = window.App = {
             return;
         }
         
-        const saveBtn = document.querySelector('[onclick="App.saveUserEditInline()"]');
+        const saveBtn = document.querySelector('[data-act="call" data-call="saveUserEditInline"]');
         if (saveBtn) {
             saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
             saveBtn.style.opacity = '0.6';
@@ -4886,34 +4887,34 @@ const App = window.App = {
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título debajo de la barra -->
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Gestionar Staff</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Gestionar Staff</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span>
                     </div>
                 </div>
                 <div class="space-y-3">
-                <div onclick="App.handleBulkUserActionDirect('activate')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
-                    <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${ids.length} staff</div></div>
+                <div data-act="call" data-call="handleBulkUserActionDirect" data-a1="activate" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" data-style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" data-style="color: #22c55e;">Activar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Activar ${ids.length} staff</div></div>
                 </div>
-                <div onclick="App.handleBulkUserActionDirect('suspend')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
-                    <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Suspender</div><div class="text-[11px]" style="color: ${textSecondary};">Suspender ${ids.length} staff</div></div>
+                <div data-act="call" data-call="handleBulkUserActionDirect" data-a1="suspend" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" data-style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" data-style="color: #f59e0b;">Suspender</div><div class="text-[11px]" data-style="color: ${textSecondary};">Suspender ${ids.length} staff</div></div>
                 </div>
-                <div onclick="App.handleBulkUserActionDirect('delete')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
-                    <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${ids.length} staff</div></div>
+                <div data-act="call" data-call="handleBulkUserActionDirect" data-a1="delete" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" data-style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" data-style="color: #ef4444;">Eliminar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Eliminar ${ids.length} staff</div></div>
                 </div>
                 </div>
             </div>`;
@@ -4973,30 +4974,30 @@ const App = window.App = {
         const primaryLight = isDark ? 'rgba(124,58,237,0.2)' : 'rgba(124,58,237,0.15)';
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Empresa a Staff</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
-                    <button onclick="App.openCreateGroupFromUserCarousel()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Empresa a Staff</span><span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span></div>
+                    <button data-act="call" data-call="openCreateGroupFromUserCarousel" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
-                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar empresa..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" data-style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar empresa..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" data-style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${groups.map(g => {
                         const isAssigned = userIds.some(uid => { const user = users.find(u => u.id === uid); return user && user.groups && user.groups.some(gp => String(gp.id) === String(g.id)); });
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignCompanyToUsersFromModal('${g.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">corporate_fare</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'}</div></div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        return `<div data-act="call" data-call="assignCompanyToUsersFromModal" data-a1="${g.id}" data-a2="${isAssigned}" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">corporate_fare</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${g.name}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${g.email || 'Sin email'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
                         </div>`;
                     }).join('')}
                 </div>
@@ -5051,30 +5052,30 @@ const App = window.App = {
         const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente a Staff</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
-                    <button onclick="App.openCreateClientModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Cliente a Staff</span><span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span></div>
+                    <button data-act="call" data-call="openCreateClientModal" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
-                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" data-style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar cliente..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" data-style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${clients.map(c => {
                         const isAssigned = userIds.some(uid => { const user = users.find(u => u.id === uid); return user && user.clients && user.clients.some(cl => String(cl.id) === String(c.id)); });
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignClientToUsersFromModal('${userIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">person</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div></div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        return `<div data-act="call" data-call="assignClientToUsersFromModal" data-a1="${userIds.join(',')}" data-a2="${c.id}" data-a3="@fn:isAssigned" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">person</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${c.name}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${c.email || 'Sin email'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
                         </div>`;
                     }).join('')}
                 </div>
@@ -5139,21 +5140,21 @@ const App = window.App = {
         const primaryLight = isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)';
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Staff</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
-                    <button onclick="App.openCreateEventModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Evento a Staff</span><span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span></div>
+                    <button data-act="call" data-call="openCreateEventModal" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
-                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;" id="event-selector-items">
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" data-style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar evento..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" data-style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;" id="event-selector-items">
                     ${events.map(e => {
                         const isAssigned = userIds.some(uid => {
                             const user = users.find(u => String(u.id) === String(uid));
@@ -5168,10 +5169,10 @@ const App = window.App = {
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
                         const userIdsJoined = Array.isArray(userIds) ? userIds.join(',') : userIds;
-                        return `<div data-event-id="${e.id}" data-is-assigned="${isAssigned}" onclick="App.assignEventToUsersFromModal('${userIdsJoined}', '${e.id}', ${isAssigned})" class="event-selector-item selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div></div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        return `<div data-event-id="${e.id}" data-is-assigned="${isAssigned}" data-act="call" data-call="assignEventToUsersFromModal" data-a1="${userIdsJoined}" data-a2="${e.id}" data-a3="${isAssigned}" class="event-selector-item selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${e.name}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
                         </div>`;
                     }).join('')}
                 </div>
@@ -5234,26 +5235,26 @@ const App = window.App = {
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Rol a Staff</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Rol a Staff</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span>
                     </div>
                 </div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${roles.map(r => `
-                        <div onclick="App.assignRoleToUsersFromModal('${r.value}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${r.color}11; border: 1px solid ${r.color}44;">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${r.color}22; color: ${r.color};"><span class="material-symbols-outlined">${r.icon}</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${r.color};">${r.label}</div></div>
+                        <div data-act="call" data-call="assignRoleToUsersFromModal" data-a1="${r.value}" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${r.color}11; border: 1px solid ${r.color}44;">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${r.color}22; color: ${r.color};"><span class="material-symbols-outlined">${r.icon}</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${r.color};">${r.label}</div></div>
                         </div>
                     `).join('')}
                 </div>
@@ -5521,39 +5522,39 @@ const App = window.App = {
         };
         
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Cliente</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span>
                     </div>
-                    <button onclick="App.openCreateClientModal()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
+                    <button data-act="call" data-call="openCreateClientModal" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">person_add</span> CREAR
                     </button>
                 </div>
 
                 <div class="relative group mt-6 mb-6">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
-                    <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" data-style="color: ${textSecondary};">search</span>
+                    <input type="text" placeholder="Buscar cliente..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" 
+                        data-style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
                 </div>
 
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${clients.map(c => {
                         const isAssigned = isClientAssignedToAll(c.id);
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
                         return `
-                        <div onclick="App.toggleClientForUsersFromModal('${userIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
+                        <div data-act="call" data-call="toggleClientForUsersFromModal" data-a1="${userIds.join(',')}" data-a2="${c.id}" data-a3="@fn:isAssigned" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div>
+                                <div class="text-sm font-bold" data-style="color: ${textMain};">${c.name}</div>
+                                <div class="text-[11px]" data-style="color: ${textSecondary};">${c.email || 'Sin email'}</div>
                             </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};">
+                                <span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span>
                             </div>
                         </div>
                     `}).join('')}
@@ -5649,14 +5650,14 @@ const App = window.App = {
                         <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Empresa</span>
                         <span class="text-xs text-slate-400">Selecciona empresa para ${userIds.length} usuario(s)</span>
                     </div>
-                    <button onclick="App.navigateToCreateGroup()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
+                    <button data-act="call" data-call="navigateToCreateGroup" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">add_business</span> NUEVA
                     </button>
                 </div>
 
                 <div class="relative group">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors text-sm">search</span>
-                    <input type="text" placeholder="Buscar empresa..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                    <input type="text" placeholder="Buscar empresa..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" 
                         class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-600">
                 </div>
 
@@ -5668,7 +5669,7 @@ const App = window.App = {
                         const statusClass = isAssignedToAll ? 'ring-2 ring-blue-500/50 bg-blue-500/10 border-blue-500/30' : isAssignedToSome ? 'ring-1 ring-blue-500/30 bg-blue-500/5 border-blue-500/20' : '';
                         const icon = isAssignedToAll ? 'check' : 'add';
                         return `
-                        <div onclick="App.bulkToggleCompanyForUsers('${userIds.join(',')}', '${g.id}', ${isAssignedToAll ? 'true' : 'false'})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all cursor-pointer group shadow-sm ${statusClass}">
+                        <div data-act="call" data-call="bulkToggleCompanyForUsers" data-a1="${userIds.join(',')}" data-a2="${g.id}" data-a3="${isAssignedToAll ? 'true' : 'false'}" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all cursor-pointer group shadow-sm ${statusClass}">
                             <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 <span class="material-symbols-outlined">corporate_fare</span>
                             </div>
@@ -5808,24 +5809,24 @@ const App = window.App = {
         }
         
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+            <div class="space-y-5" data-style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Evento</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span>
                     </div>
-                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
+                    <button data-act="call" data-call="navigateToCreateEvent" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">event</span> NUEVO
                     </button>
                 </div>
 
                 <div class="relative group mt-6 mb-6">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
-                    <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" data-style="color: ${textSecondary};">search</span>
+                    <input type="text" placeholder="Buscar evento..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" 
+                        data-style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
                 </div>
 
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${events.map(e => {
                         const assignedCount = getAssignedCount(e.id);
                         const isAssignedToAll = assignedCount === userIds.length;
@@ -5834,18 +5835,18 @@ const App = window.App = {
                         const itemBg = isAssignedToAll ? primaryLight : isAssignedToSome ? (isDark ? 'rgba(139,92,246,0.05)' : 'rgba(139,92,246,0.08)') : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
                         const icon = isAssignedToAll ? 'check' : 'add';
                         return `
-                        <div onclick="App.bulkToggleEventForUsers('${userIds.join(',')}', '${e.id}', ${isAssignedToAll ? 'true' : 'false'})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
+                        <div data-act="call" data-call="bulkToggleEventForUsers" data-a1="${userIds.join(',')}" data-a2="${e.id}" data-a3="${isAssignedToAll ? 'true' : 'false'}" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};">
                                 <span class="material-symbols-outlined">event</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div>
-                                <div class="text-[11px]" style="color: ${isAssignedToAll ? primaryColor : textSecondary};">
+                                <div class="text-sm font-bold" data-style="color: ${textMain};">${e.name}</div>
+                                <div class="text-[11px]" data-style="color: ${isAssignedToAll ? primaryColor : textSecondary};">
                                     ${isAssignedToAll ? '✓ Asignado a todos' : isAssignedToSome ? `${assignedCount} de ${userIds.length} usuarios` : (e.date || 'Sin fecha') + (e.location ? ' • ' + e.location : '')}
                                 </div>
                             </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssignedToAll ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssignedToAll ? primaryColor : borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssignedToAll ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssignedToAll ? primaryColor : borderColor};">
+                                <span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span>
                             </div>
                         </div>
                     `}).join('')}
@@ -6222,7 +6223,7 @@ const App = window.App = {
             <label class="flex items-center gap-3 p-2.5 hover:bg-white/5 rounded-xl cursor-pointer transition-all">
                 <input type="checkbox" class="mailing-check w-4 h-4 rounded-md accent-primary" 
                     value="${g.email}" ${g.selected ? 'checked' : ''} 
-                    onchange="App.updateGuestSelection('${g.id}', this.checked)">
+                    data-act="call" data-call="updateGuestSelection" data-a1="${g.id}" data-a2="@this.checked">
                 <div class="flex flex-col flex-1 min-w-0">
                     <span class="text-[11px] font-bold text-white truncate">${App.esc(g.name)}</span>
                     <span class="text-[9px] text-slate-500 truncate">${App.esc(g.email)}</span>
@@ -7218,7 +7219,7 @@ navigate(viewName, params = {}, push = true) {
         cl('btn-logout', () => this.logout());
         
         // Mis Eventos - Acciones
-        // F-UX: binding eliminado — el botón ya tiene onclick="App.openCreateEventModal()" en el HTML.
+        // F-UX: binding eliminado — el botón ya tiene data-act="call" data-call="openCreateEventModal" en el HTML.
         // Duplicarlo aquí causaba doble apertura/reset del modal (navigateToCreateEvent re-abría a los 100ms).
         // navigateToCreateEvent() sigue disponible para sus otros llamadores (botones renderizados en JS).
         
@@ -7949,7 +7950,7 @@ navigate(viewName, params = {}, push = true) {
             return `
                 <tr class="hover:bg-white/[0.02] transition-colors group/event" data-event-id="${ev.id}" data-client-ids="${clientIds.join(',')}">
                     <td class="!py-3 !px-3">
-                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} onchange="App.toggleEventSelection('${ev.id}')" style="width: 16px; height: 16px; cursor: pointer;">
+                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} data-act="call" data-call="toggleEventSelection" data-a1="${ev.id}" data-style="width: 16px; height: 16px; cursor: pointer;">
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
@@ -7957,14 +7958,14 @@ navigate(viewName, params = {}, push = true) {
                                 <span class="material-symbols-outlined text-[10px] text-[#0ba5ec]">event</span>
                             </div>
                             <div class="min-w-0">
-                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
+                                <a href="#" data-act="submitForm" data-call="openEvent" data-a1="${ev.id}" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
                                 <span class="text-[10px] text-slate-500">${companyName !== '—' ? companyName : ''}</span>
                             </div>
                         </div>
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="text-xs text-slate-300">${dateStr} <span class="text-slate-500">${timeStr}</span></div>
-                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
+                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" data-style="color: #a78bfa;">--</div>
                     </td>
                     <td class="!py-3 !px-3">
                         <span class="text-xs text-slate-300">${clientNames}</span>
@@ -8049,8 +8050,8 @@ navigate(viewName, params = {}, push = true) {
             ).join('');
 
             const navButtons = `
-                <button onclick="App.showEventTabInCarousel(${state.currentIndex}, 0)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 0 ? '#f59e0b' : textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                <button onclick="App.showEventTabInCarousel(${state.currentIndex}, 1)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 1 ? '#ef4444' : textSecondary};" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                <button data-act="call" data-call="showEventTabInCarousel" data-a1="${state.currentIndex}" data-a2="0" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${activeTab === 0 ? '#f59e0b' : textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button data-act="call" data-call="showEventTabInCarousel" data-a1="${state.currentIndex}" data-a2="1" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${activeTab === 1 ? '#ef4444' : textSecondary};" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
             `;
             
             let tabContent
@@ -8066,39 +8067,39 @@ navigate(viewName, params = {}, push = true) {
                     const local = new Date(date.getTime() - offset * 60000);
                     return local.toISOString().slice(0, 16);
                 };
-                saveButton = `<button onclick="App.saveEventFromCarouselNow('${ev.id}')" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                saveButton = `<button data-act="call" data-call="saveEventFromCarouselNow" data-a1="${ev.id}" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" data-style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
                     <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
                 </button>`;
                 
                 tabContent = `
-                    <div class="p-4 rounded-2xl" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                    <div class="p-4 rounded-2xl" data-style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
                         <div class="space-y-5">
                             <div>
-                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nombre del Evento</label>
-                                <input id="ev-edit-name-${ev.id}" type="text" value="${ev.name || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del evento">
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Nombre del Evento</label>
+                                <input id="ev-edit-name-${ev.id}" type="text" value="${ev.name || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del evento">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Ubicación</label>
-                                <input id="ev-edit-location-${ev.id}" type="text" value="${ev.location || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Ubicación del evento">
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Ubicación</label>
+                                <input id="ev-edit-location-${ev.id}" type="text" value="${ev.location || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Ubicación del evento">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Cliente</label>
-                                <select id="ev-edit-client-${ev.id}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Cliente</label>
+                                <select id="ev-edit-client-${ev.id}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
                                     <option value="">Seleccionar cliente</option>
                                     ${clientsOptions}
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Fecha Inicio</label>
-                                <input id="ev-edit-date-${ev.id}" type="datetime-local" value="${formatDate(ev.date)}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Fecha Inicio</label>
+                                <input id="ev-edit-date-${ev.id}" type="datetime-local" value="${formatDate(ev.date)}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Fecha Fin</label>
-                                <input id="ev-edit-end-date-${ev.id}" type="datetime-local" value="${formatDate(ev.end_date)}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Fecha Fin</label>
+                                <input id="ev-edit-end-date-${ev.id}" type="datetime-local" value="${formatDate(ev.end_date)}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Descripción</label>
-                                <textarea id="ev-edit-desc-${ev.id}" rows="2" class="w-full px-4 py-6 rounded-lg text-sm outline-none resize-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">${ev.description || ''}</textarea>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Descripción</label>
+                                <textarea id="ev-edit-desc-${ev.id}" rows="2" class="w-full px-4 py-6 rounded-lg text-sm outline-none resize-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">${ev.description || ''}</textarea>
                             </div>
                         </div>
                     </div>`;
@@ -8107,53 +8108,53 @@ navigate(viewName, params = {}, push = true) {
                 saveButton = '';
                 tabContent = `
                     <div class="space-y-3">
-                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'active')" 
+                        <div data-act="call" data-call="updateEventStatusInCarousel" data-a1="${ev.id}" data-a2="active" 
                              class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all ${ev.status === 'ACTIVE' ? 'ring-2 ring-emerald-500' : ''}" 
-                             style="background: ${ev.status === 'ACTIVE' ? 'rgba(34,197,94,0.2)' : 'rgba(34,197,94,0.1)'}; border: 1px solid rgba(34,197,94,0.3);">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
+                             data-style="background: ${ev.status === 'ACTIVE' ? 'rgba(34,197,94,0.2)' : 'rgba(34,197,94,0.1)'}; border: 1px solid rgba(34,197,94,0.3);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold flex items-center gap-2" style="color: #22c55e;">
+                                <div class="text-sm font-bold flex items-center gap-2" data-style="color: #22c55e;">
                                     Activar 
                                     ${ev.status === 'ACTIVE' ? '<span class="px-2 py-0.5 rounded-full text-[9px] bg-emerald-500 text-white">ACTUAL</span>' : ''}
                                 </div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">Marcar evento como activo</div>
+                                <div class="text-[11px]" data-style="color: ${textSecondary};">Marcar evento como activo</div>
                             </div>
                         </div>
-                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'inactive')" 
+                        <div data-act="call" data-call="updateEventStatusInCarousel" data-a1="${ev.id}" data-a2="inactive" 
                              class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all ${ev.status === 'INACTIVE' ? 'ring-2 ring-amber-500' : ''}" 
-                             style="background: ${ev.status === 'INACTIVE' ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.1)'}; border: 1px solid rgba(245,158,11,0.3);">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
+                             data-style="background: ${ev.status === 'INACTIVE' ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.1)'}; border: 1px solid rgba(245,158,11,0.3);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold flex items-center gap-2" style="color: #f59e0b;">
+                                <div class="text-sm font-bold flex items-center gap-2" data-style="color: #f59e0b;">
                                     Desactivar
                                     ${ev.status === 'INACTIVE' ? '<span class="px-2 py-0.5 rounded-full text-[9px] bg-amber-500 text-white">ACTUAL</span>' : ''}
                                 </div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">Marcar evento como inactivo</div>
+                                <div class="text-[11px]" data-style="color: ${textSecondary};">Marcar evento como inactivo</div>
                             </div>
                         </div>
-                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'completed')" 
+                        <div data-act="call" data-call="updateEventStatusInCarousel" data-a1="${ev.id}" data-a2="completed" 
                              class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all ${ev.status === 'COMPLETED' ? 'ring-2 ring-blue-500' : ''}" 
-                             style="background: ${ev.status === 'COMPLETED' ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.1)'}; border: 1px solid rgba(59,130,246,0.3);">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(59,130,246,0.2); color: #3b82f6;"><span class="material-symbols-outlined">check_circle</span></div>
+                             data-style="background: ${ev.status === 'COMPLETED' ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.1)'}; border: 1px solid rgba(59,130,246,0.3);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(59,130,246,0.2); color: #3b82f6;"><span class="material-symbols-outlined">check_circle</span></div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold flex items-center gap-2" style="color: #3b82f6;">
+                                <div class="text-sm font-bold flex items-center gap-2" data-style="color: #3b82f6;">
                                     Finalizar
                                     ${ev.status === 'COMPLETED' ? '<span class="px-2 py-0.5 rounded-full text-[9px] bg-blue-500 text-white">ACTUAL</span>' : ''}
                                 </div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">Marcar evento como completado</div>
+                                <div class="text-[11px]" data-style="color: ${textSecondary};">Marcar evento como completado</div>
                             </div>
                         </div>
-                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'cancelled')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">cancel</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Cancelar</div><div class="text-[11px]" style="color: ${textSecondary};">Cancelar el evento (INACTIVO)</div></div>
+                        <div data-act="call" data-call="updateEventStatusInCarousel" data-a1="${ev.id}" data-a2="cancelled" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" data-style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">cancel</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: #ef4444;">Cancelar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Cancelar el evento (INACTIVO)</div></div>
                         </div>
-                        <div onclick="App.rescheduleEventInCarousel('${ev.id}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3);">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(168,85,247,0.2); color: #a855f7;"><span class="material-symbols-outlined">schedule</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: #a855f7;">Aplazar</div><div class="text-[11px]" style="color: ${textSecondary};">Cambiar fecha del evento</div></div>
+                        <div data-act="call" data-call="rescheduleEventInCarousel" data-a1="${ev.id}" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" data-style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(168,85,247,0.2); color: #a855f7;"><span class="material-symbols-outlined">schedule</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: #a855f7;">Aplazar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Cambiar fecha del evento</div></div>
                         </div>
-                        <div onclick="App.deleteEventInCarousel('${ev.id}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.3);">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(220,38,38,0.2); color: #dc2626;"><span class="material-symbols-outlined">delete</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: #dc2626;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar evento permanentemente</div></div>
+                        <div data-act="call" data-call="deleteEventInCarousel" data-a1="${ev.id}" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" data-style="background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.3);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(220,38,38,0.2); color: #dc2626;"><span class="material-symbols-outlined">delete</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" data-style="color: #dc2626;">Eliminar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Eliminar evento permanentemente</div></div>
                         </div>
                     </div>`;
             }
@@ -8163,21 +8164,21 @@ navigate(viewName, params = {}, push = true) {
                 const notifColor = notif.icon === 'success' ? '#22c55e' : (notif.icon === 'error' ? '#ef4444' : '#f59e0b');
                 const notifBg = notif.icon === 'success' ? 'rgba(34,197,94,0.1)' : (notif.icon === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)');
                 notifHtml = `
-                    <div class="flex items-center gap-3 p-3 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300" style="background: ${notifBg}; border: 1px solid ${notifColor}33;">
-                        <span class="material-symbols-outlined text-sm" style="color: ${notifColor};">${notif.icon === 'success' ? 'check_circle' : (notif.icon === 'error' ? 'error' : 'warning')}</span>
-                        <span class="text-[11px] font-bold" style="color: ${notifColor};">${notif.text}</span>
+                    <div class="flex items-center gap-3 p-3 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300" data-style="background: ${notifBg}; border: 1px solid ${notifColor}33;">
+                        <span class="material-symbols-outlined text-sm" data-style="color: ${notifColor};">${notif.icon === 'success' ? 'check_circle' : (notif.icon === 'error' ? 'error' : 'warning')}</span>
+                        <span class="text-[11px] font-bold" data-style="color: ${notifColor};">${notif.text}</span>
                     </div>`;
             }
 
             const html = `
-                <div class="space-y-5" style="padding-right: 8px;">
-                    <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="space-y-5" data-style="padding-right: 8px;">
+                    <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                         ${navButtons}
                     </div>
-                    <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                         <div class="flex flex-col flex-1">
-                            <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">${titleText}</span>
-                            <span class="text-xs" style="color: ${textMain};">${ev.name} (${state.currentIndex + 1}/${state.events.length})</span>
+                            <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">${titleText}</span>
+                            <span class="text-xs" data-style="color: ${textMain};">${ev.name} (${state.currentIndex + 1}/${state.events.length})</span>
                         </div>
                         ${saveButton}
                     </div>
@@ -8257,7 +8258,7 @@ navigate(viewName, params = {}, push = true) {
 
     // Guardar evento inmediatamente desde el botón guardar
     saveEventFromCarouselNow: async function(eventId) {
-        const saveBtn = document.querySelector(`[onclick="App.saveEventFromCarouselNow('${eventId}')"]`);
+        const saveBtn = document.querySelector(`[data-act="call" data-call="saveEventFromCarouselNow" data-a1="${eventId}"]`);
         if (saveBtn) {
             saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
             saveBtn.style.opacity = '0.6';
@@ -8604,7 +8605,7 @@ navigate(viewName, params = {}, push = true) {
             return `
                 <tr class="hover:bg-white/[0.02] transition-colors group/event" data-event-id="${ev.id}" data-client-ids="${clientIds.join(',')}">
                     <td class="!py-3 !px-3">
-                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} onchange="App.toggleEventSelection('${ev.id}')" style="width: 16px; height: 16px; cursor: pointer;">
+                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} data-act="call" data-call="toggleEventSelection" data-a1="${ev.id}" data-style="width: 16px; height: 16px; cursor: pointer;">
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
@@ -8612,14 +8613,14 @@ navigate(viewName, params = {}, push = true) {
                                 <span class="material-symbols-outlined text-[10px] text-[#0ba5ec]">event</span>
                             </div>
                             <div class="min-w-0">
-                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
+                                <a href="#" data-act="submitForm" data-call="openEvent" data-a1="${ev.id}" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
                                 <span class="text-[10px] text-slate-500">${companyName !== '—' ? companyName : ''}</span>
                             </div>
                         </div>
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="text-xs text-slate-300">${dateStr} <span class="text-slate-500">${timeStr}</span></div>
-                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
+                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" data-style="color: #a78bfa;">--</div>
                     </td>
                     <td class="!py-3 !px-3">
                         <span class="text-xs text-slate-300">${clientNames}</span>
@@ -8844,7 +8845,7 @@ navigate(viewName, params = {}, push = true) {
             return `
                 <tr class="hover:bg-white/[0.02] transition-colors" data-event-id="${ev.id}">
                     <td class="!py-3 !px-3">
-                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} onchange="App.toggleEventSelection('${ev.id}')" style="width: 16px; height: 16px; cursor: pointer;">
+                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} data-act="call" data-call="toggleEventSelection" data-a1="${ev.id}" data-style="width: 16px; height: 16px; cursor: pointer;">
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
@@ -8852,13 +8853,13 @@ navigate(viewName, params = {}, push = true) {
                                 <span class="material-symbols-outlined text-[10px] text-[#0ba5ec]">event</span>
                             </div>
                             <div class="min-w-0">
-                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
+                                <a href="#" data-act="submitForm" data-call="openEvent" data-a1="${ev.id}" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
                             </div>
                         </div>
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="text-xs text-slate-300">${dateStr} <span class="text-slate-500">${timeStr}</span></div>
-                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
+                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" data-style="color: #a78bfa;">--</div>
                     </td>
                     <td class="!py-3 !px-3">
                         <span class="text-xs text-slate-300">${clientNames}</span>
@@ -8926,7 +8927,7 @@ navigate(viewName, params = {}, push = true) {
             const status = this._getEventStatus(s.event);
             const statusColor = status === 'active' ? 'text-emerald-400' : status === 'upcoming' ? 'text-blue-400' : 'text-slate-400';
             return `
-                <div class="px-4 py-2.5 hover:bg-white/5 cursor-pointer flex items-center justify-between transition-colors" onclick="App.openEvent('${s.event.id}'); App.hideEventSuggestions();">
+                <div class="px-4 py-2.5 hover:bg-white/5 cursor-pointer flex items-center justify-between transition-colors" data-act="clearCall" data-call="openEvent:${s.event.id}|hideEventSuggestions">
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="material-symbols-outlined text-[#0ba5ec] text-sm flex-shrink-0">event</span>
                         <div class="min-w-0">
@@ -9277,7 +9278,7 @@ navigate(viewName, params = {}, push = true) {
         if (!list) return;
         list.innerHTML = Object.entries(this.state.columnConfig).map(([id, cfg]) => `
             <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-white/5 rounded-xl transition-colors">
-                <input type="checkbox" ${cfg.visible ? 'checked' : ''} onchange="App.toggleColumn('${id}')" class="w-4 h-4 accent-primary">
+                <input type="checkbox" ${cfg.visible ? 'checked' : ''} data-act="call" data-call="toggleColumn" data-a1="${id}" class="w-4 h-4 accent-primary">
                 <span class="text-xs font-bold ${cfg.visible ? 'text-white' : 'text-slate-500'}">${cfg.label}</span>
             </label>
         `).join('');
@@ -9313,7 +9314,7 @@ navigate(viewName, params = {}, push = true) {
                         <div class="w-7 h-7 rounded-lg ${isValidated ? 'bg-emerald-500/20' : 'bg-[var(--bg-hover)]'} flex items-center justify-center">
                             <span class="material-symbols-outlined text-sm ${isValidated ? 'text-emerald-500' : 'text-slate-500'}">${isValidated ? 'check_circle' : 'person'}</span>
                         </div>
-                        <div class="cursor-pointer" onclick="App.editGuestFromList('${g.id}', '${g.event_id}', '${(g.client_name || '').replace(/'/g, "\\'")}')">
+                        <div class="cursor-pointer" data-act="call" data-call="editGuestFromList" data-a1="${g.id}" data-a2="${g.event_id}" data-a3="${(g.client_name || '').replace(/"/g, '&quot;')}">
                             <p class="text-sm font-bold text-[var(--text-main)] hover:text-[var(--primary)] transition-colors">${g.client_name || 'Sin nombre'}</p>
                             <p class="text-[11px] text-[var(--text-secondary)] font-mono">${g.client_email || 'S/E'}</p>
                             <p class="text-[10px] text-slate-500">${g.client_phone || 'S/T'}</p>
@@ -9355,7 +9356,7 @@ navigate(viewName, params = {}, push = true) {
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" class="sr-only peer" 
                             ${isValidated ? 'checked' : ''} 
-                            onchange="App.toggleAttendance('${g.event_id}', '${g.client_id}', this.checked)">
+                            data-act="call" data-call="toggleAttendance" data-a1="${g.event_id}" data-a2="${g.client_id}" data-a3="@this.checked">
                         <div class="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                     </label>
                 </td>
@@ -9396,7 +9397,7 @@ navigate(viewName, params = {}, push = true) {
             const data = await this.fetchAPI('/reports/' + eId);
             Swal.close();
             if (!data) return;
-            let html = '<div class="text-left space-y-3" style="max-height:400px;overflow-y:auto">';
+            let html = '<div class="text-left space-y-3" data-style="max-height:400px;overflow-y:auto">';
             html += '<div class="flex justify-between"><span>Total invitados:</span><span class="font-bold">' + (data.stats?.total || 0) + '</span></div>';
             html += '<div class="flex justify-between"><span>Asistieron:</span><span class="font-bold text-green-400">' + (data.stats?.checkedIn || 0) + '</span></div>';
             html += '<div class="flex justify-between"><span>Asistencia:</span><span class="font-bold">' + (data.stats?.conversionRate || 0) + '%</span></div>';
@@ -9578,7 +9579,7 @@ navigate(viewName, params = {}, push = true) {
         let html = '<div class="p-4"><h3 class="text-lg font-bold mb-4">📊 Personalizar Dashboard</h3><div class="space-y-2">';
         config.forEach(function(w) {
             html += '<label class="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white/5">' +
-                '<input type="checkbox" ' + (w.visible ? 'checked' : '') + ' onchange="App.toggleWidget(\'' + w.id + '\')" class="w-4 h-4 accent-[var(--primary)]">' +
+                '<input type="checkbox" ' + (w.visible ? 'checked' : '') + ' data-act="call" data-call="toggleWidget" data-a1="' + w.id + '" class="w-4 h-4 accent-[var(--primary)]">' +
                 '<span>' + w.label + '</span></label>';
         });
         html += '</div></div>';
@@ -10360,8 +10361,8 @@ navigate(viewName, params = {}, push = true) {
                 '<td class="table-td text-[var(--text-secondary)]">' + (v.address || '-') + '</td>' +
                 '<td class="table-td">' + (v.capacity || 0) + '</td>' +
                 '<td class="table-td text-[var(--text-secondary)]">' + (() => { try { return JSON.parse(v.resources || '[]').join(', ') || '-'; } catch(e) { return '-'; } })() + '</td>' +
-                '<td class="table-td"><div class="flex gap-1"><button onclick="App.openVenueModal(\'' + v.id + '\')" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors" title="Editar"><span class="material-symbols-outlined text-slate-400 text-sm">edit</span></button>' +
-                '<button onclick="App.deleteVenue(\'' + v.id + '\')" class="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 transition-colors" title="Eliminar"><span class="material-symbols-outlined text-slate-400 text-sm">delete</span></button></div></td></tr>'
+                '<td class="table-td"><div class="flex gap-1"><button data-act="call" data-call="openVenueModal" data-a1="' + v.id + '" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors" title="Editar"><span class="material-symbols-outlined text-slate-400 text-sm">edit</span></button>' +
+                '<button data-act="call" data-call="deleteVenue" data-a1="' + v.id + '" class="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 transition-colors" title="Eliminar"><span class="material-symbols-outlined text-slate-400 text-sm">delete</span></button></div></td></tr>'
             ).join('');
         } catch(e) {
             console.error('[VENUES] Error loading:', e);
@@ -10572,12 +10573,12 @@ navigate(viewName, params = {}, push = true) {
                 return '<tr class="hover:bg-white/[0.02] transition-colors">' +
                     '<td class="table-td text-slate-300">' + (item.table_name || '-') + '</td>' +
                     '<td class="table-td text-white font-mono text-xs">' + (item.column_name || '-') + '</td>' +
-                    '<td class="table-td"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold" style="background:' + (classColors[cl] || '#64748b') + '30;color:' + (classColors[cl] || '#64748b') + '">' + (classLabels[cl] || cl) + '</span></td>' +
+                    '<td class="table-td"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold" data-style="background:' + (classColors[cl] || '#64748b') + '30;color:' + (classColors[cl] || '#64748b') + '">' + (classLabels[cl] || cl) + '</span></td>' +
                     '<td class="table-td text-slate-400 text-xs capitalize">' + (item.category || '-') + '</td>' +
                     '<td class="table-td">' + (item.is_pii ? '<span class="text-green-400 text-xs font-bold">PII</span>' : '<span class="text-slate-600 text-xs">-</span>') + '</td>' +
                     '<td class="table-td">' + (item.is_spi ? '<span class="text-yellow-400 text-xs font-bold">SPI</span>' : '<span class="text-slate-600 text-xs">-</span>') + '</td>' +
                     '<td class="table-td text-xs text-slate-500 max-w-[200px] truncate">' + (item.description || '') + '</td>' +
-                    '<td class="table-td"><div class="flex gap-1"><button class="btn-icon" onclick="App.editComplianceClass(\'' + item.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button><button class="btn-icon text-red-400" onclick="App.deleteComplianceClass(\'' + item.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></td></tr>';
+                    '<td class="table-td"><div class="flex gap-1"><button class="btn-icon" data-act="call" data-call="editComplianceClass" data-a1="' + item.id + '"><span class="material-symbols-outlined text-sm">edit</span></button><button class="btn-icon text-red-400" data-act="call" data-call="deleteComplianceClass" data-a1="' + item.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></div></td></tr>';
             }).join('');
         } catch(e) { console.error('[COMPLIANCE] Error:', e.message); }
     },
@@ -10592,8 +10593,8 @@ navigate(viewName, params = {}, push = true) {
                 '<select id="swal-cc-class" class="swal2-input"><option value="public"' + (item && item.classification === 'public' ? ' selected' : '') + '>Público</option><option value="internal"' + (item && item.classification === 'internal' ? ' selected' : '') + '>Interno</option><option value="confidential"' + (item && item.classification === 'confidential' ? ' selected' : '') + '>Confidencial</option><option value="restricted"' + (item && item.classification === 'restricted' ? ' selected' : '') + '>Restringido</option></select>' +
                 '<select id="swal-cc-cat" class="swal2-input"><option value="general"' + (item && item.category === 'general' ? ' selected' : '') + '>General</option><option value="identidad"' + (item && item.category === 'identidad' ? ' selected' : '') + '>Identidad</option><option value="contacto"' + (item && item.category === 'contacto' ? ' selected' : '') + '>Contacto</option><option value="laboral"' + (item && item.category === 'laboral' ? ' selected' : '') + '>Laboral</option><option value="salud"' + (item && item.category === 'salud' ? ' selected' : '') + '>Salud</option><option value="fiscal"' + (item && item.category === 'fiscal' ? ' selected' : '') + '>Fiscal</option></select>' +
                 '<textarea id="swal-cc-desc" class="swal2-textarea" placeholder="Descripción" rows="2">' + (item ? (item.description || '') : '') + '</textarea>' +
-                '<label class="flex items-center gap-2 mt-1 text-sm" style="color:#fff"><input type="checkbox" id="swal-cc-pii" ' + (item && item.is_pii ? 'checked' : '') + ' class="checkbox-sm"> Es PII (Información Personal Identificable)</label>' +
-                '<label class="flex items-center gap-2 text-sm" style="color:#fff"><input type="checkbox" id="swal-cc-spi" ' + (item && item.is_spi ? 'checked' : '') + ' class="checkbox-sm"> Es SPI (Información Sensible Personal)</label></div>',
+                '<label class="flex items-center gap-2 mt-1 text-sm" data-style="color:#fff"><input type="checkbox" id="swal-cc-pii" ' + (item && item.is_pii ? 'checked' : '') + ' class="checkbox-sm"> Es PII (Información Personal Identificable)</label>' +
+                '<label class="flex items-center gap-2 text-sm" data-style="color:#fff"><input type="checkbox" id="swal-cc-spi" ' + (item && item.is_spi ? 'checked' : '') + ' class="checkbox-sm"> Es SPI (Información Sensible Personal)</label></div>',
             background: '#0f172a', color: '#fff',
             confirmButtonText: isEdit ? 'Guardar' : 'Crear',
             showCancelButton: true,
@@ -10672,7 +10673,7 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td text-slate-300">' + (log.user_name || log.user_id || '-') + '</td>' +
                     '<td class="table-td text-slate-400 text-xs">' + (log.table_name || '-') + '</td>' +
                     '<td class="table-td"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (log.action === 'erasure' ? 'bg-red-500/20 text-red-400' : log.action === 'export' ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-500/20 text-slate-300') + '">' + (actionLabels[log.action] || log.action) + '</span></td>' +
-                    '<td class="table-td"><span class="text-[10px] font-bold" style="color:' + sensColor + '">' + (log.sensitivity || '-') + '</span></td>' +
+                    '<td class="table-td"><span class="text-[10px] font-bold" data-style="color:' + sensColor + '">' + (log.sensitivity || '-') + '</span></td>' +
                     '<td class="table-td text-xs text-slate-500">' + (log.ip_address || '-') + '</td>' +
                     '<td class="table-td text-xs text-slate-500">' + (log.created_at ? new Date(log.created_at).toLocaleString('es-CO') : '-') + '</td></tr>';
             }).join('');
@@ -10686,7 +10687,7 @@ navigate(viewName, params = {}, push = true) {
             if (!data) { Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron exportar los datos', background: '#0f172a', color: '#fff' }); return; }
             Swal.fire({
                 icon: 'info', title: 'Datos exportados',
-                html: '<p class="text-sm text-slate-400 mb-3">Datos del invitado exportados en formato JSON compatible con GDPR.</p><button class="btn-primary text-xs px-4 py-2" onclick="App.downloadJsonFile(' + JSON.stringify(JSON.stringify(data)) + ', \'guest-' + guestId.substring(0, 8) + '-data.json\')">Descargar JSON</button>',
+                html: '<p class="text-sm text-slate-400 mb-3">Datos del invitado exportados en formato JSON compatible con GDPR.</p><button class="btn-primary text-xs px-4 py-2" data-act="call" data-call="downloadJsonFile" data-a1=" + JSON.stringify(JSON.stringify(data)) + " data-a2="' + ('guest-' + guestId.substring(0, 8) + '-data.json') + '">Descargar JSON</button>',
                 background: '#0f172a', color: '#fff', showConfirmButton: false
             });
         } catch(e) {
@@ -10972,7 +10973,7 @@ navigate(viewName, params = {}, push = true) {
     _gm: null,
     async _g() {
         if (!this._gm) {
-            const m = await import('./modules/app-gamification.js?v=12.44.810');
+            const m = await import('./modules/app-gamification.js?v=12.44.811');
             this._gm = m.default || window.GamificationModule || {};
             // Bind App reference for module functions that use window.App
             if (this._gm._init) this._gm._init();
@@ -11028,9 +11029,9 @@ navigate(viewName, params = {}, push = true) {
                         '<p class="text-xs text-slate-500">' + (t.total_responses || 0) + ' respuestas</p></div></div>' +
                         '<div class="flex gap-1">' +
                         '<span class="text-xs ' + statusColor + ' flex items-center gap-1"><span class="material-symbols-outlined text-xs">' + statusIcon + '</span>' + t.status + '</span>' +
-                        '<button class="btn-icon" onclick="App.openSurveyBuilder(\'' + t.id + '\')" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>' +
-                        '<button class="btn-icon" onclick="App.openSurveyDashboard(\'' + t.id + '\')" title="Dashboard"><span class="material-symbols-outlined text-sm">insights</span></button>' +
-                        '<button class="btn-icon text-red-400" onclick="App.deleteSurveyTemplate(\'' + t.id + '\')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
+                        '<button class="btn-icon" data-act="call" data-call="openSurveyBuilder" data-a1="' + t.id + '" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                        '<button class="btn-icon" data-act="call" data-call="openSurveyDashboard" data-a1="' + t.id + '" title="Dashboard"><span class="material-symbols-outlined text-sm">insights</span></button>' +
+                        '<button class="btn-icon text-red-400" data-act="call" data-call="deleteSurveyTemplate" data-a1="' + t.id + '" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
                 }).join('');
             }
         } catch(e) { console.error('[SURVEY] Error:', e.message); }
@@ -11089,8 +11090,8 @@ navigate(viewName, params = {}, push = true) {
                 (q.description ? '<p class="text-xs text-slate-500">' + q.description + '</p>' : '') +
                 preview + '</div>' +
                 '<div class="flex gap-1 ml-2">' +
-                '<button class="btn-icon" onclick="App.editSurveyQuestion(\'' + q.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
-                '<button class="btn-icon text-red-400" onclick="App.deleteSurveyQuestion(\'' + q.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></div></div>';
+                '<button class="btn-icon" data-act="call" data-call="editSurveyQuestion" data-a1="' + q.id + '"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                '<button class="btn-icon text-red-400" data-act="call" data-call="deleteSurveyQuestion" data-a1="' + q.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></div></div></div>';
         }).join('');
     },
 
@@ -11279,14 +11280,14 @@ navigate(viewName, params = {}, push = true) {
             tbody.innerHTML = cats.map(c => `
                 <tr class="hover:bg-white/[0.02] transition-colors">
                     <td class="table-td font-medium text-white">${c.name}</td>
-                    <td class="table-td"><span class="inline-block w-6 h-6 rounded-full border" style="background:${c.color}"></span></td>
+                    <td class="table-td"><span class="inline-block w-6 h-6 rounded-full border" data-style="background:${c.color}"></span></td>
                     <td class="table-td">${c.capacity || 'Ilimitado'}</td>
                     <td class="table-td">${c._count || '-'}</td>
                     <td class="table-td">${c.price ? '$' + parseFloat(c.price).toFixed(2) : 'Gratis'}</td>
                     <td class="table-td">${c.sort_order || 0}</td>
                     <td class="table-td">
-                        <button class="btn-icon" onclick="App.editCategory('${c.id}')" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                        <button class="btn-icon text-red-400" onclick="App.deleteCategory('${c.id}')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button>
+                        <button class="btn-icon" data-act="call" data-call="editCategory" data-a1="${c.id}" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                        <button class="btn-icon text-red-400" data-act="call" data-call="deleteCategory" data-a1="${c.id}" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button>
                     </td>
                 </tr>
             `).join('');
@@ -11441,7 +11442,7 @@ navigate(viewName, params = {}, push = true) {
         canvas.style.width = (bw * zoom) + 'px';
         canvas.style.height = (bh * zoom) + 'px';
         if (this._badgeBackground?.url) {
-            bgLayer.innerHTML = '<img src="' + this._badgeBackground.url + '" style="width:100%;height:100%;object-fit:cover;display:block">';
+            bgLayer.innerHTML = '<img src="' + this._badgeBackground.url + '" data-style="width:100%;height:100%;object-fit:cover;display:block">';
         } else {
             bgLayer.innerHTML = '';
         }
@@ -11477,7 +11478,7 @@ navigate(viewName, params = {}, push = true) {
                 <div class="badge-handle badge-handle-b"></div>
                 <div class="badge-handle badge-handle-bl"></div>
                 <div class="badge-handle badge-handle-l"></div>` : '';
-            return '<div class="badge-element' + (isSelected ? ' badge-selected' : '') + '" data-el="' + el.id + '" style="left:' + l + 'px;top:' + t + 'px;width:' + w + 'px;height:' + h + 'px;z-index:' + (el.zIndex || (el.type === 'logo' ? 10 : 5)) + ';' + opacity + this._getElementStyle(el) + '">' + content + handles + '</div>';
+            return '<div class="badge-element' + (isSelected ? ' badge-selected' : '') + '" data-el="' + el.id + '" data-style="left:' + l + 'px;top:' + t + 'px;width:' + w + 'px;height:' + h + 'px;z-index:' + (el.zIndex || (el.type === 'logo' ? 10 : 5)) + ';' + opacity + this._getElementStyle(el) + '">' + content + handles + '</div>';
         }).join('');
         // Attach event listeners
         elLayer.querySelectorAll('.badge-element').forEach(el => {
@@ -11513,8 +11514,8 @@ navigate(viewName, params = {}, push = true) {
             email: 'email@ejemplo.com',
             phone: '+52 123 456 7890',
             text: el.text || 'Texto',
-            qr: '<img class="badge-qr-img" style="width:100%;height:100%;object-fit:contain;padding:2px">',
-            logo: el.url ? '<img src="' + el.url + '" style="width:100%;height:100%;object-fit:contain">' : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:8px;color:#999">Logo</div>'
+            qr: '<img class="badge-qr-img" data-style="width:100%;height:100%;object-fit:contain;padding:2px">',
+            logo: el.url ? '<img src="' + el.url + '" data-style="width:100%;height:100%;object-fit:contain">' : '<div data-style="display:flex;align-items:center;justify-content:center;height:100%;font-size:8px;color:#999">Logo</div>'
         };
         return types[el.type] || types.text;
     },
@@ -11538,24 +11539,24 @@ navigate(viewName, params = {}, push = true) {
         const typeLabels = { text: 'Texto', name: 'Nombre', org: 'Organización', cargo: 'Cargo', email: 'Email', phone: 'Teléfono', qr: 'Código QR', logo: 'Logo' };
         let html = '<h3 class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-2">' + (typeLabels[el.type] || 'Elemento') + '</h3>';
         if (el.type === 'text') {
-            html += '<div class="space-y-1.5"><label class="text-[10px] text-slate-400">Texto</label><input class="input-field w-full text-xs py-1" value="' + (el.text || '') + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'text\',this.value)"></div>';
+            html += '<div class="space-y-1.5"><label class="text-[10px] text-slate-400">Texto</label><input class="input-field w-full text-xs py-1" value="' + (el.text || '') + '" data-act="call" data-call="updateBadgeElementProperty" data-a1="' + elId + '" data-a2="text" data-a3="@this.value"></div>';
         }
         if (el.type !== 'qr' && el.type !== 'logo') {
-            html += '<div class="space-y-1.5"><label class="text-[10px] text-slate-400">Tamaño</label><input type="number" class="input-field w-full text-xs py-1" value="' + (el.fontSize || 12) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'fontSize\',parseFloat(this.value)||12)"></div>';
-            html += '<div class="space-y-1.5"><label class="text-[10px] text-slate-400">Color</label><input type="color" class="input-field w-full h-8 p-0.5" value="' + (typeof el.color === 'string' && el.color.startsWith('#') ? el.color : '#333333') + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'color\',this.value)"></div>';
-            html += '<div class="flex items-center gap-2 text-xs"><label class="text-slate-400">Alinear:</label><select class="input-field py-1 text-xs" style="width:auto" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'align\',this.value)"><option value="left"' + (el.align === 'left' ? ' selected' : '') + '>Izq</option><option value="center"' + (el.align === 'center' ? ' selected' : '') + '>Centro</option><option value="right"' + (el.align === 'right' ? ' selected' : '') + '>Der</option></select></div>';
-            html += '<label class="flex items-center gap-2 text-xs"><input type="checkbox" ' + (el.bold ? 'checked' : '') + ' onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'bold\',this.checked)" class="checkbox-sm"> Negrita</label>';
+            html += '<div class="space-y-1.5"><label class="text-[10px] text-slate-400">Tamaño</label><input type="number" class="input-field w-full text-xs py-1" value="' + (el.fontSize || 12) + '" data-act="call" data-call="updateBadgeElementProperty" data-a1="' + elId + '" data-a2="fontSize" data-a3="@float:12"></div>';
+            html += '<div class="space-y-1.5"><label class="text-[10px] text-slate-400">Color</label><input type="color" class="input-field w-full h-8 p-0.5" value="' + (typeof el.color === 'string' && el.color.startsWith('#') ? el.color : '#333333') + '" data-act="call" data-call="updateBadgeElementProperty" data-a1="' + elId + '" data-a2="color" data-a3="@this.value"></div>';
+            html += '<div class="flex items-center gap-2 text-xs"><label class="text-slate-400">Alinear:</label><select class="input-field py-1 text-xs" data-style="width:auto" data-act="call" data-call="updateBadgeElementProperty" data-a1="' + elId + '" data-a2="align" data-a3="@this.value"><option value="left"' + (el.align === 'left' ? ' selected' : '') + '>Izq</option><option value="center"' + (el.align === 'center' ? ' selected' : '') + '>Centro</option><option value="right"' + (el.align === 'right' ? ' selected' : '') + '>Der</option></select></div>';
+            html += '<label class="flex items-center gap-2 text-xs"><input type="checkbox" ' + (el.bold ? 'checked' : '') + ' data-act="call" data-call="updateBadgeElementProperty" data-a1="' + elId + '" data-a2="bold" data-a3="@this.checked" class="checkbox-sm"> Negrita</label>';
         }
         if (el.type === 'logo') {
             const isBack = (el.zIndex || 10) < 5;
             const opacity = el.opacity ?? 1;
-            html += '<div class="space-y-1"><button class="btn-secondary text-xs" onclick="document.getElementById(\'badge-logo-input-' + elId + '\').click()">Subir imagen</button><input id="badge-logo-input-' + elId + '" type="file" accept="image/*" class="hidden" onchange="App.uploadBadgeElementLogo(\'' + elId + '\',this)"></div>';
-            html += '<div class="space-y-1 mt-1"><label class="text-[10px] text-slate-400">Opacidad: <span id="opacity-val-' + elId + '">' + Math.round(opacity * 100) + '%</span></label><input type="range" min="0.1" max="1" step="0.05" value="' + opacity + '" oninput="document.getElementById(\'opacity-val-' + elId + '\').textContent=Math.round(this.value*100)+\'%\';App.updateBadgeElementProperty(\'' + elId + '\',\'opacity\',parseFloat(this.value))" class="w-full"></div>';
-            html += '<label class="flex items-center gap-2 text-xs mt-1"><input type="checkbox" ' + (isBack ? 'checked' : '') + ' onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'zIndex\',this.checked?1:10)" class="checkbox-sm"> Al fondo</label>';
+            html += '<div class="space-y-1"><button class="btn-secondary text-xs" data-act="clickTarget" data-target="badge-logo-input-' + elId + '">Subir imagen</button><input id="badge-logo-input-' + elId + '" type="file" accept="image/*" class="hidden" data-act="call" data-call="uploadBadgeElementLogo" data-a1="' + elId + '" data-a2="@this"></div>';
+            html += '<div class="space-y-1 mt-1"><label class="text-[10px] text-slate-400">Opacidad: <span id="opacity-val-' + elId + '">' + Math.round(opacity * 100) + '%</span></label><input type="range" min="0.1" max="1" step="0.05" value="' + opacity + '" data-act="call" data-call="badgeOpacityInput" data-target="opacity-val-' + elId + '" data-a1="' + elId + '" data-a2="@this.value" class="w-full"></div>';
+            html += '<label class="flex items-center gap-2 text-xs mt-1"><input type="checkbox" ' + (isBack ? 'checked' : '') + ' data-act="call" data-call="updateBadgeElementProperty" data-a1="' + elId + '" data-a2="zIndex" data-a3="@check:1:10" class="checkbox-sm"> Al fondo</label>';
         }
         html += '<hr class="border-[var(--border)] my-2">';
-        html += '<div class="grid grid-cols-2 gap-1 text-[10px]"><label class="text-slate-400">X:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.x || 0) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'x\',parseFloat(this.value)||0)"><label class="text-slate-400">Y:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.y || 0) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'y\',parseFloat(this.value)||0)"><label class="text-slate-400">W:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.w || 20) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'w\',parseFloat(this.value)||20)"><label class="text-slate-400">H:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.h || 10) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'h\',parseFloat(this.value)||10)"></div>';
-        html += '<button class="btn-danger text-xs mt-2" onclick="App.deleteBadgeElement(\'' + elId + '\')"><span class="material-symbols-outlined text-sm">delete</span> Eliminar</button>';
+        html += '<div class="grid grid-cols-2 gap-1 text-[10px]"><label class="text-slate-400">X:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.x || 0) + '" data-act="call" data-call="updateBadgeElementProperty" data-a1="' + elId + '" data-a2="x" data-a3="@float:0"><label class="text-slate-400">Y:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.y || 0) + '" data-act="call" data-call="updateBadgeElementProperty" data-a1="' + elId + '" data-a2="y" data-a3="@float:0"><label class="text-slate-400">W:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.w || 20) + '" data-act="call" data-call="updateBadgeElementProperty" data-a1="' + elId + '" data-a2="w" data-a3="@float:20"><label class="text-slate-400">H:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.h || 10) + '" data-act="call" data-call="updateBadgeElementProperty" data-a1="' + elId + '" data-a2="h" data-a3="@float:10"></div>';
+        html += '<button class="btn-danger text-xs mt-2" data-act="call" data-call="deleteBadgeElement" data-a1="' + elId + '"><span class="material-symbols-outlined text-sm">delete</span> Eliminar</button>';
         panel.innerHTML = html;
     },
 
@@ -11717,7 +11718,7 @@ navigate(viewName, params = {}, push = true) {
         const els = this._badgeElements || [];
         if (els.length === 0) { list.innerHTML = '<p class="text-xs text-slate-500 italic">Sin elementos</p>'; return; }
         const typeLabels = { text: 'Texto', name: 'Nombre', org: 'Org', cargo: 'Cargo', email: 'Email', phone: 'Teléfono', qr: 'QR', logo: 'Logo' };
-        list.innerHTML = els.map(e => '<div class="flex items-center gap-1 text-xs px-2 py-1 rounded ' + (this._selectedBadgeElement === e.id ? 'bg-[var(--primary)]/20' : 'hover:bg-[var(--bg-hover)]') + ' cursor-pointer" onclick="App.selectBadgeElement(\'' + e.id + '\')"><span class="material-symbols-outlined text-xs">' + (e.type === 'text' ? 'text_fields' : e.type === 'qr' ? 'qr_code' : e.type === 'logo' ? 'image' : 'badge') + '</span>' + (typeLabels[e.type] || e.type) + '</div>').join('');
+        list.innerHTML = els.map(e => '<div class="flex items-center gap-1 text-xs px-2 py-1 rounded ' + (this._selectedBadgeElement === e.id ? 'bg-[var(--primary)]/20' : 'hover:bg-[var(--bg-hover)]') + ' cursor-pointer" data-act="call" data-call="selectBadgeElement" data-a1="' + e.id + '"><span class="material-symbols-outlined text-xs">' + (e.type === 'text' ? 'text_fields' : e.type === 'qr' ? 'qr_code' : e.type === 'logo' ? 'image' : 'badge') + '</span>' + (typeLabels[e.type] || e.type) + '</div>').join('');
     },
 
     // ── Print-on-Checkin ──
@@ -11734,17 +11735,17 @@ navigate(viewName, params = {}, push = true) {
             email: gd.email || 'email@ejemplo.com',
             phone: gd.phone || '+52 123 456 7890',
             text: function(el) { return el.text || 'Texto'; },
-            qr: function(el) { const url = qrUrls && qrUrls[el.id]; return url ? '<img src="' + url + '" style="width:100%;height:100%;object-fit:contain">' : '<div style="width:80%;height:80%;margin:10%;background:#e5e5e5;border-radius:2px"></div>'; },
-            logo: function(el) { return el.url ? '<img src="' + el.url + '" style="width:100%;height:100%;object-fit:contain">' : ''; }
+            qr: function(el) { const url = qrUrls && qrUrls[el.id]; return url ? '<img src="' + url + '" data-style="width:100%;height:100%;object-fit:contain">' : '<div data-style="width:80%;height:80%;margin:10%;background:#e5e5e5;border-radius:2px"></div>'; },
+            logo: function(el) { return el.url ? '<img src="' + el.url + '" data-style="width:100%;height:100%;object-fit:contain">' : ''; }
         };
-        let html = '<div style="position:relative;width:' + w + 'px;height:' + h + 'px;background:#fff;overflow:hidden;';
+        let html = '<div data-style="position:relative;width:' + w + 'px;height:' + h + 'px;background:#fff;overflow:hidden;';
         if (bgUrl) html += 'background-image:url(' + bgUrl + ');background-size:cover;background-position:center;';
         html += '">';
         (elements || []).forEach(function(el) {
             if (!el.show && el.show !== undefined) return;
             const l = (el.x || 0) * scale, t = (el.y || 0) * scale, ew = (el.w || 20) * scale, eh = (el.h || 10) * scale;
             const opacityStyle = (el.type === 'logo' || el.type === 'qr') && el.opacity != null ? 'opacity:' + el.opacity + ';' : '';
-            html += '<div style="position:absolute;left:' + l + 'px;top:' + t + 'px;width:' + ew + 'px;height:' + eh + 'px;overflow:hidden;box-sizing:border-box;' + opacityStyle;
+            html += '<div data-style="position:absolute;left:' + l + 'px;top:' + t + 'px;width:' + ew + 'px;height:' + eh + 'px;overflow:hidden;box-sizing:border-box;' + opacityStyle;
             if (el.type !== 'qr' && el.type !== 'logo') {
                 html += 'font-size:' + ((el.fontSize || 12) * scale / 2.83) + 'px;color:' + (el.color || '#000') + ';text-align:' + (el.align || 'center') + ';font-weight:' + (el.bold ? 'bold' : 'normal') + ';display:flex;align-items:center;justify-content:' + (el.align === 'left' ? 'flex-start' : el.align === 'right' ? 'flex-end' : 'center') + ';';
             }
@@ -11783,8 +11784,9 @@ navigate(viewName, params = {}, push = true) {
         if (!container || !container.innerHTML.trim()) return;
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.810"></head><body>' + container.innerHTML + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.811"></head><body>' + container.innerHTML + '</body></html>');
         win.document.close();
+        try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
         setTimeout(function() { win.print(); }, 300);
     },
@@ -11817,8 +11819,9 @@ navigate(viewName, params = {}, push = true) {
         const html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.810"></head><body>' + html + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.811"></head><body>' + html + '</body></html>');
         win.document.close();
+        try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
         setTimeout(function() { win.print(); }, 300);
     },
@@ -11926,13 +11929,14 @@ navigate(viewName, params = {}, push = true) {
                 const guestData = { name: checkedIn[i].client_name, organization: checkedIn[i].organization, qr_token: checkedIn[i].qr_token };
                 labels.push(this.renderBadgeHtml(cfg.elements, cfg.background?.url, cfg.badgeWidth, cfg.badgeHeight, {}, guestData));
             }
-            const allHtml = labels.join('<div style="page-break-after:always"></div>');
+            const allHtml = labels.join('<div data-style="page-break-after:always"></div>');
             const win = window.open('', '_blank', 'width=400,height=600');
             if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
             win.document.write('<!DOCTYPE html><html><head><title>Gafetes</title>'
-                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.810">'
+                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.811">'
                 + '</head><body class="batch">' + allHtml + '</body></html>');
             win.document.close();
+        try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
             // @page dinamico por CSSOM (no sujeto a CSP style-src)
             try {
                 const sheet = new win.CSSStyleSheet();
@@ -11968,8 +11972,8 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td font-bold ' + pct + '">' + (s.guestCount || 0) + '</td>' +
                     '<td class="table-td text-slate-400">' + (s.location || '-') + '</td>' +
                     '<td class="table-td">' +
-                    '<button class="btn-icon" onclick="App.editSession(\'' + s.id + '\')" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>' +
-                    '<button class="btn-icon text-red-400" onclick="App.deleteSession(\'' + s.id + '\')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button>' +
+                    '<button class="btn-icon" data-act="call" data-call="editSession" data-a1="' + s.id + '" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                    '<button class="btn-icon text-red-400" data-act="call" data-call="deleteSession" data-a1="' + s.id + '" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button>' +
                     '</td></tr>';
             }).join('');
         } catch(e) { console.error('[SESSIONS] Error:', e.message); }
@@ -12074,10 +12078,10 @@ navigate(viewName, params = {}, push = true) {
             }
             container.innerHTML = layouts.map(function(l) {
                 const cfg = l.config || {};
-                return '<div class="card p-3 cursor-pointer hover:border-[var(--primary)] transition-colors" onclick="App.openEditor3D(\'' + l.id + '\', \'' + (l.name || '').replace(/'/g, "\\'") + '\')">' +
+                return '<div class="card p-3 cursor-pointer hover:border-[var(--primary)] transition-colors" data-act="call" data-call="openEditor3D" data-a1="' + l.id + '" data-a2="' + (l.name || '').replace(/"/g, '&quot;') + '">' +
                     '<div class="flex justify-between items-start"><div><h4 class="text-sm font-bold text-white">' + (l.name || '') + '</h4>' +
                     '<p class="text-[10px] text-slate-500">' + (cfg.rows || 0) + ' filas x ' + (cfg.cols || 0) + ' asientos</p></div>' +
-                    '<button class="btn-icon text-red-400" onclick="event.stopPropagation();App.deleteSeatLayout(\'' + l.id + '\')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
+                    '<button class="btn-icon text-red-400" data-act="call" data-stop="1" data-call="deleteSeatLayout" data-a1="' + l.id + '" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
             }).join('');
         } catch(e) { console.error('[SEAT] Error:', e.message); }
     },
@@ -12653,7 +12657,7 @@ navigate(viewName, params = {}, push = true) {
                     + '<div class="flex items-center gap-2"><span class="text-xl">' + (p.icon || '🧩') + '</span><div><p class="text-sm font-semibold text-white">' + App.esc(p.name) + '</p><p class="text-xs text-slate-400">v' + App.esc(p.version) + ' · ' + App.esc(p.author) + '</p></div></div>'
                     + '<p class="text-xs text-slate-500">' + App.esc(p.description || '') + '</p>'
                     + '<p class="text-xs text-slate-600">Hooks: ' + hooksList + '</p>'
-                    + '<button class="btn-primary text-xs self-start" onclick="App.installPlugin(\'' + p.id + '\')">Instalar en este evento</button></div>';
+                    + '<button class="btn-primary text-xs self-start" data-act="call" data-call="installPlugin" data-a1="' + p.id + '">Instalar en este evento</button></div>';
             }).join('');
             // Load installed plugins
             const installed = await this.fetchAPI('/plugins/event/' + eId);
@@ -12666,8 +12670,8 @@ navigate(viewName, params = {}, push = true) {
                         + '<div class="flex items-center gap-2"><span class="text-xl">' + (i.icon || '🧩') + '</span><div><p class="text-sm font-semibold text-white">' + App.esc(i.name) + '</p>'
                         + '<p class="text-xs text-slate-400">' + (i.enabled ? '✅ Activo' : '⏸ Pausado') + '</p></div></div>'
                         + '<div class="flex gap-2">'
-                        + '<button class="btn-secondary text-xs" onclick="App.togglePlugin(\'' + i.id + '\', ' + (i.enabled ? '0' : '1') + ')">' + (i.enabled ? 'Pausar' : 'Activar') + '</button>'
-                        + '<button class="btn-secondary text-xs text-red-400" onclick="App.uninstallPlugin(\'' + i.plugin_id + '\')">Desinstalar</button></div></div>';
+                        + '<button class="btn-secondary text-xs" data-act="call" data-call="togglePlugin" data-a1="' + (' + i.id + ') + '" data-a2="' + ((i.enabled ? '0' : '1')) + '">' + (i.enabled ? 'Pausar' : 'Activar') + '</button>'
+                        + '<button class="btn-secondary text-xs text-red-400" data-act="call" data-call="uninstallPlugin" data-a1="' + i.plugin_id + '">Desinstalar</button></div></div>';
                 }).join('');
                 // Load logs
                 const logs = await this.fetchAPI('/plugins/logs/' + eId);
@@ -12748,7 +12752,7 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td text-xs"><span class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 text-[10px]">' + (i.category || 'general') + '</span></td>' +
                     '<td class="table-td font-bold text-green-400">$' + parseFloat(i.amount).toFixed(2) + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (i.notes || '') + '</td>' +
-                    '<td class="table-td"><button class="btn-icon text-red-400" onclick="App.deleteBudgetItem(\'' + i.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+                    '<td class="table-td"><button class="btn-icon text-red-400" data-act="call" data-call="deleteBudgetItem" data-a1="' + i.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
             }).join('');
             document.getElementById('budget-total').textContent = '$' + (data.total || 0).toFixed(2);
         } catch(e) { console.error('[BUDGET] Error:', e.message); }
@@ -12805,14 +12809,14 @@ navigate(viewName, params = {}, push = true) {
         const el = document.getElementById(containerId);
         if (!el || state === 'ready') return;
         const wrap = (html) => el.tagName === 'TBODY'
-            ? `<tr><td colspan="${opts.colspan || 6}" style="padding:0">${html}</td></tr>`
+            ? `<tr><td colspan="${opts.colspan || 6}" data-style="padding:0">${html}</td></tr>`
             : html;
         if (state === 'loading') {
             el.innerHTML = wrap(`
                 <div class="p-6 space-y-3">
                     <div class="skeleton skeleton-title"></div>
                     <div class="skeleton skeleton-text"></div>
-                    <div class="skeleton skeleton-text" style="width:70%"></div>
+                    <div class="skeleton skeleton-text" data-style="width:70%"></div>
                 </div>`);
             return;
         }
@@ -12822,7 +12826,7 @@ navigate(viewName, params = {}, push = true) {
                     <span class="material-symbols-outlined icon">${opts.icon || 'inbox'}</span>
                     <h3>${App.esc(opts.title || 'Nada por aquí todavía')}</h3>
                     <p>${App.esc(opts.message || '')}</p>
-                    ${opts.actionLabel ? `<button class="retry-btn" style="background:var(--accent-light);color:var(--text-link);" onclick="${opts.retryFn}">${App.esc(opts.actionLabel)}</button>` : ''}
+                    ${opts.actionLabel ? `<button class="retry-btn" data-style="background:var(--accent-light);color:var(--text-link);" data-act="call" data-call="${opts.retryFn.slice(4, -2)}">${App.esc(opts.actionLabel)}</button>` : ''}
                 </div>`);
             return;
         }
@@ -12831,7 +12835,7 @@ navigate(viewName, params = {}, push = true) {
             <div class="error-state">
                 <span class="material-symbols-outlined">error</span>
                 <p>${App.esc(opts.message || 'Ocurrió un error al cargar los datos.')}</p>
-                ${opts.retryFn ? `<button class="retry-btn" onclick="${opts.retryFn}">Reintentar</button>` : ''}
+                ${opts.retryFn ? `<button class="retry-btn" data-act="call" data-call="${opts.retryFn.slice(4, -2)}">Reintentar</button>` : ''}
             </div>`);
     },
 
@@ -12860,7 +12864,7 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td text-xs font-bold text-green-400">$' + parseFloat(t.amount || 0).toFixed(2) + '</td>' +
                     '<td class="table-td flex items-center justify-end gap-2">' +
                     '<span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase ' + badge + '">' + status + '</span>' +
-                    (t.id ? '<button class="btn-icon" title="Descargar recibo" onclick="App.downloadReceipt(\'' + t.id + '\')"><span class="material-symbols-outlined text-sm">receipt_long</span></button>' : '') +
+                    (t.id ? '<button class="btn-icon" title="Descargar recibo" data-act="call" data-call="downloadReceipt" data-a1="' + t.id + '"><span class="material-symbols-outlined text-sm">receipt_long</span></button>' : '') +
                     '</td></tr>';
             }).join('');
         } catch (e) {
@@ -12954,8 +12958,8 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td font-medium text-white">' + App.esc(t.name || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-300">' + App.esc(t.title || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (t.created_at ? new Date(t.created_at).toLocaleDateString() : '-') + '</td>' +
-                    '<td class="table-td"><button class="btn-icon" title="Generar certificados para asistentes" onclick="App.generateCertificates(\'' + t.id + '\')"><span class="material-symbols-outlined text-sm">bolt</span></button>' +
-                    '<button class="btn-icon" title="Ver generados" onclick="App.listGeneratedCertificates(\'' + t.id + '\')"><span class="material-symbols-outlined text-sm">visibility</span></button></td></tr>';
+                    '<td class="table-td"><button class="btn-icon" title="Generar certificados para asistentes" data-act="call" data-call="generateCertificates" data-a1="' + t.id + '"><span class="material-symbols-outlined text-sm">bolt</span></button>' +
+                    '<button class="btn-icon" title="Ver generados" data-act="call" data-call="listGeneratedCertificates" data-a1="' + t.id + '"><span class="material-symbols-outlined text-sm">visibility</span></button></td></tr>';
             }).join('');
         } catch (e) {
             console.warn('[CERTS] templates:', e.message);
@@ -13118,7 +13122,7 @@ navigate(viewName, params = {}, push = true) {
             const logs = await this.fetchAPI('/deploy/logs?limit=50');
             const list = Array.isArray(logs) ? logs : (logs.logs || []);
             box.innerHTML = list.length ? list.map(l =>
-                `<div style="border-bottom:1px solid var(--border);padding:4px 0">${App.esc(typeof l === 'string' ? l : (l.created_at ? new Date(l.created_at).toLocaleString() + ' — ' : '') + (l.message || l.action || JSON.stringify(l)))}</div>`).join('')
+                `<div data-style="border-bottom:1px solid var(--border);padding:4px 0">${App.esc(typeof l === 'string' ? l : (l.created_at ? new Date(l.created_at).toLocaleString() + ' — ' : '') + (l.message || l.action || JSON.stringify(l)))}</div>`).join('')
                 : '<p>Sin registros de deploy.</p>';
         } catch (e) { box.innerHTML = `<p class="text-red-400">${App.esc(e.message)}</p>`; }
     },
@@ -13186,8 +13190,8 @@ navigate(viewName, params = {}, push = true) {
                     '<span class="text-[10px] text-slate-400 truncate">' + App.esc(ph.uploaded_by_name || ph.guest_name || 'organizador') + '</span>' +
                     '<div class="flex gap-1">' +
                     (approved ? '<span class="px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 text-[9px] font-black">OK</span>'
-                              : '<button class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[9px] font-black" onclick="App.approveAlbumPhoto(\'' + ph.id + '\')">Aprobar</button>') +
-                    '<button class="text-red-400 hover:text-red-300" onclick="App.deleteAlbumPhoto(\'' + ph.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button>' +
+                              : '<button class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[9px] font-black" data-act="call" data-call="approveAlbumPhoto" data-a1="' + ph.id + '">Aprobar</button>') +
+                    '<button class="text-red-400 hover:text-red-300" data-act="call" data-call="deleteAlbumPhoto" data-a1="' + ph.id + '"><span class="material-symbols-outlined text-sm">delete</span></button>' +
                     '</div></div></div>';
             }).join('');
         } catch (e) {
@@ -13250,7 +13254,7 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td text-xs text-slate-400">' + App.esc(f.field_type) + '</td>' +
                     '<td class="table-td">' + (f.required ? '<span class="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-[10px] font-black">SÍ</span>' : '<span class="text-[10px] text-slate-500">no</span>') + '</td>' +
                     '<td class="table-td text-xs text-slate-500">' + (f.show_if_field_id ? 'condicional' : '—') + '</td>' +
-                    '<td class="table-td"><button class="btn-icon text-red-400" onclick="App.deleteRegField(\'' + f.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
+                    '<td class="table-td"><button class="btn-icon text-red-400" data-act="call" data-call="deleteRegField" data-a1="' + f.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
                 ).join('');
             }
             // Quota actual
@@ -13274,7 +13278,7 @@ navigate(viewName, params = {}, push = true) {
                 '<select id="_rf-type" class="swal2-input">' +
                 ['text', 'textarea', 'select', 'checkbox', 'radio', 'number', 'email', 'phone'].map(t => `<option value="${t}">${t}</option>`).join('') +
                 '</select>' +
-                '<label style="display:flex;gap:6px;align-items:center;font-size:12px;justify-content:center;"><input type="checkbox" id="_rf-req"> Obligatorio</label>' +
+                '<label data-style="display:flex;gap:6px;align-items:center;font-size:12px;justify-content:center;"><input type="checkbox" id="_rf-req"> Obligatorio</label>' +
                 '<input id="_rf-options" class="swal2-input" placeholder="Opciones (select/radio, separadas por coma)">' +
                 '<select id="_rf-cond" class="swal2-input"><option value="">Mostrar siempre</option>' +
                 (this.state._regFields || []).map(f => `<option value="${f.id}">Solo si: ${f.label}</option>`).join('') +
@@ -13333,8 +13337,8 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td text-xs text-slate-400">' + App.esc(s.booth || '—') + '</td>' +
                     '<td class="table-td text-xs font-bold text-green-400">' + (s.lead_count || 0) + '</td>' +
                     '<td class="table-td flex gap-1">' +
-                    '<button class="btn-icon" title="Escanear lead" onclick="App.scanSponsorLead(\'' + s.id + '\')"><span class="material-symbols-outlined text-sm">qr_code_scanner</span></button>' +
-                    '<button class="btn-icon text-red-400" title="Eliminar" onclick="App.deleteSponsor(\'' + s.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
+                    '<button class="btn-icon" title="Escanear lead" data-act="call" data-call="scanSponsorLead" data-a1="' + s.id + '"><span class="material-symbols-outlined text-sm">qr_code_scanner</span></button>' +
+                    '<button class="btn-icon text-red-400" title="Eliminar" data-act="call" data-call="deleteSponsor" data-a1="' + s.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
                 ).join('');
             }
             // ROI summary
@@ -13421,9 +13425,9 @@ navigate(viewName, params = {}, push = true) {
                 '<td class="table-td text-xs text-slate-400">' + App.esc(c.store_url || c.url || '—') + '</td>' +
                 '<td class="table-td">' + (c.is_active !== 0 ? '<span class="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-[10px] font-black">ACTIVA</span>' : '<span class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 text-[10px] font-black">INACTIVA</span>') + '</td>' +
                 '<td class="table-td flex gap-1">' +
-                '<button class="btn-icon" title="Mapear productos a boletos" onclick="App.mapEcomProducts(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">sell</span></button>' +
-                '<button class="btn-icon" title="Sincronizar productos" onclick="App.syncEcomProducts(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">sync</span></button>' +
-                '<button class="btn-icon text-red-400" title="Eliminar" onclick="App.deleteEcom(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
+                '<button class="btn-icon" title="Mapear productos a boletos" data-act="call" data-call="mapEcomProducts" data-a1="' + c.id + '"><span class="material-symbols-outlined text-sm">sell</span></button>' +
+                '<button class="btn-icon" title="Sincronizar productos" data-act="call" data-call="syncEcomProducts" data-a1="' + c.id + '"><span class="material-symbols-outlined text-sm">sync</span></button>' +
+                '<button class="btn-icon text-red-400" title="Eliminar" data-act="call" data-call="deleteEcom" data-a1="' + c.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
             ).join('');
         } catch (e) { this.uiState('ecom-tbody', 'error', { message: e.message, retryFn: 'App.loadEcomConnections()' }); }
     },
@@ -13519,8 +13523,8 @@ navigate(viewName, params = {}, push = true) {
                 '<td class="table-td text-xs text-slate-400">' + App.esc(k.scopes || k.permissions || 'read') + '</td>' +
                 '<td class="table-td">' + (k.is_active ? '<span class="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-[10px] font-black">ACTIVA</span>' : '<span class="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-[10px] font-black">INACTIVA</span>') + '</td>' +
                 '<td class="table-td flex gap-1">' +
-                '<button class="btn-icon" title="Activar/Desactivar" onclick="App.toggleApiKey(\'' + k.id + '\')"><span class="material-symbols-outlined text-sm">toggle_on</span></button>' +
-                '<button class="btn-icon text-red-400" title="Revocar" onclick="App.deleteApiKey(\'' + k.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
+                '<button class="btn-icon" title="Activar/Desactivar" data-act="call" data-call="toggleApiKey" data-a1="' + k.id + '"><span class="material-symbols-outlined text-sm">toggle_on</span></button>' +
+                '<button class="btn-icon text-red-400" title="Revocar" data-act="call" data-call="deleteApiKey" data-a1="' + k.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
             ).join('');
         } catch (e) { this.uiState('apikeys-tbody', 'error', { message: e.message, retryFn: 'App.loadApiKeys()' }); }
     },
@@ -13532,8 +13536,8 @@ navigate(viewName, params = {}, push = true) {
             title: 'Generar API key',
             html:
                 '<input id="_ak-name" class="swal2-input" placeholder="Nombre (ej: Zapier)">' +
-                '<div style="text-align:left;padding:0 1em;font-size:12px;color:#94a3b8;">' +
-                scopeList.map(s => `<label style="display:block;margin:4px 0;"><input type="checkbox" class="_ak-scope" value="${s}" checked> ${s}</label>`).join('') +
+                '<div data-style="text-align:left;padding:0 1em;font-size:12px;color:#94a3b8;">' +
+                scopeList.map(s => `<label data-style="display:block;margin:4px 0;"><input type="checkbox" class="_ak-scope" value="${s}" checked> ${s}</label>`).join('') +
                 '</div>',
             focusConfirm: false,
             preConfirm: () => ({
@@ -13547,7 +13551,7 @@ navigate(viewName, params = {}, push = true) {
             const d = await this.fetchAPI('/api-keys', { method: 'POST', body: JSON.stringify(r.value) });
             await Swal.fire({
                 icon: 'success', title: 'Key generada',
-                html: `<p style="font-size:12px;color:#94a3b8">Cópiala ahora, no volverá a mostrarse:</p><code style="word-break:break-all;background:#1e293b;padding:10px;border-radius:8px;display:block;margin-top:8px;font-size:11px">${d.key}</code>`,
+                html: `<p data-style="font-size:12px;color:#94a3b8">Cópiala ahora, no volverá a mostrarse:</p><code data-style="word-break:break-all;background:#1e293b;padding:10px;border-radius:8px;display:block;margin-top:8px;font-size:11px">${d.key}</code>`,
                 background: '#0f172a', color: '#fff'
             });
             this.loadApiKeys();
@@ -13581,9 +13585,9 @@ navigate(viewName, params = {}, push = true) {
                 '<td class="table-td text-xs text-slate-400">' + (c.last_sync_at ? new Date(c.last_sync_at).toLocaleString() : 'nunca') + '</td>' +
                 '<td class="table-td">' + (c.is_active ? '<span class="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-[10px] font-black">ACTIVA</span>' : '') + '</td>' +
                 '<td class="table-td flex gap-1">' +
-                '<button class="btn-icon" title="Convertir contactos en invitados de un evento" onclick="App.crmToEvent(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">person_add</span></button>' +
-                '<button class="btn-icon" title="Sincronizar contactos" onclick="App.syncCrm(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">sync</span></button>' +
-                '<button class="btn-icon text-red-400" title="Eliminar" onclick="App.deleteCrm(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
+                '<button class="btn-icon" title="Convertir contactos en invitados de un evento" data-act="call" data-call="crmToEvent" data-a1="' + c.id + '"><span class="material-symbols-outlined text-sm">person_add</span></button>' +
+                '<button class="btn-icon" title="Sincronizar contactos" data-act="call" data-call="syncCrm" data-a1="' + c.id + '"><span class="material-symbols-outlined text-sm">sync</span></button>' +
+                '<button class="btn-icon text-red-400" title="Eliminar" data-act="call" data-call="deleteCrm" data-a1="' + c.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>'
             ).join('');
         } catch (e) { this.uiState('crm-tbody', 'error', { message: e.message, retryFn: 'App.loadCrmConnections()' }); }
     },
@@ -13777,8 +13781,8 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td text-xs text-slate-300">' + (s.topic || '') + '</td>' +
                     '<td class="table-td text-xs">' + (social.join(' ') || '-') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (s.sort_order || 0) + '</td>' +
-                    '<td class="table-td"><button class="btn-icon" onclick="App.editSpeaker(\'' + s.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
-                    '<button class="btn-icon text-red-400" onclick="App.deleteSpeaker(\'' + s.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+                    '<td class="table-td"><button class="btn-icon" data-act="call" data-call="editSpeaker" data-a1="' + s.id + '"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                    '<button class="btn-icon text-red-400" data-act="call" data-call="deleteSpeaker" data-a1="' + s.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
             }).join('');
         } catch(e) { console.error('[SPEAKERS] Error:', e.message); }
     },
@@ -13867,7 +13871,7 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td text-xs text-slate-400">' + (p.guest_name || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-300">' + (p.votes || 0) + '</td>' +
                     '<td class="table-td"><span class="text-xs font-bold ' + badge + '">' + p.status + '</span></td>' +
-                    '<td class="table-td"><select class="input-field text-xs py-1" onchange="App.updateProposalStatus(\'' + p.id + '\',this.value)">' +
+                    '<td class="table-td"><select class="input-field text-xs py-1" data-act="call" data-call="updateProposalStatus" data-a1="' + (' + p.id + ') + '" data-a2="@this.value">' +
                         '<option value="pending"' + (p.status === 'pending' ? ' selected' : '') + '>Pendiente</option>' +
                         '<option value="approved"' + (p.status === 'approved' ? ' selected' : '') + '>Aprobar</option>' +
                         '<option value="rejected"' + (p.status === 'rejected' ? ' selected' : '') + '>Rechazar</option>' +
@@ -13899,8 +13903,8 @@ navigate(viewName, params = {}, push = true) {
                 return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-medium text-white">' + (r.name || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (r.trigger_event || '') + ' → ' + actionLabel + '</td>' +
                     '<td class="table-td"><span class="text-xs font-bold ' + (r.enabled ? 'text-green-500' : 'text-slate-500') + '">' + (r.enabled ? 'Activo' : 'Inactivo') + '</span></td>' +
-                    '<td class="table-td"><button class="btn-icon" onclick="App.editAutomationRule(\'' + r.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
-                    '<button class="btn-icon text-red-400" onclick="App.deleteAutomationRule(\'' + r.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+                    '<td class="table-td"><button class="btn-icon" data-act="call" data-call="editAutomationRule" data-a1="' + r.id + '"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                    '<button class="btn-icon text-red-400" data-act="call" data-call="deleteAutomationRule" data-a1="' + r.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
             }).join('');
         } catch(e) { console.error('[AUTO] Error:', e.message); }
     },
@@ -14017,8 +14021,8 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td text-xs text-slate-400">' + (c.current_uses || 0) + '/' + (c.max_uses || '∞') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + exp + '</td>' +
                     '<td class="table-td"><span class="text-xs font-bold ' + (c.is_active ? 'text-green-500' : 'text-slate-500') + '">' + (c.is_active ? 'Activo' : 'Inactivo') + '</span></td>' +
-                    '<td class="table-td"><button class="btn-icon" onclick="App.editCoupon(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
-                    '<button class="btn-icon text-red-400" onclick="App.deleteCoupon(\'' + c.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+                    '<td class="table-td"><button class="btn-icon" data-act="call" data-call="editCoupon" data-a1="' + c.id + '"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                    '<button class="btn-icon text-red-400" data-act="call" data-call="deleteCoupon" data-a1="' + c.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
             }).join('');
         } catch(e) { console.error('[COUPONS] Error:', e.message); }
     },
@@ -14093,8 +14097,8 @@ navigate(viewName, params = {}, push = true) {
                 return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-medium text-white">' + (g.name || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (g.email || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (g.organization || '-') + '</td>' +
-                    '<td class="table-td text-xs"><button class="text-[10px] text-[var(--primary)] hover:underline" onclick="App.awardAchievement(\'' + g.id + '\')">🏆 Dar logro</button></td>' +
-                    '<td class="table-td"><button class="text-[10px] text-[var(--primary)] hover:underline" onclick="App.editProfile(\'' + g.id + '\')">✏️ Editar perfil</button></td></tr>';
+                    '<td class="table-td text-xs"><button class="text-[10px] text-[var(--primary)] hover:underline" data-act="call" data-call="awardAchievement" data-a1="' + g.id + '">🏆 Dar logro</button></td>' +
+                    '<td class="table-td"><button class="text-[10px] text-[var(--primary)] hover:underline" data-act="call" data-call="editProfile" data-a1="' + g.id + '">✏️ Editar perfil</button></td></tr>';
             }).join('');
         } catch(e) { console.error('[NETWORK] Error:', e.message); }
     },
@@ -14103,7 +14107,7 @@ navigate(viewName, params = {}, push = true) {
         this.state.event?.id;
         const achievements = ['early_bird', 'first_checkin', 'networking_star', 'social_share', 'survey_responder'];
         const labels = ['🐤 Early Bird', '✅ Primer check-in', '🌟 Networking Star', '📢 Social Share', '📊 Encuesta'];
-        const html = achievements.map(function(a, i) { return '<div class="cursor-pointer p-2 hover:bg-white/5 rounded" onclick="App.saveAchievement(\'' + guestId + '\',\'' + a + '\')">' + labels[i] + '</div>'; }).join('');
+        const html = achievements.map(function(a, i) { return '<div class="cursor-pointer p-2 hover:bg-white/5 rounded" data-act="call" data-call="saveAchievement" data-a1="' + guestId + '" data-a2="' + a + '">' + labels[i] + '</div>'; }).join('');
         Swal.fire({ title: '🏆 Dar logro', html: html, showConfirmButton: false, background: '#0f172a', color: '#fff' });
     },
 
@@ -14207,11 +14211,11 @@ navigate(viewName, params = {}, push = true) {
             if(!raffles||!raffles.length){list.innerHTML='<div class="text-center py-8 text-slate-500"><p>No hay ruletas. Crea una nueva.</p></div>';return}
             list.innerHTML=raffles.map(function(r){
                 const cfg=r.config||{},stats=r.stats||{};
-                return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors cursor-pointer" onclick="App.openWheelEditor(\''+r.id+'\')">'+
+                return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors cursor-pointer" data-act="call" data-call="openWheelEditor" data-a1="' + r.id + '">' +
                     '<div class="flex items-center gap-3"><span class="text-lg">🎡</span>'+
                     '<div><p class="text-sm font-bold text-white">'+(r.name||'Sin nombre')+'</p>'+
                     '<p class="text-xs text-slate-500">'+(r.total_participants||0)+' participantes | '+stats.spins+' giros</p></div></div>'+
-                    '<div class="flex gap-1"><button class="btn-icon text-red-400" onclick="event.stopPropagation();App.deleteCurrentWheel(\''+r.id+'\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>'
+                    '<div class="flex gap-1"><button class="btn-icon text-red-400" data-act="call" data-stop="1" data-call="deleteCurrentWheel" data-a1="' + r.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>'
             }).join('')
         }).catch(function(e){list.innerHTML='<p class="text-red-500 text-xs">Error al cargar</p>';console.error(e)})
     },
@@ -14399,9 +14403,9 @@ navigate(viewName, params = {}, push = true) {
         list.innerHTML=this._wheelState.participants.map(function(n,i){
             const chance=Math.round(100/App._wheelState.participants.length);
             return '<div class="wheel-adv-row" data-idx="'+i+'">'+
-                '<input type="text" class="input-field text-xs" value="'+n+'" onchange="App._wheelState.participants['+i+']=this.value;App.renderWheelCanvas(App._wheelState.rotation)">'+
-                '<select class="input-field text-xs" onchange="console.log(\'chance\')"><option value="-1">Auto</option><option value="5">5%</option><option value="10">10%</option><option value="25">25%</option><option value="50">50%</option></select>'+
-                '<button class="btn-icon text-red-400 text-xs" onclick="App.removeWheelAdvEntry('+i+')">🗑️</button></div>'
+                '<input type="text" class="input-field text-xs" value="'+n+'" data-act="call" data-call="updateWheelParticipant" data-a1="'+i+'" data-a2="@this.value">'+
+                '<select class="input-field text-xs" data-act="block"><option value="-1">Auto</option><option value="5">5%</option><option value="10">10%</option><option value="25">25%</option><option value="50">50%</option></select>'+
+                '<button class="btn-icon text-red-400 text-xs" data-act="call" data-call="removeWheelAdvEntry" data-a1="+i+">🗑️</button></div>'
         }).join('')
     },
 
@@ -14426,9 +14430,9 @@ navigate(viewName, params = {}, push = true) {
         const c=document.getElementById('wheel-themes');const q=document.getElementById('wheel-quick-themes');if(!c&&!q)return;
         let html='';let qhtml='';
         this._wheelThemes.forEach(function(t,i){
-            const s=t.colors.map(function(c){return '<span style="background:'+c+'"></span>'}).join('');
-            html+='<div class="wheel-palette" onclick="App.useWheelTheme('+i+')" title="'+t.name+'">'+s+'</div>';
-            qhtml+='<div class="quick-theme" onclick="App.useWheelTheme('+i+')" title="'+t.name+'">'+s.slice(0,2)+'</div>'
+            const s=t.colors.map(function(c){return '<span data-style="background:'+c+'"></span>'}).join('');
+            html+='<div class="wheel-palette" data-act="call" data-call="useWheelTheme" data-a1="+i+" title="'+t.name+'">'+s+'</div>';
+            qhtml+='<div class="quick-theme" data-act="call" data-call="useWheelTheme" data-a1="+i+" title="'+t.name+'">'+s.slice(0,2)+'</div>'
         });
         if(c)c.innerHTML=html;
         if(q)q.innerHTML=qhtml
@@ -14444,7 +14448,7 @@ navigate(viewName, params = {}, push = true) {
     renderWheelSegColorInputs: function(){
         const c=document.getElementById('wheel-seg-colors');if(!c)return;
         c.innerHTML=this._wheelState.segColors.map(function(cl,i){
-            return '<div class="color-input-pill"><span>'+cl+'</span><input type="color" value="'+cl+'" onchange="App._wheelState.segColors['+i+']=this.value;App.renderWheelCanvas(App._wheelState.rotation)"></div>'
+            return '<div class="color-input-pill"><span>'+cl+'</span><input type="color" value="'+cl+'" data-act="call" data-call="updateWheelSegColor" data-a1="'+i+'" data-a2="@this.value"></div>'
         }).join('')
     },
 
@@ -14771,12 +14775,12 @@ navigate(viewName, params = {}, push = true) {
             
             tbody.innerHTML = users.map(u => `
                 <tr class="user-row-premium">
-                    <td class="px-4 py-3" style="width: 40px;">
-                        <input type="checkbox" class="config-staff-checkbox" data-user-id="${u.id}" style="width: 16px; height: 16px; cursor: pointer;">
+                    <td class="px-4 py-3" data-style="width: 40px;">
+                        <input type="checkbox" class="config-staff-checkbox" data-user-id="${u.id}" data-style="width: 16px; height: 16px; cursor: pointer;">
                     </td>
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                             <div class="flex flex-col">
                                 <div class="font-bold text-sm text-[var(--text-main)]">${App.esc(u.display_name || u.username)}</div>
                                 <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${App.esc(u.username)}</div>
@@ -14784,7 +14788,7 @@ navigate(viewName, params = {}, push = true) {
                         </div>
                     </td>
                     <td class="px-4 py-3">
-                        <span class="text-xs font-bold" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px 8px;">${App.esc(u.role)}</span>
+                        <span class="text-xs font-bold" data-style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px 8px;">${App.esc(u.role)}</span>
                     </td>
                 </tr>
             `).join('');
@@ -14845,31 +14849,31 @@ navigate(viewName, params = {}, push = true) {
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
         
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
+            <div class="space-y-5" data-style="padding-right: 8px;">
                 <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
-                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleUserConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageUserActionConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showEventSelectorForUsersConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button data-act="call" data-call="showRoleSelectorForUsersConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título -->
-                <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Staff</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Editar Staff</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span>
                     </div>
                 </div>
                 <!-- Lista de staff seleccionado -->
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${selectedUsers.map(u => {
                         const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', ORGANIZER: '#06b6d4', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
                         const roleColor = roleColors[u.role] || '#64748b';
-                        return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(59,130,246,0.2); color: #3b82f6;">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
+                        return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" data-style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" data-style="background: rgba(59,130,246,0.2); color: #3b82f6;">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${u.username} • <span style="color: ${roleColor};">${u.role}</span></div>
+                                <div class="text-sm font-bold" data-style="color: ${textMain};">${u.display_name || u.username}</div>
+                                <div class="text-[11px]" data-style="color: ${textSecondary};">${u.username} • <span data-style="color: ${roleColor};">${u.role}</span></div>
                             </div>
                         </div>`;
                     }).join('')}
@@ -14916,42 +14920,42 @@ navigate(viewName, params = {}, push = true) {
         ).join('');
         
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
+            <div class="space-y-5" data-style="padding-right: 8px;">
                 <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
-                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleUserConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageUserActionConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showEventSelectorForUsersConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button data-act="call" data-call="showRoleSelectorForUsersConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título + Guardar -->
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Staff</span>
-                        <span class="text-xs" style="color: ${textMain};">${user.display_name || user.username}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Editar Staff</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${user.display_name || user.username}</span>
                     </div>
-                    <button onclick="App.saveUserEditInlineConfig()" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                    <button data-act="call" data-call="saveUserEditInlineConfig" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" data-style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
                     </button>
                 </div>
                 <!-- Campos编辑 inline -->
-                <div class="p-4 rounded-2xl" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                <div class="p-4 rounded-2xl" data-style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
                     <div class="space-y-5">
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nombre</label>
-                            <input id="edit-user-name-config-${user.id}" type="text" value="${user.display_name || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del staff">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Nombre</label>
+                            <input id="edit-user-name-config-${user.id}" type="text" value="${user.display_name || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del staff">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Email</label>
-                            <input id="edit-user-email-config-${user.id}" type="email" value="${user.username || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del staff">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Email</label>
+                            <input id="edit-user-email-config-${user.id}" type="email" value="${user.username || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del staff">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nueva Contraseña <span class="normal-case font-normal">(dejar vacío para mantener)</span></label>
-                            <input id="edit-user-password-config-${user.id}" type="password" value="" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nueva contraseña">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Nueva Contraseña <span class="normal-case font-normal">(dejar vacío para mantener)</span></label>
+                            <input id="edit-user-password-config-${user.id}" type="password" value="" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nueva contraseña">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Rol</label>
-                            <select id="edit-user-role-config-${user.id}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Rol</label>
+                            <select id="edit-user-role-config-${user.id}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
                                 ${roleOptions}
                             </select>
                         </div>
@@ -14998,7 +15002,7 @@ navigate(viewName, params = {}, push = true) {
             return;
         }
         
-        const saveBtn = document.querySelector('[onclick="App.saveUserEditInlineConfig()"]');
+        const saveBtn = document.querySelector('[data-act="call" data-call="saveUserEditInlineConfig"]');
         if (saveBtn) {
             saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
             saveBtn.style.opacity = '0.6';
@@ -15058,33 +15062,33 @@ navigate(viewName, params = {}, push = true) {
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
+            <div class="space-y-5" data-style="padding-right: 8px;">
                 <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
-                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleUserConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageUserActionConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showEventSelectorForUsersConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button data-act="call" data-call="showRoleSelectorForUsersConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título debajo de la barra -->
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Gestionar Staff</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Gestionar Staff</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span>
                     </div>
                 </div>
                 <div class="space-y-3">
-                <div onclick="App.handleBulkUserActionConfig('activate', '${ids.join(',')}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
-                    <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${ids.length} staff</div></div>
+                <div data-act="call" data-call="handleBulkUserActionConfig" data-a1="activate" data-a2="${ids.join(" data-a3=")}" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" data-style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" data-style="color: #22c55e;">Activar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Activar ${ids.length} staff</div></div>
                 </div>
-                <div onclick="App.handleBulkUserActionConfig('suspend', '${ids.join(',')}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
-                    <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Suspender</div><div class="text-[11px]" style="color: ${textSecondary};">Suspender ${ids.length} staff</div></div>
+                <div data-act="call" data-call="handleBulkUserActionConfig" data-a1="suspend" data-a2="${ids.join(" data-a3=")}" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" data-style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" data-style="color: #f59e0b;">Suspender</div><div class="text-[11px]" data-style="color: ${textSecondary};">Suspender ${ids.length} staff</div></div>
                 </div>
-                <div onclick="App.handleBulkUserActionConfig('delete', '${ids.join(',')}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
-                    <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${ids.length} staff</div></div>
+                <div data-act="call" data-call="handleBulkUserActionConfig" data-a1="delete" data-a2="${ids.join(" data-a3=")}" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" data-style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" data-style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" data-style="color: #ef4444;">Eliminar</div><div class="text-[11px]" data-style="color: ${textSecondary};">Eliminar ${ids.length} staff</div></div>
                 </div>
                 </div>
             </div>`;
@@ -15254,31 +15258,31 @@ navigate(viewName, params = {}, push = true) {
         const events = this.state.events || [];
         
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
+            <div class="space-y-5" data-style="padding-right: 8px;">
                 <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
-                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleUserConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageUserActionConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showEventSelectorForUsersConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button data-act="call" data-call="showRoleSelectorForUsersConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título -->
-                <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Evento</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span>
                     </div>
                 </div>
                 <!-- Lista de eventos -->
-                <div class="max-h-80 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    ${events.length === 0 ? `<div class="text-center py-8 text-sm" style="color: ${textSecondary};">No hay eventos disponibles</div>` : events.map(e => `
-                        <div onclick="App.assignEventToUsersConfig('${ids.join(',')}', '${e.id}')" class="flex items-center gap-4 p-4 rounded-2xl mb-2 cursor-pointer hover:scale-[1.02] transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(236,72,153,0.2); color: #ec4899;">
+                <div class="max-h-80 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
+                    ${events.length === 0 ? `<div class="text-center py-8 text-sm" data-style="color: ${textSecondary};">No hay eventos disponibles</div>` : events.map(e => `
+                        <div data-act="call" data-call="assignEventToUsersConfig" data-a1="${ids.join(" data-a2=")}" data-a3="${e.id}" class="flex items-center gap-4 p-4 rounded-2xl mb-2 cursor-pointer hover:scale-[1.02] transition-all" data-style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" data-style="background: rgba(236,72,153,0.2); color: #ec4899;">
                                 <span class="material-symbols-outlined text-sm">event</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${e.location || 'Sin ubicación'}</div>
+                                <div class="text-sm font-bold" data-style="color: ${textMain};">${e.name}</div>
+                                <div class="text-[11px]" data-style="color: ${textSecondary};">${e.location || 'Sin ubicación'}</div>
                             </div>
                         </div>
                     `).join('')}
@@ -15344,33 +15348,33 @@ navigate(viewName, params = {}, push = true) {
         const roles = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE', 'ORGANIZER'];
         
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
+            <div class="space-y-5" data-style="padding-right: 8px;">
                 <!-- Barra de navegación 3 botones - SOLO EDITAR/GESTIONAR/ROL -->
-                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button data-act="call" data-call="editSingleUserConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageUserActionConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="showRoleSelectorForUsersConfig" data-a1="@app:_savedSelectedUsersConfig" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título -->
-                <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Rol</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Rol</span>
+                        <span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span>
                     </div>
                 </div>
                 <!-- Lista de roles -->
-                <div class="max-h-80 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-80 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                     ${roles.map(role => {
                         const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', ORGANIZER: '#06b6d4', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
                         const roleColor = roleColors[role] || '#64748b';
                         const roleIcons = { ADMIN: 'admin_panel_settings', PRODUCTOR: 'movie', ORGANIZER: 'event', LOGISTICO: 'inventory', STAFF: 'person', CLIENTE: 'person' };
                         return `
-                        <div onclick="App.assignRoleToUsersConfig('${ids.join(',')}', '${role}')" class="flex items-center gap-4 p-4 rounded-2xl mb-2 cursor-pointer hover:scale-[1.02] transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: ${roleColor}20; color: ${roleColor};">
+                        <div data-act="call" data-call="assignRoleToUsersConfig" data-a1="${ids.join(" data-a2=")}" data-a3="${role}" class="flex items-center gap-4 p-4 rounded-2xl mb-2 cursor-pointer hover:scale-[1.02] transition-all" data-style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" data-style="background: ${roleColor}20; color: ${roleColor};">
                                 <span class="material-symbols-outlined text-sm">${roleIcons[role]}</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${role}</div>
+                                <div class="text-sm font-bold" data-style="color: ${textMain};">${role}</div>
                             </div>
                         </div>`;
                     }).join('')}
@@ -15458,12 +15462,12 @@ navigate(viewName, params = {}, push = true) {
         
         tbody.innerHTML = filtered.map(u => `
             <tr class="user-row-premium">
-                <td class="px-4 py-3" style="width: 40px;">
-                    <input type="checkbox" class="config-staff-checkbox" data-user-id="${u.id}" style="width: 16px; height: 16px; cursor: pointer;">
+                <td class="px-4 py-3" data-style="width: 40px;">
+                    <input type="checkbox" class="config-staff-checkbox" data-user-id="${u.id}" data-style="width: 16px; height: 16px; cursor: pointer;">
                 </td>
                 <td class="px-4 py-3">
                     <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" data-style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                         <div class="flex flex-col">
                             <div class="font-bold text-sm text-[var(--text-main)]">${App.esc(u.display_name || u.username)}</div>
                             <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${App.esc(u.username)}</div>
@@ -15471,7 +15475,7 @@ navigate(viewName, params = {}, push = true) {
                     </div>
                 </td>
                 <td class="px-4 py-3">
-                    <span class="text-xs font-bold" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px 8px;">${App.esc(u.role)}</span>
+                    <span class="text-xs font-bold" data-style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px 8px;">${App.esc(u.role)}</span>
                 </td>
             </tr>
         `).join('');
@@ -15915,20 +15919,20 @@ navigate(viewName, params = {}, push = true) {
                         <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar a Empresa</span>
                         <span class="text-xs text-slate-400">Selecciona los usuarios para vincular</span>
                     </div>
-                    <button onclick="App.navigateToCreateUser()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
+                    <button data-act="call" data-call="navigateToCreateUser" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">person_add</span> NUEVO USUARIO
                     </button>
                 </div>
 
                 <div class="relative group">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors text-sm">search</span>
-                    <input type="text" placeholder="Buscar usuario..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                    <input type="text" placeholder="Buscar usuario..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" 
                         class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-600">
                 </div>
 
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${users.map(u => `
-                        <div onclick="App.assignUserToGroup('${groupId}', '${u.id}', ${selectedIds.includes(String(u.id))})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group shadow-sm ${selectedIds.includes(String(u.id)) ? 'ring-1 ring-primary/50 bg-primary/10' : ''}">
+                        <div data-act="call" data-call="assignUserToGroup" data-a1="${groupId}" data-a2="${u.id}" data-a3="${selectedIds.includes(String(u.id))}" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group shadow-sm ${selectedIds.includes(String(u.id)) ? 'ring-1 ring-primary/50 bg-primary/10' : ''}">
                             <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-sm font-bold group-hover:scale-105 transition-transform">
                                 ${u.username[0].toUpperCase()}
                             </div>
@@ -15971,20 +15975,20 @@ navigate(viewName, params = {}, push = true) {
                         <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Staff al Evento</span>
                         <span class="text-xs text-slate-400">Busca y selecciona colaboradores</span>
                     </div>
-                    <button onclick="App.navigateToCreateUser()" class="btn-primary !py-2 !px-4 !text-[11px] shadow-lg">
+                    <button data-act="call" data-call="navigateToCreateUser" class="btn-primary !py-2 !px-4 !text-[11px] shadow-lg">
                         <span class="material-symbols-outlined text-xs">person_add</span> NUEVO STAFF
                     </button>
                 </div>
 
                 <div class="relative group">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors text-sm">search</span>
-                    <input type="text" placeholder="Filtrar por nombre o rol..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                    <input type="text" placeholder="Filtrar por nombre o rol..." data-act="call" data-call="filterSelectorItems" data-a1="@this" data-a2=".selector-item" 
                         class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-600">
                 </div>
 
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${users.map(u => `
-                        <div onclick="App.assignUserToEvent('${u.id}', '${eventId}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer group shadow-sm">
+                        <div data-act="call" data-call="assignUserToEvent" data-a1="${u.id}" data-a2="${eventId}" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer group shadow-sm">
                             <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 ${u.username[0].toUpperCase()}
                             </div>
@@ -16194,13 +16198,13 @@ navigate(viewName, params = {}, push = true) {
                         <span class="text-xs px-2 py-1 rounded-full ${acc.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
                             ${acc.is_active ? 'Activa' : 'Inactiva'}
                         </span>
-                        <button onclick="App.openEmailAccountModal('${acc.id}')" class="p-2 hover:bg-white/10 rounded-lg" title="Editar">
+                        <button data-act="call" data-call="openEmailAccountModal" data-a1="${acc.id}" class="p-2 hover:bg-white/10 rounded-lg" title="Editar">
                             <span class="material-symbols-outlined text-slate-400">edit</span>
                         </button>
-                        <button onclick="App.testEmailAccount('${acc.id}', 'smtp')" class="p-2 hover:bg-white/10 rounded-lg" title="Probar SMTP">
+                        <button data-act="call" data-call="testEmailAccount" data-a1="${acc.id}" data-a2="smtp" class="p-2 hover:bg-white/10 rounded-lg" title="Probar SMTP">
                             <span class="material-symbols-outlined text-slate-400">send</span>
                         </button>
-                        <button onclick="App.deleteEmailAccount('${acc.id}')" class="p-2 hover:bg-red-500/10 rounded-lg" title="Eliminar">
+                        <button data-act="call" data-call="deleteEmailAccount" data-a1="${acc.id}" class="p-2 hover:bg-red-500/10 rounded-lg" title="Eliminar">
                             <span class="material-symbols-outlined text-red-400">delete</span>
                         </button>
                     </div>
@@ -16239,11 +16243,11 @@ navigate(viewName, params = {}, push = true) {
         }
         
         const modalContent = `
-        <div id="modal-email-account" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
+        <div id="modal-email-account" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" data-style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
             <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl border border-[var(--border)] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <div class="p-6 border-b border-[var(--border)] flex justify-between items-center shrink-0">
                     <h3 class="text-xl font-bold text-[var(--text-main)]">${accountId ? 'Editar' : 'Nueva'} Cuenta de Email</h3>
-                    <button onclick="document.getElementById('modal-email-account')?.classList.add('hidden')" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition-colors">
+                    <button data-act="hide" data-target="modal-email-account" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition-colors">
                         <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                     </button>
                 </div>
@@ -16349,23 +16353,23 @@ navigate(viewName, params = {}, push = true) {
                     
                     <div class="border-t border-[var(--border)] pt-4">
                         <div class="flex items-center gap-2 mb-3">
-                            <button onclick="App.testSmtpConnection()" class="btn-secondary !px-3 !py-1.5 text-xs flex items-center gap-1">
+                            <button data-act="call" data-call="testSmtpConnection" class="btn-secondary !px-3 !py-1.5 text-xs flex items-center gap-1">
                                 <span class="material-symbols-outlined text-sm">send</span>
                                 Probar SMTP
                             </button>
-                            <button onclick="App.testImapConnection()" class="btn-secondary !px-3 !py-1.5 text-xs flex items-center gap-1">
+                            <button data-act="call" data-call="testImapConnection" class="btn-secondary !px-3 !py-1.5 text-xs flex items-center gap-1">
                                 <span class="material-symbols-outlined text-sm">inbox</span>
                                 Probar IMAP
                             </button>
                         </div>
-                        <button onclick="App.showEmailSetupHelp()" class="text-sm text-violet-400 hover:text-violet-300 flex items-center gap-1">
+                        <button data-act="call" data-call="showEmailSetupHelp" class="text-sm text-violet-400 hover:text-violet-300 flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">help</span> Necesito ayuda para configurar mi cuenta
                         </button>
                     </div>
                 </div>
                 <div class="p-6 border-t border-[var(--border)] flex justify-end gap-3 shrink-0">
-                    <button onclick="document.getElementById('modal-email-account')?.classList.add('hidden')" class="px-4 py-2 rounded-xl bg-[var(--bg-hover)] text-[var(--text-main)] font-bold hover:bg-white/10 transition-colors">Cancelar</button>
-                    <button onclick="App.saveEmailAccount()" class="btn-primary !px-6 !py-2">Guardar</button>
+                    <button data-act="hide" data-target="modal-email-account" class="px-4 py-2 rounded-xl bg-[var(--bg-hover)] text-[var(--text-main)] font-bold hover:bg-white/10 transition-colors">Cancelar</button>
+                    <button data-act="call" data-call="saveEmailAccount" class="btn-primary !px-6 !py-2">Guardar</button>
                 </div>
             </div>
         </div>`;
@@ -16650,10 +16654,10 @@ navigate(viewName, params = {}, push = true) {
             
             html += `
             <div class="mailbox-folder-group">
-                <button onclick="App.loadMailboxMessages('${fullPath}')" 
+                <button data-act="call" data-call="loadMailboxMessages" data-a1="${fullPath}" 
                         class="w-full text-left px-3 py-2.5 rounded-lg text-sm text-[var(--text-main)] hover:bg-[var(--bg-hover)] flex items-center gap-2 transition-all duration-200 mailbox-folder-btn group" 
                         data-folder="${fullPath}"
-                        style="padding-left: ${12 + indent}px;">
+                        data-style="padding-left: ${12 + indent}px;">
                     <span class="material-symbols-outlined text-sm text-[var(--text-secondary)] group-hover:text-[var(--primary)] transition-colors">${icon}</span>
                     <span class="truncate">${displayName}</span>
                     ${hasChildren ? `<span class="material-symbols-outlined text-xs text-[var(--text-secondary)] ml-auto">expand_more</span>` : ''}
@@ -16730,7 +16734,7 @@ navigate(viewName, params = {}, push = true) {
                 const preview = (msg.text_plain || msg.text || '').substring(0, 100).replace(/<[^>]*>/g, '');
                 
                 return `
-                <div onclick="App.viewMailMessage('${msg.uid}', '${folder}')" 
+                <div data-act="call" data-call="viewMailMessage" data-a1="${msg.uid}" data-a2="${folder}" 
                      class="p-4 hover:bg-[var(--bg-hover)] cursor-pointer transition-all duration-200 flex items-start gap-3 group ${msg.seen ? '' : 'bg-gradient-to-r from-[var(--primary)]/5 to-transparent'}"
                      role="button" tabindex="0">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-lg ${msg.seen ? 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]' : 'bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white'}">
@@ -16791,7 +16795,7 @@ navigate(viewName, params = {}, push = true) {
                 container.innerHTML = '<div class="col-span-3 text-center py-12 text-slate-500"><span class="material-symbols-outlined text-5xl mb-3 text-slate-600">description</span><p class="text-sm">No hay plantillas</p><p class="text-xs mt-1">Crea plantillas para tus comunicaciones</p></div>';
                 return;
             }
-            container.innerHTML = templates.map(t => '<div class="card p-4 hover:border-violet-500/30 transition-all cursor-pointer" onclick="App.viewEmailTemplate(\'' + t.id + '\')"><div class="flex items-center justify-between mb-2"><h4 class="font-bold text-white text-sm">' + App.esc(t.name) + '</h4><span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">' + App.esc(t.category || 'general') + '</span></div><p class="text-xs text-slate-500 truncate">' + App.esc(t.subject || 'Sin asunto') + '</p>' + (t.is_system ? '<span class="text-[10px] text-violet-400 mt-2 block">Sistema</span>' : '') + '</div>').join('');
+            container.innerHTML = templates.map(t => '<div class="card p-4 hover:border-violet-500/30 transition-all cursor-pointer" data-act="call" data-call="viewEmailTemplate" data-a1="' + t.id + '"><div class="flex items-center justify-between mb-2"><h4 class="font-bold text-white text-sm">' + App.esc(t.name) + '</h4><span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">' + App.esc(t.category || 'general') + '</span></div><p class="text-xs text-slate-500 truncate">' + App.esc(t.subject || 'Sin asunto') + '</p>' + (t.is_system ? '<span class="text-[10px] text-violet-400 mt-2 block">Sistema</span>' : '') + '</div>').join('');
             this.updateEmailTemplateSelects(templates);
         } catch (e) {
             console.error('[EMAIL] Error loading templates:', e);
@@ -16823,7 +16827,7 @@ navigate(viewName, params = {}, push = true) {
                 return;
             }
             const statusColors = { DRAFT: 'bg-slate-500/20 text-slate-400', SCHEDULED: 'bg-yellow-500/20 text-yellow-400', SENDING: 'bg-blue-500/20 text-blue-400', SENT: 'bg-green-500/20 text-green-400', PAUSED: 'bg-orange-500/20 text-orange-400', CANCELLED: 'bg-red-500/20 text-red-400' };
-            container.innerHTML = campaigns.map(c => '<div class="card p-4 flex items-center justify-between"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center"><span class="material-symbols-outlined text-xl text-violet-400">campaign</span></div><div><h4 class="font-bold text-white">' + c.name + '</h4><p class="text-xs text-slate-500">' + (c.subject || 'Sin asunto') + '</p></div></div><div class="flex items-center gap-3"><span class="text-xs px-2 py-1 rounded-full ' + (statusColors[c.status] || 'bg-slate-500/20 text-slate-400') + '">' + c.status + '</span><span class="text-xs text-slate-500">' + (c.sent_count || 0) + '/' + (c.total_recipients || 0) + '</span>' + (c.status === 'DRAFT' ? '<button onclick="App.sendCampaign(\'' + c.id + '\')" class="btn-primary !px-3 !py-1 text-xs">Enviar</button>' : '') + '</div></div>').join('');
+            container.innerHTML = campaigns.map(c => '<div class="card p-4 flex items-center justify-between"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center"><span class="material-symbols-outlined text-xl text-violet-400">campaign</span></div><div><h4 class="font-bold text-white">' + c.name + '</h4><p class="text-xs text-slate-500">' + (c.subject || 'Sin asunto') + '</p></div></div><div class="flex items-center gap-3"><span class="text-xs px-2 py-1 rounded-full ' + (statusColors[c.status] || 'bg-slate-500/20 text-slate-400') + '">' + c.status + '</span><span class="text-xs text-slate-500">' + (c.sent_count || 0) + '/' + (c.total_recipients || 0) + '</span>' + (c.status === 'DRAFT' ? '<button data-act="call" data-call="sendCampaign" data-a1="' + c.id + '" class="btn-primary !px-3 !py-1 text-xs">Enviar</button>' : '') + '</div></div>').join('');
         } catch (e) {
             console.error('[EMAIL] Error loading campaigns:', e);
         }
@@ -16848,8 +16852,8 @@ navigate(viewName, params = {}, push = true) {
         
         const container = document.getElementById('modal-container-portal');
         container.innerHTML = `
-        <div id="modal-mail-view" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
-            <div class="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col rounded-2xl border border-[var(--border)] shadow-2xl" style="background: var(--bg-card); backdrop-filter: blur(20px);">
+        <div id="modal-mail-view" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" data-style="background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
+            <div class="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col rounded-2xl border border-[var(--border)] shadow-2xl" data-style="background: var(--bg-card); backdrop-filter: blur(20px);">
                 <div class="p-5 border-b border-[var(--border)] flex justify-between items-center shrink-0">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
                         <span class="material-symbols-outlined text-[var(--primary)] text-xl">mail</span>
@@ -16877,11 +16881,11 @@ navigate(viewName, params = {}, push = true) {
                 <div class="p-4 border-t border-[var(--border)] flex justify-between items-center shrink-0" id="mail-view-footer">
                     <div id="mail-view-attachments" class="flex items-center gap-2 flex-wrap"></div>
                     <div class="flex gap-2">
-                        <button onclick="App.replyToEmail('${uid}', '${folder}')" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1" style="background: var(--bg-hover); color: var(--text-main);">
+                        <button data-act="call" data-call="replyToEmail" data-a1="${uid}" data-a2="${folder}" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1" data-style="background: var(--bg-hover); color: var(--text-main);">
                             <span class="material-symbols-outlined text-sm">reply</span>
                             Responder
                         </button>
-                        <button id="btn-close-mail-view-footer" class="px-5 py-2 rounded-lg text-sm font-medium transition-colors" style="background: var(--bg-hover); color: var(--text-main);">Cerrar</button>
+                        <button id="btn-close-mail-view-footer" class="px-5 py-2 rounded-lg text-sm font-medium transition-colors" data-style="background: var(--bg-hover); color: var(--text-main);">Cerrar</button>
                     </div>
                 </div>
             </div>
@@ -16923,7 +16927,7 @@ navigate(viewName, params = {}, push = true) {
             if (msg.attachments && msg.attachments.length > 0) {
                 attachmentsContainer.innerHTML = `<span class="text-xs font-semibold text-[var(--text-secondary)] mr-1">Adjuntos:</span>` + msg.attachments.map((a, i) => `
                     <button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-[var(--border)] hover:bg-[var(--bg-hover)] text-[var(--text-main)]" 
-                            onclick="App.downloadAttachment(${i}, '${accountId}', '${folder}', '${uid}')"
+                            data-act="call" data-call="downloadAttachment" data-a1="@fn:i" data-a2="${accountId}" data-a3="${folder}" data-a4="${uid}"
                             title="${this._escapeHtml(a.filename)} (${this._formatFileSize ? this._formatFileSize(a.size || 0) : a.size || 0})">
                         <span class="material-symbols-outlined text-sm">attach_file</span>
                         ${this._escapeHtml(a.filename)}
@@ -16935,7 +16939,7 @@ navigate(viewName, params = {}, push = true) {
             
             const bodyEl = document.getElementById('mail-view-body');
             if (msg.html) {
-                bodyEl.innerHTML = `<div class="prose prose-sm max-w-none" style="color: var(--text-main);">${msg.html}</div>`;
+                bodyEl.innerHTML = `<div class="prose prose-sm max-w-none" data-style="color: var(--text-main);">${msg.html}</div>`;
             } else if (msg.text) {
                 bodyEl.innerHTML = `<pre class="text-sm text-[var(--text-main)] whitespace-pre-wrap font-sans leading-relaxed">${this._escapeHtml(msg.text)}</pre>`;
             } else {
@@ -17213,12 +17217,12 @@ navigate(viewName, params = {}, push = true) {
                         <div class="text-right">
                             <p class="text-xs text-slate-400">${c.sent_count || 0}/${c.total_recipients || 0}</p>
                             <div class="w-20 h-1.5 bg-slate-700 rounded-full mt-1 overflow-hidden">
-                                <div class="h-full bg-violet-500" style="width: ${c.total_recipients > 0 ? Math.round((c.sent_count / c.total_recipients) * 100) : 0}%"></div>
+                                <div class="h-full bg-violet-500" data-style="width: ${c.total_recipients > 0 ? Math.round((c.sent_count / c.total_recipients) * 100) : 0}%"></div>
                             </div>
                         </div>
                         <span class="text-xs px-2 py-1 rounded-full ${statusColors[c.status] || 'bg-slate-500/20 text-slate-400'}">${App.esc(c.status)}</span>
                         ${c.status === 'SENDING' || c.status === 'PAUSED' || c.status === 'SENT' ? `
-                            <button onclick="App.openCampaignMonitor('${c.id}')" class="p-2 hover:bg-white/10 rounded-lg" title="Monitorear">
+                            <button data-act="call" data-call="openCampaignMonitor" data-a1="${c.id}" class="p-2 hover:bg-white/10 rounded-lg" title="Monitorear">
                                 <span class="material-symbols-outlined text-slate-400">monitoring</span>
                             </button>
                         ` : ''}
@@ -17245,7 +17249,7 @@ navigate(viewName, params = {}, push = true) {
             }
             
             container.innerHTML = templates.map(t => `
-                <div class="card p-4 cursor-pointer hover:border-violet-500/30" onclick="App.selectMailingTemplate('${t.id}')">
+                <div class="card p-4 cursor-pointer hover:border-violet-500/30" data-act="call" data-call="selectMailingTemplate" data-a1="${t.id}">
                     <h4 class="font-bold text-white text-sm">${App.esc(t.name)}</h4>
                     <p class="text-xs text-slate-500 truncate">${App.esc(t.subject || 'Sin asunto')}</p>
                 </div>
@@ -17267,18 +17271,18 @@ navigate(viewName, params = {}, push = true) {
     openEmailComposer: function() {
         const container = document.getElementById('modal-container-portal');
         if (!container) return;
-        container.innerHTML = '<div id="modal-email-composer" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);">' +
+        container.innerHTML = '<div id="modal-email-composer" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" data-style="background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);">' +
             '<div class="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">' +
             '<div class="p-6 border-b border-[var(--border)] flex justify-between items-center"><h3 class="text-lg font-bold text-[var(--text-main)]">Nuevo Email</h3>' +
-            '<button onclick="document.getElementById(\'modal-email-composer\')?.remove()" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg"><span class="material-symbols-outlined text-[var(--text-secondary)]">close</span></button></div>' +
+            '<button data-act="removeEl" data-target="modal-email-composer" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg"><span class="material-symbols-outlined text-[var(--text-secondary)]">close</span></button></div>' +
             '<div class="p-6 overflow-y-auto flex-1 space-y-4">' +
             '<input type="text" id="composer-to" placeholder="Para:" class="input-field w-full" />' +
             '<input type="text" id="composer-subject" placeholder="Asunto:" class="input-field w-full" />' +
             '<textarea id="composer-body" class="input-field w-full min-h-[200px]" placeholder="Escribe tu mensaje..."></textarea>' +
             '</div>' +
             '<div class="p-6 border-t border-[var(--border)] flex justify-end gap-3">' +
-            '<button onclick="document.getElementById(\'modal-email-composer\')?.remove()" class="px-4 py-2 rounded-xl bg-[var(--bg-hover)] text-[var(--text-main)] font-bold">Cancelar</button>' +
-            '<button onclick="App.sendComposedEmail()" class="btn-primary">Enviar</button></div></div></div>';
+            '<button data-act="removeEl" data-target="modal-email-composer" class="px-4 py-2 rounded-xl bg-[var(--bg-hover)] text-[var(--text-main)] font-bold">Cancelar</button>' +
+            '<button data-act="call" data-call="sendComposedEmail" class="btn-primary">Enviar</button></div></div></div>';
         const el = document.getElementById('modal-email-composer');
         if (el) {
             el.addEventListener('click', (e) => { if (e.target === e.currentTarget) el.remove(); });
@@ -17736,8 +17740,8 @@ navigate(viewName, params = {}, push = true) {
                     return '<div class="flex justify-between items-center p-2 rounded-lg bg-slate-800/50 mb-1">' +
                         '<div><span class="text-sm text-white font-medium">' + (a.label || 'Sin etiqueta') + '</span>' +
                         '<br><span class="text-xs text-slate-500">' + (a.google_email || 'Email desconocido') + '</span></div>' +
-                        '<div class="flex gap-1"><button class="btn-icon" onclick="App.editGoogleAccountLabel(\'' + a.id + '\',\'' + (a.label || '') + '\')"><span class="material-symbols-outlined text-sm text-slate-400">edit</span></button>' +
-                        '<button class="btn-icon text-red-400" onclick="App.deleteGoogleAccount(\'' + groupId + '\',\'' + a.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
+                        '<div class="flex gap-1"><button class="btn-icon" data-act="call" data-call="editGoogleAccountLabel" data-a1="' + a.id + '" data-a2="' + (a.label || '') + '"><span class="material-symbols-outlined text-sm text-slate-400">edit</span></button>' +
+                        '<button class="btn-icon text-red-400" data-act="call" data-call="deleteGoogleAccount" data-a1="' + groupId + '" data-a2="' + a.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
                 }).join('');
             }
         } catch(e) { console.error('[GOOGLE] Error:', e.message); }
@@ -18020,11 +18024,11 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td text-xs text-slate-400 max-w-[200px] truncate">' + (w.url || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + evCount + ' eventos</td>' +
                     '<td class="table-td"><span class="text-xs font-bold ' + statusClass + '">' + w.status + '</span></td>' +
-                    '<td class="table-td"><button class="btn-icon" onclick="App.viewWebhookLogs(\'' + w.id + '\')" title="Ver logs"><span class="material-symbols-outlined text-sm">history</span></button></td>' +
+                    '<td class="table-td"><button class="btn-icon" data-act="call" data-call="viewWebhookLogs" data-a1="' + w.id + '" title="Ver logs"><span class="material-symbols-outlined text-sm">history</span></button></td>' +
                     '<td class="table-td">' +
-                        '<button class="btn-icon" onclick="App.testWebhook(\'' + w.id + '\')" title="Test"><span class="material-symbols-outlined text-sm">play_arrow</span></button>' +
-                        '<button class="btn-icon" onclick="App.openWebhookModal(\'' + w.id + '\')" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>' +
-                        '<button class="btn-icon text-red-400" onclick="App.deleteWebhook(\'' + w.id + '\')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button>' +
+                        '<button class="btn-icon" data-act="call" data-call="testWebhook" data-a1="' + w.id + '" title="Test"><span class="material-symbols-outlined text-sm">play_arrow</span></button>' +
+                        '<button class="btn-icon" data-act="call" data-call="openWebhookModal" data-a1="' + w.id + '" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                        '<button class="btn-icon text-red-400" data-act="call" data-call="deleteWebhook" data-a1="' + w.id + '" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button>' +
                     '</td></tr>';
             }).join('');
         } catch(e) { console.error('[WEBHOOKS] Error loading:', e.message); }
@@ -18052,7 +18056,7 @@ navigate(viewName, params = {}, push = true) {
             const evs = this._webhookEvents || {};
             grid.innerHTML = Object.keys(evs).map(function(k) {
                 return '<label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:bg-white/[0.02] p-1 rounded">' +
-                    '<input type="checkbox" class="webhook-event-cb" value="' + evs[k] + '" style="accent-color:#7c3aed"> ' + k + '</label>';
+                    '<input type="checkbox" class="webhook-event-cb" value="' + evs[k] + '" data-style="accent-color:#7c3aed"> ' + k + '</label>';
             }).join('');
         }
 
@@ -18258,8 +18262,8 @@ navigate(viewName, params = {}, push = true) {
                     '<td class="table-td text-xs text-slate-400">' + (t.slug || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (t.domain || '-') + '</td>' +
                     '<td class="table-td"><span class="text-xs font-bold ' + (t.is_active ? 'text-green-500' : 'text-slate-500') + '">' + (t.is_active ? 'Activo' : 'Inactivo') + '</span></td>' +
-                    '<td class="table-td"><button class="btn-icon" onclick="App.editTenant(\'' + t.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
-                    '<button class="btn-icon text-red-400" onclick="App.deleteTenant(\'' + t.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+                    '<td class="table-td"><button class="btn-icon" data-act="call" data-call="editTenant" data-a1="' + t.id + '"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                    '<button class="btn-icon text-red-400" data-act="call" data-call="deleteTenant" data-a1="' + t.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
             }).join('');
         } catch(e) { console.error('[TENANTS] Error:', e.message); }
     },
@@ -19256,12 +19260,12 @@ App.renderAttendanceTable = function(attendance) {
         return `<tr class="hover:bg-white/[0.02] transition-colors">
             <td class="!py-3 !px-3">
                 <input type="checkbox" ${isSelected ? 'checked' : ''} 
-                    onchange="App.toggleAttendance('${a.client_id}')" 
-                    style="width: 16px; height: 16px; cursor: pointer;">
+                    data-act="call" data-call="toggleAttendance" data-a1="${a.client_id}" 
+                    data-style="width: 16px; height: 16px; cursor: pointer;">
             </td>
             <td class="!py-3 !px-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0" style="background: rgba(99,102,241,0.2); color: #6366f1;">
+                    <div class="w-3 h-3 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0" data-style="background: rgba(99,102,241,0.2); color: #6366f1;">
                         ${(a.client_name || 'A').charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -19277,13 +19281,13 @@ App.renderAttendanceTable = function(attendance) {
             <td class="!py-3 !px-3 text-slate-300 text-xs">${a.restricciones || '-'}</td>
             <td class="!py-3 !px-3">
                 ${a.category_name 
-                    ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold" style="background:${a.category_color || '#64748b'}30; color:${a.category_color || '#64748b'}">${a.category_name}</span>`
+                    ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold" data-style="background:${a.category_color || '#64748b'}30; color:${a.category_color || '#64748b'}">${a.category_name}</span>`
                     : '<span class="text-slate-500 text-[10px]">-</span>'}
             </td>
             <td class="!py-3 !px-3">
-                <select onchange="App.changeGuestStatus('${a.client_id}', this.value)"
+                <select data-act="call" data-call="changeGuestStatus" data-a1="${a.client_id}" data-a2="@this.value"
                     class="status-pipeline-select text-[10px] font-bold rounded-full px-2 py-1 cursor-pointer outline-none"
-                    style="background: ${statusColor}20; color: ${statusColor}; border: 1px solid ${statusColor}40; -webkit-appearance: none; appearance: none;">
+                    data-style="background: ${statusColor}20; color: ${statusColor}; border: 1px solid ${statusColor}40; -webkit-appearance: none; appearance: none;">
                     <option value="lead" ${currentStatus === 'lead' ? 'selected' : ''}>Lead</option>
                     <option value="contacted" ${currentStatus === 'contacted' ? 'selected' : ''}>Contactado</option>
                     <option value="confirmed" ${currentStatus === 'confirmed' ? 'selected' : ''}>Confirmado</option>
@@ -19293,22 +19297,22 @@ App.renderAttendanceTable = function(attendance) {
                 </select>
             </td>
             <td class="!py-3 !px-3 text-center">
-                <div onclick="App.toggleValidateAttendance('${a.client_id}')" 
+                <div data-act="call" data-call="toggleValidateAttendance" data-a1="${a.client_id}" 
                     title="${a.validated ? 'Marcar como ausente' : 'Marcar como presente'}"
                     class="attendance-switch mx-auto ${a.validated ? 'validated' : ''}">
                 </div>
-                <button onclick="App.generateOtpCode('${a.client_id}')" title="Generar código OTP" class="text-[10px] mt-1 text-[var(--primary)] hover:underline">OTP</button>
+                <button data-act="call" data-call="generateOtpCode" data-a1="${a.client_id}" title="Generar código OTP" class="text-[10px] mt-1 text-[var(--primary)] hover:underline">OTP</button>
                     <div class="flex gap-1 mt-1">
-                        <button onclick="App.sendGuestMessage('sms','${a.client_id}','${(a.client_name || '').replace(/'/g, "\'")}')" title="Enviar SMS" class="w-6 h-6 rounded flex items-center justify-center hover:bg-green-500/20 text-green-400 transition-colors"><span class="material-symbols-outlined text-sm">sms</span></button>
-                        <button onclick="App.sendGuestMessage('whatsapp','${a.client_id}','${(a.client_name || '').replace(/'/g, "\'")}')" title="Enviar WhatsApp" class="w-6 h-6 rounded flex items-center justify-center hover:bg-emerald-500/20 text-emerald-400 transition-colors"><span class="material-symbols-outlined text-sm">chat</span></button>
+                        <button data-act="call" data-call="sendGuestMessage" data-a1="sms" data-a2="${a.client_id}" data-a3="${(a.client_name || '').replace(/&quot;/g, '&amp;quot;').replace(/"/g, '&quot;')}" title="Enviar SMS" class="w-6 h-6 rounded flex items-center justify-center hover:bg-green-500/20 text-green-400 transition-colors"><span class="material-symbols-outlined text-sm">sms</span></button>
+                        <button data-act="call" data-call="sendGuestMessage" data-a1="whatsapp" data-a2="${a.client_id}" data-a3="${(a.client_name || '').replace(/&quot;/g, '&amp;quot;').replace(/"/g, '&quot;')}" title="Enviar WhatsApp" class="w-6 h-6 rounded flex items-center justify-center hover:bg-emerald-500/20 text-emerald-400 transition-colors"><span class="material-symbols-outlined text-sm">chat</span></button>
                     </div>
             </td>
             <td class="!py-3 !px-3 text-center">
                 <div class="flex items-center justify-center gap-0.5">
-                    <button onclick="App.exportGuestData('${a.event_id || ''}', '${a.client_id}')" title="Exportar datos (GDPR)" class="w-6 h-6 rounded flex items-center justify-center hover:bg-blue-500/20 text-blue-400 transition-colors">
+                    <button data-act="call" data-call="exportGuestData" data-a1="${a.event_id || ''}" data-a2="${a.client_id}" title="Exportar datos (GDPR)" class="w-6 h-6 rounded flex items-center justify-center hover:bg-blue-500/20 text-blue-400 transition-colors">
                         <span class="material-symbols-outlined text-xs">download</span>
                     </button>
-                    <button onclick="App.eraseGuestData('${a.event_id || ''}', '${a.client_id}', '${(a.client_name || '').replace(/'/g, "\\'")}')" title="Derecho al olvido" class="w-6 h-6 rounded flex items-center justify-center hover:bg-red-500/20 text-red-400 transition-colors">
+                    <button data-act="call" data-call="eraseGuestData" data-a1="${a.event_id || ''}" data-a2="${a.client_id}" data-a3="${(a.client_name || '').replace(/"/g, '&quot;')}" title="Derecho al olvido" class="w-6 h-6 rounded flex items-center justify-center hover:bg-red-500/20 text-red-400 transition-colors">
                         <span class="material-symbols-outlined text-xs">delete_forever</span>
                     </button>
                 </div>
@@ -19502,7 +19506,7 @@ App.showAttendanceSuggestions = function() {
     }
     
     container.innerHTML = matches.map(a => `
-        <div class="p-3 hover:bg-white/10 cursor-pointer border-b border-white/5" onclick="App.selectAttendanceSuggestion('${a.client_id}')">
+        <div class="p-3 hover:bg-white/10 cursor-pointer border-b border-white/5" data-act="call" data-call="selectAttendanceSuggestion" data-a1="${a.client_id}">
             <div class="text-sm font-bold text-white">${a.client_name}</div>
             <div class="text-[11px] text-slate-400">${a.client_email}</div>
         </div>
@@ -19575,30 +19579,30 @@ App.openAttendanceCarousel = function() {
         : `${selectedAssistants.length} asistentes seleccionados`;
     
     const html = `
-        <div class="space-y-5" style="padding-right: 8px;">
+        <div class="space-y-5" data-style="padding-right: 8px;">
             <!-- Barra de navegación 2 botones -->
-            <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                <button onclick="App.editAttendance(App._selectedAttendance)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                <button onclick="App.manageAttendance(App._selectedAttendance)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+            <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <button data-act="call" data-call="editAttendance" data-a1="@app:_selectedAttendance" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button data-act="call" data-call="manageAttendance" data-a1="@app:_selectedAttendance" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
             </div>
             <!-- Título -->
-            <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+            <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                 <div class="flex flex-col flex-1">
-                    <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Asistentes</span>
-                    <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Editar Asistentes</span>
+                    <span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span>
                 </div>
             </div>
             <!-- Lista de asistentes seleccionados -->
-            <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+            <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" data-style="margin: 0 -8px; padding: 0 8px;">
                 ${selectedAssistants.map(a => {
                     const statusColors = { PENDIENTE: '#f59e0b', CONFIRMADO: '#10b981', CANCELADO: '#ef4444' };
                     const statusColor = statusColors[a.status] || '#64748b';
-                    return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(99,102,241,0.2); color: #6366f1;">${(a.client_name || 'A').charAt(0).toUpperCase()}</div>
+                    return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" data-style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" data-style="background: rgba(99,102,241,0.2); color: #6366f1;">${(a.client_name || 'A').charAt(0).toUpperCase()}</div>
                         <div class="flex-1">
-                            <div class="text-sm font-bold" style="color: ${textMain};">${a.client_name}</div>
-                            <div class="text-[11px]" style="color: ${textSecondary};">${a.client_email}</div>
-                            <div class="text-[11px]" style="color: ${statusColor};">${a.status}</div>
+                            <div class="text-sm font-bold" data-style="color: ${textMain};">${a.client_name}</div>
+                            <div class="text-[11px]" data-style="color: ${textSecondary};">${a.client_email}</div>
+                            <div class="text-[11px]" data-style="color: ${statusColor};">${a.status}</div>
                         </div>
                     </div>`;
                 }).join('')}
@@ -20153,7 +20157,7 @@ App.editAttendance = function(clientIds) {
                         {}
                         // Not ideal but we don't have taken seats here; rely on backend validation
                         const curSeat = (my && my.seat_id) || '';
-                        seatHtml = ' <select class="session-seat-select text-[10px] input-field py-0.5 px-1" style="width:auto" data-session="' + s.id + '">' +
+                        seatHtml = ' <select class="session-seat-select text-[10px] input-field py-0.5 px-1" data-style="width:auto" data-session="' + s.id + '">' +
                             '<option value="">Sin asiento</option>' +
                             s._seats.filter(function(se) { return se.type === 'seat'; }).map(function(se) {
                                 return '<option value="' + se.id + '" ' + (se.id === curSeat ? 'selected' : '') + '>' + se.id + '</option>';
@@ -20316,7 +20320,7 @@ App.searchClientsForAttendance = async function(term) {
         }
         
         container.innerHTML = matches.map(c => `
-            <div class="p-3 hover:bg-[var(--bg-hover)] cursor-pointer border-b border-[var(--border)]" onclick="App.selectAttendanceClient('${c.id}', '${c.name}', '${c.email}')">
+            <div class="p-3 hover:bg-[var(--bg-hover)] cursor-pointer border-b border-[var(--border)]" data-act="call" data-call="selectAttendanceClient" data-a1="${c.id}" data-a2="${c.name}" data-a3="${c.email}">
                 <div class="text-sm font-medium text-white">${c.name}</div>
                 <div class="text-xs text-[var(--text-muted)]">${c.email}</div>
             </div>

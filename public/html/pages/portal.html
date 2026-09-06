@@ -2,30 +2,30 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- v12.44.810: zoom habilitado (accesibilidad) -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- v12.44.811: zoom habilitado (accesibilidad) -->
 <title>Portal | Check Pro</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#7c3aed">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.min.css"><!-- v12.44.810: CSS externo — la CSP ya no permite el <style> que Swal inyecta -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.min.css"><!-- v12.44.811: CSS externo — la CSP ya no permite el <style> que Swal inyecta -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link rel="stylesheet" href="/css/pages/portal-page.css?v=12.44.810">
+<link rel="stylesheet" href="/css/pages/portal-page.css?v=12.44.811">
 </head>
 <body role="document" aria-label="Portal del asistente">
 <div id="loading"><div><div class="sp"></div><p>Abriendo tu portal...</p></div></div>
 
-<div id="offline-bar" class="install-bar" style="display:none;background:#dc2626">
+<div id="offline-bar" class="install-bar" data-style="display:none;background:#dc2626">
   <span>📡 Sin conexión — mostrando datos guardados</span>
 </div>
 <div id="install-bar" class="install-bar">
   <span>📱 Instala esta app para acceso rápido</span>
   <button id="btn-install">Instalar</button>
-  <button class="close" onclick="this.parentElement.classList.remove('show')">✕</button>
+  <button class="close" data-act="parentRemoveShow">✕</button>
 </div>
 
-<div id="main" style="display:none">
+<div id="main" data-style="display:none">
   <div class="header">
     <h1 id="event-name-header"></h1>
     <p id="event-date-header"></p>
@@ -46,7 +46,7 @@
   </div>
 
   <!-- Agenda -->
-  <div class="section" id="agenda-section" style="display:none">
+  <div class="section" id="agenda-section" data-style="display:none">
     <h3>📋 Agenda</h3>
     <div id="agenda-list"></div>
   </div>
@@ -54,90 +54,90 @@
   <!-- Notificaciones -->
   <div class="notif-card" id="notif-card">
     <p>🔔 Recibe notificaciones cuando haya cambios en el evento</p>
-    <button id="btn-notif" onclick="requestNotif()">Activar notificaciones</button>
+    <button id="btn-notif" data-act="call" data-call="requestNotif">Activar notificaciones</button>
   </div>
 
   <!-- Participate -->
-  <div id="participate-section" style="display:none">
+  <div id="participate-section" data-style="display:none">
     <!-- Tabs -->
-    <div style="display:flex;gap:8px;margin:12px 16px;overflow-x:auto">
-      <button class="participate-tab active" onclick="switchParticipateTab('polls',this)" style="padding:8px 16px;border-radius:20px;border:none;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">📊 Encuestas</button>
-      <button class="participate-tab" onclick="switchParticipateTab('leaderboard',this)" style="padding:8px 16px;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">🏆 Ranking</button>
-      <button class="participate-tab" onclick="switchParticipateTab('mybadges',this)" style="padding:8px 16px;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">🎖️ Mis insignias</button>
-      <button class="participate-tab" onclick="switchParticipateTab('album',this)" style="padding:8px 16px;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">📸 Fotos</button>
+    <div data-style="display:flex;gap:8px;margin:12px 16px;overflow-x:auto">
+      <button class="participate-tab active" data-act="call" data-call="switchParticipateTab" data-a1="polls" data-a2="@this" data-style="padding:8px 16px;border-radius:20px;border:none;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">📊 Encuestas</button>
+      <button class="participate-tab" data-act="call" data-call="switchParticipateTab" data-a1="leaderboard" data-a2="@this" data-style="padding:8px 16px;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">🏆 Ranking</button>
+      <button class="participate-tab" data-act="call" data-call="switchParticipateTab" data-a1="mybadges" data-a2="@this" data-style="padding:8px 16px;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">🎖️ Mis insignias</button>
+      <button class="participate-tab" data-act="call" data-call="switchParticipateTab" data-a1="album" data-a2="@this" data-style="padding:8px 16px;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">📸 Fotos</button>
     </div>
 
     <!-- Polls list -->
     <div id="participate-polls">
       <div class="card">
         <div class="card-title">Encuestas activas</div>
-        <div id="portal-polls-list"><p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Cargando...</p></div>
+        <div id="portal-polls-list"><p data-style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Cargando...</p></div>
       </div>
     </div>
 
     <!-- Leaderboard -->
-    <div id="participate-leaderboard" style="display:none">
+    <div id="participate-leaderboard" data-style="display:none">
       <div class="card">
         <div class="card-title">Ranking del evento</div>
-        <div id="portal-leaderboard-list"><p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Cargando...</p></div>
+        <div id="portal-leaderboard-list"><p data-style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Cargando...</p></div>
       </div>
     </div>
 
     <!-- My badges -->
-    <div id="participate-mybadges" style="display:none">
+    <div id="participate-mybadges" data-style="display:none">
       <div class="card">
         <div class="card-title">Mis insignias</div>
-        <div id="portal-badges-list"><p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Cargando...</p></div>
+        <div id="portal-badges-list"><p data-style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px 0">Cargando...</p></div>
       </div>
     </div>
 
     <!-- Album -->
-    <div id="participate-album" style="display:none">
+    <div id="participate-album" data-style="display:none">
       <div class="card">
         <div class="card-title">📸 Álbum de fotos</div>
-        <div id="portal-album-upload" style="margin-bottom:12px">
-          <label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:2px dashed rgba(255,255,255,0.1);border-radius:12px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.4)">
-            <span style="font-size:20px">📷</span> Subir foto
-            <input type="file" accept="image/*" style="display:none" onchange="uploadPortalPhoto(this)">
+        <div id="portal-album-upload" data-style="margin-bottom:12px">
+          <label data-style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:2px dashed rgba(255,255,255,0.1);border-radius:12px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.4)">
+            <span data-style="font-size:20px">📷</span> Subir foto
+            <input type="file" accept="image/*" data-style="display:none" data-act="call" data-call="uploadPortalPhoto" data-a1="@this">
           </label>
-          <input id="portal-photo-caption" class="input-field" style="width:100%;margin-top:8px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#fff;font-size:12px" placeholder="Escribe un pie de foto (opcional)">
+          <input id="portal-photo-caption" class="input-field" data-style="width:100%;margin-top:8px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#fff;font-size:12px" placeholder="Escribe un pie de foto (opcional)">
         </div>
-        <div id="portal-album-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px;grid-column:1/-1">Cargando fotos...</p>
+        <div id="portal-album-grid" data-style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <p data-style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px;grid-column:1/-1">Cargando fotos...</p>
         </div>
       </div>
     </div>
   </div>
     </div>
   <!-- Networking -->
-  <div id="networking-section" style="display:none">
+  <div id="networking-section" data-style="display:none">
     <div class="section">
       <h3>🤝 Tu código de networking</h3>
-      <div class="card" style="text-align:center">
-        <div id="networking-qr-container" style="background:#fff;border-radius:12px;display:inline-block;padding:8px;margin-bottom:8px">
-          <img id="networking-qr-img" src="" style="width:160px;height:160px">
+      <div class="card" data-style="text-align:center">
+        <div id="networking-qr-container" data-style="background:#fff;border-radius:12px;display:inline-block;padding:8px;margin-bottom:8px">
+          <img id="networking-qr-img" src="" data-style="width:160px;height:160px">
         </div>
-        <p style="font-size:12px;color:rgba(255,255,255,0.4)">Escanea el QR de otro asistente para conectar</p>
+        <p data-style="font-size:12px;color:rgba(255,255,255,0.4)">Escanea el QR de otro asistente para conectar</p>
       </div>
     </div>
 
     <div class="section">
       <h3>📷 Escanear QR</h3>
-      <button class="qr-btn" id="net-qr-btn" onclick="toggleNetQR()" style="margin:0 16px;width:calc(100% - 32px)">
+      <button class="qr-btn" id="net-qr-btn" data-act="call" data-call="toggleNetQR" data-style="margin:0 16px;width:calc(100% - 32px)">
         <span class="icon">📷</span> Escanear QR de otro asistente
       </button>
-      <div id="net-reader" style="display:none;margin:12px 16px;border-radius:16px;overflow:hidden"></div>
+      <div id="net-reader" data-style="display:none;margin:12px 16px;border-radius:16px;overflow:hidden"></div>
     </div>
 
-    <div id="net-stats" class="stats" style="margin:12px 16px">
+    <div id="net-stats" class="stats" data-style="margin:12px 16px">
       <div class="stats-item"><span class="num" id="net-score">0</span><span class="lbl">Puntos</span></div>
       <div class="stats-item"><span class="num" id="net-connections">0</span><span class="lbl">Conexiones</span></div>
     </div>
 
     <div class="section">
       <h3>🤝 Tus conexiones</h3>
-      <div id="net-connections-list" style="padding:0 16px">
-        <p style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">Cargando...</p>
+      <div id="net-connections-list" data-style="padding:0 16px">
+        <p data-style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">Cargando...</p>
       </div>
     </div>
   </div>
@@ -145,11 +145,12 @@
 
 <!-- Bottom nav -->
 <div class="bottom-nav" id="bottom-nav">
-  <a href="#" class="active" onclick="switchTab('ticket',this)"><span class="icon">🎟️</span>Ticket</a>
-  <a href="#" onclick="switchTab('agenda',this)"><span class="icon">📋</span>Agenda</a>
-  <a href="#" onclick="switchTab('participate',this)"><span class="icon">🏆</span>Participar</a>
-  <a href="#" onclick="switchTab('networking',this)"><span class="icon">🤝</span>Networking</a>
-  <a href="#" onclick="switchTab('event',this)"><span class="icon">ℹ️</span>Evento</a>
+  <a href="#" class="active" data-act="call" data-call="switchTab" data-a1="ticket" data-a2="@this"><span class="icon">🎟️</span>Ticket</a>
+  <a href="#" data-act="call" data-call="switchTab" data-a1="agenda" data-a2="@this"><span class="icon">📋</span>Agenda</a>
+  <a href="#" data-act="call" data-call="switchTab" data-a1="participate" data-a2="@this"><span class="icon">🏆</span>Participar</a>
+  <a href="#" data-act="call" data-call="switchTab" data-a1="networking" data-a2="@this"><span class="icon">🤝</span>Networking</a>
+  <a href="#" data-act="call" data-call="switchTab" data-a1="event" data-a2="@this"><span class="icon">ℹ️</span>Evento</a>
 </div>
 
-<script src="/js/pages/portal.js?v=12.44.810"></script>
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.811"></script>
+  <script src="/js/pages/portal.js?v=12.44.811"></script>

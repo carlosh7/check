@@ -7,17 +7,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="stylesheet" href="/css/pages/landing-page.css?v=12.44.810">
+<link rel="stylesheet" href="/css/pages/landing-page.css?v=12.44.811">
 </head>
 <body>
 <div id="loading"><div><div class="sp"></div><p>Cargando invitación...</p></div></div>
-<div id="main" style="display:none;width:100%">
+<div id="main" data-style="display:none;width:100%">
   <div class="card" id="event-card">
     <div class="emoji">🎉</div>
     <h1 id="event-name"></h1>
     <p class="date" id="event-date"></p>
     <p class="location" id="event-location"></p>
-    <p class="desc" id="event-desc" style="display:none"></p>
+    <p class="desc" id="event-desc" data-style="display:none"></p>
 
     <div class="countdown" id="countdown">
       <div class="countdown-item"><span class="num" id="cd-days">00</span><span class="lbl">Días</span></div>
@@ -25,7 +25,7 @@
       <div class="countdown-item"><span class="num" id="cd-mins">00</span><span class="lbl">Min</span></div>
       <div class="countdown-item"><span class="num" id="cd-secs">00</span><span class="lbl">Seg</span></div>
     </div>
-    <div id="event-passed" class="passed" style="display:none">
+    <div id="event-passed" class="passed" data-style="display:none">
       <div class="icon">✅</div>
       <h2>Evento finalizado</h2>
       <p>Gracias por tu interés</p>
@@ -36,21 +36,21 @@
       <p>Escanea para registrarte</p>
     </div>
 
-    <div id="map-container" style="display:none;margin-bottom:20px;border-radius:12px;overflow:hidden;height:200px">
-      <div id="event-map" style="width:100%;height:100%"></div>
+    <div id="map-container" data-style="display:none;margin-bottom:20px;border-radius:12px;overflow:hidden;height:200px">
+      <div id="event-map" data-style="width:100%;height:100%"></div>
     </div>
-    <div id="music-container" style="display:none;margin-bottom:20px;padding:12px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(255,255,255,0.06)">
-      <audio id="event-music" controls loop style="width:100%" preload="metadata">
+    <div id="music-container" data-style="display:none;margin-bottom:20px;padding:12px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(255,255,255,0.06)">
+      <audio id="event-music" controls loop data-style="width:100%" preload="metadata">
         Tu navegador no soporta audio.
       </audio>
     </div>
-    <div id="video-container" style="display:none;margin-bottom:20px">
-      <a id="video-link" class="btn" href="#" target="_blank" style="width:100%">🎥 Unirse a videoconferencia</a>
+    <div id="video-container" data-style="display:none;margin-bottom:20px">
+      <a id="video-link" class="btn" href="#" target="_blank" data-style="width:100%">🎥 Unirse a videoconferencia</a>
     </div>
 
     <div class="flex flex-wrap gap-2 justify-center">
       <a class="btn" id="btn-register" href="#" target="_blank">📝 Confirmar asistencia</a>
-      <button class="btn btn-sec" onclick="downloadQR()">⬇ QR</button>
+      <button class="btn btn-sec" data-act="call" data-call="downloadQR">⬇ QR</button>
       <a class="btn btn-sec" id="btn-calendar" href="#" target="_blank">📅 Agregar</a>
     </div>
 
@@ -59,7 +59,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script src="/js/pages/landing.js?v=12.44.810"></script>
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.811"></script>
+  <script src="/js/pages/landing.js?v=12.44.811"></script>
 <script src="/js/chat-widget.js"></script>
 </body>
 </html>

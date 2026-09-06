@@ -196,18 +196,16 @@ app.use(helmet({
     // v12.44.810 (P2-3): styleSrc SIN 'unsafe-inline' — los 11 bloques <style>
     // inline se externalizaron a /css/pages/*.css y las ventanas de impresión
     // de gafetes usan CSS externo + @page por CSSOM (no sujeto a CSP).
-    // Deuda restante documentada: scriptSrcAttr y styleSrcAttr mantienen
-    // 'unsafe-inline' por los ~450 atributos onclick/style de app-shell.html
-    // y los handlers/estilos generados dinámicamente en strings de app.js —
-    // se retiran con la modularización del monolito.
+    // v12.44.811: script-src-attr y style-src-attr ELIMINADOS — los ~835
+    // handlers onclick/onchange y los ~950 atributos style (estáticos y
+    // generados) se convirtieron a data-act/data-attr procesados por
+    // DelegatedEvents.js (delegación + CSSOM), sin eval ni códigos inline.
     contentSecurityPolicy: {
         useDefaults: true,
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
-            scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc: ["'self'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
-            styleSrcAttr: ["'unsafe-inline'"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
             imgSrc: ["'self'", "data:", "https:", "blob:"],
             connectSrc: ["'self'", "wss:", "https:"],

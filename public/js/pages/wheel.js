@@ -176,7 +176,7 @@ function spin(){
 }
 
 function resetW(){rot=0;spinning=false;document.getElementById('screencast').classList.remove('spinning');document.getElementById('wheel-ct').classList.remove('zooming');draw();document.getElementById('win-box').style.display='none';document.querySelectorAll('.wof__main__btn').forEach(function(b){b.disabled=false})}
-function updWins(){const wl=document.getElementById('wins-list');if(wins.length){wl.classList.add('show');wl.innerHTML=wins.map(function(w,i){const m=i===0?'🥇':i===1?'🥈':i===2?'🥉':'🎁';return'<span style="margin-right:12px;display:inline-flex"><span style="margin-right:4px">'+(i+1)+'.</span>'+w+'</span>'}).join('')}}
+function updWins(){const wl=document.getElementById('wins-list');if(wins.length){wl.classList.add('show');wl.innerHTML=wins.map(function(w,i){const m=i===0?'🥇':i===1?'🥈':i===2?'🥉':'🎁';return'<span data-style="margin-right:12px;display:inline-flex"><span data-style="margin-right:4px">'+(i+1)+'.</span>'+w+'</span>'}).join('')}}
 function toggleWins(){document.getElementById('wins-list').classList.toggle('show')}
 function toggleSnd(){sound=!sound;document.getElementById('btn-snd').textContent=sound?'🔊':'🔇'}
 
@@ -227,8 +227,12 @@ function sortP(){const t=document.getElementById('parts-ta');if(!t)return;t.valu
 function shuffleP(){const t=document.getElementById('parts-ta');if(!t)return;const l=t.value.split('\n').map(function(s){return s.trim()}).filter(Boolean);for(let i=l.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const x=l[i];l[i]=l[j];l[j]=x}t.value=l.join('\n');onPartsChange()}
 function clearP(){document.getElementById('parts-ta').value='';onPartsChange()}
 function toggleAdv(){renderAdv()}
-function renderAdv(){const list=document.getElementById('adv-list'),btn=document.getElementById('btn-add-e'),adv=document.getElementById('cfg-adv').checked;if(!adv){list.style.display='none';btn.style.display='none';return}list.style.display='block';btn.style.display='block';list.innerHTML=parts.map(function(n,i){const pct=Math.round(100/parts.length);return'<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px"><input class="form-control" style="flex:1;font-size:12px;padding:4px 8px" value="'+n+'" onchange="parts['+i+']=this.value;draw()"><span style="font-size:11px;color:#6b7280;min-width:36px;text-align:right">Auto</span><button style="background:none;border:none;cursor:pointer;font-size:13px" onclick="openEditEntry('+i+')">⚙️</button><button style="background:none;border:none;cursor:pointer;font-size:13px;color:#ef4444" onclick="rmE('+i+')">🗑️</button></div>'}).join('')}
-function rmE(i){parts.splice(i,1);document.getElementById('parts-ta').value=parts.join('\n');renderAdv();document.getElementById('part-cnt').textContent=parts.length;draw()}
+function renderAdv(){const list=document.getElementById('adv-list'),btn=document.getElementById('btn-add-e'),adv=document.getElementById('cfg-adv').checked;if(!adv){list.style.display='none';btn.style.display='none';return}list.style.display='block';btn.style.display='block';list.innerHTML=parts.map(function(n,i){const pct=Math.round(100/parts.length);return'<div data-style="display:flex;gap:4px;align-items:center;margin-bottom:4px"><input class="form-control" data-style="flex:1;font-size:12px;padding:4px 8px" value="'+n+'" data-act="call" data-call="setPart" data-a1="'+i+'" data-a2="@this.value"><span data-style="font-size:11px;color:#6b7280;min-width:36px;text-align:right">Auto</span><button data-style="background:none;border:none;cursor:pointer;font-size:13px" data-act="call" data-call="openEditEntry" data-a1="+i+">⚙️</button><button data-style="background:none;border:none;cursor:pointer;font-size:13px;color:#ef4444" data-act="call" data-call="rmE" data-a1="+i+">🗑️</button></div>'}).join('')}
+// v12.44.811: llamados por delegacion (data-act) desde los inputs de la config
+function setSegC(i,v,node){segCs[i]=v;if(node&&node.previousElementSibling)node.previousElementSibling.textContent=v;draw()}
+function setPart(i,v){parts[i]=v;draw()}
+
+ function rmE(i){parts.splice(i,1);document.getElementById('parts-ta').value=parts.join('\n');renderAdv();document.getElementById('part-cnt').textContent=parts.length;draw()}
 function addE(){parts.push('');renderAdv();document.getElementById('parts-ta').value=parts.join('\n');document.getElementById('part-cnt').textContent=parts.length}
 
 // ===== THEMES =====
@@ -236,9 +240,9 @@ function renderThemes(){
   const el=document.getElementById('theme-ps'),q=document.getElementById('q-themes');
   let h='',qh='';
   themes.forEach(function(t,i){
-    const s=t.colors.map(function(c){return'<span style="background:'+c+'"></span>'}).join('');
-    h+='<div class="color_palette" onclick="useTheme('+i+')" title="'+t.name+'">'+s+'</div>';
-    qh+='<div class="color_palette" onclick="useTheme('+i+')" title="'+t.name+'">'+s+'</div>'
+    const s=t.colors.map(function(c){return'<span data-style="background:'+c+'"></span>'}).join('');
+    h+='<div class="color_palette" data-act="call" data-call="useTheme" data-a1="'+i+'" title="'+t.name+'">'+s+'</div>';
+    qh+='<div class="color_palette" data-act="call" data-call="useTheme" data-a1="'+i+'" title="'+t.name+'">'+s+'</div>'
   });
   el.innerHTML=h;q.innerHTML=qh
 }
@@ -248,11 +252,11 @@ function useTheme(idx){
   document.getElementById('c-ptr').value=segCs[0];document.getElementById('v-ptr').textContent=segCs[0];
   refreshP()
 }
-function renderSegCs(){const el=document.getElementById('seg-cs');el.innerHTML=segCs.map(function(c,i){return'<div class="color-input"><span>'+c+'</span><input type="color" value="'+c+'" onchange="segCs['+i+']=this.value;this.previousElementSibling.textContent=this.value;draw()"></div>'}).join('')}
+function renderSegCs(){const el=document.getElementById('seg-cs');el.innerHTML=segCs.map(function(c,i){return'<div class="color-input"><span>'+c+'</span><input type="color" value="'+c+'" data-act="call" data-call="setSegC" data-a1="'+i+'" data-a2="@this.value" data-a3="@this"></div>'}).join('')}
 
 function uploadLogo(){
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
-  inp.onchange=function(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(ev){logoDataUrl=ev.target.result;document.getElementById('logo-pv').innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';document.getElementById('btn-rm-logo').style.display='block';draw()};reader.readAsDataURL(file)};
+  inp.onchange=function(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(ev){logoDataUrl=ev.target.result;document.getElementById('logo-pv').innerHTML='<img src="'+ev.target.result+'" data-style="width:100%;height:100%;object-fit:cover">';document.getElementById('btn-rm-logo').style.display='block';draw()};reader.readAsDataURL(file)};
   inp.click()
 }
 function rmLogo(){logoDataUrl=null;document.getElementById('logo-pv').innerHTML='🎡';document.getElementById('btn-rm-logo').style.display='none';draw()}
@@ -271,11 +275,11 @@ function saveW(){
 
 function loadSav(){
   const eId=window._eventId;
-  if(!eId){document.getElementById('sav-list').innerHTML='<div style="font-size:13px;color:#9ca3af">Selecciona un evento</div>';return}
+  if(!eId){document.getElementById('sav-list').innerHTML='<div data-style="font-size:13px;color:#9ca3af">Selecciona un evento</div>';return}
   fetch(API+'/raffles/events/'+eId+'/raffles').then(function(r){return r.json()}).then(function(list){
     const el=document.getElementById('sav-list');
-    if(!list||!list.length){el.innerHTML='<div style="font-size:13px;color:#9ca3af;text-align:center;padding:8px">No hay ruletas guardadas</div>';return}
-    el.innerHTML=list.map(function(r){const s=r.stats||{};return'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-bottom:1px solid rgba(0,0,0,0.04);cursor:pointer" onclick="loadW(\''+r.id+'\',\''+(r.name||'')+'\')"><div><div style="font-weight:600;font-size:13px;color:#1a1a1a">'+(r.name||'Sin nombre')+'</div><div style="font-size:11px;color:#9ca3af">'+(r.total_participants||0)+' part · '+(s.spins||0)+' giros</div></div><button style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:14px" onclick="event.stopPropagation();delW(\''+r.id+'\')">🗑️</button></div>'}).join('')
+    if(!list||!list.length){el.innerHTML='<div data-style="font-size:13px;color:#9ca3af;text-align:center;padding:8px">No hay ruletas guardadas</div>';return}
+    el.innerHTML=list.map(function(r){const s=r.stats||{};return'<div data-style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-bottom:1px solid rgba(0,0,0,0.04);cursor:pointer" data-act="call" data-call="loadW" data-a1="' + r.id + '" data-a2="' + (r.name||'') + '"><div><div data-style="font-weight:600;font-size:13px;color:#1a1a1a">'+(r.name||'Sin nombre')+'</div><div data-style="font-size:11px;color:#9ca3af">'+(r.total_participants||0)+' part · '+(s.spins||0)+' giros</div></div><button data-style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:14px" data-act="call" data-stop="1" data-call="delW" data-a1="' + r.id + '">🗑️</button></div>'}).join('')
   }).catch(function(){})
 }
 function delW(id){if(!confirm('¿Eliminar ruleta?'))return;fetch(API+'/raffles/'+id,{method:'DELETE'}).then(function(){loadSav();if(currentId===id){currentId=null;document.getElementById('btn-play').disabled=true}}).catch(function(){})}

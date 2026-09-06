@@ -123,9 +123,9 @@
                                     .map(function(c) {
                                         return '<div class="flex items-center justify-between p-2 rounded-lg bg-white/5">' +
                                             '<span class="text-sm">' + c.name + ' — <span class="text-[var(--primary)] font-bold">$' + parseFloat(c.price).toFixed(2) + '</span></span>' +
-                                            '<div class="flex items-center gap-2"><button class="w-7 h-7 rounded-full bg-white/10 text-white font-bold text-sm" onclick="updateCart(\'' + c.id + '\',-1)">−</button>' +
+                                            '<div class="flex items-center gap-2"><button class="w-7 h-7 rounded-full bg-white/10 text-white font-bold text-sm" data-act="call" data-call="updateCart" data-a1="' + c.id + '" data-a2="-1">−</button>' +
                                             '<span id="qty-' + c.id + '" class="w-6 text-center text-sm font-bold">0</span>' +
-                                            '<button class="w-7 h-7 rounded-full bg-white/10 text-white font-bold text-sm" onclick="updateCart(\'' + c.id + '\',1)">+</button></div></div>';
+                                            '<button class="w-7 h-7 rounded-full bg-white/10 text-white font-bold text-sm" data-act="call" data-call="updateCart" data-a1="' + c.id + '" data-a2="1">+</button></div></div>';
                                     }).join('');
                             }
                         }
@@ -207,7 +207,7 @@
                 const opts = (f.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
                 return `<select name="${name}" class="input-field" ${req}><option value="">${f.label}...</option>${opts}</select>`;
             }
-            if (f.field_type === 'checkbox') return `<label style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer;"><input type="checkbox" name="${name}" value="true" ${req}> ${f.label}${f.required ? ' *' : ''}</label>`;
+            if (f.field_type === 'checkbox') return `<label data-style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer;"><input type="checkbox" name="${name}" value="true" ${req}> ${f.label}${f.required ? ' *' : ''}</label>`;
             const type = f.field_type === 'number' ? 'number' : f.field_type === 'email' ? 'email' : f.field_type === 'phone' ? 'tel' : 'text';
             return `<input type="${type}" name="${name}" class="input-field" placeholder="${f.label}${f.required ? ' *' : ''}" ${req}>`;
         }

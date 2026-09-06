@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Kiosko | Check Pro</title>
-<link rel="stylesheet" href="/css/pages/kiosk-page.css?v=12.44.810">
+<link rel="stylesheet" href="/css/pages/kiosk-page.css?v=12.44.811">
 </head>
 <body role="document" aria-label="Kiosko de check-in">
 <div id="app">
@@ -25,7 +25,7 @@
     <div id="error-msg" class="error-msg"></div>
 
     <div class="qr-section">
-      <button class="qr-btn" id="qr-btn" onclick="toggleQR()">
+      <button class="qr-btn" id="qr-btn" data-act="call" data-call="toggleQR">
         <span class="icon">📷</span> Escanear código QR
       </button>
     </div>
@@ -38,8 +38,8 @@
     <div class="icon">👤</div>
     <div class="name" id="confirm-name"></div>
     <div class="detail" id="confirm-detail"></div>
-    <button class="checkin-btn" onclick="confirmCheckin()">✅ Confirmar ingreso</button>
-    <button class="cancel-btn" onclick="cancelCheckin()">No soy yo, volver</button>
+    <button class="checkin-btn" data-act="call" data-call="confirmCheckin">✅ Confirmar ingreso</button>
+    <button class="cancel-btn" data-act="call" data-call="cancelCheckin">No soy yo, volver</button>
   </div>
 
   <div id="success-screen" class="success-screen">
@@ -53,13 +53,14 @@
     <div class="icon">ℹ️</div>
     <div class="name">Ya registraste tu ingreso</div>
     <div class="detail" id="already-detail"></div>
-    <div class="timer" id="already-timer-display" style="font-size:40px;font-weight:700;color:#a78bfa;margin-top:16px">5</div>
+    <div class="timer" id="already-timer-display" data-style="font-size:40px;font-weight:700;color:#a78bfa;margin-top:16px">5</div>
   </div>
 
-  <div id="reset-timer" onclick="resetKiosk()">↩ Volver al inicio</div>
+  <div id="reset-timer" data-act="call" data-call="resetKiosk">↩ Volver al inicio</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
-<script src="/js/pages/kiosk.js?v=12.44.810"></script>
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.811"></script>
+  <script src="/js/pages/kiosk.js?v=12.44.811"></script>
 </body>
 </html>

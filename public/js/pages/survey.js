@@ -14,31 +14,31 @@
                     if (q.type === 'single_choice' && Array.isArray(q.options) && q.options.length === 2) {
                         // Booleana (Sí/No) — valores 5/1 mantienen compatibilidad con dashboard
                         inputHtml = `
-                            <div style="display: flex; gap: 2rem; justify-content: center; margin: 1rem 0;">
-                                <label style="cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 0.5rem; font-size: 1.1rem;">
-                                    <input type="radio" name="q-${q.id}" value="5" required style="width: 20px; height: 20px;"> ✅ ${q.options[0].label}
+                            <div data-style="display: flex; gap: 2rem; justify-content: center; margin: 1rem 0;">
+                                <label data-style="cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 0.5rem; font-size: 1.1rem;">
+                                    <input type="radio" name="q-${q.id}" value="5" required data-style="width: 20px; height: 20px;"> ✅ ${q.options[0].label}
                                 </label>
-                                <label style="cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 0.5rem; font-size: 1.1rem;">
-                                    <input type="radio" name="q-${q.id}" value="1" required style="width: 20px; height: 20px;"> ❌ ${q.options[1].label}
+                                <label data-style="cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 0.5rem; font-size: 1.1rem;">
+                                    <input type="radio" name="q-${q.id}" value="1" required data-style="width: 20px; height: 20px;"> ❌ ${q.options[1].label}
                                 </label>
                             </div>
                         `;
                     } else if (q.type === 'rating') {
                         inputHtml = `
-                            <div style="display: flex; gap: 1rem; justify-content: center; margin: 1rem 0;">
+                            <div data-style="display: flex; gap: 1rem; justify-content: center; margin: 1rem 0;">
                                 ${[1,2,3,4,5].map(v => `
-                                    <label style="cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 0.25rem;">
+                                    <label data-style="cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 0.25rem;">
                                         <input type="radio" name="q-${q.id}" value="${v}" required>
-                                        <span style="font-size: 0.8rem;">${v}★</span>
+                                        <span data-style="font-size: 0.8rem;">${v}★</span>
                                     </label>
                                 `).join('')}
                             </div>
                         `;
                     } else if ((q.type === 'single_choice' || q.type === 'multiple_choice' || q.type === 'dropdown') && Array.isArray(q.options)) {
                         inputHtml = `
-                            <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; margin: 1rem 0;">
+                            <div data-style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; margin: 1rem 0;">
                                 ${q.options.map(o => `
-                                    <label style="cursor: pointer; display: flex; align-items: center; min-height: 44px; gap: 0.4rem; font-size: 1rem;">
+                                    <label data-style="cursor: pointer; display: flex; align-items: center; min-height: 44px; gap: 0.4rem; font-size: 1rem;">
                                         <input type="radio" name="q-${q.id}" value="${o.label.replace(/"/g, '&quot;')}" required> ${o.label}
                                     </label>
                                 `).join('')}
@@ -47,16 +47,16 @@
                     } else {
                         // Texto libre
                         inputHtml = `
-                            <div style="margin: 1rem 0;">
+                            <div data-style="margin: 1rem 0;">
                                 <input type="text" name="q-${q.id}" required placeholder="Tu respuesta..."
-                                    style="width: 100%; max-width: 480px; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--outline); background: transparent; color: inherit;">
+                                    data-style="width: 100%; max-width: 480px; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--outline); background: transparent; color: inherit;">
                             </div>
                         `;
                     }
 
                     return `
-                        <div class="form-group" style="margin-top: 2rem; border-top: 1px solid var(--outline); padding-top: 1.5rem;">
-                            <label style="font-size: 1.1rem; font-weight: 600; text-align: center; display: block;">${q.title}</label>
+                        <div class="form-group" data-style="margin-top: 2rem; border-top: 1px solid var(--outline); padding-top: 1.5rem;">
+                            <label data-style="font-size: 1.1rem; font-weight: 600; text-align: center; display: block;">${q.title}</label>
                             ${inputHtml}
                         </div>
                     `;
@@ -67,13 +67,13 @@
             } else {
                 // Fallback clásico (sin encuesta configurada)
                 surveyForm.insertAdjacentHTML('afterbegin', `
-                    <div class="form-group" style="text-align: center;">
-                        <label style="font-size: 1.1rem; font-weight: 600;">¿Cómo calificarías tu experiencia general?</label>
-                        <div style="display: flex; gap: 1rem; justify-content: center; margin: 1.5rem 0;">
+                    <div class="form-group" data-style="text-align: center;">
+                        <label data-style="font-size: 1.1rem; font-weight: 600;">¿Cómo calificarías tu experiencia general?</label>
+                        <div data-style="display: flex; gap: 1rem; justify-content: center; margin: 1.5rem 0;">
                             ${[1,2,3,4,5].map(v => `
-                                <label style="cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 0.25rem;">
+                                <label data-style="cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; gap: 0.25rem;">
                                     <input type="radio" name="rating" value="${v}" required>
-                                    <span style="font-size: 0.8rem;">${v}★</span>
+                                    <span data-style="font-size: 0.8rem;">${v}★</span>
                                 </label>
                             `).join('')}
                         </div>

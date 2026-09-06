@@ -57,14 +57,14 @@ function searchGuests(q) {
   fetch(API + '/kiosk/' + eventId + '/search?q=' + encodeURIComponent(q)).then(function(r) { return r.json(); }).then(function(guests) {
     const c = document.getElementById('results');
     if (!guests || guests.length === 0) {
-      c.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);font-size:13px">Sin resultados</div>';
+      c.innerHTML = '<div data-style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);font-size:13px">Sin resultados</div>';
       return;
     }
     c.innerHTML = guests.map(function(g) {
       const statusClass = g.checked_in ? 'done' : 'pending';
       const statusText = g.checked_in ? '✅ Ingresó' : '⏳ Pendiente';
       const disabledClass = g.checked_in ? 'disabled' : '';
-      return '<div class="result-item ' + disabledClass + '" onclick="' + (g.checked_in ? '' : 'selectGuest(\'' + g.id + '\',\'' + escJs(g.name) + '\',\'' + escJs(g.email || '') + '\',\'' + escJs(g.organization || '') + '\')') + '">'
+      return '<div class="result-item ' + disabledClass + "'" + (g.checked_in ? '' : ' data-act="call" data-call="selectGuest" data-a1="' + g.id + '" data-a2="' + escJs(g.name) + '" data-a3="' + escJs(g.email || '') + '" data-a4="' + escJs(g.organization || '') + '"')  + "'">
         + '<div class="info"><div class="name">' + escHtml(g.name) + '</div>'
         + '<div class="detail">' + escHtml(g.email || g.organization || '') + '</div></div>'
         + '<div class="status ' + statusClass + '">' + statusText + '</div></div>';

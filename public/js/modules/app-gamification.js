@@ -37,15 +37,15 @@ const Gamification = window.GamificationModule = {
                 const statusLabel = p.status === 'active' ? 'Activa' : p.status === 'closed' ? 'Cerrada' : 'Borrador';
                 let actions
                 if (p.status === 'draft') {
-                    actions = `<button class="btn-secondary text-xs" onclick="App.editPoll('${p.id}')">Editar</button>
-                               <button class="btn-primary text-xs" onclick="App.startPoll('${p.id}')">Activar</button>
-                               <button class="btn-secondary text-xs text-red-400" onclick="App.deletePoll('${p.id}')">Eliminar</button>`;
+                    actions = `<button class="btn-secondary text-xs" data-act="call" data-call="editPoll" data-a1="${p.id}">Editar</button>
+                               <button class="btn-primary text-xs" data-act="call" data-call="startPoll" data-a1="${p.id}">Activar</button>
+                               <button class="btn-secondary text-xs text-red-400" data-act="call" data-call="deletePoll" data-a1="${p.id}">Eliminar</button>`;
                 } else if (p.status === 'active') {
-                    actions = `<button class="btn-primary text-xs" onclick="App.showPollResults('${p.id}')">Resultados</button>
-                               <button class="btn-secondary text-xs" onclick="App.closePoll('${p.id}')">Cerrar</button>`;
+                    actions = `<button class="btn-primary text-xs" data-act="call" data-call="showPollResults" data-a1="${p.id}">Resultados</button>
+                               <button class="btn-secondary text-xs" data-act="call" data-call="closePoll" data-a1="${p.id}">Cerrar</button>`;
                 } else {
-                    actions = `<button class="btn-secondary text-xs" onclick="App.showPollResults('${p.id}')">Ver resultados</button>
-                               <button class="btn-secondary text-xs" onclick="App.deletePoll('${p.id}')">Eliminar</button>`;
+                    actions = `<button class="btn-secondary text-xs" data-act="call" data-call="showPollResults" data-a1="${p.id}">Ver resultados</button>
+                               <button class="btn-secondary text-xs" data-act="call" data-call="deletePoll" data-a1="${p.id}">Eliminar</button>`;
                 }
                 return `<div class="card p-3 flex justify-between items-center">
                     <div><p class="text-sm font-semibold text-white">${App.esc(p.title)}</p>
@@ -157,7 +157,7 @@ const Gamification = window.GamificationModule = {
         div.className = 'poll-option-row flex items-center gap-2';
         div.innerHTML = `<input class="input-field flex-1 poll-option-input" type="text" placeholder="Opción ${idx + 1}" value="${App.esc(label)}">
             <label class="text-xs text-slate-400 flex items-center gap-1"><input class="poll-option-correct" type="checkbox" ${isCorrect ? 'checked' : ''}> Correcta</label>
-            <button class="btn-secondary text-xs text-red-400" onclick="this.parentElement.remove()">✕</button>`;
+            <button class="btn-secondary text-xs text-red-400" data-act="removeParent">✕</button>`;
         container.appendChild(div);
     },
 
@@ -206,7 +206,7 @@ const Gamification = window.GamificationModule = {
             data.results.forEach(r => {
                 const pct = r.percentage || 0;
                 html += `<div class="card p-3"><div class="flex justify-between text-sm mb-1"><span>${App.esc(r.label)}</span><span>${r.count} (${pct}%)</span></div>
-                    <div class="w-full bg-slate-700 rounded h-2"><div class="bg-blue-500 rounded h-2" style="width:${pct}%"></div></div></div>`;
+                    <div class="w-full bg-slate-700 rounded h-2"><div class="bg-blue-500 rounded h-2" data-style="width:${pct}%"></div></div></div>`;
             });
             if (data.recentVotes && data.recentVotes.length > 0) {
                 html += '<p class="text-xs text-slate-500 mt-2">Últimos votos:</p>';
@@ -259,7 +259,7 @@ const Gamification = window.GamificationModule = {
                     <div class="flex items-center gap-3"><span class="text-2xl">${App.esc(b.icon || '🏆')}</span>
                     <div><p class="text-sm font-semibold text-white">${App.esc(b.name)}</p>
                     <p class="text-xs text-slate-500">${App.esc(b.description || '')} · ${b.earned_count || 0} obtenidas</p></div></div>
-                    <button class="btn-secondary text-xs text-red-400" onclick="App.deleteBadge('${b.id}')">Eliminar</button>
+                    <button class="btn-secondary text-xs text-red-400" data-act="call" data-call="deleteBadge" data-a1="${b.id}">Eliminar</button>
                 </div>`
             ).join('');
         }).catch(() => { container.innerHTML = '<p class="text-xs text-red-400">Error al cargar insignias</p>'; });

@@ -74,10 +74,10 @@ class Table {
                 <td class="!py-3 !px-3 text-sm text-slate-400">${event.total_guests || event.guestCount || 0}</td>
                 <td class="!py-3 !px-3">
                     <div class="flex gap-1">
-                        <button onclick="App.openEventConfig('${event.id}')" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors" title="Editar">
+                        <button data-act="call" data-call="openEventConfig" data-a1="${event.id}" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors" title="Editar">
                             <span class="material-symbols-outlined text-slate-400 text-sm">edit</span>
                         </button>
-                        <button onclick="App.deleteEvent('${event.id}')" class="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 transition-colors" title="Eliminar">
+                        <button data-act="call" data-call="deleteEvent" data-a1="${event.id}" class="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 transition-colors" title="Eliminar">
                             <span class="material-symbols-outlined text-slate-400 text-sm">delete</span>
                         </button>
                     </div>
@@ -133,7 +133,7 @@ class Table {
                     <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase ${statusClass}">${statusLabel}</span>
                 </td>
                 <td class="!py-3 !px-3">
-                    <button onclick="App.checkInGuest('${guest.id}')" class="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 transition-colors" title="Check-in">
+                    <button data-act="call" data-call="checkInGuest" data-a1="${guest.id}" class="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 transition-colors" title="Check-in">
                         <span class="material-symbols-outlined text-emerald-400 text-sm">check_circle</span>
                     </button>
                 </td>

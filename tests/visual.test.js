@@ -56,6 +56,21 @@ describe('CSP guard: páginas sin scripts inline (v12.44.804)', () => {
         }
     });
 
+    // v12.44.811: CSP total — ni handlers inline ni atributos style.
+    // Todo pasa por data-act (delegación) y data-style (CSSOM).
+    test.each(HTML_PAGES)('%s no tiene atributos on*= inline (CSP script-src-attr none)', (rel) => {
+        const html = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+        const re = /\son(click|change|input|submit|keydown|keyup|focus|blur|load)=/;
+        expect({ file: rel, handler: (html.match(re) || [''])[0] }).toEqual({ file: rel, handler: '' });
+    });
+
+    test.each(HTML_PAGES)('%s no tiene atributos style= inline (CSP style-src estricta)', (rel) => {
+        const html = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+        // atributo real: espacio + style=" (los placeholders escapados usan &quot; y no matchean)
+        const re = /[\s"']style="/;
+        expect({ file: rel, styleAttr: (html.match(re) || [''])[0] }).toEqual({ file: rel, styleAttr: '' });
+    });
+
     // v12.44.810: styleSrc ya no permite 'unsafe-inline' para ELEMENTOS <style>
     // (los atributos style="" siguen permitidos vía styleSrcAttr). Este guard
     // evita que vuelva a meterse un <style> inline que la CSP bloquearía.

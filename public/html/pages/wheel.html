@@ -7,14 +7,14 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎡</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
-<link rel="stylesheet" href="/css/pages/wheel-page.css?v=12.44.810">
+<link rel="stylesheet" href="/css/pages/wheel-page.css?v=12.44.811">
 </head>
 <body>
 <div id="loading"><div><div class="sp"></div><p>Cargando ruleta...</p></div></div>
-<div id="error" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#fff;z-index:99999;flex-direction:column;text-align:center;padding:32px">
-  <h2 style="font-size:20px;margin-bottom:8px;color:#1a1a1a">Ruleta no disponible</h2>
-  <p id="errmsg" style="font-size:14px;color:#6b7280;margin-bottom:24px"></p>
-  <button onclick="location.reload()" style="padding:10px 28px;border:none;border-radius:10px;background:#7c3aed;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Reintentar</button>
+<div id="error" data-style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#fff;z-index:99999;flex-direction:column;text-align:center;padding:32px">
+  <h2 data-style="font-size:20px;margin-bottom:8px;color:#1a1a1a">Ruleta no disponible</h2>
+  <p id="errmsg" data-style="font-size:14px;color:#6b7280;margin-bottom:24px"></p>
+  <button data-act="reload" data-style="padding:10px 28px;border:none;border-radius:10px;background:#7c3aed;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Reintentar</button>
 </div>
 
 <div class="app-hero hidden" id="hero-stats">
@@ -24,18 +24,18 @@
     <span>👤 <span id="stat-users">0</span> <b>Usuarios</b></span>
   </div>
   <div class="actions">
-    <button onclick="openModal('share-modal')">🔗 Compartir</button>
-    <button onclick="newWheel()">➕ Nueva Ruleta</button>
+    <button data-act="call" data-call="openModal" data-a1="share-modal">🔗 Compartir</button>
+    <button data-act="call" data-call="newWheel">➕ Nueva Ruleta</button>
   </div>
 </div>
 
 <div class="wheel-type-switch" id="type-switch">
-  <div class="wheel-type-switch-item active" onclick="setType(false)" id="type-anon">
+  <div class="wheel-type-switch-item active" data-act="call" data-call="setType" data-a1="false" id="type-anon">
     <div class="check"></div>
     <h4>🎡 Ruleta Anónima</h4>
     <p>Participantes anónimos y resultados inmediatos</p>
   </div>
-  <div class="wheel-type-switch-item" onclick="setType(true)" id="type-lead">
+  <div class="wheel-type-switch-item" data-act="call" data-call="setType" data-a1="true" id="type-lead">
     <div class="check"></div>
     <h4>📋 Captura de Leads</h4>
     <p>Los participantes deben registrarse antes de girar</p>
@@ -46,40 +46,40 @@
   <!-- SIDEBAR -->
   <div id="sidebar" class="wof__config">
     <div class="wof__config__menu">
-      <div class="wof__config__menu-item active" onclick="switchTab('config',this)">⚙️ Config</div>
-      <div class="wof__config__menu-item" onclick="switchTab('parts',this)">👥 Participantes</div>
-      <div class="wof__config__menu-item" onclick="switchTab('design',this)">🎨 Diseño</div>
+      <div class="wof__config__menu-item active" data-act="call" data-call="switchTab" data-a1="config" data-a2="@this">⚙️ Config</div>
+      <div class="wof__config__menu-item" data-act="call" data-call="switchTab" data-a1="parts" data-a2="@this">👥 Participantes</div>
+      <div class="wof__config__menu-item" data-act="call" data-call="switchTab" data-a1="design" data-a2="@this">🎨 Diseño</div>
     </div>
     <div class="wof__config__body" id="sidebar-body">
-      <div class="sec-h" onclick="toggleCollapse(this,'sec-name')"><span>📝</span>Nombre<span class="chev">▼</span></div>
+      <div class="sec-h" data-act="call" data-call="toggleCollapse" data-a1="@this" data-a2="sec-name"><span>📝</span>Nombre<span class="chev">▼</span></div>
       <div id="sec-name" class="sec-b"><input id="wheel-name" class="form-control form-control-lg" placeholder="Nombre de la ruleta"></div>
 
-      <div class="sec-h collapsed" onclick="toggleCollapse(this,'sec-config')">⚙️ Configuración<span class="chev">▼</span></div>
+      <div class="sec-h collapsed" data-act="call" data-call="toggleCollapse" data-a1="@this" data-a2="sec-config">⚙️ Configuración<span class="chev">▼</span></div>
       <div id="sec-config" class="sec-b hidden" data-tab="config">
-        <div class="custom-check"><input type="checkbox" id="cfg-st" checked onchange="refreshP()"><label for="cfg-st">Título</label></div>
-        <input id="cfg-title" class="form-control" placeholder="Título" oninput="refreshP()" style="display:none;margin-bottom:6px">
-        <div class="custom-check"><input type="checkbox" id="cfg-sd" checked onchange="refreshP()"><label for="cfg-sd">Descripción</label></div>
-        <textarea id="cfg-desc" class="form-control" placeholder="Descripción" oninput="refreshP()" style="display:none;margin-bottom:6px"></textarea>
-        <div class="custom-check"><input type="checkbox" id="cfg-sb" checked onchange="refreshP()"><label for="cfg-sb">Botón girar</label></div>
-        <input id="cfg-bt" class="form-control" value="Girar" maxlength="24" oninput="refreshP()" style="display:none;margin-bottom:6px">
-        <div class="custom-check"><input type="checkbox" id="cfg-snd" checked onchange="refreshP()"><label for="cfg-snd">🔊 Sonido</label></div>
-        <div class="custom-check"><input type="checkbox" id="cfg-cft" checked onchange="refreshP()"><label for="cfg-cft">🎊 Confeti</label></div>
-        <div class="custom-check"><input type="checkbox" id="cfg-arm" onchange="refreshP()"><label for="cfg-arm">Auto-remover ganador</label></div>
-        <div class="flex-cb"><label style="font-size:12px;color:#6b7280;margin:0">Duración giro</label>
-          <select id="cfg-dur" class="form-control" style="width:80px" onchange="refreshP()">
+        <div class="custom-check"><input type="checkbox" id="cfg-st" checked data-act="call" data-call="refreshP"><label for="cfg-st">Título</label></div>
+        <input id="cfg-title" class="form-control" placeholder="Título" data-act="call" data-call="refreshP" data-style="display:none;margin-bottom:6px">
+        <div class="custom-check"><input type="checkbox" id="cfg-sd" checked data-act="call" data-call="refreshP"><label for="cfg-sd">Descripción</label></div>
+        <textarea id="cfg-desc" class="form-control" placeholder="Descripción" data-act="call" data-call="refreshP" data-style="display:none;margin-bottom:6px"></textarea>
+        <div class="custom-check"><input type="checkbox" id="cfg-sb" checked data-act="call" data-call="refreshP"><label for="cfg-sb">Botón girar</label></div>
+        <input id="cfg-bt" class="form-control" value="Girar" maxlength="24" data-act="call" data-call="refreshP" data-style="display:none;margin-bottom:6px">
+        <div class="custom-check"><input type="checkbox" id="cfg-snd" checked data-act="call" data-call="refreshP"><label for="cfg-snd">🔊 Sonido</label></div>
+        <div class="custom-check"><input type="checkbox" id="cfg-cft" checked data-act="call" data-call="refreshP"><label for="cfg-cft">🎊 Confeti</label></div>
+        <div class="custom-check"><input type="checkbox" id="cfg-arm" data-act="call" data-call="refreshP"><label for="cfg-arm">Auto-remover ganador</label></div>
+        <div class="flex-cb"><label data-style="font-size:12px;color:#6b7280;margin:0">Duración giro</label>
+          <select id="cfg-dur" class="form-control" data-style="width:80px" data-act="call" data-call="refreshP">
             <option value="6">6s</option><option value="10" selected>10s</option><option value="14">14s</option>
           </select>
         </div>
-        <div class="custom-check"><input type="checkbox" id="cfg-lds" onchange="refreshP()"><label for="cfg-lds">📋 Captura Leads</label></div>
-        <div class="custom-check"><input type="checkbox" id="cfg-imp" onchange="refreshP()"><label for="cfg-imp">✨ Mejorar slices</label></div>
+        <div class="custom-check"><input type="checkbox" id="cfg-lds" data-act="call" data-call="refreshP"><label for="cfg-lds">📋 Captura Leads</label></div>
+        <div class="custom-check"><input type="checkbox" id="cfg-imp" data-act="call" data-call="refreshP"><label for="cfg-imp">✨ Mejorar slices</label></div>
         <div class="locked-opt"><label><input type="checkbox"> 🚫 Quitar anuncios <span class="lock">🔒</span></label></div>
         <div class="locked-opt"><label><input type="checkbox"> 🚫 Quitar marca de agua <span class="lock">🔒</span></label></div>
       </div>
 
-      <div class="sec-h collapsed" onclick="toggleCollapse(this,'sec-parts')">👥 Participantes<span class="chev">▼</span></div>
+      <div class="sec-h collapsed" data-act="call" data-call="toggleCollapse" data-a1="@this" data-a2="sec-parts">👥 Participantes<span class="chev">▼</span></div>
       <div id="sec-parts" class="sec-b hidden" data-tab="parts">
-        <div class="flex-cb"><label style="font-size:12px;color:#6b7280;margin:0">Fuente:</label>
-          <select id="src-src" class="form-control" style="width:auto" onchange="onSrcChange()">
+        <div class="flex-cb"><label data-style="font-size:12px;color:#6b7280;margin:0">Fuente:</label>
+          <select id="src-src" class="form-control" data-style="width:auto" data-act="call" data-call="onSrcChange">
             <option value="manual">✍️ Manual</option>
             <option value="guests">📋 Invitados</option>
             <option value="checked_in">✅ Check-in</option>
@@ -87,67 +87,67 @@
             <option value="survey">📊 Encuesta</option>
           </select>
         </div>
-        <select id="src-survey" class="form-control" style="display:none;margin-top:4px"></select>
-        <button id="btn-imp" class="form-control" style="background:#faf5ff;color:#7c3aed;font-weight:600;cursor:pointer;border:1px solid #e9d5ff;display:none;margin-top:4px" onclick="importParts()">🔄 Importar</button>
-        <div style="text-align:center;font-size:11px;color:#9ca3af;margin:8px 0">— o escribe manual —</div>
-        <textarea id="parts-ta" class="form-control form-control-lg" rows="8" placeholder="Un nombre por línea&#10;Juan Pérez&#10;María García" oninput="onPartsChange()"></textarea>
-        <div style="display:flex;gap:4px;margin-top:4px">
-          <button class="form-control" style="font-size:11px;padding:4px 8px;cursor:pointer;width:auto" onclick="sortP()">🔤 Ordenar</button>
-          <button class="form-control" style="font-size:11px;padding:4px 8px;cursor:pointer;width:auto" onclick="shuffleP()">🎲 Aleatorio</button>
-          <button class="form-control" style="font-size:11px;padding:4px 8px;cursor:pointer;width:auto;color:#ef4444" onclick="clearP()">🗑️ Limpiar</button>
+        <select id="src-survey" class="form-control" data-style="display:none;margin-top:4px"></select>
+        <button id="btn-imp" class="form-control" data-style="background:#faf5ff;color:#7c3aed;font-weight:600;cursor:pointer;border:1px solid #e9d5ff;display:none;margin-top:4px" data-act="call" data-call="importParts">🔄 Importar</button>
+        <div data-style="text-align:center;font-size:11px;color:#9ca3af;margin:8px 0">— o escribe manual —</div>
+        <textarea id="parts-ta" class="form-control form-control-lg" rows="8" placeholder="Un nombre por línea&#10;Juan Pérez&#10;María García" data-act="call" data-call="onPartsChange"></textarea>
+        <div data-style="display:flex;gap:4px;margin-top:4px">
+          <button class="form-control" data-style="font-size:11px;padding:4px 8px;cursor:pointer;width:auto" data-act="call" data-call="sortP">🔤 Ordenar</button>
+          <button class="form-control" data-style="font-size:11px;padding:4px 8px;cursor:pointer;width:auto" data-act="call" data-call="shuffleP">🎲 Aleatorio</button>
+          <button class="form-control" data-style="font-size:11px;padding:4px 8px;cursor:pointer;width:auto;color:#ef4444" data-act="call" data-call="clearP">🗑️ Limpiar</button>
         </div>
-        <div style="font-size:12px;color:#6b7280;margin-top:4px"><span id="part-cnt">0</span> participantes</div>
-        <div class="custom-check"><input type="checkbox" id="cfg-adv" onchange="toggleAdv()"><label for="cfg-adv">⚡ Modo avanzado (%)</label></div>
-        <div id="adv-list" style="display:none;margin-top:4px;max-height:150px;overflow-y:auto"></div>
-        <button id="btn-add-e" class="form-control" style="display:none;margin-top:4px;cursor:pointer;font-size:12px;padding:6px" onclick="addE()">+ Añadir entrada</button>
+        <div data-style="font-size:12px;color:#6b7280;margin-top:4px"><span id="part-cnt">0</span> participantes</div>
+        <div class="custom-check"><input type="checkbox" id="cfg-adv" data-act="call" data-call="toggleAdv"><label for="cfg-adv">⚡ Modo avanzado (%)</label></div>
+        <div id="adv-list" data-style="display:none;margin-top:4px;max-height:150px;overflow-y:auto"></div>
+        <button id="btn-add-e" class="form-control" data-style="display:none;margin-top:4px;cursor:pointer;font-size:12px;padding:6px" data-act="call" data-call="addE">+ Añadir entrada</button>
       </div>
 
-      <div class="sec-h collapsed" onclick="toggleCollapse(this,'sec-des')">🎨 Diseño<span class="chev">▼</span></div>
+      <div class="sec-h collapsed" data-act="call" data-call="toggleCollapse" data-a1="@this" data-a2="sec-des">🎨 Diseño<span class="chev">▼</span></div>
       <div id="sec-des" class="sec-b hidden" data-tab="design">
-        <div class="form-group"><label>Temas</label><div id="theme-ps" style="display:flex;gap:4px;overflow-x:auto"></div></div>
+        <div class="form-group"><label>Temas</label><div id="theme-ps" data-style="display:flex;gap:4px;overflow-x:auto"></div></div>
         <div class="form-group"><label>Logo</label>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div id="logo-pv" style="width:40px;height:40px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;flex-shrink:0">🎡</div>
-            <button class="form-control" style="padding:4px 12px;cursor:pointer;width:auto" onclick="uploadLogo()">Subir</button>
-            <button id="btn-rm-logo" class="form-control" style="padding:4px 12px;cursor:pointer;width:auto;display:none;color:#ef4444" onclick="rmLogo()">Eliminar</button>
+          <div data-style="display:flex;align-items:center;gap:8px">
+            <div id="logo-pv" data-style="width:40px;height:40px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;flex-shrink:0">🎡</div>
+            <button class="form-control" data-style="padding:4px 12px;cursor:pointer;width:auto" data-act="call" data-call="uploadLogo">Subir</button>
+            <button id="btn-rm-logo" class="form-control" data-style="padding:4px 12px;cursor:pointer;width:auto;display:none;color:#ef4444" data-act="call" data-call="rmLogo">Eliminar</button>
           </div>
         </div>
         <div class="form-group"><label>Imagen de fondo</label>
-          <div style="display:flex;align-items:center;gap:8px">
-            <button class="form-control" style="padding:4px 12px;cursor:pointer;width:auto" onclick="uploadBg()">Subir</button>
-            <button id="btn-rm-bg" class="form-control" style="padding:4px 12px;cursor:pointer;width:auto;display:none;color:#ef4444" onclick="rmBg()">Eliminar</button>
+          <div data-style="display:flex;align-items:center;gap:8px">
+            <button class="form-control" data-style="padding:4px 12px;cursor:pointer;width:auto" data-act="call" data-call="uploadBg">Subir</button>
+            <button id="btn-rm-bg" class="form-control" data-style="padding:4px 12px;cursor:pointer;width:auto;display:none;color:#ef4444" data-act="call" data-call="rmBg">Eliminar</button>
           </div>
-          <div id="bg-preview" style="display:none;margin-top:4px;width:100%;height:60px;border-radius:6px;background-size:cover;background-position:center;border:1px solid #e5e7eb"></div>
+          <div id="bg-preview" data-style="display:none;margin-top:4px;width:100%;height:60px;border-radius:6px;background-size:cover;background-position:center;border:1px solid #e5e7eb"></div>
         </div>
-        <div class="flex-cb"><label style="font-size:12px;color:#6b7280">Fondo página</label>
-          <div class="color-input"><span id="v-bg">#D1E4FF</span><input type="color" id="c-bg" value="#D1E4FF" onchange="refreshP()"></div>
+        <div class="flex-cb"><label data-style="font-size:12px;color:#6b7280">Fondo página</label>
+          <div class="color-input"><span id="v-bg">#D1E4FF</span><input type="color" id="c-bg" value="#D1E4FF" data-act="call" data-call="refreshP"></div>
         </div>
-        <div class="form-group"><label>Colores segmentos</label><div id="seg-cs" style="display:grid;grid-template-columns:1fr 1fr;gap:4px"></div></div>
-        <div class="flex-cb"><label style="font-size:12px;color:#6b7280">Color texto</label>
-          <div class="color-input"><span id="v-txt">#000000</span><input type="color" id="c-txt" value="#000000" onchange="refreshP()"></div>
+        <div class="form-group"><label>Colores segmentos</label><div id="seg-cs" data-style="display:grid;grid-template-columns:1fr 1fr;gap:4px"></div></div>
+        <div class="flex-cb"><label data-style="font-size:12px;color:#6b7280">Color texto</label>
+          <div class="color-input"><span id="v-txt">#000000</span><input type="color" id="c-txt" value="#000000" data-act="call" data-call="refreshP"></div>
         </div>
-        <div class="flex-cb"><label style="font-size:12px;color:#6b7280">Color borde</label>
-          <div class="color-input"><span id="v-bdr">#111111</span><input type="color" id="c-bdr" value="#111111" onchange="refreshP()"></div>
+        <div class="flex-cb"><label data-style="font-size:12px;color:#6b7280">Color borde</label>
+          <div class="color-input"><span id="v-bdr">#111111</span><input type="color" id="c-bdr" value="#111111" data-act="call" data-call="refreshP"></div>
         </div>
-        <div class="flex-cb"><label style="font-size:12px;color:#6b7280">Color puntero</label>
-          <div class="color-input"><span id="v-ptr">#ff7878</span><input type="color" id="c-ptr" value="#ff7878" onchange="refreshP()"></div>
+        <div class="flex-cb"><label data-style="font-size:12px;color:#6b7280">Color puntero</label>
+          <div class="color-input"><span id="v-ptr">#ff7878</span><input type="color" id="c-ptr" value="#ff7878" data-act="call" data-call="refreshP"></div>
         </div>
-        <div class="flex-cb"><label style="font-size:12px;color:#6b7280">Color texto gral</label>
-          <div class="color-input"><span id="v-main">#1a1a1a</span><input type="color" id="c-main" value="#1a1a1a" onchange="refreshP()"></div>
+        <div class="flex-cb"><label data-style="font-size:12px;color:#6b7280">Color texto gral</label>
+          <div class="color-input"><span id="v-main">#1a1a1a</span><input type="color" id="c-main" value="#1a1a1a" data-act="call" data-call="refreshP"></div>
         </div>
-        <div class="flex-cb"><label style="font-size:12px;color:#6b7280">Tamaño líneas</label>
-          <input type="range" id="cfg-ln" min="0" max="6" step="2" value="0" oninput="refreshP()" style="width:80px">
+        <div class="flex-cb"><label data-style="font-size:12px;color:#6b7280">Tamaño líneas</label>
+          <input type="range" id="cfg-ln" min="0" max="6" step="2" value="0" data-act="call" data-call="refreshP" data-style="width:80px">
         </div>
       </div>
 
-      <div class="sec-h collapsed" onclick="toggleCollapse(this,'sec-sav')" data-tab="">💾 Mis Ruletas<span class="chev">▼</span></div>
+      <div class="sec-h collapsed" data-act="call" data-call="toggleCollapse" data-a1="@this" data-a2="sec-sav" data-tab="">💾 Mis Ruletas<span class="chev">▼</span></div>
       <div id="sec-sav" class="sec-b hidden" data-tab="">
-        <div id="sav-list" style="font-size:13px;color:#6b7280;text-align:center;padding:8px">Cargando...</div>
+        <div id="sav-list" data-style="font-size:13px;color:#6b7280;text-align:center;padding:8px">Cargando...</div>
       </div>
     </div>
     <div class="wof__config__footer">
-      <button class="btn btn-primary" id="btn-save" onclick="saveW()">💾 Guardar</button>
-      <button class="btn btn-success" id="btn-play" onclick="playMode()" disabled>▶️ Jugar</button>
+      <button class="btn btn-primary" id="btn-save" data-act="call" data-call="saveW">💾 Guardar</button>
+      <button class="btn btn-success" id="btn-play" data-act="call" data-call="playMode" disabled>▶️ Jugar</button>
     </div>
   </div>
 
@@ -169,26 +169,26 @@
         </div>
         <div class="wof__wheel__border"></div>
       </div>
-      <button id="btn-spin" class="wof__main__btn" onclick="spin()" style="display:none">🎡 GIRAR</button>
+      <button id="btn-spin" class="wof__main__btn" data-act="call" data-call="spin" data-style="display:none">🎡 GIRAR</button>
       <div class="wof__main__winners" id="wins-list"></div>
     </div>
-    <div class="wof__main__r" id="right-panel" style="display:none">
+    <div class="wof__main__r" id="right-panel" data-style="display:none">
       <h2 class="wof__main__title" id="pv-title"></h2>
       <p class="wof__main__desc" id="pv-desc"></p>
-      <div class="wof__main__form" id="lead-f" style="display:none">
+      <div class="wof__main__form" id="lead-f" data-style="display:none">
         <input id="lead-nm" placeholder="Nombre"><input id="lead-em" type="email" placeholder="Email">
       </div>
-      <button id="btn-spin-r" class="wof__main__btn" onclick="spin()" style="display:none">🎡 GIRAR</button>
+      <button id="btn-spin-r" class="wof__main__btn" data-act="call" data-call="spin" data-style="display:none">🎡 GIRAR</button>
     </div>
     <div class="wof__main__options">
-      <button onclick="toggleFS()" title="Pantalla completa">⛶</button>
-      <button class="hide-fs" onclick="toggleWins()" title="Resultados">🏆</button>
-      <button onclick="resetW()" title="Reiniciar">↻</button>
-      <button class="hide-fs" id="btn-snd" onclick="toggleSnd()" title="Sonido">🔊</button>
-      <button class="hide-fs" id="btn-close-pl" onclick="exitPlay()" style="display:none">✕</button>
+      <button data-act="call" data-call="toggleFS" title="Pantalla completa">⛶</button>
+      <button class="hide-fs" data-act="call" data-call="toggleWins" title="Resultados">🏆</button>
+      <button data-act="call" data-call="resetW" title="Reiniciar">↻</button>
+      <button class="hide-fs" id="btn-snd" data-act="call" data-call="toggleSnd" title="Sonido">🔊</button>
+      <button class="hide-fs" id="btn-close-pl" data-act="call" data-call="exitPlay" data-style="display:none">✕</button>
     </div>
     <div class="watermark">Powered by Check Pro</div>
-    <div id="q-themes" class="color_palette" style="position:absolute;bottom:80px;display:none;gap:4px;padding:6px 10px;background:rgba(255,255,255,.15);border-radius:8px;backdrop-filter:blur(8px);height:auto"></div>
+    <div id="q-themes" class="color_palette" data-style="position:absolute;bottom:80px;display:none;gap:4px;padding:6px 10px;background:rgba(255,255,255,.15);border-radius:8px;backdrop-filter:blur(8px);height:auto"></div>
   </div>
 </div>
 
@@ -201,7 +201,7 @@
     <h3>Compartir ruleta</h3>
     <p>Comparte este enlace para que los participantes giren la ruleta</p>
     <input type="text" id="share-url" readonly>
-    <div class="btn-row"><button class="primary" onclick="copyLink()">Copiar enlace</button><button class="secondary" onclick="closeModal('share-modal')">Cerrar</button></div>
+    <div class="btn-row"><button class="primary" data-act="call" data-call="copyLink">Copiar enlace</button><button class="secondary" data-act="call" data-call="closeModal" data-a1="share-modal">Cerrar</button></div>
   </div>
 </div>
 
@@ -211,7 +211,7 @@
     <h3>Guardar ruleta</h3>
     <p>Ingresa un nombre para tu ruleta</p>
     <input type="text" id="save-name" placeholder="Nombre de la ruleta" maxlength="100">
-    <div class="btn-row"><button class="primary" onclick="saveW()">Guardar</button><button class="secondary" onclick="closeModal('save-modal')">Cancelar</button></div>
+    <div class="btn-row"><button class="primary" data-act="call" data-call="saveW">Guardar</button><button class="secondary" data-act="call" data-call="closeModal" data-a1="save-modal">Cancelar</button></div>
   </div>
 </div>
 
@@ -221,7 +221,7 @@
     <h3>Editar entrada</h3>
     <p>Modifica el nombre y la probabilidad</p>
     <input type="text" id="edit-name" placeholder="Nombre">
-    <div class="form-group"><label style="font-size:12px;color:#6b7280;margin-bottom:4px">Probabilidad</label>
+    <div class="form-group"><label data-style="font-size:12px;color:#6b7280;margin-bottom:4px">Probabilidad</label>
       <select id="edit-chance" class="form-control form-control-lg">
         <option value="-1">Auto</option>
         <option value="0">0%</option><option value="1">1%</option><option value="3">3%</option><option value="5">5%</option>
@@ -230,10 +230,11 @@
         <option value="70">70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option>
       </select>
     </div>
-    <div class="btn-row"><button class="primary" onclick="applyEditEntry()">Aplicar cambios</button><button class="secondary" onclick="closeModal('edit-modal')">Cancelar</button></div>
+    <div class="btn-row"><button class="primary" data-act="call" data-call="applyEditEntry">Aplicar cambios</button><button class="secondary" data-act="call" data-call="closeModal" data-a1="edit-modal">Cancelar</button></div>
   </div>
 </div>
 
-<script src="/js/pages/wheel.js?v=12.44.810"></script>
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.811"></script>
+  <script src="/js/pages/wheel.js?v=12.44.811"></script>
 </body>
 </html>

@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro | Check Pro</title>
     <link rel="icon" href="/favicon.ico">
-    <link rel="stylesheet" href="/css/pages/registro-page.css?v=12.44.810">
-    <link rel="stylesheet" href="/css/modules/base.css?v=12.44.810">
-    <link rel="stylesheet" href="/css/modules/components.css?v=12.44.810">
-    <link rel="stylesheet" href="/css/modules/registro.css?v=12.44.810">
+    <link rel="stylesheet" href="/css/pages/registro-page.css?v=12.44.811">
+    <link rel="stylesheet" href="/css/modules/base.css?v=12.44.811">
+    <link rel="stylesheet" href="/css/modules/components.css?v=12.44.811">
+    <link rel="stylesheet" href="/css/modules/registro.css?v=12.44.811">
     
-    <script src="/js/pages/registro-theme.js?v=12.44.810"></script>
+    <script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.811"></script>
+  <script src="/js/pages/registro-theme.js?v=12.44.811"></script>
 </head>
 <body class="registro-body registro-bg-pattern" role="document" aria-label="Formulario de registro">
     <div id="loading" class="registro-loading">
@@ -95,7 +96,7 @@
                         <div id="cart-total" class="hidden text-right text-sm font-bold text-[var(--primary)] mt-2"></div>
                         <div id="coupon-section" class="hidden flex gap-2 mt-3">
                             <input type="text" id="coupon-input" class="input-field flex-1 uppercase" placeholder="CÓDIGO DE DESCUENTO">
-                            <button class="btn-secondary text-xs px-3" onclick="applyCoupon()">Aplicar</button>
+                            <button class="btn-secondary text-xs px-3" data-act="call" data-call="applyCoupon">Aplicar</button>
                         </div>
                         <div id="coupon-result" class="hidden text-xs mt-1"></div>
                     </div>
@@ -153,6 +154,6 @@
         </div>
     </div>
 
-    <script src="/js/pages/registro.js?v=12.44.810"></script>
+    <script src="/js/pages/registro.js?v=12.44.811"></script>
 </body>
 </html>

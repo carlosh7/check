@@ -77,7 +77,7 @@ class MyEventsView {
                 <div class="text-center p-8">
                     <span class="material-symbols-outlined text-4xl text-slate-500">event</span>
                     <p class="text-slate-500 mt-2">No hay eventos</p>
-                    <button onclick="App.openCreateEventModal()" class="btn-primary mt-4">
+                    <button data-act="call" data-call="openCreateEventModal" class="btn-primary mt-4">
                         Crear primer evento
                     </button>
                 </div>

@@ -4,24 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calendario - Check Pro</title>
-<link rel="stylesheet" href="/css/pages/calendar-page.css?v=12.44.810">
+<link rel="stylesheet" href="/css/pages/calendar-page.css?v=12.44.811">
 </head>
 <body>
 <div class="cal-container">
   <div class="cal-header">
     <h1 id="cal-title">Calendario</h1>
     <div class="cal-nav">
-      <button onclick="prevMonth()">◀</button>
-      <span id="cal-month-label" style="min-width:120px;text-align:center;font-weight:600"></span>
-      <button onclick="nextMonth()">▶</button>
+      <button data-act="call" data-call="prevMonth">◀</button>
+      <span id="cal-month-label" data-style="min-width:120px;text-align:center;font-weight:600"></span>
+      <button data-act="call" data-call="nextMonth">▶</button>
     </div>
   </div>
-  <div id="cal-stats" style="margin-bottom:16px;display:flex;gap:16px;font-size:0.9rem;color:#94a3b8"></div>
+  <div id="cal-stats" data-style="margin-bottom:16px;display:flex;gap:16px;font-size:0.9rem;color:#94a3b8"></div>
   <div class="cal-grid" id="cal-grid">
     <div class="weekday">Dom</div><div class="weekday">Lun</div><div class="weekday">Mar</div>
     <div class="weekday">Mie</div><div class="weekday">Jue</div><div class="weekday">Vie</div><div class="weekday">Sab</div>
   </div>
 </div>
-<script src="/js/pages/calendar.js?v=12.44.810"></script>
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.811"></script>
+  <script src="/js/pages/calendar.js?v=12.44.811"></script>
 </body>
 </html>

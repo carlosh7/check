@@ -30,7 +30,7 @@ function renderCalendar(year, month, events) {
     });
     const isToday = today.getFullYear() === year && today.getMonth() === month-1 && today.getDate() === d;
     grid.innerHTML += '<div class="cal-day ' + (isToday ? 'today' : '') + '" data-date="' + dateStr + '"><div class="day-num">' + d + '</div>' +
-      dayEvents.map(e => '<div class="event-chip" onclick="location.href=\'/?event=' + e.id + '\'">' + e.name + ' <span class="count">(' + (e.checked_in_count || 0) + '/' + (e.guest_count || 0) + ')</span></div>').join('') + '</div>';
+      dayEvents.map(e => '<div class="event-chip" data-act="goto" data-a1="' + e.id + '">' + e.name + ' <span class="count">(' + (e.checked_in_count || 0) + '/' + (e.guest_count || 0) + ')</span></div>').join('') + '</div>';
   }
   const remaining = 7 - ((firstDay + daysInMonth) % 7);
   if (remaining < 7) {

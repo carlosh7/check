@@ -11,15 +11,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="/css/modules/base.css?v=12.44.810">
+  <link rel="stylesheet" href="/css/modules/base.css?v=12.44.811">
   <!-- FIX v12.44.801: el app-shell se inyecta aquí dentro; necesita TODOS los módulos CSS -->
-  <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.810">
-  <link rel="stylesheet" href="/css/modules/components.css?v=12.44.810">
-  <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.810">
-  <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.810">
-  <link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.810">
-  <link rel="stylesheet" href="/css/modules/login.css?v=12.44.810">
-  <link rel="stylesheet" href="/css/pages/login-page.css?v=12.44.810">
+  <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.811">
+  <link rel="stylesheet" href="/css/modules/components.css?v=12.44.811">
+  <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.811">
+  <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.811">
+  <link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.811">
+  <link rel="stylesheet" href="/css/modules/login.css?v=12.44.811">
+  <link rel="stylesheet" href="/css/pages/login-page.css?v=12.44.811">
 </head>
 <body>
     <a href="#form-login" class="skip-to-content">Ir al formulario de acceso</a>
@@ -38,15 +38,15 @@
 
       <div id="login-error" class="login-error"></div>
 
-      <form id="form-login" class="login-form" onsubmit="return false;">
+      <form id="form-login" class="login-form" data-act="block">
         <div class="form-group">
           <label class="form-label" for="login-email">Email</label>
           <input type="email" id="login-email" name="username" class="input" placeholder="tu@email.com" autocomplete="username" required>
         </div>
         <div class="form-group">
           <label class="form-label" for="login-password">Contraseña</label>
-          <div style="position:relative">
-            <input type="password" id="login-password" name="password" class="input" placeholder="••••••••" autocomplete="current-password" required style="padding-right:44px">
+          <div data-style="position:relative">
+            <input type="password" id="login-password" name="password" class="input" placeholder="••••••••" autocomplete="current-password" required data-style="padding-right:44px">
             <button type="button" class="password-toggle" data-target="login-password" aria-label="Mostrar contraseña"><span class="material-symbols-outlined">visibility</span></button>
           </div>
         </div>
@@ -66,14 +66,14 @@
   </div>
 
   <!-- Recovery form (F2: flujo de recuperación con código de 6 dígitos) -->
-  <div id="recovery-form" class="hidden" style="width:100%;max-width:360px;">
+  <div id="recovery-form" class="hidden" data-style="width:100%;max-width:360px;">
     <div class="login-card">
       <h1 class="login-title">Recuperar Contraseña</h1>
 
       <!-- Paso 1: solicitar código -->
       <div id="recovery-step-request">
         <p class="login-subtitle">Ingresa tu email y te enviaremos un código de verificación.</p>
-        <form id="form-recovery-request" class="login-form" onsubmit="return false;">
+        <form id="form-recovery-request" class="login-form" data-act="block">
           <div class="form-group">
             <label class="form-label" for="recovery-email">Email</label>
             <input type="email" id="recovery-email" class="input" placeholder="tu@email.com" required>
@@ -85,15 +85,15 @@
       <!-- Paso 2+3: código y nueva contraseña -->
       <div id="recovery-step-reset" class="hidden">
         <p class="login-subtitle">Ingresa el código recibido y tu nueva contraseña.</p>
-        <form id="form-recovery-reset" class="login-form" onsubmit="return false;">
+        <form id="form-recovery-reset" class="login-form" data-act="block">
           <div class="form-group">
             <label class="form-label" for="recovery-code">Código (6 dígitos)</label>
             <input type="text" id="recovery-code" class="input" placeholder="123456" maxlength="6" inputmode="numeric" autocomplete="one-time-code" required>
           </div>
           <div class="form-group">
             <label class="form-label" for="recovery-new-pass">Nueva contraseña</label>
-            <div style="position:relative">
-              <input type="password" id="recovery-new-pass" class="input" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required style="padding-right:44px">
+            <div data-style="position:relative">
+              <input type="password" id="recovery-new-pass" class="input" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required data-style="padding-right:44px">
               <button type="button" class="password-toggle" data-target="recovery-new-pass" aria-label="Mostrar contraseña"><span class="material-symbols-outlined">visibility</span></button>
             </div>
           </div>
@@ -107,18 +107,18 @@
   </div>
 
   <!-- Signup form (app.js expects this) -->
-  <div id="signup-form" class="hidden" style="width:100%;max-width:360px;">
+  <div id="signup-form" class="hidden" data-style="width:100%;max-width:360px;">
     <div class="login-card">
       <h1 class="login-title">Solicitar Cuenta</h1>
-      <form id="form-signup" class="login-form" onsubmit="return false;">
+      <form id="form-signup" class="login-form" data-act="block">
         <div class="form-group">
           <label class="form-label" for="signup-user">Usuario</label>
           <input type="text" id="signup-user" class="input" placeholder="tu@email.com" required>
         </div>
         <div class="form-group">
           <label class="form-label" for="signup-pass">Contraseña</label>
-          <div style="position:relative">
-            <input type="password" id="signup-pass" class="input" placeholder="••••••••" required style="padding-right:44px">
+          <div data-style="position:relative">
+            <input type="password" id="signup-pass" class="input" placeholder="••••••••" required data-style="padding-right:44px">
             <button type="button" class="password-toggle" data-target="signup-pass" aria-label="Mostrar contraseña"><span class="material-symbols-outlined">visibility</span></button>
           </div>
         </div>
@@ -129,17 +129,17 @@
   </div>
 
   <!-- Setup wizard: primer arranque sin usuarios (v12.44.802) -->
-  <div id="setup-wizard" class="hidden" style="width:100%;max-width:400px;">
+  <div id="setup-wizard" class="hidden" data-style="width:100%;max-width:400px;">
     <div class="login-card">
-      <div class="progress" style="height:6px;margin-bottom:18px;" role="progressbar" aria-label="Progreso de configuración">
-        <div id="setup-progress-bar" class="progress-bar" style="width:33%;background:linear-gradient(90deg,#7c3aed,#3b82f6);transition:width .3s"></div>
+      <div class="progress" data-style="height:6px;margin-bottom:18px;" role="progressbar" aria-label="Progreso de configuración">
+        <div id="setup-progress-bar" class="progress-bar" data-style="width:33%;background:linear-gradient(90deg,#7c3aed,#3b82f6);transition:width .3s"></div>
       </div>
 
       <!-- Paso 1: Bienvenida -->
       <div id="setup-step-1">
         <h1 class="login-title">Configuración inicial</h1>
         <p class="login-subtitle">Esta instalación aún no tiene usuarios. Vamos a crear tu cuenta de administrador para que Check Pro sea seguro desde el primer minuto.</p>
-        <ul class="login-subtitle" style="text-align:left;margin:12px 0 20px;padding-left:18px;line-height:1.8">
+        <ul class="login-subtitle" data-style="text-align:left;margin:12px 0 20px;padding-left:18px;line-height:1.8">
           <li>Único paso de configuración</li>
           <li>Contraseña fuerte obligatoria</li>
           <li>Sin credenciales precargadas</li>
@@ -152,7 +152,7 @@
         <h1 class="login-title">Crear administrador</h1>
         <p class="login-subtitle">Esta cuenta tendrá control total de la instalación.</p>
         <div id="setup-message" class="login-error hidden"></div>
-        <form id="form-setup-admin" class="login-form" onsubmit="return false;">
+        <form id="form-setup-admin" class="login-form" data-act="block">
           <div class="form-group">
             <label class="form-label" for="setup-name">Tu nombre</label>
             <input type="text" id="setup-name" name="name" class="input" placeholder="Ej: Carlos" maxlength="100" autocomplete="name" required>
@@ -164,16 +164,16 @@
           </div>
           <div class="form-group">
             <label class="form-label" for="setup-pass">Contraseña</label>
-            <div style="position:relative">
-              <input type="password" id="setup-pass" name="new-password" class="input" placeholder="••••••••••" autocomplete="new-password" required style="padding-right:44px">
+            <div data-style="position:relative">
+              <input type="password" id="setup-pass" name="new-password" class="input" placeholder="••••••••••" autocomplete="new-password" required data-style="padding-right:44px">
               <button type="button" class="password-toggle" data-target="setup-pass" aria-label="Mostrar contraseña"><span class="material-symbols-outlined">visibility</span></button>
             </div>
-            <div id="setup-pass-hint" class="login-subtitle" style="font-size:12px;margin-top:6px;text-align:left">Mínimo 10 caracteres, con mayúscula, minúscula y número.</div>
+            <div id="setup-pass-hint" class="login-subtitle" data-style="font-size:12px;margin-top:6px;text-align:left">Mínimo 10 caracteres, con mayúscula, minúscula y número.</div>
           </div>
           <div class="form-group">
             <label class="form-label" for="setup-pass2">Confirmar contraseña</label>
-            <div style="position:relative">
-              <input type="password" id="setup-pass2" name="confirm-password" class="input" placeholder="••••••••••" autocomplete="new-password" required style="padding-right:44px">
+            <div data-style="position:relative">
+              <input type="password" id="setup-pass2" name="confirm-password" class="input" placeholder="••••••••••" autocomplete="new-password" required data-style="padding-right:44px">
               <button type="button" class="password-toggle" data-target="setup-pass2" aria-label="Mostrar contraseña"><span class="material-symbols-outlined">visibility</span></button>
             </div>
           </div>
@@ -188,7 +188,7 @@
         <p class="login-subtitle">Tu cuenta de administrador fue creada. Ahora inicia sesión con tu email y tu nueva contraseña.</p>
         <!-- v12.44.808: paso opcional de 2FA recomendado -->
         <button type="button" id="setup-2fa-offer-btn" class="btn btn-primary btn-lg w-full">Proteger con 2FA (recomendado)</button>
-        <button type="button" id="setup-done-btn" class="btn btn-secondary btn-lg w-full" style="margin-top:10px">Ir al inicio de sesión</button>
+        <button type="button" id="setup-done-btn" class="btn btn-secondary btn-lg w-full" data-style="margin-top:10px">Ir al inicio de sesión</button>
       </div>
 
       <!-- Paso 4 (v12.44.808): 2FA opcional — usa el token de la creación del primer admin -->
@@ -196,10 +196,10 @@
         <h1 class="login-title">Protege tu cuenta con 2FA</h1>
         <p class="login-subtitle">Escanea el código QR con tu app de autenticación (Google Authenticator, Authy…) e ingresa el código de 6 dígitos.</p>
         <div id="setup-message-2fa" class="login-error hidden"></div>
-        <div id="setup-2fa-qr-box" class="hidden" style="text-align:center;margin:14px 0">
-          <img id="setup-2fa-qr" alt="Código QR de configuración 2FA" style="width:180px;height:180px;border-radius:8px;background:#fff;padding:6px">
-          <p class="login-subtitle" style="font-size:12px;margin-top:8px">Si no puedes escanear, ingresa esta clave manualmente:</p>
-          <code id="setup-2fa-secret" style="font-size:12px;word-break:break-all;color:#a5b4fc"></code>
+        <div id="setup-2fa-qr-box" class="hidden" data-style="text-align:center;margin:14px 0">
+          <img id="setup-2fa-qr" alt="Código QR de configuración 2FA" data-style="width:180px;height:180px;border-radius:8px;background:#fff;padding:6px">
+          <p class="login-subtitle" data-style="font-size:12px;margin-top:8px">Si no puedes escanear, ingresa esta clave manualmente:</p>
+          <code id="setup-2fa-secret" data-style="font-size:12px;word-break:break-all;color:#a5b4fc"></code>
         </div>
         <div id="setup-2fa-code-box" class="hidden">
           <div class="form-group">
@@ -208,14 +208,14 @@
           </div>
           <button type="button" id="setup-2fa-verify-btn" class="btn btn-primary btn-lg w-full">Verificar y activar 2FA</button>
         </div>
-        <button type="button" id="setup-2fa-skip-btn" class="btn btn-secondary btn-lg w-full" style="margin-top:10px">Activar 2FA más tarde</button>
+        <button type="button" id="setup-2fa-skip-btn" class="btn btn-secondary btn-lg w-full" data-style="margin-top:10px">Activar 2FA más tarde</button>
       </div>
     </div>
   </div>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.min.css"><!-- v12.44.810: CSS externo — la CSP ya no permite el <style> que Swal inyecta -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.min.css"><!-- v12.44.811: CSS externo — la CSP ya no permite el <style> que Swal inyecta -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5"></script>
-  <script src="/js/pages/password-toggle.js?v=12.44.810"></script>
-  <script type="module" src="/js/app.js?v=12.44.810"></script>
+  <script src="/js/pages/password-toggle.js?v=12.44.811"></script>
+  <script type="module" src="/js/app.js?v=12.44.811"></script>
 </body>
 </html>

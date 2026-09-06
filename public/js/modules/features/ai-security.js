@@ -29,10 +29,10 @@ export const AiSecurity = {
                             '<td class="table-td font-medium text-white">' + App.esc(item.name || '') + (item.description ? '<br><span class="text-[10px] text-slate-500">' + App.esc(item.description) + '</span>' : '') + '</td>' +
                             '<td class="table-td text-slate-400">' + App.esc(item.type || '-') + '</td>' +
                             '<td class="table-td text-slate-400">' + App.esc(item.provider || '-') + '</td>' +
-                            '<td class="table-td"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold" style="background:' + (riskColors[item.risk_level] || '#64748b') + '30;color:' + (riskColors[item.risk_level] || '#64748b') + '">' + App.esc(item.risk_level || 'unknown') + '</span></td>' +
+                            '<td class="table-td"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold" data-style="background:' + (riskColors[item.risk_level] || '#64748b') + '30;color:' + (riskColors[item.risk_level] || '#64748b') + '">' + App.esc(item.risk_level || 'unknown') + '</span></td>' +
                             '<td class="table-td">' + App.esc(statusLabels[item.status] || item.status) + '</td>' +
                             '<td class="table-td text-xs text-slate-500">' + (item.detected_at ? new Date(item.detected_at).toLocaleDateString() : '-') + '</td>' +
-                            '<td class="table-td"><button class="btn-icon text-red-400" onclick="App.deleteAiInventory(\'' + item.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+                            '<td class="table-td"><button class="btn-icon text-red-400" data-act="call" data-call="deleteAiInventory" data-a1="' + item.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
                     }).join('');
                 }
             }
@@ -52,9 +52,9 @@ export const AiSecurity = {
                             (p.description ? '<p class="text-xs text-slate-500">' + App.esc(p.description) + '</p>' : '') +
                             (p.content ? '<p class="text-[10px] text-slate-600 mt-1 italic">' + App.esc(p.content.substring(0, 120)) + (p.content.length > 120 ? '...' : '') + '</p>' : '') + '</div>' +
                             '<div class="flex flex-col items-center gap-1 ml-2">' +
-                            '<label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" class="sr-only peer" ' + (isActive ? 'checked' : '') + ' onchange="App.toggleAiPolicy(\'' + p.id + '\', this.checked)"><div class="w-8 h-4 rounded-full peer peer-checked:bg-green-500 peer-checked:after:translate-x-full after:content-[] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all" style="background:#475569"></div></label>' +
-                            '<div class="flex gap-1"><button class="btn-icon" onclick="App.editAiPolicy(\'' + p.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
-                            '<button class="btn-icon text-red-400" onclick="App.deleteAiPolicy(\'' + p.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></div></div>';
+                            '<label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" class="sr-only peer" ' + (isActive ? 'checked' : '') + ' data-act="call" data-call="toggleAiPolicy" data-a1="' + (' + p.id + ') + '" data-a2="@this.checked"><div class="w-8 h-4 rounded-full peer peer-checked:bg-green-500 peer-checked:after:translate-x-full after:content-[] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all" data-style="background:#475569"></div></label>' +
+                            '<div class="flex gap-1"><button class="btn-icon" data-act="call" data-call="editAiPolicy" data-a1="' + p.id + '"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                            '<button class="btn-icon text-red-400" data-act="call" data-call="deleteAiPolicy" data-a1="' + p.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></div></div></div>';
                     }).join('');
                 }
             }
@@ -116,7 +116,7 @@ export const AiSecurity = {
             html: '<input id="swal-pol-name" class="swal2-input" placeholder="Nombre" value="' + App.esc(policy ? (policy.name || '') : '') + '">' +
                   '<input id="swal-pol-desc" class="swal2-input" placeholder="Descripcion" value="' + App.esc(policy ? (policy.description || '') : '') + '">' +
                   '<textarea id="swal-pol-content" class="swal2-textarea" placeholder="Contenido de la politica..." rows="6">' + App.esc(policy ? (policy.content || '') : '') + '</textarea>' +
-                  '<label class="flex items-center gap-2 mt-2 text-sm" style="color:#fff"><input type="checkbox" id="swal-pol-active" ' + (isActive ? 'checked' : '') + ' class="checkbox-sm"> Politica activa</label>',
+                  '<label class="flex items-center gap-2 mt-2 text-sm" data-style="color:#fff"><input type="checkbox" id="swal-pol-active" ' + (isActive ? 'checked' : '') + ' class="checkbox-sm"> Politica activa</label>',
             background: '#0f172a', color: '#fff',
             confirmButtonText: policy ? 'Guardar' : 'Crear',
             showCancelButton: true,
@@ -205,11 +205,11 @@ export const AiSecurity = {
                     return '<tr class="hover:bg-white/[0.02] transition-colors">' +
                         '<td class="table-td text-xs text-slate-300">' + App.esc(l.user_name || l.user_id || '-') + '</td>' +
                         '<td class="table-td text-xs text-slate-400 max-w-[200px] truncate" title="' + App.esc(l.masked_prompt || l.prompt || '') + '">' + App.esc(snippet) + (snippet.length >= 80 ? '...' : '') + '</td>' +
-                        '<td class="table-td"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold" style="background:' + riskColor + '30;color:' + riskColor + '">' + (l.risk_score || 0).toFixed(2) + '</span></td>' +
+                        '<td class="table-td"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold" data-style="background:' + riskColor + '30;color:' + riskColor + '">' + (l.risk_score || 0).toFixed(2) + '</span></td>' +
                         '<td class="table-td">' + (l.injection_detected ? '<span class="text-red-400 text-xs font-bold">SI</span>' : '<span class="text-slate-600 text-xs">-</span>') + '</td>' +
                         '<td class="table-td text-xs text-slate-500">' + (l.duration_ms ? l.duration_ms + 'ms' : '-') + '</td>' +
                         '<td class="table-td text-xs text-slate-500">' + (l.created_at ? new Date(l.created_at).toLocaleString() : '-') + '</td>' +
-                        '<td class="table-td"><button class="btn-icon" onclick="App.viewAiLogDetail(\'' + l.id + '\')" title="Ver detalle"><span class="material-symbols-outlined text-sm text-slate-400">visibility</span></button></td></tr>';
+                        '<td class="table-td"><button class="btn-icon" data-act="call" data-call="viewAiLogDetail" data-a1="' + l.id + '" title="Ver detalle"><span class="material-symbols-outlined text-sm text-slate-400">visibility</span></button></td></tr>';
                 }).join('');
             }
         } catch(e) { console.error('[AI_LOGS] Error:', e.message); }
@@ -226,7 +226,7 @@ export const AiSecurity = {
                     '<div class="text-left space-y-2 text-xs">' +
                     '<div><span class="font-bold text-slate-400">Usuario:</span> <span class="text-white">' + App.esc(log.user_name || log.user_id || '-') + '</span></div>' +
                     '<div><span class="font-bold text-slate-400">Modelo:</span> <span class="text-white">' + App.esc(log.model || '-') + '</span></div>' +
-                    '<div><span class="font-bold text-slate-400">Riesgo:</span> <span class="font-bold" style="color:' + riskColor + '">' + (log.risk_score || 0).toFixed(2) + '</span></div>' +
+                    '<div><span class="font-bold text-slate-400">Riesgo:</span> <span class="font-bold" data-style="color:' + riskColor + '">' + (log.risk_score || 0).toFixed(2) + '</span></div>' +
                     '<div><span class="font-bold text-slate-400">Inyecci&oacute;n:</span> <span class="text-' + (log.injection_detected ? 'red-400' : 'green-400') + '">' + (log.injection_detected ? 'SI - ' + App.esc(log.injection_pattern || '') : 'NO') + '</span></div>' +
                     '<div><span class="font-bold text-slate-400">Duraci&oacute;n:</span> <span class="text-white">' + (log.duration_ms || 0) + 'ms</span></div>' +
                     '<div><span class="font-bold text-slate-400">Fecha:</span> <span class="text-slate-300">' + (log.created_at ? new Date(log.created_at).toLocaleString() : '-') + '</span></div>' +
@@ -269,12 +269,12 @@ export const AiSecurity = {
                     const isAcknowledged = !!a.acknowledged_at;
                     return '<tr class="hover:bg-white/[0.02] transition-colors">' +
                         '<td class="table-td text-xs text-slate-400">' + App.esc(a.type || '-') + '</td>' +
-                        '<td class="table-td"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold" style="background:' + (severityColors[sev] || '#64748b') + '30;color:' + (severityColors[sev] || '#64748b') + '">' + App.esc(severityLabels[sev] || sev) + '</span></td>' +
+                        '<td class="table-td"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold" data-style="background:' + (severityColors[sev] || '#64748b') + '30;color:' + (severityColors[sev] || '#64748b') + '">' + App.esc(severityLabels[sev] || sev) + '</span></td>' +
                         '<td class="table-td text-xs text-slate-300 max-w-[200px] truncate" title="' + App.esc(a.description || '') + '">' + App.esc(a.title || '-') + '</td>' +
                         '<td class="table-td text-xs text-slate-400">' + App.esc(a.user_name || a.user_id || '-') + '</td>' +
                         '<td class="table-td">' + (isAcknowledged ? '<span class="text-green-400 text-xs">Atendida</span>' : '<span class="text-amber-400 text-xs font-bold">Pendiente</span>') + '</td>' +
                         '<td class="table-td text-xs text-slate-500">' + (a.created_at ? new Date(a.created_at).toLocaleString() : '-') + '</td>' +
-                        '<td class="table-td">' + (!isAcknowledged ? '<button class="btn-icon text-green-400" onclick="App.acknowledgeAiAlert(\'' + a.id + '\')" title="Marcar como atendida"><span class="material-symbols-outlined text-sm">check_circle</span></button>' : '<span class="text-xs text-slate-600">-</span>') + '</td></tr>';
+                        '<td class="table-td">' + (!isAcknowledged ? '<button class="btn-icon text-green-400" data-act="call" data-call="acknowledgeAiAlert" data-a1="' + a.id + '" title="Marcar como atendida"><span class="material-symbols-outlined text-sm">check_circle</span></button>' : '<span class="text-xs text-slate-600">-</span>') + '</td></tr>';
                 }).join('');
             }
         } catch(e) { console.error('[AI_ALERTS] Error:', e.message); }
@@ -322,7 +322,7 @@ export const AiSecurity = {
                     const maxVal = Math.max.apply(null, trend.map(function(d) { return d.cnt; })) || 1;
                     tEl.innerHTML = trend.map(function(d) {
                         const pct = (d.cnt / maxVal) * 100;
-                        return '<div class="flex items-center gap-2 text-xs"><span class="text-slate-500 w-24 text-right">' + App.esc(d.date) + '</span><div class="flex-1 bg-slate-700 rounded h-3 overflow-hidden"><div class="bg-[var(--primary)] h-3 rounded transition-all" style="width:' + pct + '%"></div></div><span class="text-slate-300 w-6 text-left font-bold">' + d.cnt + '</span></div>';
+                        return '<div class="flex items-center gap-2 text-xs"><span class="text-slate-500 w-24 text-right">' + App.esc(d.date) + '</span><div class="flex-1 bg-slate-700 rounded h-3 overflow-hidden"><div class="bg-[var(--primary)] h-3 rounded transition-all" data-style="width:' + pct + '%"></div></div><span class="text-slate-300 w-6 text-left font-bold">' + d.cnt + '</span></div>';
                     }).join('');
                 }
             }
