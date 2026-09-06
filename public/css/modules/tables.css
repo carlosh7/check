@@ -138,4 +138,11 @@
   }
   .data-table td.att-name-cell > div { width: 100%; min-width: 0; }
   .data-table td.att-name-cell > div > div:last-child { word-break: break-all; }
+  /* v12.44.813: filas de acciones en config/system envuelven en vez de recortar botones */
+  #view-event-config .config-tab-content .flex,
+  #view-system .flex { flex-wrap: wrap; }
+  #view-event-config .config-tab-content select,
+  #view-event-config .config-tab-content input,
+  #view-system select,
+  #view-system input { min-width: 0; }
 }

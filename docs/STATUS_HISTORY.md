@@ -6,6 +6,32 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-06 (parte 4) — Auditoría UI/UX integral móvil/tablet/desktop (v12.44.813)
+
+### Metodología
+Crawler automatizado en navegador real: recorre TODAS las vistas principales (my-events, admin,
+groups, users, clients, system), los 14 tabs de configuración de evento, 18 sub-tabs de sistema
+y modales clave — midiendo por vista: overflow horizontal, elementos recortados/que sobresalen,
+touch targets <40px, y sanity de contenido renderizado. Ejecutado en 375×812, 768×1024 y 1440×900.
+
+### Resultados
+- **Móvil 375**: 46+ vistas/tabs medidos. Hallazgos: botones de acciones recortados a la derecha
+  en config:email, config:settings, system:account, system:activity, system:bi (7), system:compliance.
+  Fix: filas flex de config/system envuelven (flex-wrap) y selects/inputs con min-width:0 en móvil.
+- **Tablet 768**: 12 vistas medidas — 0 problemas.
+- **Desktop 1440**: 8 vistas medidas — 0 problemas. Verificación visual por captura (System→Actividad
+  impecable: jerarquía, iconografía, fechas, paginación).
+- Vista de asistentes móvil (corregida en v12.44.812): verificada con datos reales — 10/10 campos
+  etiquetados, fechas formateadas, sin overflow.
+
+### Estado UI/UX
+- Diseño coherente en los 3 viewports; sin contenido recortado ni desbordes en estado final.
+- Deuda menor conocida (transitoria, solo durante carga en 4 sub-tabs de sistema): botones visibles
+  brevemente desplazados antes de que reflow final — no afecta uso.
+- Tests 330/331 · ESLint 0 errores · deploy v12.44.813 validado en producción.
+
+---
+
 ## 2026-09-06 (parte 3) — CSP TOTAL: cero unsafe-inline en todas las directivas (v12.44.811)
 
 ### Qué se hizo (la deuda estructural, cerrada sin esperar la modularización)
