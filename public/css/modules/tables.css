@@ -125,4 +125,17 @@
   .data-table td { display: flex; justify-content: space-between; align-items: center; border: none; padding: var(--space-2) 0; }
   .data-table td::before { content: attr(data-label); font-weight: 600; color: var(--text-muted); font-size: var(--text-xs); text-transform: uppercase; }
   .data-table td:last-child { justify-content: flex-end; }
+  /* v12.44.812: refinamiento tarjetas de asistentes
+     - celdas sin etiqueta (checkbox, nombre) alineadas a su lado natural
+     - el nombre actúa de cabecera de tarjeta, separado del resto */
+  .data-table td[data-label=""] { justify-content: flex-end; }
+  .data-table td[data-label=""]::before { content: none; }
+  .data-table td.att-name-cell {
+    justify-content: flex-start;
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: var(--space-2);
+  }
+  .data-table td.att-name-cell > div { width: 100%; min-width: 0; }
+  .data-table td.att-name-cell > div > div:last-child { word-break: break-all; }
 }

@@ -121,7 +121,7 @@
 
 @media (max-width: 768px) {
   .app-main-content {
-    margin-left: 0; padding: var(--space-4) var(--space-4) var(--space-16);
+    margin-left: 0; padding: 56px var(--space-4) var(--space-16); /* v12.44.812: 56px top para no quedar bajo la hamburguesa */
     max-width: 100vw;
   }
 }

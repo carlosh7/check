@@ -7,43 +7,43 @@ window.escapeHtml = function(str) {
 };
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.811';
-import { Config } from './modules/core/Config.js?v=12.44.811';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.811';
-import { AppStateManager } from './modules/core/State.js?v=12.44.811';
-import { Constants } from './modules/utils/Constants.js?v=12.44.811';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.811';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.811';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.811';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.811';
-import { TableManager } from './modules/components/Table.js?v=12.44.811';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.811';
-import { FormManager } from './modules/components/Form.js?v=12.44.811';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.811';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.811';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.811';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.811';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.811';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.811';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.811';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.811';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.811';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.811';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.812';
+import { Config } from './modules/core/Config.js?v=12.44.812';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.812';
+import { AppStateManager } from './modules/core/State.js?v=12.44.812';
+import { Constants } from './modules/utils/Constants.js?v=12.44.812';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.812';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.812';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.812';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.812';
+import { TableManager } from './modules/components/Table.js?v=12.44.812';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.812';
+import { FormManager } from './modules/components/Form.js?v=12.44.812';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.812';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.812';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.812';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.812';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.812';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.812';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.812';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.812';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.812';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.812';
 
 // Módulos cableados en v12.44.804 (respaldo de v12.44.802, antes sin usar)
-import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.811';
-import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.811';
-import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.811';
+import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.812';
+import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.812';
+import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.812';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.811';
-import PushModule from './modules/app-push.js?v=12.44.811';
-import ThemeModule from './modules/app-theme.js?v=12.44.811';
-import { AiSecurity } from './modules/features/ai-security.js?v=12.44.811';
-import './modules/core/DelegatedEvents.js?v=12.44.811';
+import ImportExportModule from './modules/app-import.js?v=12.44.812';
+import PushModule from './modules/app-push.js?v=12.44.812';
+import ThemeModule from './modules/app-theme.js?v=12.44.812';
+import { AiSecurity } from './modules/features/ai-security.js?v=12.44.812';
+import './modules/core/DelegatedEvents.js?v=12.44.812';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.811';
+const VERSION = '12.44.812';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -10973,7 +10973,7 @@ navigate(viewName, params = {}, push = true) {
     _gm: null,
     async _g() {
         if (!this._gm) {
-            const m = await import('./modules/app-gamification.js?v=12.44.811');
+            const m = await import('./modules/app-gamification.js?v=12.44.812');
             this._gm = m.default || window.GamificationModule || {};
             // Bind App reference for module functions that use window.App
             if (this._gm._init) this._gm._init();
@@ -11784,7 +11784,7 @@ navigate(viewName, params = {}, push = true) {
         if (!container || !container.innerHTML.trim()) return;
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.811"></head><body>' + container.innerHTML + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.812"></head><body>' + container.innerHTML + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -11819,7 +11819,7 @@ navigate(viewName, params = {}, push = true) {
         const html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.811"></head><body>' + html + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.812"></head><body>' + html + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -11933,7 +11933,7 @@ navigate(viewName, params = {}, push = true) {
             const win = window.open('', '_blank', 'width=400,height=600');
             if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
             win.document.write('<!DOCTYPE html><html><head><title>Gafetes</title>'
-                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.811">'
+                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.812">'
                 + '</head><body class="batch">' + allHtml + '</body></html>');
             win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
@@ -19258,12 +19258,12 @@ App.renderAttendanceTable = function(attendance) {
             : `<span class="px-2 py-1 rounded-full text-[10px] font-black uppercase bg-red-500/20 text-red-400">No</span>`;
         
         return `<tr class="hover:bg-white/[0.02] transition-colors">
-            <td class="!py-3 !px-3">
+            <td data-label="" class="!py-3 !px-3">
                 <input type="checkbox" ${isSelected ? 'checked' : ''} 
                     data-act="call" data-call="toggleAttendance" data-a1="${a.client_id}" 
                     data-style="width: 16px; height: 16px; cursor: pointer;">
             </td>
-            <td class="!py-3 !px-3">
+            <td data-label="" class="att-name-cell !py-3 !px-3">
                 <div class="flex items-center gap-3">
                     <div class="w-3 h-3 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0" data-style="background: rgba(99,102,241,0.2); color: #6366f1;">
                         ${(a.client_name || 'A').charAt(0).toUpperCase()}
@@ -19271,20 +19271,20 @@ App.renderAttendanceTable = function(attendance) {
                     <div>
                         <div class="text-sm font-bold text-white">${a.client_name || 'Sin nombre'}</div>
                         <div class="text-[11px] text-slate-400">${a.client_email || ''}</div>
-                        <div class="text-[11px] text-slate-500">${a.client_phone || ''}</div>
+                        <div class="text-[11px] text-slate-500">${this.fmtMaybeDate(a.client_phone)}</div>
                     </div>
                 </div>
             </td>
-            <td class="!py-3 !px-3 text-slate-300">${a.organization || '-'}</td>
-            <td class="!py-3 !px-3 text-slate-300">${a.cargo || '-'}</td>
-            <td class="!py-3 !px-3">${veganoBadge}</td>
-            <td class="!py-3 !px-3 text-slate-300 text-xs">${a.restricciones || '-'}</td>
-            <td class="!py-3 !px-3">
+            <td data-label="Organización" class="!py-3 !px-3 text-slate-300">${a.organization || '-'}</td>
+            <td data-label="Cargo" class="!py-3 !px-3 text-slate-300">${a.cargo || '-'}</td>
+            <td data-label="Vegano" class="!py-3 !px-3">${veganoBadge}</td>
+            <td data-label="Restricciones" class="!py-3 !px-3 text-slate-300 text-xs">${a.restricciones || '-'}</td>
+            <td data-label="Categoría" class="!py-3 !px-3">
                 ${a.category_name 
                     ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold" data-style="background:${a.category_color || '#64748b'}30; color:${a.category_color || '#64748b'}">${a.category_name}</span>`
                     : '<span class="text-slate-500 text-[10px]">-</span>'}
             </td>
-            <td class="!py-3 !px-3">
+            <td data-label="Estado" class="!py-3 !px-3">
                 <select data-act="call" data-call="changeGuestStatus" data-a1="${a.client_id}" data-a2="@this.value"
                     class="status-pipeline-select text-[10px] font-bold rounded-full px-2 py-1 cursor-pointer outline-none"
                     data-style="background: ${statusColor}20; color: ${statusColor}; border: 1px solid ${statusColor}40; -webkit-appearance: none; appearance: none;">
@@ -19296,7 +19296,7 @@ App.renderAttendanceTable = function(attendance) {
                     <option value="waitlisted" ${currentStatus === 'waitlisted' ? 'selected' : ''}>En espera</option>
                 </select>
             </td>
-            <td class="!py-3 !px-3 text-center">
+            <td data-label="Asistencia" class="!py-3 !px-3 text-center">
                 <div data-act="call" data-call="toggleValidateAttendance" data-a1="${a.client_id}" 
                     title="${a.validated ? 'Marcar como ausente' : 'Marcar como presente'}"
                     class="attendance-switch mx-auto ${a.validated ? 'validated' : ''}">
@@ -19307,7 +19307,7 @@ App.renderAttendanceTable = function(attendance) {
                         <button data-act="call" data-call="sendGuestMessage" data-a1="whatsapp" data-a2="${a.client_id}" data-a3="${(a.client_name || '').replace(/&quot;/g, '&amp;quot;').replace(/"/g, '&quot;')}" title="Enviar WhatsApp" class="w-6 h-6 rounded flex items-center justify-center hover:bg-emerald-500/20 text-emerald-400 transition-colors"><span class="material-symbols-outlined text-sm">chat</span></button>
                     </div>
             </td>
-            <td class="!py-3 !px-3 text-center">
+            <td data-label="Acciones" class="!py-3 !px-3 text-center">
                 <div class="flex items-center justify-center gap-0.5">
                     <button data-act="call" data-call="exportGuestData" data-a1="${a.event_id || ''}" data-a2="${a.client_id}" title="Exportar datos (GDPR)" class="w-6 h-6 rounded flex items-center justify-center hover:bg-blue-500/20 text-blue-400 transition-colors">
                         <span class="material-symbols-outlined text-xs">download</span>
@@ -19320,6 +19320,22 @@ App.renderAttendanceTable = function(attendance) {
         </tr>`;
     }).join('');
 },
+
+// v12.44.812: la importación de Excel guardó fechas como Date.toString() en
+// campos de texto (p.ej. teléfono). Si el valor parsea como fecha, se muestra
+// formateada; si no, el texto tal cual.
+App.fmtMaybeDate = function (raw) {
+    const s = String(raw || '').trim();
+    if (!s) return '';
+    if (/^[+-]?[\d.()+\s-]{6,}$/.test(s) && !/[a-zA-Z]/.test(s)) return s; // teléfono real
+    const t = Date.parse(s);
+    if (!isNaN(t) && /\d{4}/.test(s)) {
+        try {
+            return new Date(s).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+        } catch (e) { return s; }
+    }
+    return s;
+};
 
 App.toggleSelectAllAttendance = function() {
     const checkbox = document.getElementById('select-all-attendance');
