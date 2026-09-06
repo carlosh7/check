@@ -8,7 +8,7 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.810 (tags `v12.44.804`…`v12.44.806` en remoto, desplegado en VPS Contabo) |
+| **Version** | v12.44.811 (tags `v12.44.804`…`v12.44.806` en remoto, desplegado en VPS Contabo) |
 | **Sesión 2026-09-05 (parte 3)** | ✅ **Tramo 3 ESLint** (538→504, CI 520, imports/bindings muertos limpiados) · **Wizard 2FA** (paso 4 opcional, E2E con navegador real + test de regresión) · decisiones logger/cache/CSP documentadas · **P3-7** hallazgos de producto documentados · **Redeploy v12.44.806 en VPS validado**. Detalle en `docs/STATUS_HISTORY.md`. |
 | **Sesión 2026-09-05 (parte 2)** | ✅ **Tramo 2 ESLint** (warnings 2086→538, CI 550) · **P2-1 RESUELTO** (sin token por query) · **P2-4 verificado** · **Redeploy y validación en producción real** (VPS Contabo /opt/check: v12.44.805 servida, CSP sin unsafe-inline, CORS bloqueando LAN, registro.js ejecutando en vivo — bug crítico verificado cerrado, ruleta/login/App verificados en navegador real). Detalle en `docs/STATUS_HISTORY.md`. |
 | **Todas las fases 0-4, S, backlog, Ciclos 2-10** | ✅ Completados al 100% |

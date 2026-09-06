@@ -6,6 +6,37 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-06 (parte 3) — CSP TOTAL: cero unsafe-inline en todas las directivas (v12.44.811)
+
+### Qué se hizo (la deuda estructural, cerrada sin esperar la modularización)
+- **DelegatedEvents.js** (módulo nuevo): dispatcher global por delegación — data-act con
+  allowlist (métodos App + funciones globales de páginas) y tokens SIN eval (@this.value,
+  @app:_refs, @fn:, @float:, @check:), + acciones DOM integradas (hide/show/sidebar/modales/
+  clearCall/submitForm/onEnter/goto…). Además aplica data-style vía CSSOM con MutationObserver.
+- **~835 handlers convertidos** a data-act: 467 estáticos (app-shell 462, index 5, páginas
+  públicas 81) + 368 generados en strings de app.js/pages JS. Incluye arreglar 5 handlers
+  que YA ESTABAN ROTOS (comillas dobles dentro del atributo cortaban el onclick: SMS/WhatsApp
+  con nombre de cliente, editGuest, selectClient, openEditor3D).
+- **~950 atributos style= convertidos** a data-style (168 estáticos + 781 generados);
+  ventanas de impresión de gafetes aplican estilos sincrónicamente tras document.write.
+- **CSP resultante**: script-src-attr eliminado ('none' por defecto) y style-src sin
+  directiva de atributos → NINGUNA directiva contiene unsafe-inline. Un XSS por inyección
+  HTML ya no puede ejecutar handlers ni estilos inline.
+- **Guardián anti-regresión**: 20 tests nuevos en visual.test.js prohíben on*= y style=.
+
+### Verificación
+- E2E navegador con CSP activa: login real (sesión creada), sidebar drawer, apertura real de
+  evento ("Evento E2E Delegacion"), switchConfigTab, tabs de ruleta (switchTab), checks
+  refreshP, registro público real (invitado creado por submit), portal 5 tabs, kiosk, landing,
+  survey — 0 warnings del dispatcher, 82+ data-style aplicándose por CSSOM.
+- Producción v12.44.811: headers verificados (script-src-attr 'none', style-src estricta),
+  DelegatedEvents.js 200, login renderiza y responde a clicks con data-act.
+- Tests 330/331 (17 suites, +20 guardián) · ESLint 0 errores.
+- Incidentes de proceso (resueltos en la misma sesión): doble conversión data-data-style
+  (reparada global) y 3 mangles de concatenación detectados por babel/eslint y corregidos.
+
+---
+
 ## 2026-09-06 (parte 2) — Deuda CSS estructural resuelta: estilos externalizados + CSP styleSrc estricta (v12.44.810)
 
 ### Qué se hizo
