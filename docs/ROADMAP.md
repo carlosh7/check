@@ -8,12 +8,13 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.805 (tags `v12.44.804`/`v12.44.805` en remoto) |
+| **Version** | v12.44.806 (tags `v12.44.804`…`v12.44.806` en remoto, desplegado en VPS Contabo) |
+| **Sesión 2026-09-05 (parte 3)** | ✅ **Tramo 3 ESLint** (538→504, CI 520, imports/bindings muertos limpiados) · **Wizard 2FA** (paso 4 opcional, E2E con navegador real + test de regresión) · decisiones logger/cache/CSP documentadas · **P3-7** hallazgos de producto documentados · **Redeploy v12.44.806 en VPS validado**. Detalle en `docs/STATUS_HISTORY.md`. |
 | **Sesión 2026-09-05 (parte 2)** | ✅ **Tramo 2 ESLint** (warnings 2086→538, CI 550) · **P2-1 RESUELTO** (sin token por query) · **P2-4 verificado** · **Redeploy y validación en producción real** (VPS Contabo /opt/check: v12.44.805 servida, CSP sin unsafe-inline, CORS bloqueando LAN, registro.js ejecutando en vivo — bug crítico verificado cerrado, ruleta/login/App verificados en navegador real). Detalle en `docs/STATUS_HISTORY.md`. |
 | **Todas las fases 0-4, S, backlog, Ciclos 2-10** | ✅ Completados al 100% |
 | **Ciclo 11 (9 features)** | ✅ Completado al 100% |
 | **Feature en curso** | **Fase H — Seguridad y Estabilidad**: cerrados P1-2, P1-4, P2-1, P2-2, P2-4, P2-5, P3-4, P3-5; parciales documentados P2-3/P3-1/P3-3 |
-| **Próximo paso** | 1) Operador (solo manual): rotar PAT de GitHub (web de GitHub) y cambiar contraseña del admin de producción (creado por wizard, no está en archivos). 2) Tramo 3 ESLint: refactors reales (require-await 95, no-await-in-loop 78, vars muertas 129). 3) CSP resto: migrar ~450 handlers inline de app-shell (sesión dedicada). 4) Diferidos: 2FA en wizard, Wallet Passes, Portal v2. **Deploy VPS: excluir docker-compose.yml del rsync o parametrizar por env.** |
+| **Próximo paso** | 1) Operador (solo manual): rotar PAT de GitHub y cambiar contraseña del admin de producción. 2) **P3-7**: decidir comportamiento de los permisos/chips muertos (hallazgos de producto en AUDIT_REPORT). 3) CSP resto: requiere modularizar app.js (los handlers se generan dinámicamente en strings HTML). 4) Tramo 4 ESLint: require-await/no-await-in-loop requieren decisiones de diseño, no edición mecánica. 5) Diferidos XL: Wallet Passes (requiere certificados Apple/Google), Portal v2, SDK. |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
 
