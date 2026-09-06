@@ -192,7 +192,7 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
                 let firstGuestId = null;
 
                 // Check if cart (multiple items) or single item
-                let meta2 = {};
+                let meta2
                 try { meta2 = JSON.parse(txn.metadata_json || '{}'); if (typeof meta2 === 'string') meta2 = JSON.parse(meta2); } catch(e) { meta2 = {}; }
                 (meta2 && meta2.categories) || (meta2.data && meta2.data.object && meta2.data.object.metadata);
 
@@ -267,7 +267,7 @@ router.get('/transactions/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
 
 // ─── Receipt PDF (C4-07) ───
 
-router.get('/transactions/:id/receipt', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.get('/transactions/:id/receipt', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const txn = db.prepare("SELECT t.*, e.name as event_name, e.date as event_date, e.location as event_location FROM transactions t JOIN events e ON t.event_id = e.id WHERE t.id = ?").get(req.params.id);
         if (!txn) return res.status(404).json({ error: 'Transacción no encontrada' });

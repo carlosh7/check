@@ -10,7 +10,7 @@
 
             if (questions.length > 0) {
                 const questionsHtml = questions.map((q) => {
-                    let inputHtml = "";
+                    let inputHtml
                     if (q.type === 'single_choice' && Array.isArray(q.options) && q.options.length === 2) {
                         // Booleana (Sí/No) — valores 5/1 mantienen compatibilidad con dashboard
                         inputHtml = `

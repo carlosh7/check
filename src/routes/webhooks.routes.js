@@ -89,9 +89,9 @@ const logger = require("../utils/logger");
 const router = express.Router();
 
 // Get all webhooks (admin only or filtered by event access)
-router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        {};
+        {}
         
         // Non-admins can only see webhooks for events they have access to
         if (req.userRole !== 'ADMIN') {
@@ -134,7 +134,7 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
 });
 
 // Get specific webhook
-router.get('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.get('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const webhook = getWebhook(req.params.id);
         if (!webhook) {
@@ -157,7 +157,7 @@ router.get('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
 });
 
 // Create new webhook
-router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const v = validate(schemas.createWebhook || {}, req.body);
         if (!v.valid) {
@@ -207,7 +207,7 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
 });
 
 // Update webhook
-router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const webhook = getWebhook(req.params.id);
         if (!webhook) {
@@ -263,7 +263,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
 });
 
 // Delete webhook
-router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const webhook = getWebhook(req.params.id);
         if (!webhook) {
@@ -333,7 +333,7 @@ router.post('/:id/test', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
 });
 
 // Get webhook delivery logs
-router.get('/:id/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.get('/:id/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const webhook = getWebhook(req.params.id);
         if (!webhook) return res.status(404).json({ error: 'Webhook no encontrado' });
@@ -350,7 +350,7 @@ router.get('/:id/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
 });
 
 // Delete webhook logs
-router.delete('/:id/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.delete('/:id/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const webhook = getWebhook(req.params.id);
         if (!webhook) return res.status(404).json({ error: 'Webhook no encontrado' });

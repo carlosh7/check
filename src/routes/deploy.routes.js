@@ -57,6 +57,32 @@ router.post('/deploy/webhook', async (req, res) => {
             db.prepare(`UPDATE deploy_logs SET status = 'error', error = ? WHERE id = ?`).run(err.message, logId);
             logger.error('[DEPLOY] Portainer webhook failed: ' + err.message);
         }
+    } else if (process.env.DEPLOY_SCRIPT_PATH) {
+        // v12.44.808 (C6-14): modo script para hosts sin Portainer (p.ej. VPS con
+        // docker compose). El webhook firma GitHub (HMAC ya validado arriba) y
+        // ejecuta el script indicado en segundo plano — el contenedor NO necesita
+        // socket de Docker: el script vive en el host y lo activa el operador.
+        const { spawn } = require('child_process');
+        db.prepare(`UPDATE deploy_logs SET status = 'deploying' WHERE id = ?`).run(logId);
+        try {
+            const child = spawn(process.env.DEPLOY_SCRIPT_PATH, [], {
+                detached: true,
+                stdio: 'ignore'
+            });
+            child.unref();
+            child.on('exit', (code) => {
+                const status = code === 0 ? 'triggered' : 'error';
+                try {
+                    db.prepare(`UPDATE deploy_logs SET status = ?, error = ? WHERE id = ?`)
+                      .run(status, code === 0 ? null : 'script exit ' + code, logId);
+                } catch (_) { /* BD puede estar cerrándose */ }
+                logger.info('[DEPLOY] Script de redeploy terminó con código ' + code);
+            });
+            logger.info('[DEPLOY] Script de redeploy lanzado: ' + process.env.DEPLOY_SCRIPT_PATH);
+        } catch (err) {
+            db.prepare(`UPDATE deploy_logs SET status = 'error', error = ? WHERE id = ?`).run(err.message, logId);
+            logger.error('[DEPLOY] No se pudo lanzar el script: ' + err.message);
+        }
     } else {
         db.prepare(`UPDATE deploy_logs SET status = 'received', error = 'PORTAINER_WEBHOOK_URL not configured' WHERE id = ?`).run(logId);
     }

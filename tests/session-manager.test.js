@@ -25,7 +25,7 @@ describe('SessionManager', () => {
         await expect(mgr.login('a', 'b')).rejects.toMatchObject({ requires2FA: true });
     });
     test('requestRecoveryCode valida email', async () => {
-        global.fetch.mockResolvedValue({ ok: true, json: async () => ({ success: true }) });
+        global.fetch.mockResolvedValue({ ok: true, json: () => ({ success: true }) });
         await expect(mgr.requestRecoveryCode('a@b.com')).resolves.toBeDefined();
     });
     test('resetPassword valida longitud', async () => {

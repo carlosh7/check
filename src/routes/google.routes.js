@@ -79,7 +79,7 @@ async function ensureEventFolder(drive, event, accountLabel) {
     const eventName = event.name || 'Evento';
 
     // Buscar o crear carpeta raíz "Check Pro"
-    let rootFolder = null;
+    let rootFolder
     const rootQuery = await drive.files.list({
         q: "name='Check Pro' and mimeType='application/vnd.google-apps.folder' and trashed=false",
         fields: 'files(id, name)', pageSize: 1
@@ -95,7 +95,7 @@ async function ensureEventFolder(drive, event, accountLabel) {
     }
 
     // Buscar o crear carpeta del grupo
-    let groupFolder = null;
+    let groupFolder
     const groupQuery = await drive.files.list({
         q: "name='" + groupName.replace(/'/g, "\\'") + "' and '" + rootFolder + "' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false",
         fields: 'files(id, name)', pageSize: 1

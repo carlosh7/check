@@ -102,7 +102,7 @@ describe('E2E: Guest Flow', () => {
         expect([200, 201]).toContain(res.status);
     });
     
-    test('Verify guest checked_in in DB', async () => {
+    test('Verify guest checked_in in DB', () => {
         if (!guestId) return;
         const guest = db.prepare("SELECT checked_in FROM guests WHERE id = ?").get(guestId);
         expect(guest).toBeDefined();

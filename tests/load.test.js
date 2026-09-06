@@ -25,10 +25,10 @@ async function runLoadTest() {
     let minTime = Infinity;
     let maxTime = 0;
 
-    for (var e of ENDPOINTS) {
+    for (let e of ENDPOINTS) {
         console.log('Testing:', e.method, e.path);
         for (let i = 0; i < 10; i++) {
-            var start = Date.now();
+            let start = Date.now();
             try {
                 await new Promise(function(resolve, reject) {
                     const req = http.request(BASE_URL + e.path, { method: e.method }, function(res) {

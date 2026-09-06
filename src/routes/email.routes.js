@@ -885,7 +885,7 @@ router.delete('/campaigns/:id', (req, res) => {
 });
 
 // POST /api/email/campaigns/:id/send - Iniciar envío
-router.post('/campaigns/:id/send', async (req, res) => {
+router.post('/campaigns/:id/send', (req, res) => {
     try {
         const campaign = getEmailDb().prepare('SELECT * FROM email_campaigns WHERE id = ?').get(req.params.id);
         if (!campaign) {
@@ -986,7 +986,7 @@ router.post('/campaigns/:id/pause', (req, res) => {
 });
 
 // POST /api/email/campaigns/:id/resume - Reanudar envío
-router.post('/campaigns/:id/resume', async (req, res) => {
+router.post('/campaigns/:id/resume', (req, res) => {
     try {
         const campaign = getEmailDb().prepare('SELECT * FROM email_campaigns WHERE id = ?').get(req.params.id);
         if (!campaign) {
@@ -1103,7 +1103,7 @@ function startCampaignScheduler() {
     
     logger.info('[SCHEDULER] Campaign scheduler started (checking every 30s)');
     
-    schedulerInterval = setInterval(async () => {
+    schedulerInterval = setInterval(() => {
         try {
             const now = new Date().toISOString();
             const scheduledCampaigns = getEmailDb().prepare(
@@ -1225,7 +1225,7 @@ router.get('/mailbox/folders', async (req, res) => {
             await client.logout();
             const folderNames = mailboxList.map(function(m) { return m.path; });
             const standardFolders = ['INBOX', 'Sent', 'Drafts', 'Trash', 'Spam', 'Junk'];
-            for (var sf of standardFolders) {
+            for (let sf of standardFolders) {
                 if (!folderNames.includes(sf) && !folderNames.some(function(f) { return f.toLowerCase() === sf.toLowerCase(); })) {
                     folderNames.push(sf);
                 }
@@ -1385,7 +1385,7 @@ router.get('/mailbox/message/:uid', async (req, res) => {
 // PROCESAMIENTO DE COLA (ASYNC)
 // ============================================================
 
-async function processEmailQueue(campaignId, account) {
+function processEmailQueue(campaignId, account) {
     const processNext = async () => {
         // Verificar si la campaña sigue en envío
         const campaign = getEmailDb().prepare('SELECT * FROM email_campaigns WHERE id = ?').get(campaignId);
@@ -1522,7 +1522,7 @@ router.get('/mailbox/attachment/:uid', async (req, res) => {
             if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) folderName = 'INBOX.' + folder;
             const lock = await client.getMailboxLock(folderName);
             try {
-                let rawEmail = null;
+                var rawEmail = null;
                 for await (const msg of client.fetch(uid, { uid: true, source: true })) {
                     rawEmail = msg.source;
                 }

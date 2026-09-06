@@ -82,7 +82,7 @@ router.get('/vapid-public-key', (req, res) => {
 /**
  * Configurar VAPID keys (solo admin)
  */
-router.post('/vapid-keys', authMiddleware(['ADMIN']), async (req, res) => {
+router.post('/vapid-keys', authMiddleware(['ADMIN']), (req, res) => {
     const { publicKey, privateKey } = req.body;
     
     if (!publicKey || !privateKey) {
@@ -115,7 +115,7 @@ router.post('/vapid-keys', authMiddleware(['ADMIN']), async (req, res) => {
 /**
  * Obtener estado de configuración de VAPID (solo admin)
  */
-router.get('/vapid-status', authMiddleware(['ADMIN']), async (req, res) => {
+router.get('/vapid-status', authMiddleware(['ADMIN']), (req, res) => {
     const { publicKey, privateKey } = getVapidKeys();
     res.json({ 
         configured: !!(publicKey && privateKey),
@@ -128,7 +128,7 @@ router.get('/vapid-status', authMiddleware(['ADMIN']), async (req, res) => {
  * Suscribirse a notificaciones push
  * Puede ser pública (sin auth) o con usuario autenticado
  */
-router.post('/subscribe', async (req, res) => {
+router.post('/subscribe', (req, res) => {
     try {
         const subscription = req.body;
         
@@ -188,7 +188,7 @@ router.post('/subscribe', async (req, res) => {
 /**
  * Cancelar suscripción push
  */
-router.post('/unsubscribe', async (req, res) => {
+router.post('/unsubscribe', (req, res) => {
     try {
         const { endpoint } = req.body;
         

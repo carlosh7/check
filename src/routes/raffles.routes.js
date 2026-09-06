@@ -305,7 +305,7 @@ router.post('/:id/participants/batch', authMiddleware(['ADMIN', 'PRODUCTOR']), (
         if (!Array.isArray(participants)) return res.status(400).json({ error: 'participants debe ser un array' });
         db.prepare("DELETE FROM raffle_participants WHERE raffle_id = ?").run(req.params.id);
         const insert = db.prepare("INSERT INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, 'manual')");
-        let count = 0;
+        var count = 0;
         participants.forEach(function(p) {
             try { insert.run(uuidv4(), req.params.id, null, p.name || '', p.email || '', p.phone || ''); count++; } catch(e) {}
         });
@@ -351,7 +351,7 @@ router.delete('/:id/results', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res)
 
 // ── Reporte PDF ──
 
-router.get('/:id/report', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.get('/:id/report', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
         if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });

@@ -247,7 +247,7 @@ router.get('/templates/:templateId/stats', authMiddleware(['ADMIN', 'PRODUCTOR',
         // Heatmap hora/día
         const heatmap = {};
         const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-        for (var h = 0; h < 24; h++) { heatmap[h] = {}; dias.forEach(function(d) { heatmap[h][d] = 0; }); }
+        for (let h = 0; h < 24; h++) { heatmap[h] = {}; dias.forEach(function(d) { heatmap[h][d] = 0; }); }
         responses.forEach(function(r) {
             if (r.submitted_at) {
                 const d = new Date(r.submitted_at);

@@ -537,7 +537,7 @@ router.delete('/:id/database', authMiddleware(['ADMIN']), async (req, res) => {
 });
 
 // GET /api/events/:id/database - Verificar estado de base de datos del evento
-router.get('/:id/database', authMiddleware(), async (req, res) => {
+router.get('/:id/database', authMiddleware(), (req, res) => {
     const eventId = castId('events', req.params.id);
     if (!eventId) {
         return res.status(400).json({ error: 'ID de evento no válido' });
@@ -564,7 +564,7 @@ router.get('/:id/database', authMiddleware(), async (req, res) => {
 // ═════════════════════════════════════════════════════════════
 
 // GET /api/events/:id/attendance - Obtener lista de asistencia (vía tabla guests)
-router.get('/:id/attendance', authMiddleware(), async (req, res) => {
+router.get('/:id/attendance', authMiddleware(), (req, res) => {
     const eventId = castId('events', req.params.id);
     if (!eventId) return res.status(400).json({ error: 'ID de evento no válido' });
     
@@ -607,7 +607,7 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
 });
 
 // POST /api/events/:id/attendance - Agregar asistente manual
-router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), async (req, res) => {
+router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     const eventId = castId('events', req.params.id);
     const { name, email, phone, organization, cargo, vegano, restricciones, category_id } = req.body;
     
@@ -661,7 +661,7 @@ router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER'
 });
 
 // PUT /api/events/:id/attendance/:id - Actualizar asistente (Dashboard)
-router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) => {
+router.put('/:id/attendance/:attendanceId', authMiddleware(), (req, res) => {
     const eventId = castId('events', req.params.id);
     const attendanceId = req.params.attendanceId;
     const { validated, organization, cargo, vegano, restricciones, category_id } = req.body;
@@ -709,7 +709,7 @@ router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) =
 });
 
 // DELETE /api/events/:id/attendance/:attendanceId - Eliminar asistente
-router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), async (req, res) => {
+router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     const eventId = castId('events', req.params.id);
     const attendanceId = req.params.attendanceId;
     

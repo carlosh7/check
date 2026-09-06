@@ -62,7 +62,7 @@ const fail = (n, e) => { results.push(`FAIL ${n} — ${e}`); console.log(`❌ ${
             document.querySelectorAll('.swal2-container').forEach(c => c.remove());
         });
     }
-    const eventId = async () => page.evaluate(() => window.App?.state?.event?.id || null);
+    const eventId = () => page.evaluate(() => window.App?.state?.event?.id || null);
     // Reintento solo ante muerte del renderer (crash intermitente del headless con DOM gigante)
     const withRetry = async (name, fn) => {
         for (let a = 1; a <= 2; a++) {

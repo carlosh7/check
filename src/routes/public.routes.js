@@ -301,7 +301,7 @@ router.get('/unsubscribe/:token', (req, res) => {
 });
 
 // Registro público de invitados
-router.post('/public-register', async (req, res) => {
+router.post('/public-register', (req, res) => {
     const { event_id, name, email, phone, organization, position, gender, dietary_notes } = req.body;
     
     if (!event_id || !name || !email) {

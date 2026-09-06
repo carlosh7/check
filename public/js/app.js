@@ -42,7 +42,7 @@ import { AiSecurity } from './modules/features/ai-security.js?v=12.44.765';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.807';
+const VERSION = '12.44.808';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -77,7 +77,6 @@ const App = window.App = {
     state: _stateProxy,
 
     constants: { API_URL: Config.API_URL },
-    fetchAPI(endpoint, options) { return API.fetchAPI(endpoint, options); },
     esc: window.escapeHtml,
 
     // Módulos modulares cableados (v12.44.804) — complementan, no sustituyen
@@ -450,25 +449,7 @@ const App = window.App = {
         }
     },
 
-    switchEventTab(tabId) {
-        document.querySelectorAll('[id^="ev-content-"]').forEach(el => el.classList.add('hidden'));
-        document.getElementById(`ev-content-${tabId}`)?.classList.remove('hidden');
-
-        document.querySelectorAll('#view-admin .sub-nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.tabTarget === `ev-content-${tabId}`) btn.classList.add('active');
-        });
-        
-        // Cargar datos según el tab seleccionado
-        const eventId = this.state.event?.id || this.currentEventId;
-        if (eventId) {
-            if (tabId === 'agenda') {
-                this.loadEventAgenda(eventId);
-            }
-        }
-    },
-
-    navigateToCreateUser() { 
+    navigateToCreateUser() {
         this._openUserModalFromSelector = true;
         this.openInviteModal(); 
     },
@@ -4018,7 +3999,7 @@ const App = window.App = {
     },
 
     async showEventSelector(userId, selectedEventIds = []) {
-        let events = [];
+        let events
         try { events = await this.fetchAPI('/events'); } catch(e) { events = []; }
 
         const html = `
@@ -5521,7 +5502,7 @@ const App = window.App = {
         };
         
         // Construir texto del título
-        let subtitleText = '';
+        let subtitleText
         if (selectedUsers.length === 1) {
             const user = selectedUsers[0];
             const userName = user.display_name || user.username || 'Usuario';
@@ -5816,7 +5797,7 @@ const App = window.App = {
         };
         
         // Construir texto del título
-        let subtitleText = '';
+        let subtitleText
         if (selectedUsers.length === 1) {
             const user = selectedUsers[0];
             const userName = user.display_name || user.username || 'Usuario';
@@ -6205,29 +6186,6 @@ const App = window.App = {
                 </tr>
             `).join('');
         } catch(e) { console.error('Error mailbox:', e); }
-    },
-
-    async loadMailingData() {
-        try {
-            const eventsRes = await this.fetchAPI('/events');
-            const events = Array.isArray(eventsRes) ? eventsRes : (eventsRes.data || []);
-            const eventSelector = document.getElementById('mailing-event-selector');
-            if (eventSelector) {
-                eventSelector.innerHTML = '<option value="">-- Seleccionar Evento --</option>' + 
-                    events.map(ev => `<option value="${ev.id}">${ev.name}</option>`).join('');
-            }
-
-            const templatesRes = await this.fetchAPI('/email/templates');
-            const templates = Array.isArray(templatesRes) ? templatesRes : (templatesRes.data || []);
-            this.state.emailTemplates = templates;
-            const tempSelector = document.getElementById('mailing-template-selector');
-            if (tempSelector) {
-                tempSelector.innerHTML = '<option value="">-- Seleccionar Plantilla --</option>' + 
-                    templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-            }
-
-            if (!this.state.mailingGuests) this.state.mailingGuests = [];
-        } catch(e) { console.error('Error mailing data:', e); }
     },
 
     filterMailingGuests() {
@@ -7781,15 +7739,6 @@ navigate(viewName, params = {}, push = true) {
         if (container) container.classList.toggle('hidden', type !== 'multiple');
     },
 
-    async deleteSurveyQuestion(id) {
-        if (!confirm('¿Eliminar esta pregunta?')) return;
-        try {
-            // Fix F1 (2026-08): endpoint real del builder
-            await this.fetchAPI(`/events/questions/${id}`, { method: 'DELETE' });
-            this.loadSurveyQuestions();
-        } catch (e) { alert('Error al eliminar: ' + e.message); }
-    },
-
     // --- DATA LOADERS ---
     _lastEventsLoad: 0,
     _eventsCache: null,
@@ -8104,9 +8053,9 @@ navigate(viewName, params = {}, push = true) {
                 <button onclick="App.showEventTabInCarousel(${state.currentIndex}, 1)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 1 ? '#ef4444' : textSecondary};" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
             `;
             
-            let tabContent = '';
-            let titleText = '';
-            let saveButton = '';
+            let tabContent
+            let titleText
+            let saveButton
             
             if (activeTab === 0) {
                 titleText = 'Editar Evento';
@@ -8533,18 +8482,6 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
-    deleteEvent: async function(eventId) {
-        if (!await this._confirmAction('¿Eliminar evento?', 'Esta acción no se puede deshacer.')) return;
-        
-        try {
-            await this.fetchAPI(`/events/${eventId}`, { method: 'DELETE' });
-            await this.loadEvents();
-            Swal.fire({ title: '✓ Listo', text: 'Evento eliminado', icon: 'success', background: '#0f172a', color: '#fff' });
-        } catch(e) {
-            Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
-        }
-    },
-
     cloneSelectedEvent: async function() {
         // Buscar el primer evento seleccionado
         const selectedCheckbox = document.querySelector('.event-checkbox:checked');
@@ -8585,12 +8522,6 @@ navigate(viewName, params = {}, push = true) {
         } catch(e) {
             Swal.fire({ title: '&times; Error', text: e.message || 'No se pudo duplicar', icon: 'error', background: '#0f172a', color: '#fff' });
         }
-    },
-
-    _confirmAction: async function(title, text) {
-        if (typeof Swal === 'undefined') return confirm(text);
-        const result = await Swal.fire({ title, text, icon: 'warning', background: '#0f172a', color: '#fff', showCancelButton: true });
-        return result.isConfirmed;
     },
 
     _selectFromList: async function(items, title) {
@@ -12395,9 +12326,9 @@ navigate(viewName, params = {}, push = true) {
             if (!msg || !msg.type) return;
             switch (msg.type) {
                 case 'connected':
-                    var s = document.getElementById('editor-3d-status');
+                    let s = document.getElementById('editor-3d-status');
                     if (s) { s.textContent = '✓ Conectado'; setTimeout(function() { s.classList.add('hidden'); }, 3000); }
-                    var state = App.editor3DState;
+                    let state = App.editor3DState;
                     if (iframe && iframe.contentWindow) {
                         iframe.contentWindow.postMessage({ type: 'init', eventId: state.eventId, jwt: App.state.token, layoutId: state.layoutId, layoutName: state.layoutName }, '*');
                     }
@@ -14674,7 +14605,7 @@ navigate(viewName, params = {}, push = true) {
     fireConfetti: function(){
         const cl=['#FF6B6B','#4ECDC4','#7c3aed','#fbbf24','#34d399','#f472b6','#60a5fa'];
         for(let i=0;i<50;i++){
-            var e=document.createElement('div');
+            let e=document.createElement('div');
             e.className='fixed pointer-events-none z-50';
             e.style.cssText='left:'+Math.random()*100+'vw;top:-10px;width:'+(Math.random()*6+3)+'px;height:'+(Math.random()*6+3)+'px;background:'+cl[Math.floor(Math.random()*cl.length)]+';border-radius:'+(Math.random()>.5?'50%':'2px');
             document.body.appendChild(e);
@@ -15927,6 +15858,9 @@ navigate(viewName, params = {}, push = true) {
 
     // Utilidad privada para confirmaciones Premium (V12.6.1)
     async _confirmAction(title, text, confirmText = 'Sí, eliminar') {
+        // Guard heredado de la versión temprana: si Swal no cargó (CDN caído),
+        // caer a confirm() nativo en vez de lanzar (v12.44.808)
+        if (typeof Swal === 'undefined') return confirm(text);
         const result = await Swal.fire({
             title,
             text,
@@ -15962,7 +15896,7 @@ navigate(viewName, params = {}, push = true) {
     
     async showUserSelectorForGroup(groupId) {
         this.state._pendingUserGroupId = groupId;
-        let users = [];
+        let users
         try { users = await this.fetchAPI('/users'); } catch(e) { users = []; }
         
         const currentUsers = users.filter(u => u.groups && u.groups.some(g => String(g.id) === String(groupId)));
@@ -16021,7 +15955,7 @@ navigate(viewName, params = {}, push = true) {
 
     async showUserSelectorForEvent(eventId) {
         this.state._pendingUserEventId = eventId;
-        let users = [];
+        let users
         try { users = await this.fetchAPI('/users'); } catch(e) { users = []; }
 
         const html = `
@@ -20210,7 +20144,7 @@ App.editAttendance = function(clientIds) {
                     const checked = my ? 'checked' : '';
                     let seatHtml = '';
                     if (s._seats && s._seats.length > 0) {
-                        {};
+                        {}
                         // Not ideal but we don't have taken seats here; rely on backend validation
                         const curSeat = (my && my.seat_id) || '';
                         seatHtml = ' <select class="session-seat-select text-[10px] input-field py-0.5 px-1" style="width:auto" data-session="' + s.id + '">' +

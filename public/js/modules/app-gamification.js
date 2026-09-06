@@ -35,7 +35,7 @@ const Gamification = window.GamificationModule = {
             container.innerHTML = polls.map(p => {
                 const statusColor = p.status === 'active' ? 'text-green-400' : p.status === 'closed' ? 'text-red-400' : 'text-yellow-400';
                 const statusLabel = p.status === 'active' ? 'Activa' : p.status === 'closed' ? 'Cerrada' : 'Borrador';
-                let actions = '';
+                let actions
                 if (p.status === 'draft') {
                     actions = `<button class="btn-secondary text-xs" onclick="App.editPoll('${p.id}')">Editar</button>
                                <button class="btn-primary text-xs" onclick="App.startPoll('${p.id}')">Activar</button>

@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.807",
+  "version": "12.44.808",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "server.js",
   "scripts": {
@@ -56,7 +56,7 @@
     "speakeasy": "^2.0.0",
     "stripe": "^22.1.1",
     "twilio": "^6.0.2",
-    "uuid": "^10.0.0",
+    "uuid": "^11.1.1",
     "web-push": "^3.6.7",
     "zod": "^3.23.8"
   },
@@ -85,5 +85,8 @@
         "lines": 37
       }
     }
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }
