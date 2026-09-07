@@ -1,11 +1,11 @@
-# Cobertura Backend ↔ Frontend — Check Pro v12.44.789
+# Cobertura Backend ↔ Frontend — Check Pro v12.44.817
 
 Generado automáticamente por `scripts/coverage-api.js` · 2026-09-07
 
 ## Resumen
 - **Endpoints backend:** 432
-- **Con uso desde el frontend:** 414 (96%)
-- **Sin UI conectada:** 18 (4%)
+- **Con uso desde el frontend:** 415 (96%)
+- **Sin UI conectada:** 17 (4%)
 
 > Nota: un endpoint "sin UI" no es necesariamente un error — hay endpoints
 > para webhooks externos (Stripe/GitHub), API pública v1 (consumo externo),
@@ -57,7 +57,7 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-09-07
 | marketplace | 2 | 1 | 1 | 50% |
 | raíz | 2 | 2 | 0 | 100% |
 | login | 1 | 1 | 0 | 100% |
-| logout | 1 | 0 | 1 | 0% |
+| logout | 1 | 1 | 0 | 100% |
 | signup | 1 | 1 | 0 | 100% |
 | password-reset-request | 1 | 1 | 0 | 100% |
 | verify-reset-code | 1 | 0 | 1 | 0% |
@@ -94,9 +94,6 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-09-07
 
 ### health
 - `GET /api/health/full`
-
-### logout
-- `POST /api/logout`
 
 ### marketplace
 - `POST /api/marketplace/list`

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.min.css"><!-- v12.44.815: CSS externo — la CSP ya no permite el <style> que Swal inyecta -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5"></script>
-<link rel="stylesheet" href="/css/modules/base.css?v=12.44.816">
-<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.816">
-<link rel="stylesheet" href="/css/modules/components.css?v=12.44.816">
-<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.816">
-<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.816">
-<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.816">
+<link rel="stylesheet" href="/css/modules/base.css?v=12.44.817">
+<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.817">
+<link rel="stylesheet" href="/css/modules/components.css?v=12.44.817">
+<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.817">
+<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.817">
+<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.817">
 <div id="app-container" class="app-container hidden" role="application" aria-label="Check Pro - Panel de administración">
     <a href="#app-main-content" class="skip-to-content">Saltar al contenido principal</a>
     <button id="hamburger-btn" class="hamburger-btn" data-act="sidebarToggle" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="global-sidebar">☰</button>
@@ -73,7 +73,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.816</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.817</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -132,10 +132,10 @@
 
                         <div class="search-box-container mt-3">
                             <input id="event-search" type="text" class="search-input" placeholder="Buscar por nombre, cliente, locaci&oacute;n, estado..."
-                                   data-act="clearCall" data-call="filterEvents,showEventSuggestions" data-act="call" data-call="showEventSuggestions" autocomplete="off">
+                                   data-act="clearCall" data-call="filterEvents|showEventSuggestions" autocomplete="off">
                             <span class="material-symbols-outlined search-icon">search</span>
                             <span id="event-voice-btn" class="material-symbols-outlined search-icon-btn" data-act="call" data-call="toggleVoiceSearch" data-a1="event" title="B&uacute;squeda por voz">mic</span>
-                            <span class="material-symbols-outlined search-clear-btn" data-act="clearCall" data-target="event-search" data-call="filterEvents,hideEventSuggestions">close</span>
+                            <span class="material-symbols-outlined search-clear-btn" data-act="clearCall" data-target="event-search" data-call="filterEvents|hideEventSuggestions">close</span>
                             <div id="event-suggestions" class="hidden suggestions-dropdown"></div>
                         </div>
                     </div>
@@ -281,10 +281,10 @@
 
                     <div class="search-box-container">
                         <input id="attendance-search" type="text" class="search-input" placeholder="Buscar asistente por nombre, email, teléfono, organización, cargo..."
-                               data-act="clearCall" data-call="filterAttendance,loadAnalytics,showAttendanceSuggestions" data-act="call" data-call="showAttendanceSuggestions" autocomplete="off">
+                               data-act="clearCall" data-call="filterAttendance|showAttendanceSuggestions" autocomplete="off">
                         <span class="material-symbols-outlined search-icon">search</span>
                         <span id="attendance-voice-btn" class="material-symbols-outlined search-icon-btn" data-act="call" data-call="toggleVoiceSearch" data-a1="attendance" title="Búsqueda por voz">mic</span>
-                        <span class="material-symbols-outlined search-clear-btn" data-act="clearCall" data-target="attendance-search,filter-attendance-org,filter-attendance-cargo,filter-attendance-vegano,filter-attendance-status" data-call="filterAttendance,hideAttendanceSuggestions,loadAnalytics">close</span>
+                        <span class="material-symbols-outlined search-clear-btn" data-act="clearCall" data-target="attendance-search,filter-attendance-org,filter-attendance-cargo,filter-attendance-vegano,filter-attendance-status" data-call="filterAttendance|hideAttendanceSuggestions">close</span>
                         <div id="attendance-suggestions" class="hidden suggestions-dropdown"></div>
                     </div>
 
@@ -619,7 +619,7 @@
                     </div>
 
                     <div id="config-content-wheel" class="config-tab-content hidden">
-                        <link rel="stylesheet" href="/css/pages/shell-page.css?v=12.44.816">
+                        <link rel="stylesheet" href="/css/pages/shell-page.css?v=12.44.817">
 
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-xl font-bold text-white">Ruleta</h2>
@@ -2210,10 +2210,10 @@
                         </div>
                         <div class="mt-4 search-box-container">
                             <input id="group-search" type="text" class="search-input" placeholder="Buscar por nombre, email, cliente, staff, evento..."
-                                   data-act="clearCall" data-call="filterGroups,showGroupSuggestions" data-act="call" data-call="showGroupSuggestions" autocomplete="off">
+                                   data-act="clearCall" data-call="filterGroups|showGroupSuggestions" autocomplete="off">
                             <span class="material-symbols-outlined search-icon">search</span>
                             <span id="group-voice-btn" class="material-symbols-outlined search-icon-btn" data-act="call" data-call="toggleVoiceSearch" data-a1="group" title="Búsqueda por voz">mic</span>
-                            <span class="material-symbols-outlined search-clear-btn" data-act="clearCall" data-target="group-search,filter-group-client,filter-group-user,filter-group-event" data-call="filterGroups,hideGroupSuggestions">close</span>
+                            <span class="material-symbols-outlined search-clear-btn" data-act="clearCall" data-target="group-search,filter-group-client,filter-group-user,filter-group-event" data-call="filterGroups|hideGroupSuggestions">close</span>
                             <div id="group-suggestions" class="hidden suggestions-dropdown"></div>
                         </div>
                     </div>
@@ -2396,10 +2396,10 @@
                         </div>
                         <div class="mt-4 search-box-container">
                             <input id="user-search" type="text" class="search-input" placeholder="Buscar por nombre, email, empresa, cliente, evento, rol..."
-                                   data-act="clearCall" data-call="filterUsers,showUserSuggestions" data-act="call" data-call="showUserSuggestions" autocomplete="off">
+                                   data-act="clearCall" data-call="filterUsers|showUserSuggestions" autocomplete="off">
                             <span class="material-symbols-outlined search-icon">search</span>
                             <span id="user-voice-btn" class="material-symbols-outlined search-icon-btn" data-act="call" data-call="toggleVoiceSearch" data-a1="user" title="Búsqueda por voz">mic</span>
-                            <span class="material-symbols-outlined search-clear-btn" data-act="clearCall" data-target="user-search,filter-user-group,filter-user-client,filter-user-event,filter-user-role,filter-user-status" data-call="filterUsers,hideUserSuggestions">close</span>
+                            <span class="material-symbols-outlined search-clear-btn" data-act="clearCall" data-target="user-search,filter-user-group,filter-user-client,filter-user-event,filter-user-role,filter-user-status" data-call="filterUsers|hideUserSuggestions">close</span>
                             <div id="user-suggestions" class="hidden suggestions-dropdown"></div>
                         </div>
                     </div>
@@ -2458,10 +2458,10 @@
                         </div>
                         <div class="mt-4 search-box-container">
                             <input id="client-search" type="text" class="search-input" placeholder="Buscar por nombre, email, empresa, staff, evento..."
-                                   data-act="clearCall" data-call="filterClients,showClientSuggestions" data-act="call" data-call="showClientSuggestions" autocomplete="off">
+                                   data-act="clearCall" data-call="filterClients|showClientSuggestions" autocomplete="off">
                             <span class="material-symbols-outlined search-icon">search</span>
                             <span id="client-voice-btn" class="material-symbols-outlined search-icon-btn" data-act="call" data-call="toggleVoiceSearch" data-a1="client" title="Búsqueda por voz">mic</span>
-                            <span class="material-symbols-outlined search-clear-btn" data-act="clearCall" data-target="client-search,filter-client-company,filter-client-staff,filter-client-event,filter-client-status" data-call="filterClients,hideClientSuggestions">close</span>
+                            <span class="material-symbols-outlined search-clear-btn" data-act="clearCall" data-target="client-search,filter-client-company,filter-client-staff,filter-client-event,filter-client-status" data-call="filterClients|hideClientSuggestions">close</span>
                             <div id="client-suggestions" class="hidden suggestions-dropdown"></div>
                         </div>
                     </div>

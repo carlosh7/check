@@ -120,7 +120,9 @@ const total = endpoints.length;
 const cov = covered.length;
 const pct = Math.round((cov / total) * 100);
 
-let md = `# Cobertura Backend ↔ Frontend — Check Pro v12.44.789
+// v12.44.817 (H-8): versión leída de package.json (nunca hardcodeada)
+const pkgVersion = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
+let md = `# Cobertura Backend ↔ Frontend — Check Pro v${pkgVersion}
 
 Generado automáticamente por \`scripts/coverage-api.js\` · ${new Date().toISOString().slice(0, 10)}
 

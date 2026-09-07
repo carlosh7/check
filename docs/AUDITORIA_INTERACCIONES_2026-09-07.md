@@ -124,3 +124,27 @@ backend sin ruta frontend en las zonas navegables del panel** (0/432 llamadas ro
 0 métodos inexistentes en ~450 acciones visibles validadas, 0 errores JS en 50+ vistas).
 La deuda real está en: los 18 endpoints sin UI (4%, mayoría justificada), los hallazgos
 documentados (H-1…H-8) y el P1-5 del operador (rotar credenciales del `.env`).
+
+---
+
+# Tercera fase (mismo día) — Resolución de hallazgos (v12.44.817)
+
+## 9. Cerrados
+
+| # | Hallazgo | Resolución (v12.44.817) | Verificación |
+|---|---|---|---|
+| H-1 / P3-10 | `data-act`/`data-call` duplicados en 5 inputs de búsqueda; el segundo par era muerto y `filterX` recibía argumento basura | Los 10 atributos duplicados eliminados; llamadas unificadas con el separador correcto del dispatcher (`\|`): al escribir se filtra **y** se muestran las sugerencias (estaban muertas desde el origen por la sintaxis con comas), y la ✕ además las oculta. `loadAnalytics` en el input de asistencia quedó fuera (nunca llegó a ejecutarse; activarlo dispararía analytics en cada tecla — decisión aparte) | E2E: escribir "Demo" muestra el dropdown con el evento; ✕ lo oculta y restaura la lista ✅ |
+| H-7 (logout) | `POST /api/logout` (revoca token vía blacklist + audita) sin uso: `App.logout()` solo limpiaba local — el JWT quedaba válido hasta expirar | `App.logout()` ahora revoca en servidor (fire-and-forget con `Authorization: Bearer`, con fallback a localStorage; el logout local nunca se bloquea si la red falla). Cobertura: 414→**415** endpoints con UI | E2E: click en Cerrar sesión → `POST /api/logout` **200** y vuelta al login ✅ |
+| H-7 (verify-reset-code) | Sin UI aparente | **Legado confirmado**: el wizard de recuperación usa `password-reset-request` → `reset-password` (código+contraseña en un paso). Ruta conservada (no se borra); anotada en COBERTURA | Revisión de código FE (app.js:18666-18681) |
+| H-8 | `coverage-api.js` escribía versión fija antigua (v12.44.789) | Lee `package.json` (regla del proyecto: nunca asumir la versión) | Informe regenerado con título v12.44.817 ✅ |
+
+Observación menor nueva: el botón Cerrar sesión dispara `App.logout()` dos veces (doble
+binding delegado + directo preexistente) — inofensivo (la segunda revocación es idempotente);
+se deja anotado, no se toca.
+
+## 10. Estado final de hallazgos
+
+- **Cerrados:** H-1/P3-10, H-3, H-4, H-6 (observación), H-7, H-8.
+- **Abiertos para el operador:** **P1-5 — rotar las credenciales del `.env` de producción**
+  (nadie más puede hacerlo) y el pendiente del PAT de GitHub.
+- Matriz FE↔BE final: **432 endpoints · 415 con UI (96%) · 17 sin UI (justificados/legado) · 0 llamadas rotas.**

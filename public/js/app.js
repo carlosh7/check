@@ -7,39 +7,39 @@ window.escapeHtml = function(str) {
 };
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.816';
-import { Config } from './modules/core/Config.js?v=12.44.816';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.816';
-import { AppStateManager } from './modules/core/State.js?v=12.44.816';
-import { Constants } from './modules/utils/Constants.js?v=12.44.816';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.816';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.816';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.816';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.816';
-import { TableManager } from './modules/components/Table.js?v=12.44.816';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.816';
-import { FormManager } from './modules/components/Form.js?v=12.44.816';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.816';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.816';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.816';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.816';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.816';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.816';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.816';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.816';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.816';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.816';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.817';
+import { Config } from './modules/core/Config.js?v=12.44.817';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.817';
+import { AppStateManager } from './modules/core/State.js?v=12.44.817';
+import { Constants } from './modules/utils/Constants.js?v=12.44.817';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.817';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.817';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.817';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.817';
+import { TableManager } from './modules/components/Table.js?v=12.44.817';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.817';
+import { FormManager } from './modules/components/Form.js?v=12.44.817';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.817';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.817';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.817';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.817';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.817';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.817';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.817';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.817';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.817';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.817';
 
 // Módulos cableados en v12.44.804 (respaldo de v12.44.802, antes sin usar)
-import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.816';
-import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.816';
-import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.816';
+import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.817';
+import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.817';
+import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.817';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.816';
-import PushModule from './modules/app-push.js?v=12.44.816';
-import ThemeModule from './modules/app-theme.js?v=12.44.816';
-import { AiSecurity } from './modules/features/ai-security.js?v=12.44.816';
-import './modules/core/DelegatedEvents.js?v=12.44.816';
+import ImportExportModule from './modules/app-import.js?v=12.44.817';
+import PushModule from './modules/app-push.js?v=12.44.817';
+import ThemeModule from './modules/app-theme.js?v=12.44.817';
+import { AiSecurity } from './modules/features/ai-security.js?v=12.44.817';
+import './modules/core/DelegatedEvents.js?v=12.44.817';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
@@ -7117,6 +7117,19 @@ navigate(viewName, params = {}, push = true) {
     // --- AUTH ---
     async fetchAPI(endpoint, options = {}) { return API.fetchAPI(endpoint, options); },
     logout() {
+        // v12.44.817 (H-7): revocar el token en el servidor (blacklist + auditoría en
+        // POST /api/logout) antes de limpiar el estado local. Fire-and-forget: el
+        // logout local nunca debe bloquearse si la red falla.
+        try {
+            const userData = JSON.parse(LS.get('user') || 'null');
+            const token = this.state.user?.token || userData?.token || LS.get('token');
+            if (token) {
+                fetch('/api/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                }).catch(() => {});
+            }
+        } catch (e) { console.warn('[LOGOUT] No se pudo revocar el token en el servidor:', e); }
         LS.remove('user');
         LS.remove('selected_event_id');
         LS.remove('selected_event_name');
@@ -10988,7 +11001,7 @@ navigate(viewName, params = {}, push = true) {
     _gm: null,
     async _g() {
         if (!this._gm) {
-            const m = await import('./modules/app-gamification.js?v=12.44.816');
+            const m = await import('./modules/app-gamification.js?v=12.44.817');
             this._gm = m.default || window.GamificationModule || {};
             // Bind App reference for module functions that use window.App
             if (this._gm._init) this._gm._init();
@@ -11799,7 +11812,7 @@ navigate(viewName, params = {}, push = true) {
         if (!container || !container.innerHTML.trim()) return;
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.816"></head><body>' + container.innerHTML + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.817"></head><body>' + container.innerHTML + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -11834,7 +11847,7 @@ navigate(viewName, params = {}, push = true) {
         const html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.816"></head><body>' + html + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.817"></head><body>' + html + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -11948,7 +11961,7 @@ navigate(viewName, params = {}, push = true) {
             const win = window.open('', '_blank', 'width=400,height=600');
             if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
             win.document.write('<!DOCTYPE html><html><head><title>Gafetes</title>'
-                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.816">'
+                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.817">'
                 + '</head><body class="batch">' + allHtml + '</body></html>');
             win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}

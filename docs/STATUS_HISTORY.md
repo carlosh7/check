@@ -6,6 +6,32 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-07 (parte 2) — Verificación integral FE↔BE + hallazgos resueltos (v12.44.817)
+
+### Verificación integral (petición: "¿todos los botones llaman a donde deben?")
+- **Matriz FE↔BE** (`scripts/coverage-api.js`): 432 endpoints · **0 llamadas del frontend a
+  endpoints inexistentes** · 17 sin UI (justificados/legado, listados en COBERTURA).
+- **E2E por secciones** (navegador real, ~450 acciones validadas contra métodos reales de App):
+  Dashboard (284 data-calls + toolbar + modales), Mis Eventos (117), Configuración (6 grupos /
+  21 sub-pestañas), Sistema (6 grupos / 23 sub-pestañas), registro público — **0 métodos
+  inexistentes, 0 errores JS, 0 HTTP≥400**. Detalle y evidencia en
+  `docs/AUDITORIA_INTERACCIONES_2026-09-07.md` (fases 2 y 3).
+
+### Hallazgos resueltos en v12.44.817
+- **H-1/P3-10**: atributos duplicados en las 6 búsquedas eliminados; llamadas con `|`
+  (filtrar + sugerencias al escribir — estaban muertas desde el origen; ✕ las oculta).
+  E2E: sugerencias visibles con "Demo", ✕ restaura. `loadAnalytics` en el input de
+  asistencia se deja sin activar (decisión documentada).
+- **H-7**: `App.logout()` ahora revoca el token en servidor (`POST /api/logout`, blacklist +
+  auditoría; fire-and-forget). E2E: 200 al cerrar sesión. `verify-reset-code` confirmado
+  legado (el wizard usa `reset-password` en un paso). Cobertura 414→415 con UI.
+- **H-8**: `coverage-api.js` lee la versión de package.json (ya no hardcodea v12.44.789).
+
+### Pendiente del operador (recordatorio)
+**Rotar credenciales del `.env` de producción (P1-5)** · rotar PAT de GitHub.
+
+---
+
 ## 2026-09-07 — Búsqueda rota (CSS + voz) y auditoría de interacciones (v12.44.816)
 
 ### Resueltos (reporte directo del usuario + verificación en navegador real)
