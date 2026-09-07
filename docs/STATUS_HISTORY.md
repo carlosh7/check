@@ -6,6 +6,39 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-07 — Búsqueda rota (CSS + voz) y auditoría de interacciones (v12.44.816)
+
+### Resueltos (reporte directo del usuario + verificación en navegador real)
+- **Barras de búsqueda pequeñas e ilegibles (6 vistas)**: causa raíz — el `<input>` usaba
+  `.search-input` (diseñada para contenedor) sin la clase base `.input`, y los iconos
+  (lupa/mic/✕) y `.search-box-container` no tenían CSS alguno (quedaban sueltos bajo el
+  input). Fix incremental en `forms.css`: bloque "SEARCH BOX (v12.44.816)" con tema completo,
+  560px, iconos posicionados, focus visible y móvil 44px/16px. Verificado en pantalla.
+- **Voz "muteada" que no reconocía (Dashboard)**: dos causas — (1) icono `mic_off` durante la
+  ESCUCHA (percibido como micro apagado; ahora `graphic_eq` rojo); (2) el dictado no llamaba a
+  `filterAttendance`/`filterConfigStaff`, así que el texto se escribía pero la tabla nunca
+  filtraba. Además `interimResults` activado para feedback en vivo. Verificado E2E:
+  dictado simulado filtra la tabla (104→1).
+- **Auditoría de interacciones vista por vista** documentada en
+  `docs/AUDITORIA_INTERACCIONES_2026-09-07.md`: eventos (filtrar 48→47, ✕ restaura 48),
+  asistencia, config (staff/usuarios/clientes/grupos con iconos y ✕ OK), Sistema navegable,
+  login API 200, manejo de errores de voz correcto.
+- **Guía de usuario nueva**: `docs/user/02-invitados/06-busqueda-y-voz.md`.
+
+### Hallazgos nuevos documentados (AUDIT_REPORT §12)
+- P2-6 (voz rota) y P3-9 (CSS búsquedas): **resueltos en 816**.
+- P3-10 (abierto, P3): `data-act`/`data-call` duplicados en 5 inputs de búsqueda — limpieza futura.
+- **P1-5 (abierto, solo operador)**: el `.env` de producción sigue con las credenciales
+  semilla `admin@example.com`/`changeme123` y el login responde 200 con ellas → rotar YA
+  (se suma al pendiente del operador de "cambiar contraseña del admin").
+
+### Notas de sesión
+- Versión estática del sidebar (`app-shell.html`) iba por v12.44.808 — corregida a 816.
+- Para tests E2E: el reloj en vivo de `.stats-bar` reflowea cada segundo y desplaza los
+  clics por coordenadas; usar selectores semánticos o clics programáticos.
+
+---
+
 ## 2026-09-06 (parte 6) — Gobernanza IA + permisos en UI + AUDIT al día (v12.44.815)
 
 ### Resueltos (todo lo pendiente excepto Wallet Passes — bloqueado por certificados externos)

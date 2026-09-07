@@ -8,13 +8,14 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.811 (tags `v12.44.804`…`v12.44.806` en remoto, desplegado en VPS Contabo) |
+| **Version** | v12.44.816 (tag en remoto, desplegado en VPS Contabo tras Redeploy) |
+| **Sesión 2026-09-07** | ✅ **Búsqueda arreglada (6 vistas: CSS temático 560px + iconos dentro) · Voz arreglada (icono de escucha correcto, dictado ahora filtra asistencia/staff, feedback en vivo) · Auditoría de interacciones en navegador real documentada** (`docs/AUDITORIA_INTERACCIONES_2026-09-07.md`) · guía de usuario `docs/user/02-invitados/06-busqueda-y-voz.md` |
 | **Sesión 2026-09-05 (parte 3)** | ✅ **Tramo 3 ESLint** (538→504, CI 520, imports/bindings muertos limpiados) · **Wizard 2FA** (paso 4 opcional, E2E con navegador real + test de regresión) · decisiones logger/cache/CSP documentadas · **P3-7** hallazgos de producto documentados · **Redeploy v12.44.806 en VPS validado**. Detalle en `docs/STATUS_HISTORY.md`. |
 | **Sesión 2026-09-05 (parte 2)** | ✅ **Tramo 2 ESLint** (warnings 2086→538, CI 550) · **P2-1 RESUELTO** (sin token por query) · **P2-4 verificado** · **Redeploy y validación en producción real** (VPS Contabo /opt/check: v12.44.805 servida, CSP sin unsafe-inline, CORS bloqueando LAN, registro.js ejecutando en vivo — bug crítico verificado cerrado, ruleta/login/App verificados en navegador real). Detalle en `docs/STATUS_HISTORY.md`. |
 | **Todas las fases 0-4, S, backlog, Ciclos 2-10** | ✅ Completados al 100% |
 | **Ciclo 11 (9 features)** | ✅ Completado al 100% |
 | **Feature en curso** | **Fase H — Seguridad y Estabilidad**: cerrados P1-2, P1-4, P2-1, P2-2, P2-4, P2-5, P3-4, P3-5; parciales documentados P2-3/P3-1/P3-3 |
-| **Próximo paso** | 1) Operador (solo manual): rotar PAT de GitHub, cambiar contraseña del admin, y decidir activación del auto-deploy (DEPLOY_SCRIPT_PATH + acceso host). 2) Proyecto grande: modularizar app.js (destraba cierre CSP total). 3) Diferidos XL: Wallet Passes (certificados Apple/Google), Portal v2, SDK. El trabajo de deuda puntual (ESLint, CVEs, duplicados) está cerrado. |
+| **Próximo paso** | 1) Operador (solo manual): rotar PAT de GitHub, **rotar credenciales del `.env` de producción (AUDIT P1-5: siguen las semillas admin@example.com/changeme123 y el login acepta)**, cambiar contraseña del admin, y decidir activación del auto-deploy (DEPLOY_SCRIPT_PATH + acceso host). 2) P3 menor: limpiar `data-act`/`data-call` duplicados en inputs de búsqueda (AUDIT P3-10). 3) Proyecto grande: modularizar app.js (destraba cierre CSP total). 4) Diferidos XL: Wallet Passes (certificados Apple/Google), Portal v2, SDK. El trabajo de deuda puntual (ESLint, CVEs, duplicados) está cerrado. |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
 

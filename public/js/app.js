@@ -7,39 +7,39 @@ window.escapeHtml = function(str) {
 };
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.815';
-import { Config } from './modules/core/Config.js?v=12.44.815';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.815';
-import { AppStateManager } from './modules/core/State.js?v=12.44.815';
-import { Constants } from './modules/utils/Constants.js?v=12.44.815';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.815';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.815';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.815';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.815';
-import { TableManager } from './modules/components/Table.js?v=12.44.815';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.815';
-import { FormManager } from './modules/components/Form.js?v=12.44.815';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.815';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.815';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.815';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.815';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.815';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.815';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.815';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.815';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.815';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.815';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.816';
+import { Config } from './modules/core/Config.js?v=12.44.816';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.816';
+import { AppStateManager } from './modules/core/State.js?v=12.44.816';
+import { Constants } from './modules/utils/Constants.js?v=12.44.816';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.816';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.816';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.816';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.816';
+import { TableManager } from './modules/components/Table.js?v=12.44.816';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.816';
+import { FormManager } from './modules/components/Form.js?v=12.44.816';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.816';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.816';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.816';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.816';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.816';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.816';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.816';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.816';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.816';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.816';
 
 // Módulos cableados en v12.44.804 (respaldo de v12.44.802, antes sin usar)
-import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.815';
-import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.815';
-import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.815';
+import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.816';
+import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.816';
+import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.816';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.815';
-import PushModule from './modules/app-push.js?v=12.44.815';
-import ThemeModule from './modules/app-theme.js?v=12.44.815';
-import { AiSecurity } from './modules/features/ai-security.js?v=12.44.815';
-import './modules/core/DelegatedEvents.js?v=12.44.815';
+import ImportExportModule from './modules/app-import.js?v=12.44.816';
+import PushModule from './modules/app-push.js?v=12.44.816';
+import ThemeModule from './modules/app-theme.js?v=12.44.816';
+import { AiSecurity } from './modules/features/ai-security.js?v=12.44.816';
+import './modules/core/DelegatedEvents.js?v=12.44.816';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
@@ -2108,7 +2108,7 @@ const App = window.App = {
 
             const recognition = new SpeechRecognition();
             recognition.lang = 'es-ES';
-            recognition.interimResults = false;
+            recognition.interimResults = true; // v12.44.816: feedback en vivo mientras el usuario habla
             recognition.maxAlternatives = 1;
             recognition.continuous = false;
 
@@ -2117,16 +2117,28 @@ const App = window.App = {
             recognition.onstart = () => {
                 restartCount = 0;
                 if (micBtn) {
+                    // v12.44.816: antes ponía 'mic_off' (micro apagado) mientras ESCUCHABA —
+                    // el usuario lo leía como muteado. 'graphic_eq' = captando audio.
                     micBtn.style.color = '#ef4444';
-                    micBtn.textContent = 'mic_off';
+                    micBtn.textContent = 'graphic_eq';
                 }
                 this._showVoiceToast('🎤 Escuchando... Habla ahora', 'listening');
             };
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                finalTranscript += transcript;
-                this._showVoiceToast(`🎤 "${transcript}"`, 'listening');
+                // v12.44.816: separar finales de interinos para feedback sin duplicados
+                let interimTranscript = '';
+                finalTranscript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                const preview = (finalTranscript + interimTranscript).trim();
+                if (preview) this._showVoiceToast(`🎤 "${preview}"`, 'listening');
             };
 
             recognition.onend = () => {
@@ -2155,6 +2167,9 @@ const App = window.App = {
                         if (section === 'user') this.filterUsers();
                         if (section === 'client') this.filterClients();
                         if (section === 'event') this.filterEvents();
+                        // v12.44.816: secciones que faltaban — el dictado escribía el texto pero la tabla no filtraba
+                        if (section === 'attendance') this.filterAttendance();
+                        if (section === 'config-staff') this.filterConfigStaff();
                     }
                     setTimeout(() => this._hideVoiceToast(), 3000);
                 } else {
@@ -10973,7 +10988,7 @@ navigate(viewName, params = {}, push = true) {
     _gm: null,
     async _g() {
         if (!this._gm) {
-            const m = await import('./modules/app-gamification.js?v=12.44.815');
+            const m = await import('./modules/app-gamification.js?v=12.44.816');
             this._gm = m.default || window.GamificationModule || {};
             // Bind App reference for module functions that use window.App
             if (this._gm._init) this._gm._init();
@@ -11784,7 +11799,7 @@ navigate(viewName, params = {}, push = true) {
         if (!container || !container.innerHTML.trim()) return;
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.815"></head><body>' + container.innerHTML + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.816"></head><body>' + container.innerHTML + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -11819,7 +11834,7 @@ navigate(viewName, params = {}, push = true) {
         const html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.815"></head><body>' + html + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.816"></head><body>' + html + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -11933,7 +11948,7 @@ navigate(viewName, params = {}, push = true) {
             const win = window.open('', '_blank', 'width=400,height=600');
             if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
             win.document.write('<!DOCTYPE html><html><head><title>Gafetes</title>'
-                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.815">'
+                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.816">'
                 + '</head><body class="batch">' + allHtml + '</body></html>');
             win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
