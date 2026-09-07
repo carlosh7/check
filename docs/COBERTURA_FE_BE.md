@@ -1,10 +1,10 @@
 # Cobertura Backend ↔ Frontend — Check Pro v12.44.789
 
-Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
+Generado automáticamente por `scripts/coverage-api.js` · 2026-09-07
 
 ## Resumen
-- **Endpoints backend:** 430
-- **Con uso desde el frontend:** 412 (96%)
+- **Endpoints backend:** 432
+- **Con uso desde el frontend:** 414 (96%)
 - **Sin UI conectada:** 18 (4%)
 
 > Nota: un endpoint "sin UI" no es necesariamente un error — hay endpoints
@@ -50,6 +50,7 @@ Generado automáticamente por `scripts/coverage-api.js` · 2026-08-25
 | kiosk | 3 | 3 | 0 | 100% |
 | landing | 3 | 3 | 0 | 100% |
 | bi | 3 | 3 | 0 | 100% |
+| setup | 2 | 2 | 0 | 100% |
 | captcha | 2 | 0 | 2 | 0% |
 | transactions | 2 | 2 | 0 | 100% |
 | tenant | 2 | 0 | 2 | 0% |

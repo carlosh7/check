@@ -72,3 +72,55 @@ vivo ("🎤 …" va mostrando lo reconocido mientras hablas).
   el flujo de error, los reintentos y la restauración de estado sí quedaron verificados.
 - Módulos fuera del panel: portal público, kiosco, encuestas, ruleta (quedan para una
   segunda ronda de auditoría si se quiere cobertura completa).
+
+---
+
+# Segunda fase (mismo día) — Verificación integral FE↔BE y E2E por secciones
+
+Petición del operador: *"¿todos los botones llaman a donde deben? ¿todas las funciones del
+backend están disponibles en el frontend? ¿análisis exhaustivo de todas las áreas?"*
+
+## 5. Matriz de conectividad Backend ↔ Frontend (regenerada a v12.44.816)
+
+`node scripts/coverage-api.js` → `docs/COBERTURA_FE_BE.md`:
+
+- **432 endpoints backend** · **414 con uso desde el frontend (96%)** · **18 sin UI**.
+- **Llamadas del frontend a endpoints inexistentes: 0** — ningún botón del producto apunta
+  a una ruta rota a nivel de API.
+- Los 18 sin UI son mayormente justificados (API pública v1 para consumo externo, webhooks
+  Stripe/GitHub, `GET /api/unsubscribe/:token` de los pies de email, `tenant/:slug` público,
+  `metrics` server-to-server). **A revisar por si son features ocultas:** `POST /api/logout`
+  (el botón Cerrar sesión funciona — verificar qué ruta usa) y `POST /api/verify-reset-code`
+  (el wizard de recuperación puede tener un paso sin UI).
+
+## 6. E2E por secciones (navegador real, Chromium local, login ADMIN, evento con 32 asistentes)
+
+Método: en cada vista/pestaña/sub-pestaña se validó **cada elemento visible con `data-call`**
+contra los métodos reales de `App`/`window` (el mismo resolve que usa el dispatcher), se
+clickearon las acciones seguras (modales/toggles) y se capturaron errores JS
+(`window.onerror` + `unhandledrejection`) y respuestas HTTP ≥400.
+
+| Zona | Cobertura | Resultado |
+|---|---|---|
+| Dashboard (por evento) | 284 `data-call` visibles · toolbar completo · Gafetes (4 sub-acciones) | **0 métodos inexistentes · 0 errores JS · 0 HTTP≥400**. Asistente/Edición/Importar/Analytics/IA Insights abren modal/panel sin errores. Borrar DB/Exportar/Reporte validados por método (no clickeados por seguridad) |
+| Mis Eventos | 117 acciones · ciclo filtrar→✕→restaurar | 0 faltantes · 48→47→48 filas ✅ |
+| Configuración | 6 grupos · **21 sub-pestañas** (staff, pre-reg, categorías, reg-fields, network, agenda, encuestas, ruleta, gamificación, álbum, certificados, gafetes, branding, seatmaps, sesiones, ponentes, automatización, email, presupuesto, cupones, google, propuestas, patrocinadores, inteligencia, plugins, ajustes) | Todas cargan ~1s · **0 errores · 0 métodos rotos** |
+| Sistema | 6 grupos · **23 sub-pestañas** (usuarios, grupos, clientes, tenants, perfil, DB, legal, compliance, actividad, email, push, SMS, WhatsApp, api-keys, CRM, ecommerce, google, venues, webhooks, ai-security, BI, marketplace, ops) | Todas ~1s · **0 errores · 0 métodos rotos** |
+| Registro público | `/registro.html?event=…` | Formulario 12 campos · 0 errores JS ✅ |
+
+## 7. Hallazgos de esta fase
+
+| # | Hallazgo | Estado |
+|---|---|---|
+| H-6 | Sub-pestaña **Certificados** tardó 13.2s una vez (primer render del grupo); re-pasadas ~1s y el endpoint responde en 3ms | 🔵 Observación: no reproducible como bug; monitorear en producción |
+| H-7 | `POST /api/logout` y `POST /api/verify-reset-code` sin UI aparente | 🔵 Revisar si son features ocultas o rutas legadas |
+| H-8 | `scripts/coverage-api.js` escribe versión fija antigua (v12.44.789) en el título del informe | 🔵 Cosmético |
+| — | Nota técnica E2E: el reloj en vivo reflowea cada segundo; en automatización usar selectores semánticos (los clics por coordenadas pueden caer en otro elemento) | Documentado |
+
+## 8. Veredicto
+
+Con la evidencia anterior más esta fase: **no se detectan botones rotos ni features de
+backend sin ruta frontend en las zonas navegables del panel** (0/432 llamadas rotas,
+0 métodos inexistentes en ~450 acciones visibles validadas, 0 errores JS en 50+ vistas).
+La deuda real está en: los 18 endpoints sin UI (4%, mayoría justificada), los hallazgos
+documentados (H-1…H-8) y el P1-5 del operador (rotar credenciales del `.env`).
