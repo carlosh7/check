@@ -330,3 +330,9 @@ En `/home/carlosh/Check/database.js` lineas 339-343 existen 4 settings pre-cread
 - `MITRE ATLAS` — https://atlas.mitre.org/
 - `OWASP Top 10 LLM` — https://owasp.org/www-project-top-10-for-llm-applications/
 - `OWASP Top 10 Agentic` — https://genai.owasp.org/
+
+
+---
+### Actualización 2026-09-06 (v12.44.815)
+- Kill-switch `ai_enabled` ENFORCED en getAiResponse() (antes nunca se consultaba).
+- Instalaciones frescas: `ai_enabled='0'` por defecto (opt-in). BDs existentes: el admin decide vía API ai-security (ADMIN).

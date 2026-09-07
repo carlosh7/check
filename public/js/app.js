@@ -7,43 +7,43 @@ window.escapeHtml = function(str) {
 };
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.814';
-import { Config } from './modules/core/Config.js?v=12.44.814';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.814';
-import { AppStateManager } from './modules/core/State.js?v=12.44.814';
-import { Constants } from './modules/utils/Constants.js?v=12.44.814';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.814';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.814';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.814';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.814';
-import { TableManager } from './modules/components/Table.js?v=12.44.814';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.814';
-import { FormManager } from './modules/components/Form.js?v=12.44.814';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.814';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.814';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.814';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.814';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.814';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.814';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.814';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.814';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.814';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.814';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.815';
+import { Config } from './modules/core/Config.js?v=12.44.815';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.815';
+import { AppStateManager } from './modules/core/State.js?v=12.44.815';
+import { Constants } from './modules/utils/Constants.js?v=12.44.815';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.815';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.815';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.815';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.815';
+import { TableManager } from './modules/components/Table.js?v=12.44.815';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.815';
+import { FormManager } from './modules/components/Form.js?v=12.44.815';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.815';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.815';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.815';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.815';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.815';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.815';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.815';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.815';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.815';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.815';
 
 // Módulos cableados en v12.44.804 (respaldo de v12.44.802, antes sin usar)
-import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.814';
-import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.814';
-import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.814';
+import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.815';
+import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.815';
+import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.815';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.814';
-import PushModule from './modules/app-push.js?v=12.44.814';
-import ThemeModule from './modules/app-theme.js?v=12.44.814';
-import { AiSecurity } from './modules/features/ai-security.js?v=12.44.814';
-import './modules/core/DelegatedEvents.js?v=12.44.814';
+import ImportExportModule from './modules/app-import.js?v=12.44.815';
+import PushModule from './modules/app-push.js?v=12.44.815';
+import ThemeModule from './modules/app-theme.js?v=12.44.815';
+import { AiSecurity } from './modules/features/ai-security.js?v=12.44.815';
+import './modules/core/DelegatedEvents.js?v=12.44.815';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.814';
+const VERSION = '12.44.815';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -4214,10 +4214,10 @@ const App = window.App = {
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="action-btn-pill btn-success-soft">
+                        ${isAdmin ? `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="action-btn-pill btn-success-soft">
                             <span class="material-symbols-outlined">check_circle</span>
                             APROBAR ACCESO
-                        </button>
+                        </button>` : `<span class="text-[10px] text-slate-500 italic">Pendiente de aprobación por un administrador</span>`}
                     </div>
                 </div>`).join('');
         }
@@ -4655,7 +4655,7 @@ const App = window.App = {
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
                     <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    ${(window.App?.state?.user?.role === 'ADMIN') ? `<button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>` : ``}
                     <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
                     <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                     <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
@@ -4741,7 +4741,7 @@ const App = window.App = {
             navButtons = `
                 <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
                 <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                ${(window.App?.state?.user?.role === 'ADMIN') ? `<button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>` : ``}
                 <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
                 <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
@@ -4891,7 +4891,7 @@ const App = window.App = {
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
                     <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    ${(window.App?.state?.user?.role === 'ADMIN') ? `<button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>` : ``}
                     <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
                     <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                     <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
@@ -4978,7 +4978,7 @@ const App = window.App = {
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
                     <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    ${(window.App?.state?.user?.role === 'ADMIN') ? `<button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>` : ``}
                     <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
                     <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                     <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
@@ -5056,7 +5056,7 @@ const App = window.App = {
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
                     <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    ${(window.App?.state?.user?.role === 'ADMIN') ? `<button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>` : ``}
                     <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
                     <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                     <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
@@ -5144,7 +5144,7 @@ const App = window.App = {
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
                     <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    ${(window.App?.state?.user?.role === 'ADMIN') ? `<button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>` : ``}
                     <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
                     <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                     <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
@@ -5239,7 +5239,7 @@ const App = window.App = {
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <button data-act="call" data-call="editSingleUser" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
                     <button data-act="call" data-call="showManageUserAction" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    ${(window.App?.state?.user?.role === 'ADMIN') ? `<button data-act="call" data-call="showCompanySelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>` : ``}
                     <button data-act="call" data-call="showClientSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
                     <button data-act="call" data-call="showEventSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                     <button data-act="call" data-call="showRoleSelectorForUsers" data-a1="@app:_savedSelectedUsers" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
@@ -10973,7 +10973,7 @@ navigate(viewName, params = {}, push = true) {
     _gm: null,
     async _g() {
         if (!this._gm) {
-            const m = await import('./modules/app-gamification.js?v=12.44.814');
+            const m = await import('./modules/app-gamification.js?v=12.44.815');
             this._gm = m.default || window.GamificationModule || {};
             // Bind App reference for module functions that use window.App
             if (this._gm._init) this._gm._init();
@@ -11784,7 +11784,7 @@ navigate(viewName, params = {}, push = true) {
         if (!container || !container.innerHTML.trim()) return;
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.814"></head><body>' + container.innerHTML + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.815"></head><body>' + container.innerHTML + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -11819,7 +11819,7 @@ navigate(viewName, params = {}, push = true) {
         const html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.814"></head><body>' + html + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.815"></head><body>' + html + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -11933,7 +11933,7 @@ navigate(viewName, params = {}, push = true) {
             const win = window.open('', '_blank', 'width=400,height=600');
             if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
             win.document.write('<!DOCTYPE html><html><head><title>Gafetes</title>'
-                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.814">'
+                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.815">'
                 + '</head><body class="batch">' + allHtml + '</body></html>');
             win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
@@ -19321,7 +19321,7 @@ App.renderAttendanceTable = function(attendance) {
     }).join('');
 },
 
-// v12.44.814: la importación de Excel guardó fechas como Date.toString() en
+// v12.44.815: la importación de Excel guardó fechas como Date.toString() en
 // campos de texto (p.ej. teléfono). Si el valor parsea como fecha, se muestra
 // formateada; si no, el texto tal cual.
 App.fmtMaybeDate = function (raw) {

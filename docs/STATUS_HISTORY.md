@@ -6,6 +6,34 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-06 (parte 6) — Gobernanza IA + permisos en UI + AUDIT al día (v12.44.815)
+
+### Resueltos (todo lo pendiente excepto Wallet Passes — bloqueado por certificados externos)
+- **Gobernanza IA (SECURITY_IA)**: `getAiResponse()` ahora respeta el kill-switch `ai_enabled`
+  (antes la setting existía pero NUNCA se consultaba — el chatbot público llamaba al modelo
+  siempre). Instalaciones frescas nacen con `ai_enabled='0'` (opt-in); BDs existentes no se
+  tocan (admin decide vía API ai-security). Verificado: con switch OFF el chat responde por
+  reglas sin invocar el modelo ni dar error. Controles que ahora son efectivos: rate limiter,
+  DLP/validación, auditoría.
+- **P3-7 UX cerrado del todo**: el botón "APROBAR ACCESO" (ADMIN-only en backend) ahora solo
+  se muestra a ADMIN (PRODUCTOR ve "Pendiente de aprobación por un administrador"); los 7
+  botones "Asignar Empresa" de barras masivas (ADMIN-only en backend) se ocultan para
+  no-ADMIN — lookup autónomo de rol en cada render.
+- **AUDIT al día**: 5 filas obsoletas (P0-1..P1-3) anotadas como resueltas en F0 v12.44.784
+  con evidencia. La tabla del AUDIT ahora refleja la realidad: TODO cerrado salvo diferidos
+  por recursos externos (Wallet) y proyectos de feature (modularización como mantenibilidad,
+  Portal v2, SDK).
+
+### Pendiente exclusivo del operador
+Rotar PAT de GitHub · cambiar contraseña del admin de producción · decidir activación del
+auto-deploy · crear primer evento real para validar flujo completo · decidir si desactivar
+ai_enabled en producción (no hay API key configurada; con switch ON y sin key el chat cae
+al fallback sin errores).
+
+Tests 330/331 · ESLint 0 errores.
+
+---
+
 ## 2026-09-06 (parte 5) — Transitorio BI eliminado + deudas menores (v12.44.814)
 
 ### Transitorio de carga (causa raíz encontrada y fijada)

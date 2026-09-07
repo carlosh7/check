@@ -158,12 +158,12 @@ Revisión manual de rutas críticas: queries parametrizadas (prepared statements
 
 | ID | Sev | Hallazgo | Ubicación |
 |---|---|---|---|
-| P0-1 | P0 | Bootstrap instalación fresca roto (`uuidv4` sin import) | src/utils/schema.js:1481 |
-| P0-2 | P0 | Raíz del proyecto servida por HTTP (código fuente; riesgo de descargar BD) | server.js:274 |
-| P0-3 | P0 | `npm test` se autodestruye vía `process.exit(1)` en require de BD | database.js:39 + tests/backend.test.js:9 |
-| P1-1 | P1 | `DATA_PATH=/home/data_check` imposible sin root; fallo silencioso→exit | .env.example:22, database.js:11-39 |
+| P0-1 | P0 | Bootstrap instalación fresca roto (`uuidv4` sin import) | ✅ **RESUELTO F0 v12.44.784** (instalación fresca verificada E2E; adicional: `bcrypt` sin import corregido también) |
+| P0-2 | P0 | Raíz del proyecto servida por HTTP (código fuente; riesgo de descargar BD) | ✅ **RESUELTO F0 v12.44.784** (whitelist de estáticos; 404 verificado) |
+| P0-3 | P0 | `npm test` se autodestruye vía `process.exit(1)` en require de BD | ✅ **RESUELTO F0 v12.44.784** (suite estable: 330/331 hoy) |
+| P1-1 | P1 | `DATA_PATH=/home/data_check` imposible sin root; fallo silencioso→exit | ✅ **RESUELTO F0 v12.44.784** (migraciones + bootstrap idempotente) |
 | P1-2 | P1 | JWT_SECRET/ADMIN_PASSWORD con defaults débiles shipeados | ✅ **RESUELTO v12.44.802**: seeds eliminados + wizard de primer arranque + política de contraseñas (`src/security/password-policy.js`); `.env.example` sin ADMIN_* por defecto |
-| P1-3 | P1 | backend.test.js cuelga Jest (open handles sin --forceExit) | package.json:11 |
+| P1-3 | P1 | backend.test.js cuelga Jest (open handles sin --forceExit) | ✅ **RESUELTO F0** (config de test actual; suite completa corre sin colgar: 330/331) |
 | P2-1 | P2 | Token JWT aceptado por query string | ✅ **RESUELTO v12.44.805**: fallback `req.query.token` retirado de `src/middleware/auth.js` (el frontend ya usaba header desde v12.44.804; verificado que ningún consumidor usa `?token=`) — los JWT ya no aparecen en logs de acceso |
 | P2-2 | P2 | Suite visual.test.js sin tests (falsa señal de cobertura) | ✅ **RESUELTO v12.44.804**: 20 tests estáticos (guardián CSP + refs locales) + modo live Playwright opcional (VISUAL_BASE_URL) |
 | P2-3 | P2 | CSP con unsafe-inline + frameSrc * | 🟡 **PARCIAL AVANZADO**: scriptSrc sin 'unsafe-inline' desde v12.44.804 (scripts externalizados a /js/pages/) · **styleSrc sin 'unsafe-inline' desde v12.44.810** (11 bloques `<style>` inline externalizados a /css/pages/*.css con orden de cascada preservado; SweetAlert2 con CSS externo por link — su `<style>` inyectado quedaba bloqueado y se detectó/corrigió en verificación; impresión de gafetes por CSS externo + @page CSSOM; guardián anti-regresión en tests/visual.test.js que prohíbe `<script>` y `<style>` inline). ✅ **RESUELTO TOTAL v12.44.811**: además de los elementos (v12.44.804/810), los ~835 handlers on*= y ~950 atributos style= (estáticos de app-shell/páginas + generados en strings de app.js/pages) se convirtieron a **data-act** (dispatcher por delegación con allowlist y tokens, sin eval) y **data-style** (aplicación por CSSOM con MutationObserver); CSP sin unsafe-inline en NINGUNA directiva (script-src-attr=none). Guardián anti-regresión en visual.test.js. E2E verificado: login, sidebar, apertura de evento, tabs, ruleta, registro real, portal, kiosk |

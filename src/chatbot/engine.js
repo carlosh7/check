@@ -55,6 +55,10 @@ function getEventContext(eventId) {
 }
 
 async function getAiResponse(message, eventId, history) {
+    // v12.44.815: gobernanza IA — respetar el kill-switch ai_enabled.
+    // Antes la setting existía pero nunca se consultaba aquí (hallazgo SECURITY_IA).
+    const aiEnabled = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_enabled'").pluck().get();
+    if (String(aiEnabled) !== '1') return null;
     const apiKey = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_openrouter_key'").pluck().get() || '';
     const model = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'ai_model'").pluck().get() || 'google/gemini-2.0-flash-lite-preview-02-05:free';
 
