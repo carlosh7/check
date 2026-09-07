@@ -6,6 +6,21 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-07 (parte 3) — Redeploy validado en producción VPS Contabo (v12.44.817)
+
+- **Procedimiento**: backup previo (`/opt/check-backup-20260907-redeploy.tar.gz`) → rsync con
+  excludes estrictos (incluido `docker-compose.yml` del VPS — lección del incidente del 05-09;
+  md5 verificado intacto) → `docker compose build check-app` (53s) → `up -d`.
+- **Validación**: health ok; `/api/app-version` = **12.44.817** interno (127.0.0.1:13000) y
+  externo (https://chek.smarteventos.co); query strings `v=12.44.817` servidas; contenedor
+  healthy sin errores de log; Nextcloud AIO y Dolibarr intactos.
+- **Producción rechaza las credenciales semilla (401)** — matiza P1-5: el admin de producción
+  usa otra contraseña; el riesgo de P1-5 queda acotado a los `.env` de desarrollo (rotar
+  igualmente). Prueba autenticada de sugerencias/logout en producción pendiente de la
+  contraseña real del operador (la lógica ya verificada E2E en local sirve el mismo bundle).
+
+---
+
 ## 2026-09-07 (parte 2) — Verificación integral FE↔BE + hallazgos resueltos (v12.44.817)
 
 ### Verificación integral (petición: "¿todos los botones llaman a donde deben?")

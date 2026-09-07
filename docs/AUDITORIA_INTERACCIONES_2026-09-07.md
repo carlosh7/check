@@ -145,6 +145,31 @@ se deja anotado, no se toca.
 ## 10. Estado final de hallazgos
 
 - **Cerrados:** H-1/P3-10, H-3, H-4, H-6 (observación), H-7, H-8.
-- **Abiertos para el operador:** **P1-5 — rotar las credenciales del `.env` de producción**
-  (nadie más puede hacerlo) y el pendiente del PAT de GitHub.
+- **Abiertos para el operador:** **P1-5 — rotar las credenciales del `.env`** y el pendiente del PAT de GitHub.
+  *Matizado tras validación en producción:* el login de producción rechaza las semillas
+  (`401` — el admin real usa otra contraseña), así que el riesgo queda acotado a los
+  `.env` de desarrollo, cuya contraseña de BD local sí se acepta.
 - Matriz FE↔BE final: **432 endpoints · 415 con UI (96%) · 17 sin UI (justificados/legado) · 0 llamadas rotas.**
+
+---
+
+# Redeploy de producción — VPS Contabo (2026-09-07, v12.44.817)
+
+Procedimiento documentado (lección del incidente del 05-09 aplicada): backup previo →
+rsync con excludes estrictos (`.git/`, `node_modules/`, `data/`, `persistence/`, `.env*`,
+`docker-compose*.yml`, `portainer-stack*.yml`, `coverage/`; sin `--delete`) →
+`docker compose build check-app` → `up -d check-app`.
+
+| Verificación | Resultado |
+|---|---|
+| Backup previo | `/opt/check-backup-20260907-redeploy.tar.gz` (1.1M) ✅ |
+| `docker-compose.yml` del VPS intacto (13000 / ALLOWED_ORIGINS) | md5 idéntico al backup ✅ |
+| `/api/health` interno (127.0.0.1:13000) | `{"status":"ok"}` ✅ |
+| `/api/app-version` interno y externo (https://chek.smarteventos.co) | **12.44.817** ✅ |
+| Query strings servidas en `/` | `v=12.44.817` ✅ |
+| Contenedor `check-app` | Up, healthy, sin errores en logs ✅ |
+| Otros proyectos (Nextcloud AIO, Dolibarr) | Up, intactos ✅ |
+| Prueba autenticada de sugerencias/logout en producción | No ejecutable: el admin de producción usa otras credenciales (401 con las semillas — positivo para P1-5). La lógica afectada es idéntica a la verificada E2E en local; sugerido validarlo con la contraseña real del operador |
+
+Nota: el texto `v12.44.802` que aparece en el HTML de login es un comentario del setup
+wizard (cosmético, no es la versión servida).
