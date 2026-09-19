@@ -2077,4 +2077,78 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 
 ---
 
+---
+
+# Ciclo 12 — Brechas vs BlastTickets (propuesta, sin iniciar)
+
+> **Estado:** propuesta documentada 2026-09-19 a partir del benchmark de BlastTickets. La **Fase H sigue siendo la feature en curso**; este ciclo queda listo para arrancar cuando se cierre.
+
+## ⚡ Estado Actual
+
+| Item | Valor |
+|------|-------|
+| **Version** | v12.44.817 |
+| **Feature en curso** | Fase H — Seguridad y Estabilidad (sin cambios) |
+| **Ciclo 12** | 📋 Propuesto — pendiente de aprobación de prioridades |
+
+---
+
+## 🧭 Contexto
+
+Benchmark de **BlastTickets** (plataforma colombiana de ticketing: Marketplace + Backoffice + BlastDoor), focalizada en el ciclo **venta → acceso**. A diferencia del análisis del Ciclo 11 (engagement/gestión), las brechas detectadas están en el flanco **comercial y de operación en puerta**.
+
+**Documento de referencia:** `docs/BENCHMARK_BLASTTICKETS.md` (gap analysis completo y detalle de cada candidata)
+
+---
+
+## 🗺️ Gap Analysis vs BlastTickets
+
+| Feature | BlastTickets | Check Pro |
+|---------|--------------|-----------|
+| Red de promotores (códigos, comisiones, rankings) | ✅ | ❌ |
+| Multipasarela de pagos local | ✅ | ⏳ solo Stripe; PayPal F3-07 sin aterrizar |
+| Check-in offline / PDA con sync diferido | ✅ | ⏳ PWA offline, sin cola de check-ins |
+| Upsells / consumibles en checkout | ✅ | ❌ (carrito/cupones sí) |
+| Analítica con atribución de tráfico + alertas | ✅ | ⏳ dashboards sí, sin UTM ni alertas |
+| Mapas 3D "desde la butaca" + cortesías/holds | ✅ | ⏳ 3D Planner existe |
+| White label / multi-tenant | ✅ | ✅ |
+| Validación QR + duplicados | ✅ | ✅ |
+| Comunicación masiva segmentada | ✅ | ✅ |
+| Engagement, badges, certificados, CRM, plugins | ❌ | ✅ |
+
+---
+
+## 🎯 Features Sugeridas para Ciclo 12
+
+| ID | Feature | Inspiración | Impacto | Esfuerzo | Prioridad |
+|----|---------|-------------|---------|----------|-----------|
+| C12-03 | **Check-in offline con sync diferido + duplicados** (escáner/PDA) | BlastDoor | 🔴 Alto | M | **Alta** |
+| C12-02 | **Multipasarela local** (PayPal F3-07 + Mercado Pago/PayU/Wompi vía abstracción de gateway) | Marketplace | 🔴 Alto | M/L | **Alta** |
+| C12-01 | **Red de promotores/afiliados** (links y códigos únicos, comisiones, rankings) | Backoffice | 🔴 Alto | L | Media-Alta |
+| C12-04 | **Upsells/consumibles** en checkout público | Marketplace | 🟡 Medio | M | **Media** |
+| C12-05 | **Atribución por fuente (UTM) + alertas automáticas de ventas** | Backoffice | 🟡 Medio | M | **Media** |
+| C12-06 | **Evaluar seating visual**: vista "desde la butaca" + bloqueo cortesías/holds | Backoffice | 🟢 Bajo | M | Baja |
+
+---
+
+## 🔄 Flujo de Trabajo Sugerido
+
+1. Revisar `docs/BENCHMARK_BLASTTICKETS.md` para el detalle de cada candidata
+2. Confirmar prioridades del ciclo (la tabla anterior es propuesta)
+3. Implementar por orden, version bump + commit + tag por feature
+4. Actualizar tablero de progreso abajo
+5. Repetir
+
+---
+
+## 📊 Tablero de Progreso — Ciclo 12
+
+| ID | Feature | Estado | Versión | Fecha |
+|----|---------|--------|---------|-------|
+| — | **Ciclo 12 propuesto** (benchmark documentado) | 📋 | v12.44.817 | 2026-09-19 |
+
+---
+
+---
+
 ## 📚 Documentacion Referenciada

@@ -35,6 +35,7 @@ Se realizó una **auditoría externa fresca** de repositorios open-source y serv
 | **Eventbrite** | Ticketing masivo | Marketplace público de eventos, SEO/descubrimiento, anuncios pagos, app check-in |
 | **Cvent** | Enterprise suite | Venue sourcing, diagramación 3D, webinars, RFPs, integración CRM, floor plans, AI (CventIQ) |
 | **Pretix** | Ticketing técnico open-source | POS (punto de venta físico), plugin marketplace, hardware dedicado (scanners), certificación ISO/GDPR, WCAG accesibilidad |
+| **BlastTickets** | Ticketing LATAM (Colombia, con IA) | Red de promotores con comisiones, multipasarela de pagos, BlastDoor (control de acceso offline Android/iOS/PDA), mapas 3D "desde la butaca", upsells/consumibles, analítica con alertas |
 
 ---
 
@@ -91,3 +92,7 @@ Check Pro está **a la par o supera** a la mayoría de competidores open-source 
 4. **Constructor visual de landing pages** — Splash es el rey en esto
 
 **Recomendación:** Abordar los items 1-3 (gamificación, badge printing, kiosko) como prioritarios para Ciclo 11 por su alto impacto y esfuerzo moderado.
+
+---
+
+> **Actualización 2026-09-19:** análisis competitivo ampliado con **BlastTickets** (ticketing LATAM). Las brechas detectadas (promotores/afiliados, multipasarela local, check-in offline/PDA, upsells, analítica con atribución) están detalladas en `docs/BENCHMARK_BLASTTICKETS.md` y propuestas como **Ciclo 12** en `docs/ROADMAP.md`.
