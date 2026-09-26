@@ -87,7 +87,10 @@ router.get('/event/:id', (req, res) => {
 });
 
 router.get('/captcha', (req, res) => {
-    const captcha = generateCaptcha();
+    // N-5 (v12.44.819): se pasa req.ip para que el límite de desafíos sea POR IP
+    // (antes usaba la clave 'unknown', compartida por todos los visitantes).
+    const captcha = generateCaptcha(req.ip);
+    if (captcha.error) return res.status(429).json({ success: false, error: captcha.error });
     res.json({ question: captcha.question, token: captcha.token });
 });
 
@@ -331,6 +334,13 @@ router.post('/public-register', (req, res) => {
 
     if (!event_id || !name || !email) {
         return res.status(400).json({ success: false, error: 'Datos requeridos: event_id, name, email' });
+    }
+
+    // ── N-5 (v12.44.819): captcha anti-bots OBLIGATORIO en el registro público ──
+    // El desafío es de un solo uso y expira en 5 minutos (src/security/captcha.js).
+    const captchaCheck = verifyCaptcha(req.body.captcha_token, req.body.captcha_answer);
+    if (!captchaCheck.valid) {
+        return res.status(400).json({ success: false, captcha_failed: true, error: 'Verificación anti-robots inválida o expirada. Resuelve el desafío e inténtalo de nuevo.' });
     }
 
     // L-1A.1 (v12.44.818): enforcement server-side de la autorización de tratamiento

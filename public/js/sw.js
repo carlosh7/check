@@ -1,4 +1,4 @@
-const CACHE_NAME = 'check-v12.44.818-cache';
+const CACHE_NAME = 'check-v12.44.819-cache';
 const assets = [
   '/',
   '/css/modules/base.css',

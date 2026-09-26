@@ -11,10 +11,12 @@ const recentCaptchas = new Map();
 const CAPTCHA_EXPIRY = 300000; // 5 minutes
 const MAX_STORED = 1000;
 
-// Rate limiting: max 5 CAPTCHAs per IP per 10 minutes
+// Rate limiting: v12.44.819 → 30 desafíos por IP por 10 minutos. Antes eran 5 y con
+// clave 'unknown' compartida; ahora que la ruta pasa req.ip real, 30 da margen a
+// recargas de página legítimas sin abrir la puerta a generación masiva por bots.
 const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW = 600000; // 10 minutes
-const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_MAX = 30;
 
 function generateCaptcha(ip) {
     // Rate limit check

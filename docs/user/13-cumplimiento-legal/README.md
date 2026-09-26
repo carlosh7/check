@@ -1,6 +1,7 @@
-# 13 — Cumplimiento Legal (Fase L, v12.44.818)
+# 13 — Cumplimiento Legal (Fase L, v12.44.818-819)
 
-Guía de las funciones de protección de datos (Ley 1581 de 2012) incorporadas en v12.44.818.
+Guía de las funciones de protección de datos (Ley 1581 de 2012) incorporadas en
+v12.44.818 y ampliadas en v12.44.819 (secciones 8 y 9).
 Base de análisis: `docs/LEGAL/` (informe ejecutivo, marco normativo y modelo de evidencias).
 
 ## 1. Consentimiento en el registro público (invitados)
@@ -72,3 +73,26 @@ En Compliance → Consentimientos: `GET /api/compliance/consent/<eventId>/export
 descarga un **CSV con la evidencia de autorización** de todos los registrados del evento
 (fecha, tipo, aceptación, nombre, email, IP, texto+hash de la política). Úsalo como
 expediente ante una queja o auditoría.
+
+## 8. Verificación anti-robots en el registro público (v12.44.819)
+
+El formulario de registro de invitados muestra ahora un **desafío matemático
+anti-bots** ("Verificación anti-robots: 4 × 7 + 2 = ?"). Es obligatorio y se valida
+**en el servidor** (`POST /api/public-register` rechaza el registro sin solución
+válida); cada desafío es de un solo uso y expira a los 5 minutos. Tras un intento
+fallido el desafío se renueva automáticamente. La generación está limitada por IP
+(30 desafíos cada 10 minutos): si un visitante la agota, debe esperar unos minutos.
+
+## 9. Mis datos: portabilidad y borrado de cuenta (v12.44.819)
+
+En **Sistema → Cuenta** hay una tarjeta "Mis Datos (Ley 1581)" con dos botones:
+
+- **Exportar mis datos**: descarga un JSON con tu perfil y tus consentimientos
+  (`GET /api/me/export` — portabilidad, Ley 1581 / GDPR).
+- **Eliminar mi cuenta**: pide tu contraseña y escribir **ELIMINAR** como
+  confirmación. El borrado **anonimiza** tus datos de forma irreversible (email
+  sustituido por un identificador no atribuible, nombre y teléfono fuera,
+  contraseña inutilizable) y la cuenta queda inaccesible al momento. La evidencia
+  de consentimientos y bitácoras se conserva por deber legal (Ley 1581). Las
+  cuentas **ADMIN no pueden autodestruirse**: un administrador solo puede ser
+  eliminado desde la gestión de usuarios por otro administrador.

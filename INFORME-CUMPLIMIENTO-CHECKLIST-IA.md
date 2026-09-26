@@ -1,4 +1,4 @@
-# INFORME-CUMPLIMIENTO-CHECKLIST-IA.md — Check Pro v12.44.818
+# INFORME-CUMPLIMIENTO-CHECKLIST-IA.md — Check Pro v12.44.819
 
 **Auditoría contra el protocolo de lanzamiento seguro para apps construidas con IA**
 Protocolo: `~/.zcode/workspace/default/guia-lanzar-app-ia/CONSOLIDADO-para-agente.md` (Partes A–E)
@@ -8,17 +8,34 @@ Fecha: 2026-09-23 · Commit auditado: `a09d5ab` (v12.44.818, producción VPS) ·
 
 ---
 
+## 0. ACTUALIZACIÓN v12.44.819 (2026-09-26) — hallazgos N-1..N-5 RESUELTOS con fixes aprobados por el operador
+
+| Hallazgo | Antes | Ahora | Evidencia ejecutada |
+|---|---|---|---|
+| N-1 (B3) IA no declarada | ❌ | ✅ | §7 "Tratamiento mediante inteligencia artificial" en `/legal/privacidad`: asistente conversacional + análisis/predicción vía API de Google (Gemini); sin decisiones jurídicas automatizadas; derechos por canales ARCO (§5) |
+| N-2 (B4) Terceros sin nombres | ⚠️ | ✅ | §8 de la política nombra: **Google** (Gemini/cuenta), **Stripe** (pago, PCI-DSS propia), **Twilio** (SMS/WhatsApp), proveedores de **email**, **hosting/BD** del operador |
+| N-3 (B5) Sin borrado self-service | ⚠️ | ✅ | `POST /api/me/delete-account` (`auth.routes.js`): password + frase "ELIMINAR" → anonimiza (`eliminado+<uuid>@anulado.local`, `status='DELETED'`, password inutilizable, 2FA fuera); ADMIN → 403; consentimientos/bitácoras conservados. UI: "Exportar mis datos" + "Eliminar mi cuenta" en Sistema → Cuenta. Tests: `tests/launch-hardening.test.js` (8 tests) |
+| N-4 (A20) 2 CVEs high | ⚠️ | ✅ | `npm audit fix` → multer **2.4.0**, sharp **0.35.4**; verificación: `npm audit --omit=dev` = **found 0 vulnerabilities** |
+| N-5 (A12) Captcha no forzado | ⚠️ | ✅ | `public-register` valida `verifyCaptcha(captcha_token, captcha_answer)` antes de continuar; desafío visible en `registro.html/js` (un solo uso, se renueva al fallar); `GET /api/captcha` ahora pasa `req.ip` (antes clave 'unknown' compartida) con límite 30/10min y `429` al agotarse |
+| N-6 (C) DPA en T&C | ⚠️ | 🔴 | Requiere abogado → agrupado con **L-0** |
+
+**Marcador del protocolo tras v12.44.819: 19 ✅ / 5 ⚠️ / 0 ❌ / 2 N/A / 1 🔍.**
+Tests: **345 passed / 1 skipped / 19 suites, exit 0**. El resto de este informe conserva
+el detalle original de la auditoría del 2026-09-23 a modo histórico.
+
+---
+
 ## 1. Resumen ejecutivo
 
 | Estado | Ítems |
 |---|---|
-| ✅ Cumple | **13** — A2, A6, A7, A8, A10, A11, A13, A14, A16, A18, B1, B2, D |
-| ⚠️ Parcial | **9** — A5, A9, A12, A15, A17, A20, B4, B5, C |
-| ❌ No cumple | **1** — B3 (IA no declarada en la política) |
+| ✅ Cumple | **19** — A1*, A2, A6, A7, A8, A10, A11, **A12**, A13, A14, A16, A18, **A20**, B1, B2, **B3**, **B4**, **B5**, D *(en negrilla: cerrados en v12.44.819 — sección 0)* |
+| ⚠️ Parcial | **5** — A5, A9, A15, A17, C |
+| ❌ No cumple | **0** — (B3 se resolvió en v12.44.819) |
 | ➖ N/A | **2** — A3, A4 (SQLite local, no Supabase/RLS; equivalente cubierto por A6+A7) |
 | 🔍 Requiere acceso | **1** — A19 (HTTPS/HSTS: lo fuerza Nginx Proxy Manager en producción, no el repo) |
 
-**Veredicto:** base de seguridad sólida (helmet con CSP estricta, rate-limiting granular, bcrypt+política de contraseñas, SQL parametrizado, static whitelist) y una **Fase L legal (Ley 1581/2012) ya ejecutada hoy** con consentimiento evidenciado. Los huecos reales de cara a lanzar son 5: **2 vulnerabilidades high regresadas en dependencias**, **IA no declarada en la política de privacidad** (siendo que la app usa Gemini), **terceros sin nombres**, **captcha no forzado en registro público**, y los **pendientes de operador ya documentados** (P1-5 credenciales semilla en producción, L-0 abogado/RNBD, L-4b cifrado de backups).
+**Veredicto:** base de seguridad sólida (helmet con CSP estricta, rate-limiting granular, bcrypt+política de contraseñas, SQL parametrizado, static whitelist) y una **Fase L legal (Ley 1581/2012) ya ejecutada hoy** con consentimiento evidenciado. Los huecos reales de cara a lanzar son 5: **2 vulnerabilidades high regresadas en dependencias**, **IA no declarada en la política de privacidad** (siendo que la app usa Gemini), **terceros sin nombres**, **captcha no forzado en registro público**, y los **pendientes de operador ya documentados** (P1-5 credenciales semilla en producción, L-0 abogado/RNBD, L-4b cifrado de backups). **Actualización v12.44.819: esos 5 huecos de código/texto quedaron cerrados (sección 0); solo quedan los pendientes de operador y L-0.**
 
 ---
 

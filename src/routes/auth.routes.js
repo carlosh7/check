@@ -407,6 +407,48 @@ router.put('/me/password', authMiddleware(), (req, res) => {
     }
 });
 
+// ─── N-3 / B5 (v12.44.819): Borrado de cuenta self-service (Ley 1581 arts. 8-15) ───
+// El titular puede eliminar su cuenta sin intermediarios. En lugar de un DELETE físico
+// (rompería bitácoras y evidencia de consentimientos, cuya conservación es deber legal),
+// se ANONIMIZA la fila: los datos personales se sustituyen por valores no atribuibles y
+// la cuenta queda en estado 'DELETED', que el middleware de auth rechaza de inmediato.
+router.post('/me/delete-account', limiters.authLimiter, authMiddleware(), (req, res) => {
+    try {
+        const { password, confirmation } = req.body;
+        if (!password) return res.status(400).json({ error: 'Contraseña requerida para confirmar el borrado' });
+        if (confirmation !== 'ELIMINAR') return res.status(400).json({ error: 'Debes escribir ELIMINAR para confirmar el borrado definitivo' });
+
+        const user = db.prepare("SELECT id, username, password, role FROM users WHERE id = ?").get(req.userId);
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+        if (!bcrypt.compareSync(password, user.password)) {
+            logAction(req, AUDIT_ACTIONS.USER_UPDATED, { userId: req.userId, action: 'delete_account_failed' });
+            return res.status(401).json({ error: 'Contraseña incorrecta' });
+        }
+
+        // Un ADMIN no puede autodestruirse: la plataforma quedaría sin administración.
+        // El borrado de un admin se hace desde la gestión de usuarios con otro admin.
+        if (user.role === 'ADMIN') {
+            return res.status(403).json({ error: 'Una cuenta ADMIN no puede eliminarse a sí misma: usa la gestión de usuarios con otro administrador.' });
+        }
+
+        const crypto = require('crypto');
+        const anonEmail = `eliminado+${uuidv4()}@anulado.local`;
+        const randomPassword = bcrypt.hashSync(crypto.randomBytes(24).toString('hex'), 10);
+        db.prepare(`UPDATE users SET username = ?, display_name = ?, phone = '', password = ?, totp_secret = NULL, totp_enabled = 0, status = 'DELETED' WHERE id = ?`)
+          .run(anonEmail, 'Usuario eliminado', randomPassword, req.userId);
+
+        // La bitácora conserva el evento sin datos personales del titular (username previo
+        // se registra solo como referencia operativa mínima para soporte/fraude).
+        logAction(req, AUDIT_ACTIONS.USER_DELETED, { userId: req.userId, self_service: true, anonymized: true });
+
+        res.json({ success: true, message: 'Cuenta eliminada. Tus datos personales fueron anonimizados; la evidencia de consentimientos se conserva por deber legal (Ley 1581).' });
+    } catch (e) {
+        logger.error('[me/delete-account] Error:', e.message);
+        res.status(500).json({ error: 'Error al eliminar la cuenta' });
+    }
+});
+
 // ─── 2FA TOTP (C6-15) ───
 router.post('/me/2fa/setup', authMiddleware(), (req, res) => {
     try {

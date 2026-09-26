@@ -7308,6 +7308,33 @@ navigate(viewName, params = {}, push = true) {
         // Profile Security Forms (Phase 5)
         sf('profile-form', (e) => this.handleEmailChange(e));
         sf('password-form', (e) => this.handlePasswordChange(e));
+
+        // N-3/B5 (v12.44.819): portabilidad y borrado de cuenta (Ley 1581 arts. 8-15)
+        cl('btn-export-my-data', async () => {
+            try {
+                const res = await fetch('/api/me/export', { headers: { 'Authorization': 'Bearer ' + LS.get('token') } });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'mis-datos-checkpro.json';
+                document.body.appendChild(a); a.click(); a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (err) { alert('No se pudieron exportar los datos.'); }
+        });
+        cl('btn-delete-my-account', async () => {
+            if (!confirm('¿Eliminar tu cuenta de forma permanente? Tus datos personales serán anonimizados y no podrás recuperar el acceso.')) return;
+            const pw = prompt('Escribe tu contraseña para confirmar:');
+            if (!pw) return;
+            const phrase = prompt('Para confirmar el borrado definitivo, escribe ELIMINAR:');
+            if (phrase !== 'ELIMINAR') { alert('Confirmación incorrecta: operación cancelada.'); return; }
+            try {
+                const res = await fetch('/api/me/delete-account', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + LS.get('token') }, body: JSON.stringify({ password: pw, confirmation: phrase }) });
+                const d = await res.json();
+                if (d.success) { alert('Tu cuenta fue eliminada. Tus datos fueron anonimizados.'); App.logout(); }
+                else alert('Error: ' + (d.error || 'No se pudo eliminar la cuenta'));
+            } catch (err) { alert('Error de red.'); }
+        });
         sf('invite-user-form', (e) => this.handleInviteSubmit(e));
         sf('company-form', (e) => this.handleCompanySubmit(e));
         

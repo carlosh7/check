@@ -126,6 +126,12 @@
                         <textarea id="reg-diet" placeholder="Alergias o restricciones alimentarias" class="input-field registro-textarea"></textarea>
                     </div>
 
+                    <!-- N-5 (v12.44.819): captcha anti-bots obligatorio (desafío de un solo uso) -->
+                    <div id="field-captcha" class="registro-form-group">
+                        <label class="form-label" for="reg-captcha">Verificación anti-robots: <span id="reg-captcha-question">cargando…</span></label>
+                        <input type="text" id="reg-captcha" inputmode="numeric" autocomplete="off" placeholder="Escribe el resultado" class="input-field">
+                    </div>
+
                     <div id="policy-section" class="registro-policy">
                         <div id="policy-text" class="registro-policy-text"></div>
                         <label id="agreement-label" class="registro-policy-label">
@@ -163,6 +169,6 @@
         </div>
     </div>
 
-    <script src="/js/pages/registro.js?v=12.44.818"></script>
+    <script src="/js/pages/registro.js?v=12.44.819"></script>
 </body>
 </html>

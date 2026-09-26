@@ -6,6 +6,44 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-26 — Fixes del protocolo de lanzamiento IA (v12.44.819) + consolidación v12.44.818
+
+- **Consolidación**: la Fase L completa (v12.44.818, 43 archivos) quedó comprometida como
+  `ff3a8c7` con tag `v12.44.818` (llevaba 3 días sin commit). ROADMAP "Estado Actual" al día.
+- **Tests de arranque**: 3 corridas de `npm test` — 2 limpias (337 passed / 1 skipped / 18
+  suites, exit 0) y 1 con una suite fallida no identificada (test inestable a vigilar).
+- **Verificación del informe de cumplimiento** (`INFORME-CUMPLIMIENTO-CHECKLIST-IA.md`):
+  hallazgos N-1..N-5 seguían abiertos; se aplicaron los 5 fixes aprobados por el operador:
+  - **N-4 (A20)**: `npm audit fix` → multer 2.2.0→**2.4.0**, sharp 0.35.3→**0.35.4**;
+    `npm audit --omit=dev` = **0 vulnerabilidades** (antes 2 high).
+  - **N-1 (B3)**: nueva sección "Tratamiento mediante inteligencia artificial" en
+    `/legal/privacidad` (§7): asistente conversacional + análisis/predicción vía API de
+    Google (Gemini), sin decisiones jurídicas automatizadas, derechos por canales ARCO.
+  - **N-2 (B4)**: terceros NOMBRADOS en §8 de la política: Google (Gemini/cuenta), Stripe
+    (pago, PCI-DSS del propio Stripe), Twilio (SMS/WhatsApp), proveedores de email,
+    hosting/BD del operador.
+  - **N-5 (A12)**: captcha OBLIGATORIO en `public-register` (server-side `verifyCaptcha`
+    sobre `captcha_token`+`captcha_answer`); el formulario público muestra el desafío
+    (`registro.html/js`, se renueva tras cada intento fallido); `GET /api/captcha` ahora
+    pasa `req.ip` (antes clave 'unknown' compartida por todos los visitantes) y el límite
+    sube 5→30/10min, con `429` al agotarse.
+  - **N-3 (B5)**: `POST /api/me/delete-account` self-service: exige contraseña + frase
+    "ELIMINAR"; ANONIMIZA (username → `eliminado+<uuid>@anulado.local`, display_name y
+    teléfono fuera, password aleatoria, 2FA desactivada) y deja `status='DELETED'`
+    (el middleware de auth rechaza al instante); ADMIN no puede autodestruirse (403);
+    consentimientos y bitácoras se conservan (deber legal). UI: botones "Exportar mis
+    datos" y "Eliminar mi cuenta" en Sistema → Cuenta.
+- **Tests**: 345 passed / 1 skipped / **19 suites, exit 0** (nuevo
+  `tests/launch-hardening.test.js`: 8 tests — captcha anti-replay/respuesta mala/faltantes
+  + borrado 400/401/403, anonimización verificada en BD y token muerto tras borrado).
+  ESLint: 0 errores en archivos tocados.
+- **No aplicado**: N-6 (cláusulas de encargado/DPA en T&C) → bloqueado con L-0 (abogado).
+- **Queda del operador (sin cambios)**: retirar semillas del `.env` de producción (P1-5
+  matizado: el login ya las rechaza), tokens de kiosco o `KIOSK_TOKEN_MODE=strict`,
+  L-0 abogado+RNBD, verificar HTTPS/HSTS en NPM (A19), rotar PAT de GitHub.
+
+---
+
 ## 2026-09-23 — FASE L: Legal & Compliance (v12.44.818) — auditoría + implementación
 
 - **Investigación** (2 agentes web): benchmark legal de 7 boleterías (Tuboleta, TuTicket,

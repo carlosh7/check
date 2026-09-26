@@ -201,6 +201,12 @@ Orden: Dashboard → Eventos → Invitados (tabla/pipeline kanban) → Check-in/
 | L-4.1 | Rate limit propio para `/api/verify-reset-code` y `/api/reset-password` (código 6 dígitos) | ✅ | `server.js` |
 | L-4.2 | Fix auditoría cambio de email (`USER_PROFILE_UPDATED` inexistente) | ✅ | `auth.routes.js` |
 | L-4.3 | Portabilidad self-service del usuario (`GET /api/me/export`) | ✅ | `auth.routes.js` |
+| N-4 (A20) | **v12.44.819**: `npm audit fix` — multer 2.2.0→2.4.0, sharp 0.35.3→0.35.4 (2 high); `npm audit --omit=dev` = 0 | ✅ | `package-lock.json` |
+| N-1 (B3) | **v12.44.819**: uso de IA declarado en la política (§7: asistente + análisis vía API Google Gemini, sin decisiones jurídicas automatizadas) | ✅ | `legal-privacidad.html` |
+| N-2 (B4) | **v12.44.819**: terceros nombrados en la política (§8: Google, Stripe, Twilio, email, hosting/BD) | ✅ | `legal-privacidad.html` |
+| N-5 (A12) | **v12.44.819**: captcha obligatorio en `public-register` (server-side) + desafío en el formulario público; `GET /api/captcha` con `req.ip` real y límite 30/10min (antes 5 y clave compartida) | ✅ | `public.routes.js`, `captcha.js`, `registro.html/js` |
+| N-3 (B5) | **v12.44.819**: `POST /api/me/delete-account` (anonimiza + status DELETED + ADMIN bloqueado + evidencia conservada) y botones "Exportar mis datos"/"Eliminar mi cuenta" en Sistema → Cuenta | ✅ | `auth.routes.js`, `app-shell.html`, `app.js` |
+| N-6 (C) | Cláusulas de encargado (DPA) en T&C con organizadores | 🔴 | requiere abogado (L-0) |
 | L-0 | **Operador**: rotar credenciales de `.env` de desarrollo; definir razón social/NIT/email de privacidad; completar plantillas `/legal/*` y validarlas con abogado; inscripción RNBD (2 ene–31 mar actualización anual) | 🔴 | — |
 | L-4b | Cifrar backups y claves Twilio en `settings`; alertar si falta `ENCRYPTION_KEY`; retención por tabla (no borrar consentimientos); checkbox diferenciado para datos de salud | 🔴 | próxima iteración |
 

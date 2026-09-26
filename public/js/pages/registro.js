@@ -3,6 +3,20 @@
         let categories = [];
         const cart = {};
 
+        // N-5 (v12.44.819): captcha anti-bots de un solo uso para el registro público.
+        let _captchaToken = null;
+        async function loadCaptcha() {
+            try {
+                const r = await fetch(API_URL + '/captcha');
+                const d = await r.json();
+                if (d.token && d.question) {
+                    _captchaToken = d.token;
+                    const q = document.getElementById('reg-captcha-question');
+                    if (q) q.textContent = d.question + ' = ?';
+                }
+            } catch (_) { /* al enviar se valida; el usuario puede reintentar */ }
+        }
+
         function updateCart(catId, delta) {
             cart[catId] = Math.max(0, (cart[catId] || 0) + delta);
             const el = document.getElementById('qty-' + catId);
@@ -304,6 +318,16 @@
             // L-1A (v12.44.818): la autorización de tratamiento viaja al servidor y queda
             // registrada con texto+hash de la política, IP y fecha (Ley 1581 arts. 8-9).
             body.agreement = !!(document.getElementById('reg-agreement') || {}).checked;
+
+            // N-5 (v12.44.819): la verificación anti-robots viaja al servidor (obligatoria).
+            body.captcha_token = _captchaToken || '';
+            body.captcha_answer = (document.getElementById('reg-captcha')?.value || '').trim();
+            if (!body.captcha_answer) {
+                alert('Resuelve la verificación anti-robots para continuar.');
+                btn.innerText = orig;
+                btn.disabled = false;
+                return;
+            }
             if (body.plus_ones && body.plus_ones.length > 0) {
                 const decl = document.getElementById('plusone-declaration');
                 if (!decl || !decl.checked) {
@@ -367,6 +391,7 @@
                     document.body.onclick = () => window.location.reload();
                 } else {
                     alert("Error: " + (d.error || 'No se pudo completar el registro'));
+                    loadCaptcha(); // el token del captcha es de un solo uso: se renueva tras cada intento
                 }
             } catch (e) {
                 alert("Error de conexión. Intenta de nuevo.");
@@ -377,3 +402,4 @@
         });
 
         loadEvent();
+        loadCaptcha();

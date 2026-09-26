@@ -1,4 +1,4 @@
-# AUDIT_REPORT.md — Check Pro v12.44.818
+# AUDIT_REPORT.md — Check Pro v12.44.819
 
 **Auditoría técnica independiente** · Fecha: 2026-08-21 · Alcance: commit `85f52be` (1.955 commits)
 **Método:** análisis estático + verificación runtime real (`npm ci`, tests, arranque, curl). No se modificó código fuente.
@@ -18,6 +18,20 @@
 > | L-6 | P2 | Cambio de email sin auditoría (constante `USER_PROFILE_UPDATED` inexistente) | ✅ **RESUELTO**: usa `USER_UPDATED` con action `email_change` |
 > | L-7 | P2 | Sin portabilidad self-service para usuarios de plataforma | ✅ **RESUELTO**: `GET /api/me/export` (perfil + consentimientos, JSON descargable) |
 > | L-8 | P1/P2 | Cifrado en reposo parcial (backups sin cifrar, claves Twilio en claro en `settings`, fallback silencioso sin `ENCRYPTION_KEY`); datos sensibles sin checkbox diferenciado; retención única borra consentimientos; plus-ones sin declaración | 🟡 **PARCIAL**: declaración de acompañantes + evidencia ✅; cifrado de backups/settings, checkbox de salud y retención por tabla **ABIERTOS** (próxima iteración Fase L-4 del plan) |
+
+> **ACTUALIZACIÓN v12.44.819 — PROTOCOLO DE LANZAMIENTO IA: HALLAZGOS N-1..N-5 RESUELTOS (2026-09-26).**
+> Auditoría del protocolo en `INFORME-CUMPLIMIENTO-CHECKLIST-IA.md`; fixes aprobados por el operador:
+> **N-1** ✅ IA declarada en la política de privacidad (§7: asistente conversacional + análisis vía
+> API de Google Gemini) · **N-2** ✅ terceros nombrados (§8: Google, Stripe, Twilio, proveedores de
+> email, hosting/BD) · **N-3** ✅ borrado de cuenta self-service `POST /api/me/delete-account` con
+> anonimización irreversible y estado `DELETED` (botones "Exportar mis datos" / "Eliminar mi
+> cuenta" en Sistema → Cuenta; ADMIN bloqueado; evidencia de consentimientos conservada) ·
+> **N-4** ✅ `npm audit fix` (multer **2.4.0**, sharp **0.35.4** — `npm audit --omit=dev` = **0
+> vulnerabilidades**) · **N-5** ✅ captcha anti-bots obligatorio en `public-register`
+> (server-side `verifyCaptcha`; desafío visible en el formulario público; `GET /api/captcha` con
+> límite por IP real 30/10min, antes 5 con clave 'unknown' compartida). **N-6** (cláusulas de
+> encargado/DPA en T&C) sigue 🔴, bloqueado con L-0 (abogado). Tests: **345/345** (19 suites,
+> 1 skipped; nuevo `tests/launch-hardening.test.js`).
 
 > **ACTUALIZACIÓN v12.44.802 (2026-08-30):** el hallazgo **P1-2** (secretos con default débil conocido) quedó **RESUELTO**: se eliminaron los seeds de admin con credenciales expuestas (`admin@check.com`/`admin123` y `admin@example.com`/`changeme123`) de `schema.js`, `database.js`, `setup.js` y `.env.example`; el seeding solo procede con `ADMIN_EMAIL`+`ADMIN_PASSWORD` explícitas en el entorno; y las instalaciones nuevas crean su admin mediante un **wizard de primer arranque** (`GET/POST /api/setup`, ver `docs/user/07-administracion/12-primer-arranque.md`). Además, la política centralizada de contraseñas (`src/security/password-policy.js`) prohíbe permanentemente las contraseñas expuestas y exige 10+ caracteres con mayúscula, minúscula y número en todos los flujos que fijan contraseña, y `POST /api/signup` ya ignora el rol enviado por el cliente (siempre `PRODUCTOR`). Tests: **279/279** (16 suites).
 
