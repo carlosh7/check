@@ -181,7 +181,10 @@ try {
 } catch(e) {}
 
 // POST /api/compliance/consent — Record consent
-router.post('/consent', (req, res) => {
+// L-1A (v12.44.818): ya no es público. La escritura de consentimientos ocurre
+// server-side en los flujos (public-register, signup); este endpoint queda para
+// uso administrativo y exige sesión (evita consentimientos forjados).
+router.post('/consent', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const { guest_id, event_id, consent_type, consent_given, consent_text } = req.body;
         if (!guest_id || !event_id || !consent_type) {
@@ -224,6 +227,34 @@ router.get('/consent/:eventId/stats', authMiddleware(['ADMIN', 'PRODUCTOR']), (r
             GROUP BY consent_type
         `).all(req.params.eventId);
         res.json(stats);
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// GET /api/compliance/consent/:eventId/export — Export de consentimientos (CSV)
+// L-1A.4 (v12.44.818): evidencia de autorización para el expediente del organizador
+// (Responsable) y del operador (Encargado) ante la SIC.
+router.get('/consent/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        const csvEscape = (v) => {
+            const s = v == null ? '' : String(v);
+            return '"' + s.replace(/"/g, '""') + '"';
+        };
+        const rows = db.prepare(`
+            SELECT cl.created_at, cl.consent_type, cl.consent_given, cl.consent_text,
+                   cl.ip_address, g.name as guest_name, g.email as guest_email
+            FROM consent_logs cl
+            LEFT JOIN guests g ON g.id = cl.guest_id
+            WHERE cl.event_id = ?
+            ORDER BY cl.created_at DESC
+        `).all(req.params.eventId);
+        const header = 'fecha,tipo,aceptado,nombre,email,ip,consentimiento(texto+hash)';
+        const lines = rows.map(r => [
+            r.created_at, r.consent_type, r.consent_given ? 'SI' : 'NO',
+            r.guest_name || '', r.guest_email || '', r.ip_address || '', r.consent_text || ''
+        ].map(csvEscape).join(','));
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="consentimientos-' + req.params.eventId + '.csv"');
+        res.send('\uFEFF' + header + '\n' + lines.join('\n'));
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 

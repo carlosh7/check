@@ -301,6 +301,20 @@
             const _pos = collectPlusOnes();
             if (_pos.length > 0) body.plus_ones = _pos;
 
+            // L-1A (v12.44.818): la autorización de tratamiento viaja al servidor y queda
+            // registrada con texto+hash de la política, IP y fecha (Ley 1581 arts. 8-9).
+            body.agreement = !!(document.getElementById('reg-agreement') || {}).checked;
+            if (body.plus_ones && body.plus_ones.length > 0) {
+                const decl = document.getElementById('plusone-declaration');
+                if (!decl || !decl.checked) {
+                    alert('Debes declarar que cuentas con la autorización de tus acompañantes para registrar sus datos.');
+                    btn.innerText = orig;
+                    btn.disabled = false;
+                    return;
+                }
+                body.plusone_declaration = true;
+            }
+
             // Payment flow (cart)
             const cartItems = [];
             categories.forEach(function(c) {

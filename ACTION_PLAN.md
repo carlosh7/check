@@ -178,3 +178,30 @@ Orden: Dashboard → Eventos → Invitados (tabla/pipeline kanban) → Check-in/
 | Password recovery / 2FA | backend sin UI | ✅ full-stack E2E |
 | Backend sin UI | ~55% | <25% |
 | Features nuevas (F4/F5) | — | plus-ones, forms condicionales, sponsors+leads, API keys UI, CRM UI, streaming híbrido |
+
+---
+
+## FASE L — Legal & Compliance (Ley 1581 de 2012) ⚖️
+
+> Objetivo: blindaje legal del operador y de los organizadores frente a la SIC, sin romper
+> flujos existentes (todo incremental). Análisis completo en `docs/LEGAL/` (00-03).
+> Ejecutada el 2026-09-23 en v12.44.818. Tests: 337/337.
+
+| # | Tarea | Estado | Evidencia |
+|---|-------|--------|-----------|
+| L-1A.1 | Consentimiento del registro público: enforcement server-side + evidencia (texto+hash de política, IP, UA, fecha) en `consent_logs` | ✅ | `public.routes.js` (`public-register`) |
+| L-1A.2 | Declaración de autorización de acompañantes + consent por plus-one + email de aviso | ✅ | `public.routes.js` + `registro.html/js` |
+| L-1A.3 | Signup exige T&C + Política y registra evidencia (`event_id='PLATFORM'`) | ✅ | `auth.routes.js`, `index.html`, `app.js` |
+| L-1A.4 | Export CSV de consentimientos por evento + cierre de `POST /compliance/consent` público | ✅ | `compliance.routes.js` |
+| L-1B.1 | Importación exige declaración de autorización + log auditable `GUEST_IMPORTED` (tipo, archivo, conteos) | ✅ | `import.routes.js`, `app-import.js`, `app.js`, `app-shell.html` |
+| L-1B.2 | Campañas de email con pie "¿por qué recibes esto?" + opt-out por destinatario (Ley 1335) | ✅ | `email.routes.js` |
+| L-2.1 | Token de kiosco por evento (opcional/estricto) + email enmascarado en búsqueda kiosco | ✅ | `public.routes.js`, `events.routes.js`, `kiosk.js` |
+| L-2.2 | `/guests/qr/:id/token` protegido por token de kiosco; `/api/guests/by-id` minimizado | ✅ | `public.routes.js`, `guests.routes.js` |
+| L-3.2 | Documentos legales públicos `/legal/terminos`, `/legal/privacidad`, `/legal/cookies` (plantillas) | ✅ | `public/html/pages/legal-*.html` |
+| L-4.1 | Rate limit propio para `/api/verify-reset-code` y `/api/reset-password` (código 6 dígitos) | ✅ | `server.js` |
+| L-4.2 | Fix auditoría cambio de email (`USER_PROFILE_UPDATED` inexistente) | ✅ | `auth.routes.js` |
+| L-4.3 | Portabilidad self-service del usuario (`GET /api/me/export`) | ✅ | `auth.routes.js` |
+| L-0 | **Operador**: rotar credenciales de `.env` de desarrollo; definir razón social/NIT/email de privacidad; completar plantillas `/legal/*` y validarlas con abogado; inscripción RNBD (2 ene–31 mar actualización anual) | 🔴 | — |
+| L-4b | Cifrar backups y claves Twilio en `settings`; alertar si falta `ENCRYPTION_KEY`; retención por tabla (no borrar consentimientos); checkbox diferenciado para datos de salud | 🔴 | próxima iteración |
+
+**Guía de usuario:** `docs/user/13-cumplimiento-legal/README.md`

@@ -161,13 +161,21 @@ describe('Setup Wizard: flujo de primer arranque', () => {
 
     test('Signup ignora el role del cliente → siempre PRODUCTOR/PENDING', async () => {
         const res = await request(app).post('/api/signup').send({
-            username: 'colado@test.local', password: TEST_PASSWORD, display_name: 'Colado', role: 'ADMIN'
+            username: 'colado@test.local', password: TEST_PASSWORD, display_name: 'Colado', role: 'ADMIN',
+            accepted_terms: true // v12.44.818 (Fase L): aceptación de T&C ahora obligatoria
         });
         expect(res.status).toBe(200);
         const row = db.prepare("SELECT * FROM users WHERE username = 'colado@test.local'").get();
         expect(row).toBeDefined();
         expect(row.role).toBe('PRODUCTOR');
         expect(row.status).toBe('PENDING');
+    });
+
+    test('Signup sin aceptación de T&C → 400 (v12.44.818, Ley 1581)', async () => {
+        const res = await request(app).post('/api/signup').send({
+            username: 'sin-terminos@test.local', password: TEST_PASSWORD, display_name: 'Sin Terminos'
+        });
+        expect(res.status).toBe(400);
     });
 });
 

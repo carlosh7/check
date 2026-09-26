@@ -4,6 +4,18 @@ let selectedGuest = null;
 let resetTimeout = null;
 let html5QrCode = null;
 
+// L-2.1 (v12.44.818): token de kiosco — se lee de la URL (?kt=) o del localStorage
+// (recordado tras el primer uso). Va en el header x-kiosk-token de las llamadas
+// protegidas (search / qr-token / checkin) cuando el evento lo tiene configurado.
+let kioskToken = new URLSearchParams(window.location.search).get('kt') || '';
+try { if (!kioskToken) kioskToken = localStorage.getItem('kiosk_token_' + window.location.search) || localStorage.getItem('kiosk_token') || ''; } catch(_) {}
+
+function kioskHeaders(extra) {
+  const h = Object.assign({ 'Content-Type': 'application/json' }, extra || {});
+  if (kioskToken) h['x-kiosk-token'] = kioskToken;
+  return h;
+}
+
 function getEventFromUrl() {
   const path = window.location.pathname.split('/');
   const slug = path[1];
@@ -54,7 +66,7 @@ document.getElementById('search-input').addEventListener('input', function() {
 function searchGuests(q) {
   if (!eventId) return;
   hideError();
-  fetch(API + '/kiosk/' + eventId + '/search?q=' + encodeURIComponent(q)).then(function(r) { return r.json(); }).then(function(guests) {
+  fetch(API + '/kiosk/' + eventId + '/search?q=' + encodeURIComponent(q), { headers: kioskHeaders() }).then(function(r) { return r.json(); }).then(function(guests) {
     const c = document.getElementById('results');
     if (!guests || guests.length === 0) {
       c.innerHTML = '<div data-style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);font-size:13px">Sin resultados</div>';
@@ -85,9 +97,10 @@ function selectGuest(id, name, email, org) {
 function confirmCheckin() {
   if (!selectedGuest) return;
   // Get guest token from API
-  fetch(API + '/guests/qr/' + selectedGuest.id + '/token').then(function(r) { return r.json(); }).then(function(data) {
+  fetch(API + '/guests/qr/' + selectedGuest.id + '/token', { headers: kioskHeaders() }).then(function(r) { return r.json(); }).then(function(data) {
     if (!data || !data.token) { showError('Error al obtener token'); return; }
-    return fetch(API + '/kiosk/checkin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ guest_token: data.token }) });
+    try { localStorage.setItem('kiosk_token', kioskToken); } catch(_) {}
+    return fetch(API + '/kiosk/checkin', { method: 'POST', headers: kioskHeaders(), body: JSON.stringify({ guest_token: data.token }) });
   }).then(function(r) { return r.json(); }).then(function(res) {
     if (res && res.success) {
       if (res.alreadyCheckedIn) {
@@ -179,7 +192,7 @@ function toggleQR() {
 }
 
 function handleQRToken(token) {
-  fetch(API + '/kiosk/checkin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ guest_token: token }) })
+  fetch(API + '/kiosk/checkin', { method: 'POST', headers: kioskHeaders(), body: JSON.stringify({ guest_token: token }) })
   .then(function(r) { return r.json(); })
   .then(function(res) {
     if (res && res.success) {

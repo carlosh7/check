@@ -61,6 +61,7 @@ const router = express.Router();
 const { castId } = require('../utils/helpers');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 const { authMiddleware } = require('../middleware/auth');
+const { maskEmail, sha256Hex } = require('../utils/privacy');
 
 function escapeHtml(str) {
     if (!str) return '';
@@ -118,6 +119,24 @@ router.get('/portal/:guestId', (req, res) => {
 
 // ── Kiosko Auto-Check-In (C11-03) ──
 
+// L-2.1 (v12.44.818): token de kiosco por evento.
+// - Si el evento tiene kiosk_token configurado → es OBLIGATORIO (header x-kiosk-token o ?kt=).
+// - Si NO tiene token: en modo 'optional' (default) se permite como antes (compatibilidad
+//   con kioscos existentes); en modo 'strict' (env KIOSK_TOKEN_MODE=strict) se bloquea.
+// El token se genera con POST /api/events/:id/kiosk-token (ADMIN/PRODUCTOR).
+function kioskTokenOk(eventId, req) {
+    let configured = null;
+    try {
+        const ev = db.prepare("SELECT kiosk_token FROM events WHERE id = ?").get(eventId);
+        configured = ev ? ev.kiosk_token : null;
+    } catch (_) { return true; }
+    if (!configured) {
+        return String(process.env.KIOSK_TOKEN_MODE || 'optional') !== 'strict';
+    }
+    const provided = String(req.get('x-kiosk-token') || req.query.kt || '');
+    return provided === configured;
+}
+
 // Buscar invitados por nombre (para kiosko)
 router.get('/kiosk/:eventId/search', (req, res) => {
     try {
@@ -125,6 +144,7 @@ router.get('/kiosk/:eventId/search', (req, res) => {
         if (!q || q.length < 2) return res.json([]);
         const eId = require('../utils/helpers').castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'Evento inválido' });
+        if (!kioskTokenOk(eId, req)) return res.status(403).json({ error: 'Kiosco no autorizado para este evento' });
         const event = db.prepare("SELECT id, has_own_db FROM events WHERE id = ?").get(eId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         let targetDb = require('../../database');
@@ -132,7 +152,8 @@ router.get('/kiosk/:eventId/search', (req, res) => {
             try { targetDb = require('../utils/database-manager').getEventConnection(eId) || targetDb; } catch(e) {}
         }
         const guests = targetDb.prepare("SELECT id, name, email, organization, checked_in FROM guests WHERE event_id = ? AND (name LIKE ? OR email LIKE ? OR organization LIKE ?) LIMIT 20").all(eId, '%' + q + '%', '%' + q + '%', '%' + q + '%');
-        res.json(guests);
+        // L-2.2 (v12.44.818): minimización — el kiosco no necesita emails completos
+        res.json(guests.map(function(g) { return Object.assign({}, g, { email: maskEmail(g.email) }); }));
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -143,6 +164,7 @@ router.post('/kiosk/checkin', (req, res) => {
         if (!guest_token) return res.status(400).json({ error: 'Token requerido' });
         const guest = db.prepare("SELECT * FROM guests WHERE qr_token = ?").get(guest_token);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+        if (!kioskTokenOk(guest.event_id, req)) return res.status(403).json({ error: 'Kiosco no autorizado para este evento' });
         if (guest.checked_in) return res.json({ success: true, alreadyCheckedIn: true, guest: { name: guest.name } });
         let targetDb = require('../../database');
         const eventData = db.prepare("SELECT id, has_own_db FROM events WHERE id = ?").get(guest.event_id);
@@ -256,8 +278,11 @@ router.get('/guests/qr/:guestId', (req, res) => {
 // Token QR del invitado (para kiosko)
 router.get('/guests/qr/:guestId/token', (req, res) => {
     try {
-        const guest = db.prepare("SELECT id, qr_token FROM guests WHERE id = ?").get(req.params.guestId);
+        const guest = db.prepare("SELECT id, qr_token, event_id FROM guests WHERE id = ?").get(req.params.guestId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+        // L-2.2 (v12.44.818): este endpoint entrega el token de check-in; exige autorización
+        // de kiosco cuando el evento la tiene configurada (evita GuestId -> qr_token público).
+        if (!kioskTokenOk(guest.event_id, req)) return res.status(403).json({ error: 'Kiosco no autorizado para este evento' });
         res.json({ token: guest.qr_token });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
@@ -303,10 +328,15 @@ router.get('/unsubscribe/:token', (req, res) => {
 // Registro público de invitados
 router.post('/public-register', (req, res) => {
     const { event_id, name, email, phone, organization, position, gender, dietary_notes } = req.body;
-    
+
     if (!event_id || !name || !email) {
         return res.status(400).json({ success: false, error: 'Datos requeridos: event_id, name, email' });
     }
+
+    // L-1A.1 (v12.44.818): enforcement server-side de la autorización de tratamiento
+    // (Ley 1581 arts. 8-9). El checkbox del cliente ya no es suficiente: si el evento
+    // exige acuerdo, el backend rechaza el registro sin `agreement=true`.
+    const agreementGiven = req.body.agreement === true || req.body.agreement === 'true' || req.body.agreement === 1;
     
     try {
         const { getValidId, castId } = require('../utils/helpers');
@@ -320,6 +350,10 @@ router.post('/public-register', (req, res) => {
         const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
         if (!event) {
             return res.status(404).json({ success: false, error: 'Evento no encontrado' });
+        }
+
+        if (event.reg_require_agreement !== 0 && !agreementGiven) {
+            return res.status(400).json({ success: false, error: 'Debes aceptar la política de tratamiento de datos personales para registrarte' });
         }
         
         // Verificar whitelist/blacklist de emails
@@ -377,6 +411,21 @@ router.post('/public-register', (req, res) => {
           .run(guestId, eId, name, email, phone || '', organization || '', position || '', gender || 'O', dietary_notes || '', qrToken, catId,
                isWaitlisted ? 'waitlisted' : null, isWaitlisted ? waitlistPosition : null, isWaitlisted ? now : null);
 
+        // ── L-1A.1 (v12.44.818): prueba de la autorización (Ley 1581 arts. 8-9, Decreto 1377) ──
+        // Se conserva QUÉ texto aceptó (con hash de versión), CUÁNDO y DESDE DÓNDE.
+        const policyText = (event.reg_policy && String(event.reg_policy).trim())
+            || 'Al registrarse, acepta que sus datos sean utilizados únicamente para la gestión del evento.';
+        const policyHash = sha256Hex(policyText);
+        const consentIp = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip || '';
+        const consentUa = req.get('User-Agent') || null;
+        try {
+            db.prepare(`INSERT INTO consent_logs (id, guest_id, event_id, consent_type, consent_given, consent_text, ip_address, user_agent)
+                        VALUES (?, ?, ?, 'data_treatment', 1, ?, ?, ?)`)
+              .run(uuidv4(), guestId, eId, `[sha256:${policyHash}] ${policyText}`.slice(0, 4000), consentIp, consentUa);
+        } catch (cErr) {
+            logger.warn('[public-register] No se pudo registrar consentimiento:', cErr.message);
+        }
+
         // ── F4: campos personalizados del formulario (valores junto al invitado) ──
         try {
             const cf = req.body.custom_fields || {};
@@ -403,6 +452,12 @@ router.post('/public-register', (req, res) => {
         try {
             const plusOnes = Array.isArray(req.body.plus_ones) ? req.body.plus_ones.filter(p => p && p.name && p.name.trim()) : [];
             if (plusOnes.length > 0) {
+                // L-1A.2 (v12.44.818): el registrante debe declarar que cuenta con la
+                // autorización de sus acompañantes (los titulares no están presentes).
+                const plusOneDeclared = req.body.plusone_declaration === true || req.body.plusone_declaration === 'true';
+                if (!plusOneDeclared) {
+                    return res.status(400).json({ success: false, error: 'Debes declarar que cuentas con la autorización de tus acompañantes para registrar sus datos' });
+                }
                 let quota = null;
                 try { quota = db.prepare("SELECT plus_one_quota FROM events WHERE id = ?").get(eId)?.plus_one_quota; } catch (_) {}
                 const allowed = quota == null || quota < 0 ? plusOnes.length : Math.min(quota, plusOnes.length);
@@ -413,10 +468,33 @@ router.post('/public-register', (req, res) => {
                         const dupPo = targetDb.prepare("SELECT id FROM guests WHERE event_id = ? AND email = ?").get(eId, poEmail);
                         if (dupPo) continue;
                     }
+                    const poId = uuidv4();
                     targetDb.prepare(`INSERT INTO guests (id, event_id, name, email, phone, gender, qr_token, parent_guest_id, guest_type, checked_in)
                                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'plus_one', 0)`)
-                        .run(uuidv4(), eId, po.name.trim(), poEmail, po.phone || '', gender || 'O', uuidv4(), guestId);
+                        .run(poId, eId, po.name.trim(), poEmail, po.phone || '', gender || 'O', uuidv4(), guestId);
                     plusOnesCreated++;
+
+                    // L-1A.2 (v12.44.818): evidencia de la declaración del registrante por cada acompañante
+                    try {
+                        db.prepare(`INSERT INTO consent_logs (id, guest_id, event_id, consent_type, consent_given, consent_text, ip_address, user_agent)
+                                    VALUES (?, ?, ?, 'plus_one_declaration', 1, ?, ?, ?)`)
+                          .run(uuidv4(), poId, eId,
+                               `[sha256:${policyHash}] Declaración de ${name} (${email}): cuenta con autorización para registrar los datos del acompañante "${po.name.trim()}"`
+                                   .slice(0, 4000), consentIp, consentUa);
+                    } catch (_) {}
+                    // Aviso al acompañante con canal de salida (best-effort; si no hay SMTP, la prueba queda en logs)
+                    if (poEmail) {
+                        try {
+                            if (global.emailService && typeof global.emailService.sendEmail === 'function') {
+                                const poHtml = '<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:20px;color:#1e293b">'
+                                    + '<h2 style="font-size:18px">Te registraron como acompañante</h2>'
+                                    + '<p style="font-size:14px">' + escapeHtml(name) + ' te registró como acompañante para el evento <b>' + escapeHtml(event.name || '') + '</b>.</p>'
+                                    + '<p style="font-size:13px;color:#475569">Si no autorizaste el registro de tus datos, responde a este correo para solicitar la eliminación de tu información.</p>'
+                                    + '<p style="font-size:11px;color:#94a3b8;margin-top:16px">Tratamiento de datos conforme a la Ley 1581 de 2012 (Colombia).</p></div>';
+                                global.emailService.sendEmail({ to: poEmail, subject: 'Te registraron como acompañante — ' + (event.name || 'Evento'), html: poHtml, eventId: null }).catch(function() {});
+                            }
+                        } catch (_) {}
+                    }
                 }
             }
         } catch (poErr) {

@@ -1,7 +1,23 @@
-# AUDIT_REPORT.md — Check Pro v12.44.783
+# AUDIT_REPORT.md — Check Pro v12.44.818
 
 **Auditoría técnica independiente** · Fecha: 2026-08-21 · Alcance: commit `85f52be` (1.955 commits)
 **Método:** análisis estático + verificación runtime real (`npm ci`, tests, arranque, curl). No se modificó código fuente.
+
+> **ACTUALIZACIÓN v12.44.818 — FASE L: AUDITORÍA LEGAL-COMPLIANCE (2026-09-23).** Auditoría de
+> protección de datos (Ley 1581/2012) con informes completos en `docs/LEGAL/` (00 ejecutivo,
+> 01 benchmark competencia, 02 marco normativo, 03 modelo de evidencias). Hallazgos
+> **L-1..L-8** y su estado:
+>
+> | ID | Sev | Hallazgo | Estado v12.44.818 |
+> |---|---|---|---|
+> | L-1 | P0 | Consentimiento del registro público sin enforcement ni prueba (checkbox solo cliente; `consent_logs` vacía) | ✅ **RESUELTO**: `public-register` exige `agreement` + registra consentimiento con texto+hash de política, IP, UA (`public.routes.js`); `POST /compliance/consent` ya no es público; export CSV de consentimientos |
+> | L-2 | P0 | Endpoints públicos exponen PII de invitados (`/kiosk/:id/search` con emails completos; `/guests/qr/:id/token` entrega token de check-in) | ✅ **RESUELTO (2 capas)**: emails enmascarados siempre en kiosk search; token de kiosco por evento (`events.kiosk_token` + endpoints POST/DELETE `/api/events/:id/kiosk-token`) obligatorio si configurado, modo estricto global vía `KIOSK_TOKEN_MODE=strict`; `/api/guests/by-id` reducido a campos mínimos. **Pendiente del operador**: generar tokens y/o activar modo strict en producción |
+> | L-3 | P0 | Sin documentos legales del operador (T&C, política de datos, cookies) ni aceptación de T&C en signup | ✅ **RESUELTO (plantillas)**: `/legal/terminos`, `/legal/privacidad`, `/legal/cookies` publicadas (marcadas PLANTILLA — validar con abogado); signup exige `accepted_terms` y registra evidencia en `consent_logs` (`event_id='PLATFORM'`). **Pendiente**: completar datos del responsable + revisión de abogado + RNBD |
+> | L-4 | P1 | Datos importados sin declaración de autorización (import sin trazabilidad) | ✅ **RESUELTO**: `POST /api/import/execute` exige `attestation` y registra `GUEST_IMPORTED` con tipo, archivo, conteos, declaración textual (Ley 1581 art. 18); checkbox en ambos modales de importación; campañas de email inyectan pie "¿por qué recibes esto?" + opt-out (Ley 1335) |
+> | L-5 | P1 | Códigos de recuperación de 6 dígitos fuerza-bruteables (`/api/verify-reset-code` y `/api/reset-password` sin limiter propio) | ✅ **RESUELTO**: ambos bajo `limiters.auth` (50/ventana) en `server.js` |
+> | L-6 | P2 | Cambio de email sin auditoría (constante `USER_PROFILE_UPDATED` inexistente) | ✅ **RESUELTO**: usa `USER_UPDATED` con action `email_change` |
+> | L-7 | P2 | Sin portabilidad self-service para usuarios de plataforma | ✅ **RESUELTO**: `GET /api/me/export` (perfil + consentimientos, JSON descargable) |
+> | L-8 | P1/P2 | Cifrado en reposo parcial (backups sin cifrar, claves Twilio en claro en `settings`, fallback silencioso sin `ENCRYPTION_KEY`); datos sensibles sin checkbox diferenciado; retención única borra consentimientos; plus-ones sin declaración | 🟡 **PARCIAL**: declaración de acompañantes + evidencia ✅; cifrado de backups/settings, checkbox de salud y retención por tabla **ABIERTOS** (próxima iteración Fase L-4 del plan) |
 
 > **ACTUALIZACIÓN v12.44.802 (2026-08-30):** el hallazgo **P1-2** (secretos con default débil conocido) quedó **RESUELTO**: se eliminaron los seeds de admin con credenciales expuestas (`admin@check.com`/`admin123` y `admin@example.com`/`changeme123`) de `schema.js`, `database.js`, `setup.js` y `.env.example`; el seeding solo procede con `ADMIN_EMAIL`+`ADMIN_PASSWORD` explícitas en el entorno; y las instalaciones nuevas crean su admin mediante un **wizard de primer arranque** (`GET/POST /api/setup`, ver `docs/user/07-administracion/12-primer-arranque.md`). Además, la política centralizada de contraseñas (`src/security/password-policy.js`) prohíbe permanentemente las contraseñas expuestas y exige 10+ caracteres con mayúscula, minúscula y número en todos los flujos que fijan contraseña, y `POST /api/signup` ya ignora el rol enviado por el cliente (siempre `PRODUCTOR`). Tests: **279/279** (16 suites).
 

@@ -663,7 +663,19 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
     try {
         const { type } = req.body;
         const data = req.body.data || {}; // Protección contra undefined
-        
+
+        // L-1B.1 (v12.44.818): declaración obligatoria de autorización de tratamiento
+        // (Ley 1581 arts. 8-9 y 18). Cada importación queda como acto documentado de
+        // debida diligencia: quién, cuándo, qué tipo y cuántos registros.
+        const attestationGiven = req.body.attestation === true || req.body.attestation === 'true';
+        if (!attestationGiven) {
+            return res.status(400).json({
+                success: false,
+                message: 'Declaración requerida: confirma que cuentas con la autorización previa de los titulares de estos datos personales (Ley 1581 de 2012)'
+            });
+        }
+        const attestationFileName = String(req.body.file_name || '').slice(0, 200);
+
         logger.info('[IMPORT EXECUTE] Type:', type);
         logger.info('[IMPORT EXECUTE] Groups:', data.groups?.length || 0);
         logger.info('[IMPORT EXECUTE] Events:', data.events?.length || 0);
@@ -1141,7 +1153,19 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             attendanceTx(attendeesToProcess);
         }
 
-        res.json({ success: true, imported, updated, duplicates, total: imported + updated });
+        // L-1B.1 (v12.44.818): registro auditable de la declaración de autorización
+        try {
+            const { logAction, AUDIT_ACTIONS } = require('../security/audit');
+            logAction(req, AUDIT_ACTIONS.GUEST_IMPORTED, {
+                import_type: type || 'unknown',
+                imported, updated, duplicates,
+                total: imported + updated,
+                file_name: attestationFileName || null,
+                attestation: 'Titular declara y garantiza que cuenta con autorización previa, expresa e informada de los titulares para el tratamiento de sus datos (Ley 1581/2012)'
+            });
+        } catch (_) {}
+
+        res.json({ success: true, imported, updated, duplicates, total: imported + updated, attestation_recorded: true });
     } catch(e) {
         logger.error('Error ejecutando importacion:', e);
         res.status(500).json({ success: false, message: 'Error en importacion: ' + e.message });

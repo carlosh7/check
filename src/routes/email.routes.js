@@ -905,9 +905,9 @@ router.post('/campaigns/:id/send', (req, res) => {
         let recipients = [];
         
         if (campaign.event_id) {
-            let query = `SELECT name, email, group_name, checked_in FROM guests WHERE event_id = ? AND unsubscribed = 0 AND email IS NOT NULL AND email != ''`;
+            let query = `SELECT id, name, email, group_name, checked_in, unsubscribe_token FROM guests WHERE event_id = ? AND unsubscribed = 0 AND email IS NOT NULL AND email != ''`;
             const params = [campaign.event_id];
-            
+
             if (campaign.recipient_type === 'confirmed') {
                 query += ' AND checked_in = 1';
             } else if (campaign.recipient_type === 'pending') {
@@ -916,10 +916,39 @@ router.post('/campaigns/:id/send', (req, res) => {
                 query += ' AND group_name = ?';
                 params.push(campaign.recipient_group_id);
             }
-            
+
             const guests = getEmailDb().prepare(query).all(...params);
             recipients = guests;
         }
+
+        // L-1B.2 (v12.44.818): bloque "¿por qué recibes esto?" + opt-out (Ley 1335 de 2009).
+        // Toda comunicación debe informar la FUENTE de los datos y dar salida fácil.
+        // Se inyecta en la cola salvo que la plantilla ya traiga enlace de baja.
+        let legalFooterBase = '';
+        let legalEventName = '';
+        try {
+            legalFooterBase = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host');
+            if (campaign.event_id) {
+                const evRow = db.prepare("SELECT name FROM events WHERE id = ?").get(campaign.event_id);
+                legalEventName = evRow ? evRow.name : '';
+            }
+        } catch (_) {}
+        const needsLegalFooter = !/unsubscribe|darse de baja|no quiero recibir|dar de baja/i.test(String(campaign.body_html || ''));
+        const buildLegalFooter = (guestRow) => {
+            if (!needsLegalFooter || !guestRow) return '';
+            let token = guestRow.unsubscribe_token;
+            if (!token) {
+                token = uuidv4();
+                try {
+                    getEmailDb().prepare("UPDATE guests SET unsubscribe_token = ? WHERE id = ?").run(token, guestRow.id);
+                } catch (_) { return ''; }
+            }
+            return '<div style="margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#64748b;line-height:1.5">'
+                + '<p>¿Por qué recibes este mensaje? Tus datos fueron registrados para la gestión del evento'
+                + (legalEventName ? ' <b>' + String(legalEventName).replace(/</g, '&lt;') + '</b>' : '')
+                + '. Conforme a la Ley 1581 de 2012 puedes solicitar acceso, actualización, rectificación o supresión de tus datos.</p>'
+                + '<p><a href="' + legalFooterBase + '/api/public/unsubscribe/' + token + '" style="color:#64748b">No quiero recibir más mensajes</a></p></div>';
+        };
         
         if (recipients.length === 0) {
             return res.status(400).json({ error: 'No hay destinatarios para esta campaña' });
@@ -933,7 +962,9 @@ router.post('/campaigns/:id/send', (req, res) => {
         
         for (const r of recipients) {
             const recipientData = JSON.stringify({ name: r.name, email: r.email });
-            queueInsert.run(uuidv4(), campaign.id, account.id, r.email, recipientData, campaign.subject, campaign.body_html, new Date().toISOString());
+            // L-1B.2: cada correo sale con fuente de datos + opt-out (Ley 1335)
+            const htmlWithFooter = campaign.body_html + buildLegalFooter(r);
+            queueInsert.run(uuidv4(), campaign.id, account.id, r.email, recipientData, campaign.subject, htmlWithFooter, new Date().toISOString());
         }
         
         // Actualizar campaña

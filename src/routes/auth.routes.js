@@ -179,6 +179,13 @@ router.post('/signup', limiters.authLimiter, (req, res) => {
 
     const { username, password, display_name } = v.data;
 
+    // L-1A.3 (v12.44.818): aceptación de Términos y Política de Tratamiento obligatoria
+    // (Ley 1581 arts. 8-9). Se registra como evidencia en consent_logs.
+    const acceptedTerms = req.body.accepted_terms === true || req.body.accepted_terms === 'true';
+    if (!acceptedTerms) {
+        return res.status(400).json({ errors: ['Debes aceptar los Términos del Servicio y la Política de Tratamiento de Datos Personales'] });
+    }
+
     // v12.44.802 (cierra hueco): se ignora el role que envíe el cliente.
     // Toda cuenta nueva nace PRODUCTOR; el rol real lo asigna un admin
     // desde el panel de usuarios. Nunca se auto-asigna ADMIN vía signup.
@@ -195,6 +202,15 @@ router.post('/signup', limiters.authLimiter, (req, res) => {
           .run(id, username.toLowerCase(), hashedPassword, role, 'PENDING', display_name, new Date().toISOString());
 
         logAction(req, AUDIT_ACTIONS.USER_CREATED, { username, role });
+
+        // L-1A.3 (v12.44.818): evidencia de la aceptación de T&C + Política de Tratamiento
+        try {
+            const { sha256Hex } = require('../utils/privacy');
+            const tosText = 'Términos del Servicio y Política de Tratamiento de Datos Personales de Check Pro (versión 2026-09, plantilla legal — ver /legal/terminos y /legal/privacidad)';
+            db.prepare(`INSERT INTO consent_logs (id, guest_id, event_id, consent_type, consent_given, consent_text, ip_address, user_agent)
+                        VALUES (?, ?, 'PLATFORM', 'platform_tos', 1, ?, ?, ?)`)
+              .run(uuidv4(), id, `[sha256:${sha256Hex(tosText)}] ${tosText}`, req.ip || '', req.get('User-Agent') || null);
+        } catch (_) {}
 
         res.json({ success: true, message: 'Solicitud enviada. Un administrador debe aprobar tu acceso.' });
     } catch (e) {
@@ -323,6 +339,26 @@ router.get('/me', authMiddleware(), (req, res) => {
     }
 });
 
+// GET /api/me/export — Portabilidad de datos del usuario de plataforma (ARCO, Ley 1581)
+// L-1A/L-3 (v12.44.818): el titular puede descargar sus propios datos y consentimientos.
+router.get('/me/export', authMiddleware(), (req, res) => {
+    try {
+        const user = db.prepare("SELECT id, username, display_name, phone, role, status, group_id, created_at FROM users WHERE id = ?").get(req.userId);
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+        let consents = [];
+        try {
+            consents = db.prepare("SELECT consent_type, consent_given, consent_text, ip_address, created_at FROM consent_logs WHERE guest_id = ? ORDER BY created_at DESC").all(req.userId);
+        } catch (_) {}
+        res.setHeader('Content-Disposition', 'attachment; filename="mis-datos-checkpro.json"');
+        res.json({
+            exported_at: new Date().toISOString(),
+            format: 'Ley 1581 / GDPR portability (self-service)',
+            user: user,
+            consents: consents
+        });
+    } catch (e) { res.status(500).json({ error: 'Error al exportar datos' }); }
+});
+
 // PUT /api/me/email - Cambiar email del usuario logueado
 router.put('/me/email', authMiddleware(), (req, res) => {
     try {
@@ -334,7 +370,9 @@ router.put('/me/email', authMiddleware(), (req, res) => {
         if (existing) return res.status(400).json({ error: 'Este email ya está registrado' });
         
         db.prepare("UPDATE users SET username = ? WHERE id = ?").run(email.toLowerCase(), req.userId);
-        logAction(req, AUDIT_ACTIONS.USER_PROFILE_UPDATED, { userId: req.userId, email });
+        // Fix L-4 (v12.44.818): la constante USER_PROFILE_UPDATED no existía en
+        // AUDIT_ACTIONS (el cambio de email no quedaba auditado).
+        logAction(req, AUDIT_ACTIONS.USER_UPDATED, { userId: req.userId, action: 'email_change', email });
         
         res.json({ success: true, message: 'Email actualizado' });
     } catch (e) {

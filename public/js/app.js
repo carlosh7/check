@@ -7,39 +7,39 @@ window.escapeHtml = function(str) {
 };
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.817';
-import { Config } from './modules/core/Config.js?v=12.44.817';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.817';
-import { AppStateManager } from './modules/core/State.js?v=12.44.817';
-import { Constants } from './modules/utils/Constants.js?v=12.44.817';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.817';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.817';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.817';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.817';
-import { TableManager } from './modules/components/Table.js?v=12.44.817';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.817';
-import { FormManager } from './modules/components/Form.js?v=12.44.817';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.817';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.817';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.817';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.817';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.817';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.817';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.817';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.817';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.817';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.817';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.818';
+import { Config } from './modules/core/Config.js?v=12.44.818';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.818';
+import { AppStateManager } from './modules/core/State.js?v=12.44.818';
+import { Constants } from './modules/utils/Constants.js?v=12.44.818';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.818';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.818';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.818';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.818';
+import { TableManager } from './modules/components/Table.js?v=12.44.818';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.818';
+import { FormManager } from './modules/components/Form.js?v=12.44.818';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.818';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.818';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.818';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.818';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.818';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.818';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.818';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.818';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.818';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.818';
 
 // Módulos cableados en v12.44.804 (respaldo de v12.44.802, antes sin usar)
-import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.817';
-import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.817';
-import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.817';
+import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.818';
+import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.818';
+import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.818';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.817';
-import PushModule from './modules/app-push.js?v=12.44.817';
-import ThemeModule from './modules/app-theme.js?v=12.44.817';
-import { AiSecurity } from './modules/features/ai-security.js?v=12.44.817';
-import './modules/core/DelegatedEvents.js?v=12.44.817';
+import ImportExportModule from './modules/app-import.js?v=12.44.818';
+import PushModule from './modules/app-push.js?v=12.44.818';
+import ThemeModule from './modules/app-theme.js?v=12.44.818';
+import { AiSecurity } from './modules/features/ai-security.js?v=12.44.818';
+import './modules/core/DelegatedEvents.js?v=12.44.818';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
@@ -675,6 +675,13 @@ const App = window.App = {
             return ImportExportModule.executeImport();
         }
         if (!this._importData) return;
+
+        // L-1B.1 (v12.44.818): declaración de autorización obligatoria (Ley 1581)
+        const attEl = document.getElementById('import-attestation');
+        if (!attEl || !attEl.checked) {
+            alert('Debes marcar la declaración de autorización de datos personales antes de importar.');
+            return;
+        }
         
         let token = window.App?.state?.user?.token;
         if (!token) {
@@ -695,7 +702,7 @@ const App = window.App = {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ type: this._importType, data: this._importData })
+                body: JSON.stringify({ type: this._importType, data: this._importData, attestation: true, file_name: this._importFileName || '' })
             });
             const result = await response.json();
             
@@ -7117,7 +7124,7 @@ navigate(viewName, params = {}, push = true) {
     // --- AUTH ---
     async fetchAPI(endpoint, options = {}) { return API.fetchAPI(endpoint, options); },
     logout() {
-        // v12.44.817 (H-7): revocar el token en el servidor (blacklist + auditoría en
+        // v12.44.818 (H-7): revocar el token en el servidor (blacklist + auditoría en
         // POST /api/logout) antes de limpiar el estado local. Fire-and-forget: el
         // logout local nunca debe bloquearse si la red falla.
         try {
@@ -11001,7 +11008,7 @@ navigate(viewName, params = {}, push = true) {
     _gm: null,
     async _g() {
         if (!this._gm) {
-            const m = await import('./modules/app-gamification.js?v=12.44.817');
+            const m = await import('./modules/app-gamification.js?v=12.44.818');
             this._gm = m.default || window.GamificationModule || {};
             // Bind App reference for module functions that use window.App
             if (this._gm._init) this._gm._init();
@@ -11812,7 +11819,7 @@ navigate(viewName, params = {}, push = true) {
         if (!container || !container.innerHTML.trim()) return;
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.817"></head><body>' + container.innerHTML + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.818"></head><body>' + container.innerHTML + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -11847,7 +11854,7 @@ navigate(viewName, params = {}, push = true) {
         const html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.817"></head><body>' + html + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.818"></head><body>' + html + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -11961,7 +11968,7 @@ navigate(viewName, params = {}, push = true) {
             const win = window.open('', '_blank', 'width=400,height=600');
             if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
             win.document.write('<!DOCTYPE html><html><head><title>Gafetes</title>'
-                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.817">'
+                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.818">'
                 + '</head><body class="batch">' + allHtml + '</body></html>');
             win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
@@ -18727,8 +18734,10 @@ async function initApp() {
         e.preventDefault();
         const u = document.getElementById('signup-user').value;
         const p = document.getElementById('signup-pass').value;
+        const accepted = !!(document.getElementById('signup-terms') || {}).checked;
+        if (!accepted) { App._notifyAction('Falta aceptación', 'Debes aceptar los Términos y la Política de Tratamiento de Datos.', 'error'); return; }
         try {
-            const d = await App.fetchAPI('/signup', { method: 'POST', body: JSON.stringify({ username: u, password: p, role: 'PRODUCTOR' }) });
+            const d = await App.fetchAPI('/signup', { method: 'POST', body: JSON.stringify({ username: u, password: p, role: 'PRODUCTOR', accepted_terms: true }) });
             if (d.success) App._notifyAction('✓ Solicitud enviada', 'Un administrador debe aprobar tu acceso.', 'success', 0);
             else App._notifyAction('Error', d.error || 'No se pudo enviar la solicitud.', 'error');
             document.getElementById('signup-form')?.classList.add('hidden');
@@ -19973,11 +19982,13 @@ App.executeAttendanceImport = async function() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ 
-                type: 'attendance', 
-                file: this._importBase64, 
+                type: 'attendance',
+                file: this._importBase64,
                 filename: this._importFilename,
                 mapping: mapping,
-                eventId: eventId
+                eventId: eventId,
+                attestation: !!(document.getElementById('import-attestation-attendance') || {}).checked,
+                file_name: this._importFilename || ''
             })
         });
         const result = await response.json();

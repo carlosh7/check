@@ -79,10 +79,12 @@ const router = express.Router();
 const tempImport = {};
 
 // Obtener invitado por ID (público - para tickets)
+// L-2.2 (v12.44.818): minimización de datos — el ticket solo necesita nombre/estado;
+// ya no expone teléfono, dieta, organización ni datos de tratamiento.
 router.get('/by-id/:guestId', (req, res) => {
     const gId = castId('guests', req.params.guestId);
     if (!gId) return res.status(400).json({ error: 'ID de invitado inválido' });
-    const guest = db.prepare("SELECT * FROM guests WHERE id = ?").get(gId);
+    const guest = db.prepare("SELECT id, event_id, name, category_id, checked_in, guest_type, parent_guest_id FROM guests WHERE id = ?").get(gId);
     if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
     res.json(guest);
 });

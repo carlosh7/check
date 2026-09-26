@@ -37,6 +37,8 @@ function localRefs(html) {
         const url = m[1];
         if (!url.startsWith('/')) continue;
         if (url.startsWith('/api/')) continue;
+        // v12.44.818: /legal/* son rutas de servidor (SPA fallback), no archivos en public/
+        if (url.startsWith('/legal/')) continue;
         refs.push(url.split('?')[0]);
     }
     return refs;

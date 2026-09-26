@@ -269,6 +269,10 @@ app.use('/api/login', limiters.auth);
 app.use('/api/signup', limiters.auth);
 app.use('/api/setup', limiters.auth);
 app.use('/api/password-reset', limiters.auth);
+// L-4 (v12.44.818): los códigos de recuperación son de 6 dígitos (10^6) — sin este
+// límite quedaban bajo el limiter general (10.000) y eran fuerza-bruteables.
+app.use('/api/verify-reset-code', limiters.auth);
+app.use('/api/reset-password', limiters.auth);
 app.use('/api/guests', limiters.guests);
 app.use('/api/events', limiters.guests);
 app.use('/api/email', limiters.email);
@@ -402,6 +406,11 @@ app.use((req, res, next) => {
     if (req.path === '/ticket.html') return res.sendFile(path.join(__dirname, 'public/html/pages/ticket.html'));
     if (req.path === '/toolbar_v16.html') return res.sendFile(path.join(__dirname, 'public/html/pages/toolbar_v16.html'));
     if (req.path === '/app-shell.html') return res.sendFile(path.join(__dirname, 'public/html/app-shell.html'));
+    // L-3.2 (v12.44.818): documentos legales públicos del operador (plantillas — completar
+    // datos del responsable y validar con abogado; ver docs/LEGAL/)
+    if (req.path === '/legal/terminos') return res.sendFile(path.join(__dirname, 'public/html/pages/legal-terminos.html'));
+    if (req.path === '/legal/privacidad') return res.sendFile(path.join(__dirname, 'public/html/pages/legal-privacidad.html'));
+    if (req.path === '/legal/cookies') return res.sendFile(path.join(__dirname, 'public/html/pages/legal-cookies.html'));
     
     // Ruta raíz (login) cargando desde raíz del proyecto
     if (req.path === '/' || req.path === '/index.html') {

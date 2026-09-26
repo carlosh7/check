@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.min.css"><!-- v12.44.815: CSS externo — la CSP ya no permite el <style> que Swal inyecta -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5"></script>
-<link rel="stylesheet" href="/css/modules/base.css?v=12.44.817">
-<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.817">
-<link rel="stylesheet" href="/css/modules/components.css?v=12.44.817">
-<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.817">
-<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.817">
-<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.817">
+<link rel="stylesheet" href="/css/modules/base.css?v=12.44.818">
+<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.818">
+<link rel="stylesheet" href="/css/modules/components.css?v=12.44.818">
+<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.818">
+<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.818">
+<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.818">
 <div id="app-container" class="app-container hidden" role="application" aria-label="Check Pro - Panel de administración">
     <a href="#app-main-content" class="skip-to-content">Saltar al contenido principal</a>
     <button id="hamburger-btn" class="hamburger-btn" data-act="sidebarToggle" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="global-sidebar">☰</button>
@@ -73,7 +73,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.817</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.818</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -619,7 +619,7 @@
                     </div>
 
                     <div id="config-content-wheel" class="config-tab-content hidden">
-                        <link rel="stylesheet" href="/css/pages/shell-page.css?v=12.44.817">
+                        <link rel="stylesheet" href="/css/pages/shell-page.css?v=12.44.818">
 
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-xl font-bold text-white">Ruleta</h2>
@@ -4133,6 +4133,10 @@
                             <p class="text-[10px] uppercase tracking-wider text-red-70">Errores</p>
                         </div>
                     </div>
+                    <label class="flex items-start gap-2 mb-3 text-xs text-[var(--text-muted)] cursor-pointer" data-style="align-items:flex-start">
+                        <input type="checkbox" id="import-attestation" class="mt-0.5" data-style="margin-top:2px">
+                        <span>Declaro que cuento con la <b>autorización previa de los titulares</b> de estos datos personales para su tratamiento (Ley 1581 de 2012). Esta declaración queda registrada.</span>
+                    </label>
                     <button id="btn-confirm-import" class="btn-primary w-full" disabled>
                         <span class="material-symbols-outlined text-sm mr-1">check</span> Confirmar Importaci&oacute;n
                     </button>
@@ -4325,6 +4329,10 @@
         </div>
         <div class="p-4 border-t  shrink-0 flex justify-end gap-3">
             <button data-act="hide" data-target="modal-import-attendance" class="px-4 py-2 rounded-lg  text-sm font-medium">Cancelar</button>
+            <label class="flex items-center gap-2 text-xs text-[var(--text-muted)] cursor-pointer self-center" title="Ley 1581 de 2012">
+                <input type="checkbox" id="import-attestation-attendance">
+                <span>Declaro autorización de los titulares</span>
+            </label>
             <button id="btn-confirm-import-attendance" class="btn-primary !px-5 btn-py2" disabled>
                 <span class="material-symbols-outlined text-sm mr-1">check</span> Importar
             </button>

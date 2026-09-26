@@ -1653,6 +1653,8 @@ function initSchema(db) {
         created_by TEXT
     )`);
     try { db.exec("ALTER TABLE events ADD COLUMN venue_id TEXT"); } catch (_) {}
+    // L-2.1 (v12.44.818): token de kiosco por evento (ver public.routes.js kioskTokenOk)
+    try { db.exec("ALTER TABLE events ADD COLUMN kiosk_token TEXT"); } catch (_) {}
     
     // ═══ SISTEMA DE AUTO-REPARACIÓN (V12.37.20) ═══
     // Detectar y reparar registros con ID nulo que bloquean la UI

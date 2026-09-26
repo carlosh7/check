@@ -222,6 +222,31 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     res.json({ success: true, eventId: id });
 });
 
+// ── L-2.1 (v12.44.818): token de kiosco por evento ──
+// Genera/rota el token que deben presentar los kioscos (header x-kiosk-token o ?kt=)
+// en /api/kiosk/*/search, /api/kiosk/checkin y /api/guests/qr/:id/token.
+// DELETE lo revoca (el kiosco vuelve al modo público/legacy salvo KIOSK_TOKEN_MODE=strict).
+router.post('/:id/kiosk-token', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        const eventId = castId('events', req.params.id);
+        if (!eventId) return res.status(400).json({ error: 'ID de evento inválido' });
+        const token = uuidv4();
+        db.prepare("UPDATE events SET kiosk_token = ? WHERE id = ?").run(token, eventId);
+        logAction(req, AUDIT_ACTIONS.EVENT_UPDATED, { eventId, action: 'kiosk_token_generated' });
+        res.json({ success: true, kioskToken: token, kioskUrlHint: '/kiosk.html?event=' + eventId + '&kt=' + token });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete('/:id/kiosk-token', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        const eventId = castId('events', req.params.id);
+        if (!eventId) return res.status(400).json({ error: 'ID de evento inválido' });
+        db.prepare("UPDATE events SET kiosk_token = NULL WHERE id = ?").run(eventId);
+        logAction(req, AUDIT_ACTIONS.EVENT_UPDATED, { eventId, action: 'kiosk_token_revoked' });
+        res.json({ success: true, message: 'Token de kiosco revocado' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const v = validate(schemas.updateEvent, req.body);
     if (!v.valid) return res.status(400).json({ errors: v.errors });

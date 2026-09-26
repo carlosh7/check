@@ -1,5 +1,8 @@
 # Índice completo
 
+## 13 — Cumplimiento Legal
+- [Consentimientos, declaración de importación, token de kiosco y documentos legales](13-cumplimiento-legal/README.md)
+
 ## 01 — Eventos
 - [01. Crear evento](01-eventos/01-crear-evento.md)
 - [02. Configurar evento](01-eventos/02-configurar-evento.md)

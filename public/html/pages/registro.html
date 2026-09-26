@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro | Check Pro</title>
     <link rel="icon" href="/favicon.ico">
-    <link rel="stylesheet" href="/css/pages/registro-page.css?v=12.44.817">
-    <link rel="stylesheet" href="/css/modules/base.css?v=12.44.817">
-    <link rel="stylesheet" href="/css/modules/components.css?v=12.44.817">
-    <link rel="stylesheet" href="/css/modules/registro.css?v=12.44.817">
+    <link rel="stylesheet" href="/css/pages/registro-page.css?v=12.44.818">
+    <link rel="stylesheet" href="/css/modules/base.css?v=12.44.818">
+    <link rel="stylesheet" href="/css/modules/components.css?v=12.44.818">
+    <link rel="stylesheet" href="/css/modules/registro.css?v=12.44.818">
     
-    <script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.817"></script>
-  <script src="/js/pages/registro-theme.js?v=12.44.817"></script>
+    <script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.818"></script>
+  <script src="/js/pages/registro-theme.js?v=12.44.818"></script>
 </head>
 <body class="registro-body registro-bg-pattern" role="document" aria-label="Formulario de registro">
     <div id="loading" class="registro-loading">
@@ -109,25 +109,34 @@
                         <label class="form-label">Acompañantes <span id="plusones-quota-label" class="text-[10px] opacity-60"></span></label>
                         <div id="plusones-list" class="space-y-2"></div>
                         <button type="button" id="btn-add-plusone" class="btn-secondary text-xs px-3 mt-1">+ Añadir acompañante</button>
+                        <label class="registro-policy-label" data-style="margin-top:8px">
+                            <input type="checkbox" id="plusone-declaration" class="registro-policy-checkbox">
+                            <span class="registro-policy-text-small">Declaro que cuento con la autorización de mis acompañantes para registrar sus datos personales</span>
+                        </label>
                     </div>
-                    
+
                     <div id="payment-summary" class="hidden registro-form-group">
                         <div class="registro-payment-summary">
                             <span id="payment-amount" class="registro-payment-amount"></span>
                             <span id="payment-description" class="registro-payment-desc"></span>
                         </div>
                     </div>
-                    
+
                     <div id="field-dietary" class="registro-form-group">
                         <textarea id="reg-diet" placeholder="Alergias o restricciones alimentarias" class="input-field registro-textarea"></textarea>
                     </div>
-                    
+
                     <div id="policy-section" class="registro-policy">
                         <div id="policy-text" class="registro-policy-text"></div>
                         <label id="agreement-label" class="registro-policy-label">
                             <input type="checkbox" id="reg-agreement" required class="registro-policy-checkbox">
                             <span class="registro-policy-text-small">Acepto la política de tratamiento de datos personales</span>
                         </label>
+                        <div class="registro-policy-text-small" data-style="margin-top:8px;text-align:center">
+                            <a href="/legal/terminos" target="_blank" rel="noopener">Términos</a> ·
+                            <a href="/legal/privacidad" target="_blank" rel="noopener">Privacidad</a> ·
+                            <a href="/legal/cookies" target="_blank" rel="noopener">Cookies</a>
+                        </div>
                     </div>
                     
                     <button type="submit" id="submit-btn" class="registro-submit">
@@ -154,6 +163,6 @@
         </div>
     </div>
 
-    <script src="/js/pages/registro.js?v=12.44.817"></script>
+    <script src="/js/pages/registro.js?v=12.44.818"></script>
 </body>
 </html>

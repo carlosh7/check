@@ -6,6 +6,44 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-23 — FASE L: Legal & Compliance (v12.44.818) — auditoría + implementación
+
+- **Investigación** (2 agentes web): benchmark legal de 7 boleterías (Tuboleta, TuTicket,
+  LaTiquetera, Ticket Express, MiTaquilla, TaquillaLive, Ticketshows) y marco normativo
+  CO/LATAM/internacional verificado a sept-2026. Aterrizado en `docs/LEGAL/00..03`.
+  Hallazgo clave: la "Ley 2381 de 2024" es la reforma pensional, NO de datos; la reforma a
+  la Ley 1581 sigue siendo proyecto de ley. El modelo acordado con el operador: plataforma
+  SIN venta de boletas por ahora (reduce DIAN/PCI/reembolsos; la Ley 1581 aplica igual) y
+  blindaje de datos importados por declaración por importación + garantía contractual
+  (`docs/LEGAL/03`).
+- **Implementación Fase L** (todo incremental, tests 337/337 verdes):
+  - Consentimiento con prueba: `public-register` valida `agreement` y registra en
+    `consent_logs` (texto+hash de política, IP, UA); plus-ones con declaración obligatoria
+    y email de aviso; signup exige T&C y registra evidencia (`PLATFORM`); export CSV de
+    consentimientos por evento; `POST /compliance/consent` ya no público; `GET /api/me/export`.
+  - Blindaje de importaciones: `POST /api/import/execute` exige `attestation` y audita
+    `GUEST_IMPORTED` (tipo, archivo, conteos); checkboxes en ambos modales.
+  - Exposición pública cerrada: kiosk search enmascara emails SIEMPRE; token de kiosco por
+    evento (`POST/DELETE /api/events/:id/kiosk-token`, header `x-kiosk-token` o `?kt=`,
+    modo estricto global `KIOSK_TOKEN_MODE=strict`); `/guests/qr/:id/token` exige kiosco;
+    `/api/guests/by-id` reducido a campos mínimos.
+  - Emails: pie legal "¿por qué recibes esto?" + opt-out por destinatario (Ley 1335),
+    generación de `unsubscribe_token` bajo demanda.
+  - Hardening: rate limit auth para `/api/verify-reset-code` y `/api/reset-password`;
+    fix constante `USER_PROFILE_UPDATED`→`USER_UPDATED`.
+  - Legal público: `/legal/terminos|privacidad|cookies` (PLANTILLAS — pendiente abogado).
+- **Pendiente del operador (L-0)**: completar plantillas legales con razón social/NIT y
+  validarlas con abogado; inscripción RNBD; rotar credenciales de `.env` de desarrollo
+  (producción ya rechaza las semillas, ver 2026-09-07 parte 3).
+- **Archivos tocados** (backend): `public.routes.js`, `compliance.routes.js`, `auth.routes.js`,
+  `import.routes.js`, `email.routes.js`, `events.routes.js`, `guests.routes.js` (by-id),
+  `server.js`, `schema.js`, `utils/privacy.js` (nuevo). (Frontend): `registro.html/js`,
+  `kiosk.js`, `app-shell.html`, `app.js`, `app-import.js`, `index.html`, `legal-*.html` (nuevos),
+  `legal.css` (nuevo). Tests: `tests/privacy.test.js` (nuevo), `setup.test.js`, `visual.test.js`.
+- **Version bump**: 12.44.817 → 12.44.818 (102 referencias). Tag propuesto: v12.44.818.
+
+---
+
 ## 2026-09-07 (parte 3) — Redeploy validado en producción VPS Contabo (v12.44.817)
 
 - **Procedimiento**: backup previo (`/opt/check-backup-20260907-redeploy.tar.gz`) → rsync con

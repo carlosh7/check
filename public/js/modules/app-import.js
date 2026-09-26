@@ -188,17 +188,25 @@ const ImportExportModule = window.ImportExportModule = {
         }
         
         const btn = document.getElementById('btn-confirm-import');
+        // L-1B.1 (v12.44.818): declaración de autorización obligatoria (Ley 1581)
+        const attEl = document.getElementById('import-attestation');
+        if (!attEl || !attEl.checked) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'warning', title: 'Declaración requerida', text: 'Confirma que cuentas con la autorización de los titulares de los datos personales antes de importar.' });
+            } else { alert('Debes marcar la declaración de autorización de datos personales antes de importar.'); }
+            return;
+        }
         btn.disabled = true;
         btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Importando...';
 
         try {
             const response = await fetch('/api/import/execute', {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ type: this._importType, data: this._importData })
+                body: JSON.stringify({ type: this._importType, data: this._importData, attestation: true, file_name: this._importFileName || '' })
             });
             const result = await response.json();
             
