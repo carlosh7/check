@@ -116,19 +116,28 @@ En `/home/carlosh/Check/database.js` lineas 339-343 existen 4 settings pre-cread
 | Backups automatizados | `/home/carlosh/Check/src/utils/backup.js` | Cada 6 horas, retencion 7 dias |
 | Error handler seguro | `/home/carlosh/Check/server.js:324-355` | Sin stack traces en produccion |
 
-### Lo que NO tenemos
+### Lo que NO tenemos (ACTUALIZADO v12.44.820 — varios cerrados con la Fase L)
 
-| Aspecto | Impacto |
+> **Corrección de drift (v12.44.820):** la lista original de esta sección quedó obsoleta con la
+> Fase L (v12.44.818-820). Estado real:
+
+| Aspecto | Estado |
 |---|---|
-| Clasificacion de datos | No hay etiquetado por sensibilidad (publico, interno, confidencial, restringido) |
-| DLP (Data Loss Prevention) | No hay prevencion de perdida de datos en exportaciones/descargas |
-| Etiquetado de campos sensibles | No hay metadatos que indiquen que campos son PII/SPI |
-| Encriptacion en reposo | SQLite sin sqlcipher |
-| Encriptacion de backups | Backups almacenados sin encriptar |
-| Mascara de datos en UI | Datos sensibles se muestran completos en interfaz |
-| Auditoria de acceso a datos | Solo audit de cambios (write), no de lecturas (read) |
-| Gestion de sesiones | JWT sin blacklist, sin refresh tokens, sin revocacion |
-| Politicas de retencion de datos | No hay configuracion de periodos de retencion |
+| Derecho al olvido (data deletion) | ✅ v12.44.818/820: `DELETE /api/events/:id/guests/:id/personal-data` + borrado self-service de cuenta `POST /api/me/delete-account`; erasure COMPLETO desde v12.44.820 (custom fields, plus-ones, fotos, transacciones anonimizadas) |
+| Portabilidad de datos | ✅ `GET /api/me/export` + export por invitado (v12.44.820 incluye custom fields, plus-ones, fotos, transacciones) |
+| Consentimiento granular | ✅ `consent_logs` por tipo (data_treatment, sensitive_data, plus_one_declaration, platform_tos) con texto+hash+IP+UA |
+| Notificación de brechas | 🟡 declaración en la política (§6, art. 17.8 Ley 1581); falta protocolo escrito formal |
+| DPO / canal de privacidad | 🟡 canal ARCO declarado en plantilla; falta designación formal (L-0, operador) |
+| Evaluación de impacto (DPIA) | ❌ No hay proceso formal |
+| Registro de actividades de tratamiento (RAT) | 🟡 `data_classification` existe y seeds automáticos; RAT documental completo pendiente |
+| Clasificación de datos | ✅ tabla `data_classification` con seeds (dietary_notes marcado SENSIBLE desde v12.44.820) |
+| Cifrado en reposo (BD) | ❌ SQLite sin SQLCipher (riesgo aceptado: cifrado a nivel disco/LUKS recomendado en el VPS) |
+| Cifrado de backups | ✅ v12.44.820: gzip + AES-256-GCM (`BACKUP_ENCRYPTION_KEY`) + verificación de restauración (`scripts/verify-backup-restore.js`) |
+| Credenciales de terceros | ✅ v12.44.820: Twilio cifrado en settings (migración automática); SMTP/IMAP ya lo estaba |
+| Retención de datos | ✅ v12.44.820: política por tabla (consentimientos protegidos, auditoría 730 días, transacciones fiscales intocadas) |
+| DLP (Data Loss Prevention) | ❌ No hay prevención automática de pérdida en exportaciones |
+| Máscara de datos en UI | 🟡 kiosco enmascara email; resto de la UI muestra datos completos (rol-based) |
+| Auditoría de lectura de datos | ✅ `data_access_log` registra export/erasure/accesos confidenciales |
 
 ---
 

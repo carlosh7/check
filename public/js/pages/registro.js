@@ -161,6 +161,16 @@
                 document.getElementById('field-gender').style.display = eventData.reg_show_gender === 1 ? 'block' : 'none';
                 document.getElementById('field-dietary').style.display = eventData.reg_show_dietary !== 0 ? 'block' : 'none';
 
+                // C-11 (v12.44.820): edad mínima por evento
+                const minAge = parseInt(eventData.reg_min_age, 10) || 0;
+                const ageField = document.getElementById('field-age');
+                if (minAge > 0) {
+                    ageField.classList.remove('hidden');
+                    ageField.style.display = 'block';
+                    document.getElementById('age-label').innerText = 'Edad (evento para mayores de ' + minAge + ' a\u00f1os)';
+                    document.getElementById('reg-age').required = true;
+                }
+
                 if (eventData.date) {
                     const eventDate = new Date(eventData.date);
                     const countdownSection = document.getElementById('countdown-section');
@@ -318,6 +328,19 @@
             // L-1A (v12.44.818): la autorización de tratamiento viaja al servidor y queda
             // registrada con texto+hash de la política, IP y fecha (Ley 1581 arts. 8-9).
             body.agreement = !!(document.getElementById('reg-agreement') || {}).checked;
+
+            // C-11 (v12.44.820): edad declarada (obligatoria si el evento define mínima)
+            const ageInput = document.getElementById('reg-age');
+            if (ageInput && ageInput.closest('#field-age') && ageInput.closest('#field-age').style.display !== 'none') {
+                const ageVal = parseInt(ageInput.value, 10);
+                if (!ageVal || ageVal < 1 || ageVal > 120) {
+                    alert('Debes declarar tu edad para registrarte en este evento.');
+                    btn.innerText = orig;
+                    btn.disabled = false;
+                    return;
+                }
+                body.age = ageVal;
+            }
 
             // N-5 (v12.44.819): la verificación anti-robots viaja al servidor (obligatoria).
             body.captcha_token = _captchaToken || '';

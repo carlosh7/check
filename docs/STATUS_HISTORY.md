@@ -6,6 +6,92 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-28 — Cierre del cubo del olvido: L-4b + parciales legales + test inestable muerto (v12.44.820)
+
+Petición del operador: *"resuelve todo lo que puedas de una vez"* tras el inventario de pendientes
+documentados y olvidados (drift incluido). Todo incremental, nada sustitutivo.
+
+### 1. L-4b — Cifrado en reposo y retención (cerrado)
+- **Backups CIFRADOS**: `backup.js` — volcado → gzip → AES-256-GCM (`$bkenc1$`, clave
+  `BACKUP_ENCRYPTION_KEY` con fallback a `ENCRYPTION_KEY`), extensión `.db.enc`; el volcado en
+  claro NUNCA permanece en disco. Compat: los `.db` legados siguen listándose/limpiándose
+  (`listBackups` marca `encrypted`).
+- **Twilio cifrado**: `sms_auth_token` se guarda con AES-256-GCM (`sms.routes.js` cifra al
+  guardar, descifra al usar); `migrateTwilioSettings()` corre al arranque (`server.js`) y migra
+  los valores existentes en claro (idempotente).
+- **Fallback RUIDOSO**: sin `ENCRYPTION_KEY`, `encrypt()` ya no falla en silencio — alerta en
+  consola + logger + auditoría `ENCRYPTION_KEY_MISSING` (una vez por proceso).
+- **Visibilidad**: `/api/health/full` añade `checks.encryption` (estado del cifrado, si el último
+  backup está cifrado, total de backups); degrada el health si falta clave.
+- **Retención POR TABLA** (`compliance.routes.js`): `consent_logs` PROTEGIDO (la prueba del
+  consentimiento ya no se borra con la limpieza — Ley 1581 arts. 8-9); `audit_logs` ventana propia
+  730 días; política declarada por tabla en `GET /retention`; `DELETE /retention/clean` solo toca
+  auditoría (compat con body `days` viejo).
+
+### 2. Parciales legales cerrados
+- **C-6**: códigos de recuperación con HMAC-SHA256(JWT_SECRET) — ya no duermen en claro en
+  `password_resets`; contador de intentos (máx 5, invalida el código); email ligado (un código
+  activo por usuario; el wizard FE envía el username); `verify-reset-code`/`reset-password`
+  aceptan `username` para activar el contador.
+- **C-7**: derecho al olvido COMPLETO — export incluye campos personalizados (ambas BD),
+  plus-ones, fotos y transacciones; erasure borra custom fields, anonimiza plus-ones en cascada,
+  rompe la referencia de las fotos y anonimiza `guest_name/guest_email` de transacciones
+  conservando el registro contable (DIAN).
+- **C-4**: si el registro público llega con restricciones alimentarias, se registra consentimiento
+  diferenciado `sensitive_data` (opt-in, nunca bloquea); seed `data_classification` marca
+  `dietary_notes` como `restricted`/`is_spi=1`; política §4 ampliada.
+- **C-11**: `reg_min_age` por evento full-stack — columna + POST/PUT/clone de eventos; el backend
+  del registro público RECHAZA sin edad o por debajo del mínimo (mensajes 400 claros);
+  `registro.html/js` muestra el campo de edad solo si el evento lo exige; cláusula de menores +
+  Leyes 679/1336 en la política.
+- **C-8**: cambiar email ya no aplica de inmediato — `PUT /me/email` genera token (UUID, 24h, un
+  uso) que llega al correo NUEVO; `GET /me/email/confirm` aplica el cambio tras la prueba de
+  posesión (página HTML de confirmación); sin SMTP responde 503 con instrucción; auditado.
+
+### 3. Fase 6 — restauración de backups (deuda antigua)
+- `scripts/verify-backup-restore.js` (--all/--create) y `tests/backup-restore.test.js` (6/6):
+  cifran, restauran, abren la BD y verifican integridad + tablas críticas. Verificado contra la
+  BD local real: "✓ RESTAURACIÓN VERIFICADA".
+
+### 4. Bugs de productividad y estabilidad (hallados en el camino)
+- **updateEvent filtraba 9 campos**: `validation.js` no incluía `reg_policy`, `reg_logo_url`,
+  `reg_show_dietary`, `reg_show_gender`, `reg_require_agreement`, `payment_required`,
+  `currency`, `stripe_account`, `paypal_email` → zod los strippeaba y el UPDATE los ignoraba.
+  La configuración de registro/pagos del evento no se podía cambiar por PUT. Corregido (+ reg_min_age).
+- **Test inestable MUERTO** (arrastrado desde v12.44.818): causa raíz = carreras entre suites
+  paralelas sobre la misma BD. Fixes: fixture de admin propio en `e2e.test.js` (dependía de que
+  otra suite sembrara el admin), seeds con `INSERT OR IGNORE` (backend/api/e2e y el nuevo seed de
+  data_classification), clone tolerante a POST sin body (`req.body` undefined), cascada de borrado
+  tolerante a tablas ausentes y a FKs entrantes no contempladas (detección dinámica del esquema).
+  **Evidencia: 10/10 corridas consecutivas 370/371 (1 skipped intencional), 21/21 suites.**
+- **load.test.js** era un script standalone sin tests Jest (falla "must contain at least one
+  test"): movido a `scripts/load-test.js` (git mv, mismo contenido; uso: `node scripts/load-test.js`).
+- Artefacto `16;` (expresión muerta) limpiado de `encryption.js`.
+
+### 5. Drift documental corregido
+- `AUDIT_REPORT.md`: P3-10 marcado abierto pero estaba cerrado en v12.44.817 → corregido; cabecera
+  y entrada v12.44.820.
+- `docs/ROADMAP.md`: BL-23 decía "Pendiente" y las migraciones existen desde v12.44.755 →
+  corregido; el Ciclo 12 decía "Fase H en curso" y la Fase H está ✅ desde mayo → corregido;
+  Estado Actual a v12.44.820.
+- `docs/SECURITY_IA.md`: su lista "Lo que NO tenemos" ignoraba todo lo construido en la Fase L →
+  tabla actualizada (olvido/portabilidad/consentimiento granular/clasificación/cifrado backups/
+  Twilio/retención/audit de lectura: ✅; siguen abiertos: SQLCipher, DLP, DPIA, protocolo formal
+  de brechas).
+
+### 6. Versión y verificación
+- Version bump 12.44.819 → **12.44.820** (package.json, app-shell.html texto+query strings,
+  index.html, registro.html, sw.js CACHE_NAME; comentarios históricos de código intactos).
+- Tests: **370/371 (21 suites, 1 skipped) × 10 corridas consecutivas**. ESLint 0 errores en
+  archivos tocados.
+
+### Queda del operador (resumen)
+Redeploy de 818-820 en VPS (último validado: 817) · `BACKUP_ENCRYPTION_KEY` en producción ·
+semillas del `.env` (P1-5) · tokens de kiosco o `KIOSK_TOKEN_MODE=strict` · L-0 abogado+RNBD
+(incluye N-6) · rotar PAT de GitHub · HTTPS/HSTS en NPM (A19).
+
+---
+
 ## 2026-09-26 — Fixes del protocolo de lanzamiento IA (v12.44.819) + consolidación v12.44.818
 
 - **Consolidación**: la Fase L completa (v12.44.818, 43 archivos) quedó comprometida como

@@ -15665,13 +15665,13 @@ navigate(viewName, params = {}, push = true) {
         e.preventDefault();
         const newEmail = document.getElementById('profile-email').value;
         if (!newEmail) return;
-        
+
         const { isConfirmed } = await Swal.fire({
             title: '¿Cambiar Email?',
-            text: "Se cerrará la sesión actual y deberás ingresar con el nuevo correo.",
+            text: "Te enviaremos un enlace de confirmación al correo nuevo. El cambio se aplica solo cuando lo confirmes desde ahí (vence en 24 horas).",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Sí, cambiar',
+            confirmButtonText: 'Sí, enviar enlace',
             cancelButtonText: 'Cancelar'
         });
 
@@ -15682,10 +15682,9 @@ navigate(viewName, params = {}, push = true) {
                     body: JSON.stringify({ email: newEmail })
                 });
                 if (res.success) {
-                    Swal.fire('Actualizado', 'Correo cambiado con éxito.', 'success')
-                        .then(() => this.logout());
+                    Swal.fire('Revisa tu correo', res.message || 'Te enviamos un enlace de confirmación al correo nuevo.', 'success');
                 }
-            } catch(err) { Swal.fire('Error', 'No se pudo cambiar el correo.', 'error'); }
+            } catch(err) { Swal.fire('Error', err.message || 'No se pudo solicitar el cambio de correo.', 'error'); }
         }
     },
 
@@ -18715,12 +18714,15 @@ async function initApp() {
     sf('form-recovery-reset', async () => {
         const code = document.getElementById('recovery-code')?.value.trim();
         const pass = document.getElementById('recovery-new-pass')?.value;
+        const email = document.getElementById('recovery-email')?.value.trim();
         if (!code || code.length !== 6) return showRecoveryMessage('Código de 6 dígitos requerido', true);
         if (!pass || pass.length < 8) return showRecoveryMessage('La contraseña debe tener mínimo 8 caracteres', true);
         const btn = document.getElementById('recovery-reset-btn');
         btn.disabled = true; btn.textContent = 'Procesando...';
         try {
-            const res = await fetch('/api/reset-password', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ code, new_password: pass }) });
+            // C-6 (v12.44.820): se envía el email del paso 1 para ligar el código al usuario
+            // y activar el contador de intentos fallidos en el servidor.
+            const res = await fetch('/api/reset-password', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ code, new_password: pass, username: email }) });
             const data = await res.json();
             if (!res.ok || data.error) throw new Error(data.error || data.message || 'No se pudo cambiar la contraseña');
             showRecoveryMessage('✓ Contraseña actualizada. Volviendo al login...', false);

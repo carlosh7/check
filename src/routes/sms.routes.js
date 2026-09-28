@@ -25,13 +25,15 @@ router.get('/api/sms/settings', authMiddleware(['ADMIN']), (req, res) => {
 router.post('/api/sms/settings', authMiddleware(['ADMIN']), (req, res) => {
     try {
         const { account_sid, auth_token, from_number, enabled } = req.body;
+        // L-4b (v12.44.820): el token de Twilio se almacena cifrado (AES-256-GCM)
+        const encryption = require('../security/encryption');
         const upsert = function(key, val) {
             const existing = db.prepare("SELECT setting_key FROM settings WHERE setting_key = ?").get(key);
             if (existing) db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?").run(val, key);
             else db.prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)").run(key, val);
         };
         upsert('sms_account_sid', account_sid || '');
-        if (auth_token && auth_token !== '••••••••') upsert('sms_auth_token', auth_token);
+        if (auth_token && auth_token !== '••••••••') upsert('sms_auth_token', encryption.encrypt(auth_token));
         upsert('sms_from_number', from_number || '');
         upsert('sms_enabled', enabled ? '1' : '0');
         res.json({ success: true });
@@ -48,7 +50,8 @@ router.post('/api/sms/send', authMiddleware(['ADMIN']), async (req, res) => {
         const fromNumber = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'sms_from_number'").get();
         if (!accountSid || !authToken || !fromNumber) return res.status(400).json({ error: 'SMS no configurado' });
 
-        const twilio = require('twilio')(accountSid.setting_value, authToken.setting_value);
+        const encryption = require('../security/encryption');
+        const twilio = require('twilio')(accountSid.setting_value, encryption.decrypt(authToken.setting_value));
         const result = await twilio.messages.create({
             body: message,
             to: to,
@@ -75,7 +78,8 @@ router.post('/api/sms/send-to-guest/:guestId', authMiddleware(['ADMIN', 'PRODUCT
         let message = 'Hola ' + (guest.name || '') + '! Te esperamos en ' + (event ? event.name : 'el evento') + '.';
         if (event && event.location) message += ' Ubicación: ' + event.location + '.';
 
-        const twilio = require('twilio')(accountSid.setting_value, authToken.setting_value);
+        const encryption = require('../security/encryption');
+        const twilio = require('twilio')(accountSid.setting_value, encryption.decrypt(authToken.setting_value));
         const result = await twilio.messages.create({ body: message, to: guest.phone, from: fromNumber.setting_value });
         logAction(req, 'SMS_SENT_GUEST', { guestId: guest.id, sid: result.sid });
         res.json({ success: true, sid: result.sid, status: result.status, to: guest.phone });

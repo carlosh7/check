@@ -89,6 +89,13 @@
                             <option value="F">Femenino</option>
                         </select>
                     </div>
+
+                    <!-- C-11 (v12.44.820): edad mínima por evento — el campo solo aparece si
+                         el organizador configuró reg_min_age > 0 -->
+                    <div id="field-age" class="hidden registro-form-group">
+                        <label class="form-label" id="age-label">Edad</label>
+                        <input type="number" id="reg-age" class="input-field" min="1" max="120" inputmode="numeric" placeholder="Tu edad">
+                    </div>
                     
                     <div id="field-category" class="hidden registro-form-group">
                         <label class="form-label">Categor&iacute;a / Boleto</label>
@@ -169,6 +176,6 @@
         </div>
     </div>
 
-    <script src="/js/pages/registro.js?v=12.44.819"></script>
+    <script src="/js/pages/registro.js?v=12.44.820"></script>
 </body>
 </html>

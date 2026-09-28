@@ -1,7 +1,24 @@
-# AUDIT_REPORT.md — Check Pro v12.44.819
+# AUDIT_REPORT.md — Check Pro v12.44.820
 
 **Auditoría técnica independiente** · Fecha: 2026-08-21 · Alcance: commit `85f52be` (1.955 commits)
 **Método:** análisis estático + verificación runtime real (`npm ci`, tests, arranque, curl). No se modificó código fuente.
+
+> **ACTUALIZACIÓN v12.44.820 — FASE L-4b + CIERRE DE PARCIALES (2026-09-28).** Cierre del bloque
+> legal pendiente y limpieza de deuda: **L-4b ✅ RESUELTO** (backups cifrados gzip+AES-256-GCM con
+> `BACKUP_ENCRYPTION_KEY`; claves Twilio cifradas en `settings` con migración automática al
+> arranque; fallback sin `ENCRYPTION_KEY` ahora alerta en logs + audita `ENCRYPTION_KEY_MISSING` +
+> estado `encryption` en `/api/health/full`; retención POR TABLA — `consent_logs` protegido y
+> auditoría a 730 días). **C-6 ✅** códigos de recuperación con HMAC-SHA256 + contador de intentos
+> (máx 5) + email ligado. **C-7 ✅** erasure/export completos (campos personalizados, plus-ones en
+> cascada, fotos, transacciones anonimizadas salvo fiscal). **C-4 ✅** consentimiento diferenciado
+> `sensitive_data` + clasificación seed. **C-11 ✅** `reg_min_age` por evento full-stack + cláusula
+> menores/Ley 679-1336 en la política. **C-8 ✅** cambio de email con re-verificación por token al
+> correo nuevo. **F6 ✅** `scripts/verify-backup-restore.js` + test del ciclo backup→cifrado→
+> restauración (6/6). **Bug de productividad corregido**: `updateEvent` filtraba en silencio 9
+> campos (reg_policy, reg_require_agreement, pagos…). **Test inestable muerto** (arrastrado desde
+> v12.44.818): fixture de admin propio en e2e, seed con `INSERT OR IGNORE` en paralelo, clone sin
+> body tolerante, cascada de borrado tolerante a tablas/FK ausentes — 10/10 corridas 370/371.
+> P1-5 sigue para el operador; L-0 (abogado/RNBD) y N-6 siguen bloqueados con el operador.
 
 > **ACTUALIZACIÓN v12.44.818 — FASE L: AUDITORÍA LEGAL-COMPLIANCE (2026-09-23).** Auditoría de
 > protección de datos (Ley 1581/2012) con informes completos en `docs/LEGAL/` (00 ejecutivo,
@@ -210,7 +227,7 @@ Revisión manual de rutas críticas: queries parametrizadas (prepared statements
 | P3-8 | P3 | **6 métodos duplicados en el objeto App** (fetchAPI, deleteEvent, deleteSurveyQuestion, switchEventTab, _confirmAction, loadMailingData): la segunda definición sombreaba silenciosamente a la primera — la primera nunca se ejecutaba. Verificado que en todos los casos la definición tardía (la viva) es la evolucionada | ✅ **RESUELTOS v12.44.808**: eliminadas las 6 definiciones tempranas sombreadas (comportamiento preservado por definición); el guard de Swal del _confirmAction temprano se fusionó en la tardía |
 | P2-6 | P2 | **Búsqueda por voz rota para el usuario**: al dictar en el Dashboard de asistentes la tabla no filtraba (faltaban `filterAttendance`/`filterConfigStaff` en `onend`) y durante la escucha se mostraba el icono `mic_off` (micro tachado) — el usuario lo percibía como micro muteado y "que no reconoce" | ✅ **RESUELTO v12.44.816**: llamadas añadidas + icono `graphic_eq` rojo mientras escucha + `interimResults` para feedback en vivo. Verificado E2E en navegador (dictado simulado: tabla 104→1). Detalle en `docs/AUDITORIA_INTERACCIONES_2026-09-07.md` |
 | P3-9 | P3 | **Las 6 barras de búsqueda del shell sin estilos**: el input llevaba `.search-input` (diseñada para contenedor) sin la clase base `.input` → input nativo ~170px sin tema; `.search-box-container`/`.search-icon`/`.search-icon-btn`/`.search-clear-btn` no existían en CSS (iconos sueltos bajo el input) | ✅ **RESUELTO v12.44.816**: bloque nuevo "SEARCH BOX" en `forms.css` (reglas añadidas al lado de las legacy): 560px, tema completo, iconos posicionados, focus visible, móvil 44px/16px. Verificado en pantalla |
-| P3-10 | P3 | Atributos `data-act`/`data-call` duplicados en 5 inputs de búsqueda (`app-shell.html`): el navegador conserva el primero — funciona de facto pero el segundo par es muerto y `filterX` recibe argumento basura | 🔴 **ABIERTO**: limpieza recomendada (sin impacto funcional hoy). Detalle en `docs/AUDITORIA_INTERACCIONES_2026-09-07.md` (H-1) |
+| P3-10 | P3 | Atributos `data-act`/`data-call` duplicados en 5 inputs de búsqueda (`app-shell.html`): el navegador conserva el primero — funciona de facto pero el segundo par es muerto y `filterX` recibe argumento basura | ✅ **RESUELTO v12.44.817** (H-1: los 10 atributos duplicados eliminados y llamadas unificadas con el separador del dispatcher; verificado E2E con dropdown de sugerencias. Esta fila quedó marcada abierta por error de consolidación — corregido en v12.44.820) |
 | P1-5 | P1 | `.env` de producción con credenciales semilla históricas (`ADMIN_EMAIL`/`ADMIN_PASSWORD` = admin@example.com/changeme123) — el login responde 200 con ellas; el ACTION_PLAN 0.5 eliminó los seeds pero el `.env` real nunca se rotó | 🔴 **ABIERTO — solo operador**: rotar contraseña del admin y usar secretos fuertes en `.env` (coincide con pendiente del operador en ROADMAP). Detectado en auditoría v12.44.816 (H-2) |
 
 *Limitaciones de auditoría: UX visual no evaluada en navegador; integraciones externas (Stripe/Twilio/Google) probadas solo hasta nivel de ruta; e2e/load excluidos según configuración del propio proyecto.*

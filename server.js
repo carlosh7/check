@@ -483,6 +483,15 @@ try {
     logger.warn('Backup Scheduler no disponible: ' + e.message);
 }
 
+// L-4b (v12.44.820): migrar credenciales Twilio a cifrado en reposo (idempotente)
+try {
+    const { migrateTwilioSettings } = require('./src/security/encryption');
+    const migTw = migrateTwilioSettings();
+    if (migTw.twilio > 0) logger.info('Credenciales Twilio cifradas en settings: ' + migTw.twilio);
+} catch (e) {
+    logger.warn('Migración de credenciales Twilio no ejecutada: ' + e.message);
+}
+
 // Limpiar token blacklist cada 6 horas (junto con backups)
 try {
     const { cleanBlacklist } = require('./src/security/jwt');

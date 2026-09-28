@@ -161,15 +161,15 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         name, date, location, description, group_id, end_date,
         reg_title, reg_welcome_text, reg_success_message, reg_policy,
         reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
-        reg_show_dietary, reg_show_gender, reg_require_agreement,
+        reg_show_dietary, reg_show_gender, reg_require_agreement, reg_min_age,
         qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color,
         reg_email_whitelist, reg_email_blacklist,
         has_own_db, venue_id
     } = v.data;
-    
+
     // logo_url no viene del formulario, se maneja por separado
     const logo_url = '';
-    
+
     const id = getValidId('events');
     const eventGroupId = group_id || (req.userRole === 'ADMIN' ? null : getProducerGroups(req.userId)[0]);
     // POLÍTICA V12.44.299: Base de datos propia por defecto para todos los eventos
@@ -180,15 +180,15 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
             id, user_id, name, date, location, logo_url, description, status, created_at, group_id, end_date,
             reg_title, reg_welcome_text, reg_success_message, reg_policy,
             reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
-            reg_show_dietary, reg_show_gender, reg_require_agreement,
+            reg_show_dietary, reg_show_gender, reg_require_agreement, reg_min_age,
             qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color,
             reg_email_whitelist, reg_email_blacklist, has_own_db, venue_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
         id, req.userId, name, date, location, logo_url || '', description || '', 'ACTIVE', new Date().toISOString(), eventGroupId, end_date || null,
         reg_title || '', reg_welcome_text || '', reg_success_message || '', reg_policy || '',
         reg_show_phone ? 1 : 0, reg_show_org ? 1 : 0, reg_show_position ? 1 : 0, reg_show_vegan ? 1 : 0,
-        reg_show_dietary ? 1 : 0, reg_show_gender ? 1 : 0, reg_require_agreement ? 1 : 0,
+        reg_show_dietary ? 1 : 0, reg_show_gender ? 1 : 0, reg_require_agreement ? 1 : 0, reg_min_age || 0,
         qr_color_dark || '#000000', qr_color_light || '#ffffff', qr_logo_url || '', ticket_bg_url || '', ticket_accent_color || '#7c3aed',
         reg_email_whitelist || '', reg_email_blacklist || '', hasOwnDb, venue_id || null
     );
@@ -280,6 +280,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
             reg_show_dietary = COALESCE(?, reg_show_dietary),
             reg_show_gender = COALESCE(?, reg_show_gender),
             reg_require_agreement = COALESCE(?, reg_require_agreement),
+            reg_min_age = COALESCE(?, reg_min_age),
             qr_color_dark = COALESCE(?, qr_color_dark),
             qr_color_light = COALESCE(?, qr_color_light),
             qr_logo_url = COALESCE(?, qr_logo_url),
@@ -302,8 +303,9 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         'reg_show_position' in d ? (d.reg_show_position ? 1 : 0) : undefined, 
         'reg_show_vegan' in d ? (d.reg_show_vegan ? 1 : 0) : undefined, 
         'reg_show_dietary' in d ? (d.reg_show_dietary ? 1 : 0) : undefined, 
-        'reg_show_gender' in d ? (d.reg_show_gender ? 1 : 0) : undefined, 
-        'reg_require_agreement' in d ? (d.reg_require_agreement ? 1 : 0) : undefined, 
+        'reg_show_gender' in d ? (d.reg_show_gender ? 1 : 0) : undefined,
+        'reg_require_agreement' in d ? (d.reg_require_agreement ? 1 : 0) : undefined,
+        d.reg_min_age != null ? d.reg_min_age : undefined,
         d.qr_color_dark, d.qr_color_light, d.qr_logo_url, d.ticket_bg_url, d.ticket_accent_color,
         d.reg_email_whitelist, d.reg_email_blacklist, d.venue_id || null,
         'payment_required' in d ? (d.payment_required ? 1 : 0) : undefined,
@@ -349,30 +351,42 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
 
     // Eliminar en cascada todos los registros relacionados con el evento
     try {
+        // Fase 6 (v12.44.820): algunas tablas del cascada pueden no existir según la
+        // antigüedad/ramas de la instalación (p. ej. BD recién inicializada sin
+        // event_wheels) — se borra solo de las que existan para no abortar el borrado.
+        const tableExists = (t) => !!db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name = ?").get(t);
         // Obtener IDs de ruletas primero
-        const wheelRows = db.prepare("SELECT id FROM event_wheels WHERE event_id = ?").all(targetId);
-        const wheelIds = wheelRows.map(w => w.id);
-        
-        // Eliminar participantes de ruletas primero
-        if (wheelIds.length > 0) {
-            for (const wheelId of wheelIds) {
-                db.prepare("DELETE FROM wheel_participants WHERE wheel_id = ?").run(wheelId);
-                db.prepare("DELETE FROM wheel_results WHERE wheel_id = ?").run(wheelId);
-                db.prepare("DELETE FROM wheel_spins WHERE wheel_id = ?").run(wheelId);
-                db.prepare("DELETE FROM wheel_leads WHERE wheel_id = ?").run(wheelId);
+        if (tableExists('event_wheels')) {
+            const wheelRows = db.prepare("SELECT id FROM event_wheels WHERE event_id = ?").all(targetId);
+            const wheelIds = wheelRows.map(w => w.id);
+
+            // Eliminar participantes de ruletas primero
+            if (wheelIds.length > 0) {
+                for (const wheelId of wheelIds) {
+                    for (const wt of ['wheel_participants', 'wheel_results', 'wheel_spins', 'wheel_leads']) {
+                        if (tableExists(wt)) db.prepare(`DELETE FROM ${wt} WHERE wheel_id = ?`).run(wheelId);
+                    }
+                }
             }
         }
-        
+
         // Eliminar registros relacionados en orden inverso a las dependencias
-        db.prepare("DELETE FROM surveys WHERE event_id = ?").run(targetId);
-        db.prepare("DELETE FROM survey_responses WHERE event_id = ?").run(targetId);
-        db.prepare("DELETE FROM event_wheels WHERE event_id = ?").run(targetId);
-        db.prepare("DELETE FROM event_agenda WHERE event_id = ?").run(targetId);
-        db.prepare("DELETE FROM pre_registrations WHERE event_id = ?").run(targetId);
-        db.prepare("DELETE FROM guest_suggestions WHERE event_id = ?").run(targetId);
-        db.prepare("DELETE FROM guests WHERE event_id = ?").run(targetId);
-        db.prepare("DELETE FROM user_events WHERE event_id = ?").run(targetId);
-        
+        for (const t of ['surveys', 'survey_responses', 'event_wheels', 'event_agenda', 'pre_registrations', 'guest_suggestions', 'guests', 'user_events']) {
+            if (tableExists(t)) db.prepare(`DELETE FROM ${t} WHERE event_id = ?`).run(targetId);
+        }
+
+        // Fase 6 (v12.44.820): FK entrantes — cualquier tabla con `event_id` que referencie
+        // events(id) y que NO esté en el cascada de arriba abortaría el borrado con
+        // "FOREIGN KEY constraint failed" (fallo intermitente según qué tablas existan).
+        // Se detectan dinámicamente del esquema (patrón de database-manager) y se limpian.
+        const fkTables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND sql LIKE '%REFERENCES events(%'").all();
+        for (const { name } of fkTables) {
+            try {
+                const cols = db.prepare(`PRAGMA table_info(${name})`).all().map(c => c.name);
+                if (cols.includes('event_id')) db.prepare(`DELETE FROM ${name} WHERE event_id = ?`).run(targetId);
+            } catch (_) {}
+        }
+
         // Eliminar el evento
         db.prepare("DELETE FROM events WHERE id = ?").run(targetId);
         
@@ -792,15 +806,15 @@ router.post('/:id/clone', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
                 id, user_id, name, date, location, logo_url, description, status, created_at, group_id, end_date,
                 reg_title, reg_welcome_text, reg_success_message, reg_policy,
                 reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
-                reg_show_dietary, reg_show_gender, reg_require_agreement,
+                reg_show_dietary, reg_show_gender, reg_require_agreement, reg_min_age,
                 qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color,
                 reg_email_whitelist, reg_email_blacklist, has_own_db, has_wheel
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
             newId, req.userId, newName, original.date, original.location, original.logo_url, original.description, now, original.group_id, original.end_date,
             original.reg_title, original.reg_welcome_text, original.reg_success_message, original.reg_policy,
             original.reg_show_phone, original.reg_show_org, original.reg_show_position, original.reg_show_vegan,
-            original.reg_show_dietary, original.reg_show_gender, original.reg_require_agreement,
+            original.reg_show_dietary, original.reg_show_gender, original.reg_require_agreement, original.reg_min_age || 0,
             original.qr_color_dark, original.qr_color_light, original.qr_logo_url, original.ticket_bg_url, original.ticket_accent_color,
             original.reg_email_whitelist, original.reg_email_blacklist, original.has_own_db || 1, 0
         );
@@ -809,8 +823,9 @@ router.post('/:id/clone', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
             createEventDatabase(newId);
         }
 
-        // Copiar invitados si se solicita
-        if (req.body.copyGuests && original.has_own_db) {
+        // Copiar invitados si se solicita. (req.body puede ser undefined en un POST sin
+        // cuerpo: el cliente que no envía opciones no debe romper el clon)
+        if ((req.body || {}).copyGuests && original.has_own_db) {
             try {
                 const sourceDb = getEventConnection(eventId);
                 if (sourceDb) {

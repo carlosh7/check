@@ -73,11 +73,11 @@ router.get('/event/:id', (req, res) => {
     const id = castId('events', req.params.id);
     if (!id) return res.status(400).json({ success: false, error: 'ID de evento no válido' });
 
-    const event = db.prepare(`SELECT id, name, date, end_date, location, description, 
-                                     reg_title, reg_welcome_text, reg_success_message, reg_show_phone, 
-                                     reg_show_org, reg_show_position, reg_show_vegan, reg_show_dietary, 
+    const event = db.prepare(`SELECT id, name, date, end_date, location, description,
+                                     reg_title, reg_welcome_text, reg_success_message, reg_show_phone,
+                                     reg_show_org, reg_show_position, reg_show_vegan, reg_show_dietary,
                                      reg_show_gender, reg_require_agreement, reg_policy, reg_logo_url,
-                                     reg_email_whitelist, reg_email_blacklist,
+                                     reg_email_whitelist, reg_email_blacklist, reg_min_age,
                                      payment_required, currency,
                                      latitude, longitude, map_zoom, music_url, video_conference_url
                               FROM events WHERE id = ?`).get(id);
@@ -365,6 +365,19 @@ router.post('/public-register', (req, res) => {
         if (event.reg_require_agreement !== 0 && !agreementGiven) {
             return res.status(400).json({ success: false, error: 'Debes aceptar la política de tratamiento de datos personales para registrarte' });
         }
+
+        // ── C-11 (v12.44.820): edad mínima por evento (menores de edad, Ley 1581 art. 7) ──
+        // Si el evento define reg_min_age > 0, el formulario público muestra el campo de
+        // edad y el backend RECHAZA sin edad declarada o por debajo del mínimo.
+        const declaredAge = parseInt(req.body.age, 10);
+        if (event.reg_min_age > 0) {
+            if (!declaredAge || declaredAge < 1 || declaredAge > 120) {
+                return res.status(400).json({ success: false, age_required: true, min_age: event.reg_min_age, error: 'Debes declarar tu edad para registrarte en este evento' });
+            }
+            if (declaredAge < event.reg_min_age) {
+                return res.status(400).json({ success: false, under_age: true, min_age: event.reg_min_age, error: `Este evento es para mayores de ${event.reg_min_age} años. Si eres menor de edad, se requiere autorización del representante legal: contacta al organizador.` });
+            }
+        }
         
         // Verificar whitelist/blacklist de emails
         if (event.reg_email_whitelist) {
@@ -434,6 +447,19 @@ router.post('/public-register', (req, res) => {
               .run(uuidv4(), guestId, eId, `[sha256:${policyHash}] ${policyText}`.slice(0, 4000), consentIp, consentUa);
         } catch (cErr) {
             logger.warn('[public-register] No se pudo registrar consentimiento:', cErr.message);
+        }
+
+        // ── C-4 (v12.44.820): consentimiento DIFERENCIADO para datos sensibles (Ley 1581 art. 6) ──
+        // Las alergias/restricciones alimentarias revelan condiciones de salud = dato sensible:
+        // requieren autorización específica e informada, separada del consentimiento general.
+        // Se registra SOLO cuando el titular llena el campo (opt-in, nunca bloquea el registro).
+        if (dietary_notes && String(dietary_notes).trim()) {
+            try {
+                const sensitiveText = `[sha256:${policyHash}] Autorización específica para datos sensibles: el titular declaró información de salud/alimentaria ("${String(dietary_notes).slice(0, 200)}") para la logística del evento. Base: autorización previa y expresa (Ley 1581 art. 6).`;
+                db.prepare(`INSERT INTO consent_logs (id, guest_id, event_id, consent_type, consent_given, consent_text, ip_address, user_agent)
+                            VALUES (?, ?, ?, 'sensitive_data', 1, ?, ?, ?)`)
+                  .run(uuidv4(), guestId, eId, sensitiveText.slice(0, 4000), consentIp, consentUa);
+            } catch (_) {}
         }
 
         // ── F4: campos personalizados del formulario (valores junto al invitado) ──

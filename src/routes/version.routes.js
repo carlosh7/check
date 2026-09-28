@@ -141,6 +141,28 @@ router.get('/health/full', async (req, res) => {
         checks.memory = { status: 'error', message: err.message };
     }
     
+    // L-4b (v12.44.820): visibilidad del cifrado en reposo y del estado de los backups
+    try {
+        const { getStatus } = require('../security/encryption');
+        const encStatus = getStatus();
+        let lastBackup = null;
+        try {
+            const { listBackups } = require('../utils/backup');
+            const backups = listBackups();
+            lastBackup = backups[0] ? { file: backups[0].file, encrypted: backups[0].encrypted, total: backups.length } : { total: 0 };
+        } catch (_) {}
+        const backupEncrypted = lastBackup ? (lastBackup.total === 0 || lastBackup.encrypted === true) : null;
+        checks.encryption = {
+            status: encStatus.enabled && backupEncrypted !== false ? 'ok' : 'warning',
+            data_at_rest: encStatus.enabled ? 'encrypted' : 'PLAINTEXT (falta ENCRYPTION_KEY)',
+            backup_encrypted: backupEncrypted,
+            last_backup: lastBackup
+        };
+        if (!encStatus.enabled || backupEncrypted === false) allHealthy = false;
+    } catch (err) {
+        checks.encryption = { status: 'error', message: err.message };
+    }
+
     checks.responseTimeMs = Date.now() - startTime;
     
     if (!allHealthy) {

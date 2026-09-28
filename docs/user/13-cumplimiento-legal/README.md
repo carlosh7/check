@@ -96,3 +96,36 @@ En **Sistema → Cuenta** hay una tarjeta "Mis Datos (Ley 1581)" con dos botones
   de consentimientos y bitácoras se conserva por deber legal (Ley 1581). Las
   cuentas **ADMIN no pueden autodestruirse**: un administrador solo puede ser
   eliminado desde la gestión de usuarios por otro administrador.
+
+## 10. Novedades v12.44.820 (cierre de parciales)
+
+### Cambio de correo con confirmación (C-8)
+Al cambiar el email en **Sistema → Perfil**, el sistema ya no lo aplica de
+inmediato: envía un enlace de confirmación al correo NUEVO (vence en 24 horas).
+Solo cuando el titular confirma desde su buzón se hace el cambio. Esto evita que
+alguien apunte la cuenta a un correo ajeno.
+
+### Edad mínima por evento (C-11)
+En la configuración del evento puedes definir una **edad mínima**
+(`reg_min_age`). El formulario público mostrará el campo "Edad" y el backend
+rechazará registros de menores sin autorización. La política de privacidad
+incluye ya la cláusula de menores y las advertencias de las Leyes 679/1336.
+
+### Datos de salud con consentimiento propio (C-4)
+Si un invitado declara alergias/restricciones alimentarias, se registra un
+consentimiento **separado** de tipo `sensitive_data` (art. 6, Ley 1581: dato
+sensible). Visible en el panel de compliance y en el export CSV.
+
+### Retención por tabla (C-9)
+La limpieza de datos antiguos **ya no borra los consentimientos**: la prueba de
+la autorización se conserva toda la vida de la base. La auditoría se retiene 24
+meses. La política completa está en Panel compliance → Retención.
+
+### Recuperación de contraseña endurecida (C-6)
+Los códigos de 6 dígitos se guardan hasheados (irrecuperables ante robo de BD),
+con máximo 5 intentos por código y ligados al email solicitado.
+
+### Derecho al olvido completo (C-7)
+Al anonimizar un invitado se limpian TAMBIÉN sus campos personalizados, sus
+acompañantes, las fotos asociadas y sus transacciones (estas últimas solo se
+anonimizan los datos de persona: el registro contable se conserva por DIAN).

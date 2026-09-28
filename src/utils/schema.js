@@ -1255,6 +1255,22 @@ function initSchema(db) {
         created_at TEXT,
         FOREIGN KEY (user_id) REFERENCES users(id)
     )`);
+    // C-6 (v12.44.820): hardening de códigos de recuperación — hash (no texto claro),
+    // contador de intentos (máx 5) y email ligado a la solicitud.
+    try { db.exec("ALTER TABLE password_resets ADD COLUMN email TEXT"); } catch (_) {}
+    try { db.exec("ALTER TABLE password_resets ADD COLUMN attempts INTEGER DEFAULT 0"); } catch (_) {}
+    // C-8 (v12.44.820): re-verificación de propiedad al cambiar email (token al correo nuevo)
+    db.exec(`CREATE TABLE IF NOT EXISTS email_change_tokens (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        new_email TEXT NOT NULL,
+        token TEXT NOT NULL UNIQUE,
+        expires_at TEXT NOT NULL,
+        used INTEGER DEFAULT 0,
+        created_at TEXT
+    )`);
+    // C-11 (v12.44.820): edad mínima configurable por evento (menores de edad, Ley 1581 art. 7)
+    try { db.exec("ALTER TABLE events ADD COLUMN reg_min_age INTEGER DEFAULT 0"); } catch (_) {}
     
     
     

@@ -29,7 +29,29 @@ beforeAll(() => {
     app.use('/api', require('../src/routes/stats.routes'));
     app.use('/api/webhooks', require('../src/routes/webhooks.routes'));
     
-    const admin = db.prepare("SELECT id, username, role FROM users WHERE role = 'ADMIN' LIMIT 1").get();
+    // Fase 6 (v12.44.820): fixture propio de admin — antes dependía de que otra suite
+    // (que corre EN PARALELO en su propio worker de Jest) sembrara el usuario en la BD
+    // compartida: carrera intermitente que dejaba esta suite roja sin motivo real.
+    let admin = db.prepare("SELECT id, username, role FROM users WHERE role = 'ADMIN' LIMIT 1").get();
+    // Si el entorno trae credenciales E2E/ADMIN y ese usuario no existe aún (BD de prueba
+    // fresca u otra suite sembró otro admin), se siembra para que el test de login funcione.
+    if (E2E_ADMIN_USER && !db.prepare("SELECT id FROM users WHERE username = ?").get(E2E_ADMIN_USER.toLowerCase())) {
+        const bcrypt = require('bcryptjs');
+        const { v4: uuidv4 } = require('uuid');
+        db.prepare("INSERT OR IGNORE INTO users (id, username, password, role, status, display_name, created_at) VALUES (?, ?, ?, 'ADMIN', 'APPROVED', 'Admin E2E', ?)")
+          .run(uuidv4(), E2E_ADMIN_USER.toLowerCase(), bcrypt.hashSync(E2E_ADMIN_PASS, 10), new Date().toISOString());
+    }
+    if (!admin) {
+        const bcrypt = require('bcryptjs');
+        const { v4: uuidv4 } = require('uuid');
+        const username = (E2E_ADMIN_USER || 'e2e-admin-' + uuidv4().slice(0, 8) + '@check.local').toLowerCase();
+        const password = E2E_ADMIN_PASS || (uuidv4() + 'Aa1');
+        // OR IGNORE + re-SELECT: otro worker puede sembrar el mismo username entre el
+        // chequeo de arriba y este INSERT (corridas en paralelo sobre la misma BD).
+        db.prepare("INSERT OR IGNORE INTO users (id, username, password, role, status, display_name, created_at) VALUES (?, ?, ?, 'ADMIN', 'APPROVED', 'Admin E2E', ?)")
+          .run(uuidv4(), username, bcrypt.hashSync(password, 10), new Date().toISOString());
+        admin = db.prepare("SELECT id, username, role FROM users WHERE role = 'ADMIN' LIMIT 1").get();
+    }
     adminToken = generateToken({ userId: admin.id, username: admin.username, role: admin.role });
 });
 

@@ -8,15 +8,14 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.819 (Fase L legal + fixes protocolo IA, tag en remoto) |
-| **Sesión 2026-09-23** | ✅ **Fase L — Legal & Compliance (Ley 1581/2012)**: consentimiento con prueba server-side en `consent_logs` (texto+hash de política, IP, UA) en registro público y signup · plus-ones con declaración obligatoria · import con attestation y log `GUEST_IMPORTED` · kiosco blindado (email enmascarado + token por evento + `/guests/qr/:id/token` protegido) · pie de email con opt-out (Ley 1335) · plantillas legales `/legal/terminos`, `/legal/privacidad`, `/legal/cookies` · `GET /api/me/export`. Informes en `docs/LEGAL/` + guía `docs/user/13-cumplimiento-legal/`. Auditoría protocolo lanzamiento IA: `INFORME-CUMPLIMIENTO-CHECKLIST-IA.md` (13✅ / 9⚠️ / 1❌ / 2 N/A / 1🔍) |
+| **Version** | v12.44.820 (L-4b cifrado + parciales legales cerrados + test inestable muerto, tag en remoto) |
+| **Sesión 2026-09-28** | ✅ **L-4b completo**: backups cifrados (gzip+AES-256-GCM, `BACKUP_ENCRYPTION_KEY`, compat con .db legados), claves Twilio cifradas (migración auto en arranque), fallback sin clave AHORA alerta en logs+auditoría+`/api/health/full`, retención por tabla (`consent_logs` protegido, auditoría 730 días). **Parciales legales cerrados**: C-6 (código de recuperación con HMAC+intentos+email), C-7 (erasure/export completos), C-4 (consentimiento `sensitive_data` + clasificación), C-11 (`reg_min_age` full-stack + menores en política), C-8 (cambio de email con token de confirmación). **F6**: script+test de restauración de backups. **Fixes de estabilidad**: updateEvent ya no filtra 9 campos; test inestable muerto (10/10 corridas 370/371): fixture admin en e2e, seeds OR IGNORE, clone sin body, cascada de borrado tolerante a FK/tablas ausentes. |
+| **Sesión 2026-09-23** | ✅ **Fase L — Legal & Compliance (Ley 1581/2012)**: consentimiento con prueba server-side en `consent_logs` (texto+hash de política, IP, UA) en registro público y signup · plus-ones con declaración obligatoria · import con attestation y log `GUEST_IMPORTED` · kiosco blindado (email enmascarado + token por evento + `/guests/qr/:id/token` protegido) · pie de email con opt-out (Ley 1335) · plantillas legales `/legal/terminos`, `/legal/privacidad`, `/legal/cookies` · `GET /api/me/export`. Informes en `docs/LEGAL/` + guía `docs/user/13-cumplimiento-legal/`. Auditoría protocolo lanzamiento IA: `INFORME-CUMPLIMIENTO-CHECKLIST-IA.md` (19✅ / 5⚠️ / 0❌ / 2 N/A / 1🔍) |
 | **Sesión 2026-09-07** | ✅ **Búsqueda arreglada (6 vistas: CSS temático 560px + iconos dentro) · Voz arreglada (icono de escucha correcto, dictado ahora filtra asistencia/staff, feedback en vivo) · Auditoría de interacciones en navegador real documentada** (`docs/AUDITORIA_INTERACCIONES_2026-09-07.md`) · guía de usuario `docs/user/02-invitados/06-busqueda-y-voz.md` |
-| **Sesión 2026-09-05 (parte 3)** | ✅ **Tramo 3 ESLint** (538→504, CI 520, imports/bindings muertos limpiados) · **Wizard 2FA** (paso 4 opcional, E2E con navegador real + test de regresión) · decisiones logger/cache/CSP documentadas · **P3-7** hallazgos de producto documentados · **Redeploy v12.44.806 en VPS validado**. Detalle en `docs/STATUS_HISTORY.md`. |
-| **Sesión 2026-09-05 (parte 2)** | ✅ **Tramo 2 ESLint** (warnings 2086→538, CI 550) · **P2-1 RESUELTO** (sin token por query) · **P2-4 verificado** · **Redeploy y validación en producción real** (VPS Contabo /opt/check: v12.44.805 servida, CSP sin unsafe-inline, CORS bloqueando LAN, registro.js ejecutando en vivo — bug crítico verificado cerrado, ruleta/login/App verificados en navegador real). Detalle en `docs/STATUS_HISTORY.md`. |
 | **Todas las fases 0-4, S, backlog, Ciclos 2-10** | ✅ Completados al 100% |
 | **Ciclo 11 (9 features)** | ✅ Completado al 100% |
-| **Feature en curso** | **Fase L — Legal & Compliance**: L-1..L-7 ✅, L-8 parcial (cifrado backups/settings y retención por tabla abiertos). Protocolo lanzamiento IA: **N-1..N-5 ✅ resueltos en v12.44.819**, N-6 🔴 con L-0. Marcador: 19✅ / 5⚠️ / 0❌ / 2 N/A / 1🔍 |
-| **Próximo paso** | 1) Operador (solo manual): retirar credenciales semilla del `.env` de producción (P1-5 matizado: el login ya las rechaza), generar tokens de kiosco o `KIOSK_TOKEN_MODE=strict`, completar plantillas legales con abogado + RNBD (L-0, incluye N-6 DPA), rotar PAT de GitHub, verificar HTTPS/HSTS en NPM (A19). 2) Código: L-4b cifrado de backups/settings + retención por tabla; investigar test inestable (1 falla en 3 corridas de `npm test`). 3) Proyecto grande: modularizar app.js (destraba cierre CSP total). 4) Diferidos XL: Wallet Passes (certificados Apple/Google), Portal v2, SDK. |
+| **Feature en curso** | **Fase L — Legal & Compliance CERRADA en código**: L-1..L-8 ✅ (L-4b en v12.44.820). Protocolo IA: N-1..N-5 ✅; N-6 🔴 bloqueado con L-0 (abogado). Deuda legal restante = SOLO operador (plantillas + abogado + RNBD + credenciales) |
+| **Próximo paso** | 1) Operador (solo manual): retirar credenciales semilla del `.env` de producción (P1-5 matizado: el login ya las rechaza), generar tokens de kiosco o `KIOSK_TOKEN_MODE=strict`, completar plantillas legales con abogado + RNBD (L-0, incluye N-6 DPA), rotar PAT de GitHub, verificar HTTPS/HSTS en NPM (A19), definir `BACKUP_ENCRYPTION_KEY` en producción. 2) Redeploy de v12.44.818-820 en VPS (el último validado es 817). 3) Proyecto grande: modularizar app.js (destraba cierre CSP total). 4) Ciclo 12 propuesto (BlastTickets): check-in offline, multipasarela, promotores. 5) Diferidos XL: Wallet Passes (certificados Apple/Google), Portal v2, SDK. |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
 
@@ -246,7 +245,7 @@ FASE 7: Post-Lanzamiento (features nuevas)
 | 4 | BL-26 API Publica Swagger | ✅ v12.44.672 |
 | 5 | BL-22 Tests Automatizados | ✅ v12.44.676 |
 | 6 | BL-17 Landing Invitacion Digital | ✅ v12.44.677 |
-| 7 | BL-23 Migraciones de BD | ⏳ Pendiente (Ciclo 2) |
+| 7 | BL-23 Migraciones de BD | ✅ v12.44.755 (C-04) — esta fila quedó ⏳ por error de consolidación, corregido v12.44.820 |
 | 8 | BL-28 Portal Asistente PWA | ✅ v12.44.678 |
 
 ---
@@ -2082,14 +2081,14 @@ Se realizó una auditoría externa completa de **repositorios open-source** y **
 
 # Ciclo 12 — Brechas vs BlastTickets (propuesta, sin iniciar)
 
-> **Estado:** propuesta documentada 2026-09-19 a partir del benchmark de BlastTickets. La **Fase H sigue siendo la feature en curso**; este ciclo queda listo para arrancar cuando se cierre.
+> **Estado:** propuesta documentada 2026-09-19 a partir del benchmark de BlastTickets. (Nota v12.44.820: el texto original decía "la Fase H sigue siendo la feature en curso", pero la Fase H está ✅ completa desde v12.44.752-753 — drift corregido.) Este ciclo queda listo para arrancar cuando se confirme prioridades.
 
 ## ⚡ Estado Actual
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.817 |
-| **Feature en curso** | Fase H — Seguridad y Estabilidad (sin cambios) |
+| **Version** | v12.44.820 |
+| **Feature en curso** | Ninguna activa — Fase L cerrada en código (v12.44.820); pendientes restantes son del operador |
 | **Ciclo 12** | 📋 Propuesto — pendiente de aprobación de prioridades |
 
 ---

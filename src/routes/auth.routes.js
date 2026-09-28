@@ -38,6 +38,39 @@ const { limiters } = require('../middleware/rate-limiter');
 const logger = require("../utils/logger");
 const router = express.Router();
 
+// C-8 (v12.44.820): escape HTML para plantillas de correo generadas server-side
+const escHtml = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+// C-6 (v12.44.820): el código de recuperación de 6 dígitos NUNCA se almacena en claro.
+// Se guarda su HMAC-SHA256 firmado con JWT_SECRET: determinista (permite buscarlo por
+// índice sin revelarlo) e irreversible ante robo de la BD (sin el secreto no hay tabla
+// precomputada posible). El limiter.auth (50/ventana) acota el espacio de prueba.
+let resetCodeSecretWarned = false;
+function hashCodeResetCode(code) {
+    const secret = process.env.JWT_SECRET;
+    if (!secret && !resetCodeSecretWarned) {
+        resetCodeSecretWarned = true;
+        logger.warn('[AUTH] JWT_SECRET no definida: hash de códigos de recuperación con secreto débil (solo desarrollo)');
+    }
+    return require('crypto').createHmac('sha256', secret || 'check-dev-insecure').update('pwreset:' + code).digest('hex');
+}
+
+// C-6: contabiliza un intento fallido y mata el código a los 5 (contra fuerza bruta
+// dirigida a un usuario concreto). Devuelve true si el código quedó invalidado.
+function registerResetAttempt(resetId) {
+    try {
+        const row = db.prepare("SELECT attempts FROM password_resets WHERE id = ?").get(resetId);
+        if (!row) return false;
+        const attempts = (row.attempts || 0) + 1;
+        if (attempts >= 5) {
+            db.prepare("UPDATE password_resets SET attempts = ?, used = 1 WHERE id = ?").run(attempts, resetId);
+            return true;
+        }
+        db.prepare("UPDATE password_resets SET attempts = ? WHERE id = ?").run(attempts, resetId);
+    } catch (_) {}
+    return false;
+}
+
 /**
  * @openapi
  * /api/login:
@@ -230,8 +263,10 @@ router.post('/password-reset-request', (req, res) => {
 
         const code = String(Math.floor(100000 + Math.random() * 900000));
         const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-        db.prepare("INSERT INTO password_resets (id, user_id, code, expires_at, created_at) VALUES (?, ?, ?, ?, ?)")
-          .run(getValidId('password_resets'), user.id, code, expires, new Date().toISOString());
+        // C-6 (v12.44.820): hash del código + email ligado + un solo código activo por usuario
+        db.prepare("UPDATE password_resets SET used = 1 WHERE user_id = ? AND used = 0").run(user.id);
+        db.prepare("INSERT INTO password_resets (id, user_id, code, email, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+          .run(getValidId('password_resets'), user.id, hashCodeResetCode(code), user.username.toLowerCase(), expires, new Date().toISOString());
 
         let emailSent = false;
         try {
@@ -257,9 +292,26 @@ router.post('/verify-reset-code', (req, res) => {
     const v = validate(schemas.verifyResetCode, req.body);
     if (!v.valid) return res.status(400).json({ errors: v.errors });
 
+    // C-6 (v12.44.820): comparación contra hash HMAC + contador de intentos (máx 5).
+    // `username` es opcional: si el wizard lo envía, el código se liga a ese usuario y los
+    // intentos fallidos se contabilizan contra ese código concreto.
     const { code } = v.data;
-    const reset = db.prepare("SELECT * FROM password_resets WHERE code = ? AND used = 0 AND expires_at > ?")
-      .get(code, new Date().toISOString());
+    const username = String(req.body.username || req.body.email || '').trim().toLowerCase();
+    const codeHash = hashCodeResetCode(code);
+    let reset;
+    if (username) {
+        reset = db.prepare("SELECT * FROM password_resets WHERE code = ? AND used = 0 AND expires_at > ? AND email = ?")
+          .get(codeHash, new Date().toISOString(), username);
+        if (!reset) {
+            const active = db.prepare("SELECT id FROM password_resets WHERE used = 0 AND expires_at > ? AND email = ? ORDER BY created_at DESC").get(new Date().toISOString(), username);
+            if (active && registerResetAttempt(active.id)) {
+                return res.status(400).json({ success: false, error: 'Demasiados intentos fallidos: solicita un código nuevo' });
+            }
+        }
+    } else {
+        reset = db.prepare("SELECT * FROM password_resets WHERE code = ? AND used = 0 AND expires_at > ?")
+          .get(codeHash, new Date().toISOString());
+    }
 
     if (!reset) {
         return res.status(400).json({ success: false, error: 'Código inválido o expirado' });
@@ -278,8 +330,23 @@ router.post('/reset-password', (req, res) => {
     const pwCheck = validatePasswordStrength(new_password);
     if (!pwCheck.valid) return res.status(400).json({ errors: pwCheck.errors });
 
-    const reset = db.prepare("SELECT * FROM password_resets WHERE code = ? AND used = 0 AND expires_at > ?")
-      .get(code, new Date().toISOString());
+    // C-6 (v12.44.820): hash HMAC + intentos + ligado opcional al email solicitado
+    const username = String(req.body.username || req.body.email || '').trim().toLowerCase();
+    const codeHash = hashCodeResetCode(code);
+    let reset;
+    if (username) {
+        reset = db.prepare("SELECT * FROM password_resets WHERE code = ? AND used = 0 AND expires_at > ? AND email = ?")
+          .get(codeHash, new Date().toISOString(), username);
+        if (!reset) {
+            const active = db.prepare("SELECT id FROM password_resets WHERE used = 0 AND expires_at > ? AND email = ? ORDER BY created_at DESC").get(new Date().toISOString(), username);
+            if (active && registerResetAttempt(active.id)) {
+                return res.status(400).json({ error: 'Demasiados intentos fallidos: solicita un código nuevo' });
+            }
+        }
+    } else {
+        reset = db.prepare("SELECT * FROM password_resets WHERE code = ? AND used = 0 AND expires_at > ?")
+          .get(codeHash, new Date().toISOString());
+    }
 
     if (!reset) {
         return res.status(400).json({ error: 'Código inválido o expirado' });
@@ -360,23 +427,77 @@ router.get('/me/export', authMiddleware(), (req, res) => {
 });
 
 // PUT /api/me/email - Cambiar email del usuario logueado
-router.put('/me/email', authMiddleware(), (req, res) => {
+// C-8 (v12.44.820): re-verificación de propiedad — el cambio ya NO se aplica de inmediato.
+// Se envía un enlace de confirmación al correo NUEVO (token de un solo uso, 24h): solo
+// quien reciba ese correo puede completar el cambio. Evita el secuestro de notificaciones
+// apuntando la cuenta a un correo ajeno.
+router.put('/me/email', authMiddleware(), async (req, res) => {
     try {
         const { email } = req.body;
-        if (!email) return res.status(400).json({ error: 'Email requerido' });
-        
-        // Verificar que no exista
-        const existing = db.prepare("SELECT id FROM users WHERE username = ? AND id != ?").get(email.toLowerCase(), req.userId);
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Email válido requerido' });
+        const newEmail = email.toLowerCase();
+
+        const existing = db.prepare("SELECT id FROM users WHERE username = ? AND id != ?").get(newEmail, req.userId);
         if (existing) return res.status(400).json({ error: 'Este email ya está registrado' });
-        
-        db.prepare("UPDATE users SET username = ? WHERE id = ?").run(email.toLowerCase(), req.userId);
-        // Fix L-4 (v12.44.818): la constante USER_PROFILE_UPDATED no existía en
-        // AUDIT_ACTIONS (el cambio de email no quedaba auditado).
-        logAction(req, AUDIT_ACTIONS.USER_UPDATED, { userId: req.userId, action: 'email_change', email });
-        
-        res.json({ success: true, message: 'Email actualizado' });
+
+        const user = db.prepare("SELECT id, display_name FROM users WHERE id = ?").get(req.userId);
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+        // Un solo token activo por usuario: los anteriores quedan invalidados
+        db.prepare("UPDATE email_change_tokens SET used = 1 WHERE user_id = ? AND used = 0").run(req.userId);
+        const token = uuidv4();
+        db.prepare("INSERT INTO email_change_tokens (id, user_id, new_email, token, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+          .run(uuidv4(), req.userId, newEmail, token, new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), new Date().toISOString());
+
+        const baseUrl = process.env.APP_URL || (req.protocol + '://' + req.get('host'));
+        const confirmUrl = baseUrl + '/api/me/email/confirm?token=' + token;
+        let emailSent = false;
+        try {
+            if (global.emailService && typeof global.emailService.sendEmail === 'function') {
+                const html = '<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:20px;color:#1e293b">'
+                    + '<h2 style="font-size:18px">Confirma tu nuevo correo</h2>'
+                    + '<p style="font-size:14px">Hola ' + escHtml(user.display_name || '') + ', recibimos una solicitud para cambiar el correo de tu cuenta Check Pro a <b>' + escHtml(newEmail) + '</b>.</p>'
+                    + '<p style="margin:20px 0"><a href="' + confirmUrl + '" style="background:#7c3aed;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold">Confirmar cambio de correo</a></p>'
+                    + '<p style="font-size:12px;color:#64748b">El enlace vence en 24 horas y solo funciona una vez. Si no fuiste tú, ignora este mensaje y tu correo no cambiará.</p></div>';
+                await global.emailService.sendEmail({ to: newEmail, subject: 'Confirma tu nuevo correo — Check Pro', html: html, eventId: null });
+                emailSent = true;
+            }
+        } catch (e) { logger.error('[me/email] No se pudo enviar confirmación:', e.message); }
+
+        logAction(req, AUDIT_ACTIONS.USER_UPDATED, { userId: req.userId, action: 'email_change_requested', new_email: newEmail, email_sent: emailSent });
+
+        if (!emailSent) {
+            return res.status(503).json({ error: 'No hay servicio de correo configurado: no podemos enviar la confirmación al nuevo email. Configura SMTP e inténtalo de nuevo.' });
+        }
+        res.json({ success: true, message: 'Te enviamos un enlace de confirmación al nuevo correo. El cambio se aplicará cuando lo confirmes desde ahí (vence en 24 horas).' });
     } catch (e) {
-        res.status(500).json({ error: 'Error al actualizar email' });
+        logger.error('[me/email] Error:', e.message);
+        res.status(500).json({ error: 'Error al solicitar el cambio de email' });
+    }
+});
+
+// GET /api/me/email/confirm?token=... — C-8: aplica el cambio de email tras la prueba de
+// posesión del buzón nuevo. Público POR DISEÑO: el token (UUID de un solo uso, 24h) es la
+// prueba; responder HTML porque el titular llega desde su cliente de correo.
+router.get('/me/email/confirm', (req, res) => {
+    const token = String(req.query.token || '');
+    const page = (title, body) => '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>' + title + ' — Check Pro</title></head><body style="font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0f172a;color:#e2e8f0"><div style="max-width:460px;padding:40px;text-align:center"><h1 style="font-size:22px">' + title + '</h1><p style="font-size:14px;color:#94a3b8;line-height:1.6">' + body + '</p></div></body></html>';
+    try {
+        if (!token) return res.status(400).send(page('Enlace inválido', 'Falta el token de confirmación.'));
+        const row = db.prepare("SELECT * FROM email_change_tokens WHERE token = ? AND used = 0 AND expires_at > ?").get(token, new Date().toISOString());
+        if (!row) return res.status(400).send(page('Enlace inválido o vencido', 'El enlace ya fue usado, venció (24 h) o fue anulado por una solicitud más reciente. Inicia sesión y solicita el cambio de nuevo.'));
+        const dup = db.prepare("SELECT id FROM users WHERE username = ? AND id != ?").get(row.new_email, row.user_id);
+        if (dup) return res.status(400).send(page('Correo no disponible', 'Ese email ya está en uso por otra cuenta.'));
+        db.prepare("UPDATE users SET username = ? WHERE id = ?").run(row.new_email, row.user_id);
+        db.prepare("UPDATE email_change_tokens SET used = 1 WHERE id = ?").run(row.id);
+        try {
+            db.prepare("INSERT INTO audit_logs (id, user_id, user_name, action, details, ip_address) VALUES (?, ?, 'system', 'USER_UPDATED', ?, ?)")
+              .run(uuidv4(), row.user_id, JSON.stringify({ action: 'email_change_confirmed', new_email: row.new_email }), req.ip || '');
+        } catch (_) {}
+        res.send(page('✓ Correo actualizado', 'Tu email ahora es <b>' + row.new_email.replace(/</g, '&lt;') + '</b>. Ya puedes iniciar sesión con él.<br><br><a href="/" style="color:#a78bfa">Ir al inicio de sesión</a>'));
+    } catch (e) {
+        logger.error('[me/email/confirm] Error:', e.message);
+        res.status(500).send(page('Error', 'No se pudo confirmar el cambio. Intenta de nuevo.'));
     }
 });
 

@@ -14,9 +14,11 @@ const { db } = require('../database');
 const { generateToken } = require('../src/security/jwt');
 
 (function ensureAdminFixture() {
+    // Fase 6 (v12.44.820): INSERT OR IGNORE — varias suites corren en paralelo sobre la
+    // misma BD y dos workers podían sembrar el mismo username a la vez (UNIQUE constraint).
     const admin = db.prepare("SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1").get();
     if (admin) return;
-    db.prepare("INSERT INTO users (id, username, password, role, status, display_name, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    db.prepare("INSERT OR IGNORE INTO users (id, username, password, role, status, display_name, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
       .run(uuidv4(), 'ci-admin@check.local', bcrypt.hashSync(uuidv4(), 10), 'ADMIN', 'APPROVED', 'Admin de pruebas', new Date().toISOString());
 })();
 
