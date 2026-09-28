@@ -6,6 +6,42 @@ Historial detallado y fechado de sesiones. La entrada más reciente va arriba.
 
 ---
 
+## 2026-09-28 (parte 2) — Redeploy de producción VPS Contabo validado (v12.44.820)
+
+Ejecutado por el agente con autorización explícita del operador (`ssh contabo`, usuario carlos,
+docker vía sudo). Procedimiento del 07-09 aplicado:
+
+1. **Backup previo**: `/opt/check-backup-20260928-redeploy.tar.gz` (2.8M — esta vez INCLUYE
+   `data/` y `.env`, más completo que el del 07-09).
+2. **rsync** con excludes estrictos (`.git/`, `node_modules/`, `data/`, `persistence/`, `.env*`,
+   `docker-compose*.yml`, `portainer-stack*.yml`, `coverage/`; sin `--delete`).
+3. **`docker-compose.yml` del VPS intacto**: md5 idéntico al backup (`7bb3b15896d0…`).
+4. **Build**: el primer intento falló — una capa cacheada de `npm install` de un build anterior
+   había fallado en silencio (el Dockerfile traga el error con `|| echo`) y Docker la reutilizó.
+   Solución: `docker compose build --no-cache check-app` (instalación limpia). Hubo un corte de
+   ssh momentáneo durante el build; se relanzó en background dentro del VPS y completó OK.
+5. **up -d --force-recreate check-app** (el `up -d` simple no recreó porque el build seguía
+   exportando cuando se lanzó).
+
+| Verificación | Resultado |
+|---|---|
+| Contenedor `check-app` | **Up (healthy)** ✅ |
+| `/api/health` interno (127.0.0.1:13000) | `{"status":"ok"}` ✅ |
+| `/api/app-version` interno y externo (https://chek.smarteventos.co) | **12.44.820** ✅ |
+| Query strings servidas en `/` | `v=12.44.820` ✅ |
+| Captcha del registro público (N-5) | `/api/captcha` interno y externo responden desafío firmado ✅ |
+| `/legal/privacidad` | 200 ✅ |
+| Login con semillas viejas (P1-5) | **401 — las rechaza** ✅ |
+| Logs del contenedor | Sin errores desde el arranque ✅ |
+| Otros proyectos (Nextcloud AIO, Dolibarr) | Up 6 horas, intactos ✅ |
+| `ENCRYPTION_KEY` en `.env` de producción | **Presente** → backups nuevos salen CIFRADOS automáticamente (`.db.enc`) y `checks.encryption` activo en `/api/health/full` ✅ |
+
+Nota: no se observó línea de migración Twilio en los logs → producción no tenía claves Twilio
+guardadas en claro que migrar (nada que hacer). Recomendable (opcional): añadir
+`BACKUP_ENCRYPTION_KEY` dedicada para poder rotarla sin tocar las credenciales.
+
+---
+
 ## 2026-09-28 — Cierre del cubo del olvido: L-4b + parciales legales + test inestable muerto (v12.44.820)
 
 Petición del operador: *"resuelve todo lo que puedas de una vez"* tras el inventario de pendientes
