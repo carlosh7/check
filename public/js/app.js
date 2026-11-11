@@ -16199,8 +16199,15 @@ navigate(viewName, params = {}, push = true) {
             this._notifyAction('Error', 'Nombre, email y contraseña son requeridos', 'error');
             return;
         }
-        if (password.length < 6) {
-            this._notifyAction('Error', 'La contraseña debe tener al menos 6 caracteres', 'error');
+        // v12.44.822: validar la MISMA política del backend antes de enviar
+        // (evita el 400 silencioso: mínimo 10 + mayúscula + minúscula + número)
+        const pwIssues = [];
+        if (password.length < 10) pwIssues.push('mínimo 10 caracteres');
+        if (!/[A-Z]/.test(password)) pwIssues.push('al menos una mayúscula');
+        if (!/[a-z]/.test(password)) pwIssues.push('al menos una minúscula');
+        if (!/[0-9]/.test(password)) pwIssues.push('al menos un número');
+        if (pwIssues.length) {
+            this._notifyAction('Contraseña no válida', 'La contraseña requiere: ' + pwIssues.join(', '), 'error');
             return;
         }
         

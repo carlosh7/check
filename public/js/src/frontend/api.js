@@ -57,7 +57,9 @@ export const API = {
                     }));
                 }
                 const errorData = await response.json().catch(() => ({}));
-                throw this._makeError(errorData.message || errorData.error || `HTTP ${response.status}`, response.status, errorData);
+                // v12.44.822: el backend devuelve {errors:[...]} en validaciones — mostrarlas
+                const detalleErrors = Array.isArray(errorData.errors) && errorData.errors.length ? errorData.errors.join(' · ') : '';
+                throw this._makeError(errorData.message || errorData.error || detalleErrors || `HTTP ${response.status}`, response.status, errorData);
             }
 
             const body = await response.json();
