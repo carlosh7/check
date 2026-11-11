@@ -4799,7 +4799,14 @@ const App = window.App = {
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Nueva Contraseña <span class="normal-case font-normal">(dejar vacío para mantener)</span></label>
-                            <input id="edit-user-password-${user.id}" type="password" value="" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nueva contraseña">
+                            <input id="edit-user-password-${user.id}" type="password" value="" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain}; padding-right: 90px;" placeholder="Nueva contraseña">
+                            <div data-style="display:flex;gap:12px;margin-top:6px;">
+                                <button type="button" data-act="call" data-call="togglePasswordVisibility" data-a1="edit-user-password-${user.id}" data-style="background:none;border:none;color:${textSecondary};font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;"><span class="material-symbols-outlined" data-style="font-size:14px;">visibility</span>Ver</button>
+                                <button type="button" data-act="call" data-call="suggestEditPassword" data-a1="edit-user-password-${user.id}" data-a2="edit-user-password-confirm-${user.id}" data-style="background:none;border:none;color:#a78bfa;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;"><span class="material-symbols-outlined" data-style="font-size:14px;">casino</span>Sugerir</button>
+                            </div>
+                            <div>
+                                <input id="edit-user-password-confirm-${user.id}" type="password" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Confirmar nueva contraseña">
+                            </div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Rol</label>
@@ -4848,6 +4855,20 @@ const App = window.App = {
         if (!name || !email) {
             Swal.fire({ title: '⚠️ Error', text: 'Nombre y email son obligatorios', icon: 'error', background: '#0f172a', color: '#fff' });
             return;
+        }
+        
+        // v12.44.823: política + confirmación de la nueva contraseña
+        if (password) {
+            const pwIssues = this.passwordPolicyIssues(password);
+            if (pwIssues.length) {
+                Swal.fire({ title: '⚠️ Contraseña no válida', text: 'La contraseña requiere: ' + pwIssues.join(', '), icon: 'error', background: '#0f172a', color: '#fff' });
+                return;
+            }
+            const pwConfirm = document.getElementById(`edit-user-password-confirm-${userId}`)?.value || '';
+            if (password !== pwConfirm) {
+                Swal.fire({ title: '⚠️ Error', text: 'Las contraseñas no coinciden', icon: 'error', background: '#0f172a', color: '#fff' });
+                return;
+            }
         }
         
         const saveBtn = document.querySelector('[data-act="call" data-call="saveUserEditInline"]');
@@ -15336,7 +15357,14 @@ navigate(viewName, params = {}, push = true) {
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Nueva Contraseña <span class="normal-case font-normal">(dejar vacío para mantener)</span></label>
-                            <input id="edit-user-password-config-${user.id}" type="password" value="" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nueva contraseña">
+                            <input id="edit-user-password-config-${user.id}" type="password" value="" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain}; padding-right: 90px;" placeholder="Nueva contraseña">
+                            <div data-style="display:flex;gap:12px;margin-top:6px;">
+                                <button type="button" data-act="call" data-call="togglePasswordVisibility" data-a1="edit-user-password-config-${user.id}" data-style="background:none;border:none;color:${textSecondary};font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;"><span class="material-symbols-outlined" data-style="font-size:14px;">visibility</span>Ver</button>
+                                <button type="button" data-act="call" data-call="suggestEditPassword" data-a1="edit-user-password-config-${user.id}" data-a2="edit-user-password-confirm-config-${user.id}" data-style="background:none;border:none;color:#a78bfa;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;"><span class="material-symbols-outlined" data-style="font-size:14px;">casino</span>Sugerir</button>
+                            </div>
+                            <div>
+                                <input id="edit-user-password-confirm-config-${user.id}" type="password" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Confirmar nueva contraseña">
+                            </div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Rol</label>
@@ -15385,6 +15413,20 @@ navigate(viewName, params = {}, push = true) {
         if (!name || !email) {
             Swal.fire({ title: '⚠️ Error', text: 'Nombre y email son obligatorios', icon: 'error', background: '#0f172a', color: '#fff' });
             return;
+        }
+        
+        // v12.44.823: política + confirmación de la nueva contraseña
+        if (password) {
+            const pwIssues = this.passwordPolicyIssues(password);
+            if (pwIssues.length) {
+                Swal.fire({ title: '⚠️ Contraseña no válida', text: 'La contraseña requiere: ' + pwIssues.join(', '), icon: 'error', background: '#0f172a', color: '#fff' });
+                return;
+            }
+            const pwConfirm = document.getElementById(`edit-user-password-confirm-config-${userId}`)?.value || '';
+            if (password !== pwConfirm) {
+                Swal.fire({ title: '⚠️ Error', text: 'Las contraseñas no coinciden', icon: 'error', background: '#0f172a', color: '#fff' });
+                return;
+            }
         }
         
         const saveBtn = document.querySelector('[data-act="call" data-call="saveUserEditInlineConfig"]');
@@ -16030,6 +16072,19 @@ navigate(viewName, params = {}, push = true) {
                 e.target.reset();
             }
         } catch(err) { Swal.fire('Error', 'Error al actualizar contraseña.', 'error'); }
+    },
+
+    // v12.44.823: ver/ocultar una contraseña por id (botón ojo de los formularios)
+    togglePasswordVisibility: function(id){
+        const el = document.getElementById(id);
+        if (el) el.type = (el.type === 'password') ? 'text' : 'password';
+    },
+
+    // v12.44.823: sugerir contraseña y rellenarla también en la confirmación
+    suggestEditPassword: function(baseId, confirmId){
+        const pw = this.suggestPassword(baseId);
+        const el2 = document.getElementById(confirmId);
+        if (el2) el2.value = pw;
     },
 
     // v12.44.823: sugerir contraseña legible que SIEMPRE cumple la política
