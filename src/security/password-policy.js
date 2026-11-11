@@ -23,8 +23,8 @@ const z = require('zod');
  */
 const EXPOSED_PASSWORDS = ['admin123', 'changeme123'];
 
-/** Longitud mínima exigida a toda contraseña nueva */
-const MIN_LENGTH = 10;
+/** Longitud mínima exigida a toda contraseña nueva (v12.44.823: orden del dueño, antes 10) */
+const MIN_LENGTH = 8;
 
 /**
  * Schema zod de fortaleza: longitud mínima + mayúscula + minúscula + número.

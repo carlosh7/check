@@ -125,7 +125,7 @@ describe('Validation - schemas', () => {
             const result = validate(schemas.signup, data);
             
             expect(result.valid).toBe(false);
-            expect(result.errors.some(e => e.includes('10 caracteres'))).toBe(true);
+            expect(result.errors.some(e => e.includes('8 caracteres'))).toBe(true);
         });
         
         test('should accept valid roles', () => {

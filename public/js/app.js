@@ -7336,6 +7336,9 @@ navigate(viewName, params = {}, push = true) {
             } catch (err) { alert('Error de red.'); }
         });
         sf('invite-user-form', (e) => this.handleInviteSubmit(e));
+        // v12.44.823: sugerir contraseña segura que cumple la política
+        cl('btn-suggest-password', () => this.suggestPassword('invite-password'));
+        cl('btn-suggest-staff-password', () => this.suggestPassword('create-staff-password'));
         sf('company-form', (e) => this.handleCompanySubmit(e));
         
         // Modales de creación (diseño igual al de empresa)
@@ -16029,6 +16032,28 @@ navigate(viewName, params = {}, push = true) {
         } catch(err) { Swal.fire('Error', 'Error al actualizar contraseña.', 'error'); }
     },
 
+    // v12.44.823: sugerir contraseña legible que SIEMPRE cumple la política
+    // (mayúscula inicial + sílabas + número de 2 dígitos; ~12-16 caracteres)
+    suggestPassword: function(targetId){
+        const syl=['ca','lo','mi','ra','to','ne','bu','sa','ve','ri','do','lu','pa','te','ku','mo','fri','so','bla','tor','nu','be','ga','de'];
+        let pw='';
+        for(let i=0;i<4;i++){ const s=syl[Math.floor(Math.random()*syl.length)]; pw+=(i===0? s.charAt(0).toUpperCase() : s); }
+        pw+=String(Math.floor(Math.random()*90)+10);
+        const el=document.getElementById(targetId);
+        if(el){ el.value=pw; el.type='text'; }
+        return pw;
+    },
+
+    // v12.44.823: política de contraseñas compartida (igual que el backend: mínimo 8 + mayúscula + minúscula + número)
+    passwordPolicyIssues: function(pw){
+        const issues=[];
+        if(!pw || pw.length < 8) issues.push('mínimo 8 caracteres');
+        if(!/[A-Z]/.test(pw||'')) issues.push('al menos una mayúscula');
+        if(!/[a-z]/.test(pw||'')) issues.push('al menos una minúscula');
+        if(!/[0-9]/.test(pw||'')) issues.push('al menos un número');
+        return issues;
+    },
+
     async handleInviteSubmit(e) {
         e.preventDefault();
         const displayName = document.getElementById('invite-display-name')?.value;
@@ -16049,6 +16074,12 @@ navigate(viewName, params = {}, push = true) {
             // Modo creación - requiere todos los campos
             if (!displayName || !username || !password) {
                 this._notifyAction('Error', 'Completa todos los campos requeridos', 'error');
+                return;
+            }
+            // v12.44.823: misma política que el backend (mínimo 8 + mayúscula + minúscula + número)
+            const issues = this.passwordPolicyIssues(password);
+            if (issues.length) {
+                this._notifyAction('Contraseña no válida', 'La contraseña requiere: ' + issues.join(', '), 'error');
                 return;
             }
         }
@@ -16199,13 +16230,8 @@ navigate(viewName, params = {}, push = true) {
             this._notifyAction('Error', 'Nombre, email y contraseña son requeridos', 'error');
             return;
         }
-        // v12.44.822: validar la MISMA política del backend antes de enviar
-        // (evita el 400 silencioso: mínimo 10 + mayúscula + minúscula + número)
-        const pwIssues = [];
-        if (password.length < 10) pwIssues.push('mínimo 10 caracteres');
-        if (!/[A-Z]/.test(password)) pwIssues.push('al menos una mayúscula');
-        if (!/[a-z]/.test(password)) pwIssues.push('al menos una minúscula');
-        if (!/[0-9]/.test(password)) pwIssues.push('al menos un número');
+        // v12.44.823: política compartida (mínimo 8 + mayúscula + minúscula + número)
+        const pwIssues = this.passwordPolicyIssues(password);
         if (pwIssues.length) {
             this._notifyAction('Contraseña no válida', 'La contraseña requiere: ' + pwIssues.join(', '), 'error');
             return;
