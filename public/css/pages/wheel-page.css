@@ -95,19 +95,35 @@ textarea.form-control{resize:vertical;min-height:70px}
 
 .wof__wheel{position:relative;width:var(--ws);height:var(--ws);padding:8px;transition:transform .3s ease}
 .wof__wheel canvas{width:100%;height:100%}
-.wof__wheel.zooming{transform:scale(1.08)}
+.wof__wheel.zooming{transform:scale(1.06);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+/* v12.44.821: en proyección la ampliación es NOTORIA (se siente que "arranca") */
+.wof.playing .wof__wheel.zooming{transform:scale(1.05);transition:transform .55s cubic-bezier(.34,1.56,.64,1)}
 
-.wof__wheel__pointer{position:absolute;top:50%;right:-30px;margin-top:-21px;z-index:1000;width:54px;height:40px;color:#ff7878}
+.wof__wheel__pointer{position:absolute;top:50%;right:-30px;margin-top:-21px;z-index:1000;width:54px;height:40px;color:#ff7878;transform-origin:78% 50%;transition:transform .09s ease-out}
+/* v12.44.821: el puntero se "flexa" al cruzar cada segmento */
+.wof__wheel__pointer.flick{transform:rotate(-15deg)}
 .wof__wheel__pointer svg{width:100%;height:100%}
 
-.wof__wheel__border{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%;border:8px solid #111;box-shadow:rgba(50,50,93,0.05)0 30px 60px -12px inset,rgba(0,0,0,0.16)5px 5px 0 0 inset;cursor:pointer;pointer-events:none}
+.wof__wheel__border{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%;border:5px solid #111;box-shadow:rgba(50,50,93,0.05)0 30px 60px -12px inset,rgba(0,0,0,0.12)3px 3px 0 0 inset;cursor:pointer;pointer-events:none}
+/* v12.44.821: barra de temas del área de juego — elegante, no interfiere */
+.q-themes-bar{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:none;gap:6px;padding:8px 12px;background:rgba(255,255,255,.94);border-radius:14px;box-shadow:0 6px 22px rgba(0,0,0,.16);border:1px solid #e9e2f7;z-index:998;max-width:72vw;flex-wrap:wrap;justify-content:center}
+.q-palette{display:flex;height:26px;border-radius:6px;overflow:hidden;border:1px solid rgba(0,0,0,0.12);cursor:pointer;min-width:34px;flex:1}
+.q-palette span{flex:1}
+.q-palette:hover{opacity:.75;transform:translateY(-1px)}
+/* v12.44.821: galería de logos integrados */
+.logo-preset{width:44px;height:44px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:4px}
+.logo-preset img{width:100%;height:100%;object-fit:contain}
+.logo-preset:hover{border-color:#7c3aed;transform:translateY(-1px);box-shadow:0 3px 10px rgba(124,58,237,.2)}
 
 .wof__wheel__logo{width:90px;height:90px;object-fit:cover;object-position:center;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:6px solid rgba(255,255,255,.4);z-index:5;pointer-events:none;background:#fff}
 
 .wof__wheel__winner{position:absolute;bottom:calc(100% + 12px);width:100%;text-align:center;z-index:99;display:none}
 .wof__wheel__winner h2{font-size:32px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90vw;line-height:1.2;margin:0}
 
-.wof__main__btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 40px;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-top:28px;transition:opacity .2s;max-width:300px;width:100%;line-height:1.4}
+.wof__main__btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 40px;border:none;border-radius:12px;font-size:17px;font-weight:800;cursor:pointer;margin-top:28px;margin-bottom:56px;max-width:300px;width:100%;line-height:1.4;color:#fff;background:linear-gradient(135deg,#7c3aed,#5b21b6);box-shadow:0 10px 26px rgba(124,58,237,.38);transition:all .2s}
+/* en proyección no hace falta el aire inferior (la barra de temas está aparte) */
+.wof.playing .wof__main__btn,.wof__main.fullscreen .wof__main__btn{margin-bottom:0}
+.wof__main__btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 14px 30px rgba(124,58,237,.45)}
 .wof__main__btn:hover{opacity:.85}
 .wof__main__btn:disabled{opacity:.4;cursor:not-allowed}
 
@@ -123,12 +139,44 @@ textarea.form-control{resize:vertical;min-height:70px}
 .wof__main__options .hide-fs{display:flex}
 .wof__main.fullscreen .hide-fs{display:none}
 
-.wof__main__winners{position:absolute;bottom:80px;width:100%;text-align:center;font-size:13px;padding:8px;display:none;background:rgba(255,255,255,.05);border-radius:8px;color:#475569}
+/* v12.44.821: pill legible y EN FLUJO bajo el botón (antes flotaba y lo tapaba) */
+.wof__main__winners{position:static;margin-top:12px;width:auto;max-width:92%;text-align:center;font-size:14px;padding:10px 14px;display:none;background:rgba(255,255,255,.95);border:1px solid #e9e2f7;border-radius:16px;box-shadow:0 6px 20px rgba(124,58,237,0.12);color:#334155;pointer-events:none}
+/* v12.44.821: ganadores como CHIPS con medalla */
+.win-chip{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(180deg,#ffffff,#f6f2ff);border:2px solid #ddd0f5;border-radius:999px;padding:7px 16px;font-size:14px;font-weight:700;color:#4c1d95;box-shadow:0 2px 8px rgba(124,58,237,.14)}
+.win-chip b{font-size:15px}
+.wof.playing .win-chip{font-size:18px;padding:10px 22px;border-width:3px}
+
+/* v12.44.821: el enlace compartido conserva TODA la edición (colores, datos, opciones
+   en vivo). El modo juego (▶ Jugar / ⛶) es la proyección limpia a un clic. */
+body.share-mode{display:none}
+
+/* proyección — TODO debe caber en pantalla (antes la rueda a 80vh desbordaba) */
+.wof.playing .wof__main__l{justify-content:center;padding:14px;overflow:hidden}
+.wof.playing .wof__main{flex-direction:column}
+.wof.playing .wof__main__r{position:fixed;top:6px;left:0;right:0;margin:0;text-align:center;z-index:5}
+.wof.playing .wof__main__r .wof__main__title{font-size:clamp(20px,3.4vh,34px);margin:4px 0}
+.wof.playing .wof__main .wof__wheel{width:min(72vh,70vw);height:min(72vh,70vw)}
+/* v12.44.821: fullscreen por ⛶ — mismo criterio, la rueda domina la pantalla */
+.wof__main.fullscreen .wof__wheel{width:min(76vh,74vw);height:min(76vh,74vw)}
+.wof.playing .wof__main__btn{margin-top:12px;padding:12px 40px}
+.wof.playing .wof__main__winners,.wof__main.fullscreen .wof__main__winners{position:fixed;right:36px;top:50%;transform:translateY(-50%);margin:0;width:300px;max-height:56vh;overflow-y:auto;z-index:20}
+.wof.playing .win-row{padding:8px 0}
+.wof.playing .win-name-t{font-size:20px}
+.wof.playing .win-pos{width:34px;height:34px;font-size:16px}
+.wof.playing .win-panel-title{font-size:13px}
+.wof.playing .wof__wheel__winner h2{font-size:clamp(26px,5.5vh,44px);margin:6px 0}
+
+/* v12.44.821: animación del ganador (como el original: aparece con fuerza arriba) */
+@keyframes winnerPop{0%{transform:scale(.3);opacity:0}55%{transform:scale(1.18);opacity:1}75%{transform:scale(.96)}100%{transform:scale(1);opacity:1}}
+.wof__wheel__winner.pop h2{animation:winnerPop .6s cubic-bezier(.34,1.56,.64,1) both}
+.wof__wheel__winner.pop{animation:none}
+
+/* el zoom del giro no debe recortar la rueda en los laterales */
 .wof__main__winners.show{display:block}
 
 .watermark{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:99;font-size:11px;color:rgba(255,255,255,0.3);pointer-events:none;white-space:nowrap}
 
-#jsccc{position:fixed;width:100%;height:100%;top:0;left:0;z-index:999999;pointer-events:none}
+#jsccc{position:absolute;width:100%;height:100%;top:0;left:0;z-index:999999;pointer-events:none}
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:999999;display:none}
 .toast.ok{background:#065f46;color:#6ee7b7}
 .toast.err{background:#7f1d1d;color:#fca5a5}
@@ -166,9 +214,11 @@ textarea.form-control{resize:vertical;min-height:70px}
 .wof__wheel{width:550px;height:550px;padding:14px}
 .wof__wheel__logo{width:120px;height:120px;border-width:8px}
 .wof__wheel__pointer{width:74px;height:45px;right:-40px}
-.wof__wheel__border{border-width:16px}
+.wof__wheel__border{border-width:8px}
 .watermark{bottom:20px;right:30px;left:auto;transform:none;font-size:13px}
 .wof__main__options{bottom:30px;right:30px;left:auto}
 .wof__wheel__winner h2{font-size:42px}
 }
-@media(min-width:1200px){:root{--ws:550px}.wof__wheel{width:610px;height:610px}}
+/* v12.44.821: en desktop grande la rueda se adapta a la altura disponible
+   (antes era 610px fijos y se recortaba por abajo con el hero y las tarjetas de modo) */
+@media(min-width:1200px){:root{--ws:550px}.wof__wheel{width:min(610px,max(380px,calc(100vh - 420px)));height:min(610px,max(380px,calc(100vh - 420px)))}}

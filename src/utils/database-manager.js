@@ -682,10 +682,13 @@ function createEventTables(db, eventId) {
         CREATE TABLE IF NOT EXISTS raffle_participants (
             id TEXT PRIMARY KEY, raffle_id TEXT NOT NULL,
             guest_id TEXT, name TEXT, email TEXT, phone TEXT,
-            source TEXT DEFAULT 'guests', created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            source TEXT DEFAULT 'guests', weight REAL DEFAULT -1,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (raffle_id) REFERENCES raffles(id) ON DELETE CASCADE
         )
     `);
+    // v12.44.821: peso de probabilidad (-1 = Auto, 0-100 = % fijado)
+    try { db.exec("ALTER TABLE raffle_participants ADD COLUMN weight REAL DEFAULT -1"); } catch (_) {}
     db.exec(`
         CREATE TABLE IF NOT EXISTS raffle_results (
             id TEXT PRIMARY KEY, raffle_id TEXT NOT NULL,

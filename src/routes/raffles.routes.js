@@ -246,7 +246,9 @@ router.get('/:id/stats', (req, res) => {
         const visits = db.prepare("SELECT COUNT(*) as c FROM raffle_spins WHERE raffle_id = ? AND winner_name = '___visit___'").get(req.params.id).c;
         const realSpins = totalSpins - visits;
         const participants = db.prepare("SELECT COUNT(*) as c FROM raffle_participants WHERE raffle_id = ?").get(req.params.id).c;
-        res.json({ spins: realSpins, visits: visits, participants: participants });
+        // v12.44.821: leads registrados (giros con lead_json, excluye las visitas)
+        const leads = db.prepare("SELECT COUNT(*) as c FROM raffle_spins WHERE raffle_id = ? AND lead_json IS NOT NULL AND winner_name != '___visit___'").get(req.params.id).c;
+        res.json({ spins: realSpins, visits: visits, participants: participants, leads: leads });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -283,7 +285,9 @@ router.post('/:id/draw', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 
 router.get('/:id/participants', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
-        const participants = db.prepare("SELECT * FROM raffle_participants WHERE raffle_id = ? ORDER BY name ASC").all(req.params.id);
+        // v12.44.821: rowid (orden de inserción) en vez de name ASC — así la ruleta
+        // conserva el orden que configuró el organizador, igual que AppSorteos
+        const participants = db.prepare("SELECT * FROM raffle_participants WHERE raffle_id = ? ORDER BY rowid ASC").all(req.params.id);
         res.json(participants);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -428,6 +432,8 @@ router.get('/:id/public', (req, res) => {
             name: raffle.name,
             config: config,
             is_active: raffle.status === 'published' || raffle.status === 'active',
+            // v12.44.821: event_id público — la página lo necesita para "Mis Ruletas"
+            event_id: raffle.event_id,
             event_name: event ? event.name : 'Evento',
             participants: participantNames,
             participantCount: participants.length,
@@ -470,6 +476,100 @@ router.get('/:id/wheel-config', (req, res) => {
         };
         res.json(defaultConfig);
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ── QR del enlace público (v12.44.821 — paridad AppSorteos, self-hosted con qrcode npm) ──
+
+router.get('/:id/qr', async (req, res) => {
+    try {
+        const raffle = db.prepare("SELECT id, event_id FROM raffles WHERE id = ?").get(req.params.id);
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
+        const event = db.prepare("SELECT name FROM events WHERE id = ?").get(raffle.event_id);
+        // mismo algoritmo de slug que usa el frontend al abrir la ruleta (playWheel)
+        const slug = ((event && event.name) || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+        const host = req.headers['x-forwarded-host'] || req.get('host') || '';
+        const url = proto + '://' + host + '/' + slug + '/raffle/' + raffle.id;
+        const size = Math.min(Math.max(parseInt(req.query.size) || 300, 120), 800);
+        const buf = await require('qrcode').toBuffer(url, { width: size, margin: 2, color: { dark: '#1a1a1a', light: '#ffffff' } });
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=300');
+        res.send(buf);
+    } catch (err) {
+        logger.error('[RAFFLE] QR error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ── Exportar participantes + registros (leads) a CSV (v12.44.821) ──
+
+router.get('/:id/export-csv', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+    try {
+        const raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
+        const participants = db.prepare("SELECT name, email, phone, source, created_at FROM raffle_participants WHERE raffle_id = ? ORDER BY rowid ASC").all(raffle.id);
+        const leads = db.prepare("SELECT lead_json, created_at FROM raffle_spins WHERE raffle_id = ? AND lead_json IS NOT NULL AND winner_name != '___visit___' ORDER BY created_at ASC").all(raffle.id);
+        const esc = function(v) { const s = v == null ? '' : String(v); return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+        // BOM UTF-8 para que Excel respete los acentos
+        let csv = '\uFEFFtipo,nombre,email,telefono,fuente,fecha\n';
+        participants.forEach(function(p) {
+            csv += 'participante,' + esc(p.name) + ',' + esc(p.email) + ',' + esc(p.phone) + ',' + esc(p.source) + ',' + esc(p.created_at) + '\n';
+        });
+        leads.forEach(function(l) {
+            let lead = {};
+            try { lead = JSON.parse(l.lead_json); } catch (e) {}
+            csv += 'registro,' + esc(lead.name) + ',' + esc(lead.email) + ',' + esc(lead.phone) + ',lead,' + esc(l.created_at) + '\n';
+        });
+        const fname = (raffle.name || 'ruleta').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename=' + fname + '_participantes.csv');
+        res.send(csv);
+    } catch (err) {
+        logger.error('[RAFFLE] CSV error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ── Guardado público desde el ENLACE COMPARTIDO (v12.44.821) ──
+// El productor comparte el link para proyectar/editar sin clave (p. ej. el master
+// ajusta colores o entradas de último momento desde otro PC). Acepta SOLO config y
+// participantes, SOLO para ruletas publicadas/activas, con límites defensivos y
+// auditoría con IP. No permite renombrar, borrar ni cambiar estado.
+router.put('/:id/public-config', (req, res) => {
+    try {
+        const raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
+        if (raffle.status !== 'published' && raffle.status !== 'active') {
+            return res.status(403).json({ error: 'Solo las ruletas publicadas aceptan cambios desde el enlace' });
+        }
+        const { config, participants } = req.body || {};
+        if (config !== undefined) {
+            if (typeof config !== 'object' || config === null || Array.isArray(config)) {
+                return res.status(400).json({ error: 'config inválida' });
+            }
+            const json = JSON.stringify(config);
+            if (json.length > 3000000) return res.status(400).json({ error: 'Configuración demasiado grande' });
+            db.prepare("UPDATE raffles SET config_json = ?, updated_at = ? WHERE id = ?").run(json, new Date().toISOString(), raffle.id);
+        }
+        if (participants !== undefined) {
+            if (!Array.isArray(participants)) return res.status(400).json({ error: 'participants debe ser un array' });
+            if (participants.length > 2000) return res.status(400).json({ error: 'Máximo 2000 participantes' });
+            db.prepare("DELETE FROM raffle_participants WHERE raffle_id = ?").run(raffle.id);
+            const insert = db.prepare("INSERT INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, 'manual')");
+            let count = 0;
+            participants.forEach(function(p) {
+                if (!p || !p.name) return;
+                insert.run(uuidv4(), raffle.id, null, String(p.name).slice(0, 200), p.email || '', p.phone || '');
+                count++;
+            });
+            db.prepare("UPDATE raffles SET total_participants = ? WHERE id = ?").run(count, raffle.id);
+        }
+        try { logAction(req, 'RAFFLE_PUBLIC_SAVE', { raffleId: raffle.id, name: raffle.name, config: !!config, participants: Array.isArray(participants) ? participants.length : 0 }); } catch (e) {}
+        res.json({ success: true });
+    } catch (err) {
+        logger.error('[RAFFLE] Public save error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });

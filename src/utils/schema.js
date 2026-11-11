@@ -456,6 +456,7 @@ function initSchema(db) {
         email TEXT,
         phone TEXT,
         source TEXT DEFAULT 'guests',
+        weight REAL DEFAULT -1,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (raffle_id) REFERENCES raffles(id) ON DELETE CASCADE
     )`);
@@ -485,6 +486,8 @@ function initSchema(db) {
     )`);
     
     try { db.exec("ALTER TABLE raffle_spins ADD COLUMN lead_json TEXT"); } catch (_) {}
+    // v12.44.821: peso de probabilidad por participante (-1 = Auto, 0-100 = % fijado)
+    try { db.exec("ALTER TABLE raffle_participants ADD COLUMN weight REAL DEFAULT -1"); } catch (_) {}
     try { db.exec("CREATE INDEX IF NOT EXISTS idx_raffle_spins_raffle ON raffle_spins(raffle_id)"); } catch (_) {}
     try { db.exec("ALTER TABLE raffle_results ADD COLUMN notes TEXT"); } catch (_) {}
     try { db.exec("ALTER TABLE raffle_results ADD COLUMN label TEXT"); } catch (_) {}

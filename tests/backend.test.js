@@ -547,6 +547,104 @@ describe('Raffles Routes', () => {
     });
 });
 
+// ─── RULETAS: PESOS + QR + CSV (v12.44.821) ───
+
+describe('Raffles QR/CSV Routes (v12.44.821)', () => {
+    const rafflesRoutes = require('../src/routes/raffles.routes');
+    const app = createTestApp(rafflesRoutes, '/api/raffles');
+    let raffleId = null;
+    let eventId = null;
+
+    test('creates raffle and saves participants with weights', async () => {
+        const token = getAdminToken();
+        expect(token).toBeTruthy();
+        // evento real (FK events.event_id → ON)
+        eventId = uuidv4();
+        db.prepare("INSERT INTO events (id, user_id, name, date, status, created_at) VALUES (?, ?, ?, ?, 'ACTIVE', ?)")
+          .run(eventId, getAdminUserId(), 'Evento Ruletas Test', new Date().toISOString().slice(0, 10), new Date().toISOString());
+
+        const created = await request(app)
+            .post(`/api/raffles/events/${eventId}/raffles`)
+            .set('Authorization', `Bearer ${token}`)
+            .send({ name: 'Ruleta Pesos Test' });
+        expect(created.status).toBeLessThan(500);
+        raffleId = created.body.id;
+        expect(raffleId).toBeDefined();
+
+        const batch = await request(app)
+            .post(`/api/raffles/${raffleId}/participants/batch`)
+            .set('Authorization', `Bearer ${token}`)
+            .send({ participants: [
+                { name: 'Ana' },
+                { name: 'Beto' },
+                { name: 'Cami' },
+                { name: 'Dani' }
+            ] });
+        expect(batch.status).toBe(200);
+        expect(batch.body.added).toBe(4);
+
+        const parts = await request(app)
+            .get(`/api/raffles/${raffleId}/participants`)
+            .set('Authorization', `Bearer ${token}`);
+        expect(parts.status).toBe(200);
+        expect(parts.body.map(p => p.name)).toEqual(['Ana', 'Beto', 'Cami', 'Dani']);
+    });
+
+    test('public endpoint returns participants and event_id', async () => {
+        const res = await request(app).get(`/api/raffles/${raffleId}/public`);
+        expect(res.status).toBe(200);
+        expect(res.body.participants).toEqual(['Ana', 'Beto', 'Cami', 'Dani']);
+        expect(res.body.event_id).toBe(eventId);
+    });
+
+    test('QR endpoint returns PNG image', async () => {
+        const res = await request(app).get(`/api/raffles/${raffleId}/qr?size=200`);
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toContain('image/png');
+        expect(res.body.length).toBeGreaterThan(100);
+    });
+
+    test('export-csv returns CSV with participants and records', async () => {
+        // crear un lead primero para que el CSV lo incluya
+        await request(app)
+            .post(`/api/raffles/${raffleId}/spin-with-lead`)
+            .send({ winnerName: '___lead___', name: 'Lead CSV', email: 'csv@test.com' });
+        const res = await request(app)
+            .get(`/api/raffles/${raffleId}/export-csv`)
+            .set('Authorization', `Bearer ${getAdminToken()}`);
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toContain('text/csv');
+        expect(res.text).toContain('tipo,nombre,email,telefono,fuente,fecha');
+        expect(res.text).toContain('participante,Ana');
+        expect(res.text).toContain('registro,Lead CSV');
+    });
+
+    test('export-csv returns 401 without auth', async () => {
+        const res = await request(app).get(`/api/raffles/${raffleId}/export-csv`);
+        expect(res.status).toBe(401);
+    });
+
+    test('stats includes leads count', async () => {
+        await request(app)
+            .post(`/api/raffles/${raffleId}/spin-with-lead`)
+            .send({ winnerName: '___lead___', name: 'Lead Test', email: 'lead@test.com' });
+        const res = await request(app).get(`/api/raffles/${raffleId}/stats`);
+        expect(res.status).toBe(200);
+        expect(typeof res.body.leads).toBe('number');
+        expect(res.body.leads).toBeGreaterThanOrEqual(1);
+    });
+
+    afterAll(async () => {
+        if (raffleId) {
+            const token = getAdminToken();
+            await request(app).delete(`/api/raffles/${raffleId}`).set('Authorization', `Bearer ${token}`);
+        }
+        if (eventId) {
+            db.prepare("DELETE FROM events WHERE id = ?").run(eventId);
+        }
+    });
+});
+
 // ─── CLIENTS ROUTES ───
 
 describe('Clients Routes', () => {

@@ -6,8 +6,9 @@
 <title>Ruleta | Check Pro</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎡</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
-<link rel="stylesheet" href="/css/pages/wheel-page.css?v=12.44.818">
+<!-- v12.44.821: sin CDN de confeti — el confeti es propio (burstConfetti sobre #jsccc),
+     así nunca rompe el anuncio del ganador ni depende de un recurso externo -->
+<link rel="stylesheet" href="/css/pages/wheel-page.css?v=12.44.821">
 </head>
 <body>
 <div id="loading"><div><div class="sp"></div><p>Cargando ruleta...</p></div></div>
@@ -21,7 +22,8 @@
   <div class="stats">
     <span>👁️ <span id="stat-visits">0</span> <b>Visitas</b></span>
     <span>🔄 <span id="stat-spins">0</span> <b>Giros</b></span>
-    <span>👤 <span id="stat-users">0</span> <b>Usuarios</b></span>
+    <span>👤 <span id="stat-users">0</span> <b>Entradas</b></span>
+    <span>📋 <span id="stat-leads">0</span> <b>Registros</b></span>
   </div>
   <div class="actions">
     <button data-act="call" data-call="openModal" data-a1="share-modal">🔗 Compartir</button>
@@ -97,15 +99,15 @@
           <button class="form-control" data-style="font-size:11px;padding:4px 8px;cursor:pointer;width:auto;color:#ef4444" data-act="call" data-call="clearP">🗑️ Limpiar</button>
         </div>
         <div data-style="font-size:12px;color:#6b7280;margin-top:4px"><span id="part-cnt">0</span> participantes</div>
-        <div class="custom-check"><input type="checkbox" id="cfg-adv" data-act="call" data-call="toggleAdv"><label for="cfg-adv">⚡ Modo avanzado (%)</label></div>
-        <div id="adv-list" data-style="display:none;margin-top:4px;max-height:150px;overflow-y:auto"></div>
-        <button id="btn-add-e" class="form-control" data-style="display:none;margin-top:4px;cursor:pointer;font-size:12px;padding:6px" data-act="call" data-call="addE">+ Añadir entrada</button>
+        <!-- v12.44.821 (orden del dueño): SIN pesos — la ruleta siempre es simétrica -->
       </div>
 
       <div class="sec-h collapsed" data-act="call" data-call="toggleCollapse" data-a1="@this" data-a2="sec-des">🎨 Diseño<span class="chev">▼</span></div>
       <div id="sec-des" class="sec-b hidden" data-tab="design">
         <div class="form-group"><label>Temas</label><div id="theme-ps" data-style="display:flex;gap:4px;overflow-x:auto"></div></div>
         <div class="form-group"><label>Logo</label>
+          <!-- v12.44.821: galería de logos integrados elegantes (no emoji) -->
+          <div id="logo-presets" data-style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"></div>
           <div data-style="display:flex;align-items:center;gap:8px">
             <div id="logo-pv" data-style="width:40px;height:40px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;flex-shrink:0">🎡</div>
             <button class="form-control" data-style="padding:4px 12px;cursor:pointer;width:auto" data-act="call" data-call="uploadLogo">Subir</button>
@@ -158,7 +160,7 @@
         <h2 id="win-name"></h2>
       </div>
       <div class="wof__wheel" id="wheel-ct">
-        <img id="wheel-logo" class="wof__wheel__logo" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23f3f4f6' stroke='%23e5e7eb' stroke-width='2'/><text x='50' y='62' text-anchor='middle' font-size='36'>🎡</text></svg>">
+        <img id="wheel-logo" class="wof__wheel__logo" src="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20100%20100'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23475569'%20stroke-width%3D'4.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M31%2024h38v15a19%2019%200%200%201-38%200z'%2F%3E%3Cpath%20d%3D'M31%2029H17v7a12%2012%200%200%200%2012%2012'%2F%3E%3Cpath%20d%3D'M69%2029h14v7a12%2012%200%200%201-12%2012'%2F%3E%3Cpath%20d%3D'M50%2058v11'%2F%3E%3Cpath%20d%3D'M37%2076h26'%2F%3E%3Cpath%20d%3D'M43%2069h14v7H43z'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
         <canvas id="canvas" width="500" height="500"></canvas>
         <div class="wof__wheel__pointer">
           <svg viewBox="0 0 273 147" width="100%" height="100%"><g>
@@ -188,11 +190,14 @@
       <button class="hide-fs" id="btn-close-pl" data-act="call" data-call="exitPlay" data-style="display:none">✕</button>
     </div>
     <div class="watermark">Powered by Check Pro</div>
-    <div id="q-themes" class="color_palette" data-style="position:absolute;bottom:80px;display:none;gap:4px;padding:6px 10px;background:rgba(255,255,255,.15);border-radius:8px;backdrop-filter:blur(8px);height:auto"></div>
+    <!-- v12.44.821: temas rápidos dentro del área de juego, con diseño — para cambiar
+         la paleta en vivo incluso en pantalla completa -->
+    <div id="q-themes" class="q-themes-bar" data-style="display:none"></div>
+    <!-- el canvas de confeti vive DENTRO de #screencast — un canvas fuera quedaba TAPADO
+         cuando la rueda entraba a pantalla completa (top layer del navegador) -->
+    <canvas id="jsccc"></canvas>
   </div>
 </div>
-
-<canvas id="jsccc"></canvas>
 <div id="toast" class="toast"></div>
 
 <!-- Share Modal -->
@@ -221,20 +226,11 @@
     <h3>Editar entrada</h3>
     <p>Modifica el nombre y la probabilidad</p>
     <input type="text" id="edit-name" placeholder="Nombre">
-    <div class="form-group"><label data-style="font-size:12px;color:#6b7280;margin-bottom:4px">Probabilidad</label>
-      <select id="edit-chance" class="form-control form-control-lg">
-        <option value="-1">Auto</option>
-        <option value="0">0%</option><option value="1">1%</option><option value="3">3%</option><option value="5">5%</option>
-        <option value="10">10%</option><option value="15">15%</option><option value="20">20%</option><option value="25">25%</option>
-        <option value="30">30%</option><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option>
-        <option value="70">70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option>
-      </select>
-    </div>
     <div class="btn-row"><button class="primary" data-act="call" data-call="applyEditEntry">Aplicar cambios</button><button class="secondary" data-act="call" data-call="closeModal" data-a1="edit-modal">Cancelar</button></div>
   </div>
 </div>
 
-<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.818"></script>
-  <script src="/js/pages/wheel.js?v=12.44.818"></script>
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.821"></script>
+  <script src="/js/pages/wheel.js?v=12.44.821"></script>
 </body>
 </html>

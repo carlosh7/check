@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.min.css"><!-- v12.44.815: CSS externo — la CSP ya no permite el <style> que Swal inyecta -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5"></script>
-<link rel="stylesheet" href="/css/modules/base.css?v=12.44.820">
-<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.820">
-<link rel="stylesheet" href="/css/modules/components.css?v=12.44.820">
-<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.820">
-<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.820">
-<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.820">
+<link rel="stylesheet" href="/css/modules/base.css?v=12.44.821">
+<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.821">
+<link rel="stylesheet" href="/css/modules/components.css?v=12.44.821">
+<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.821">
+<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.821">
+<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.821">
 <div id="app-container" class="app-container hidden" role="application" aria-label="Check Pro - Panel de administración">
     <a href="#app-main-content" class="skip-to-content">Saltar al contenido principal</a>
     <button id="hamburger-btn" class="hamburger-btn" data-act="sidebarToggle" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="global-sidebar">☰</button>
@@ -73,7 +73,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.820</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.821</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -619,7 +619,7 @@
                     </div>
 
                     <div id="config-content-wheel" class="config-tab-content hidden">
-                        <link rel="stylesheet" href="/css/pages/shell-page.css?v=12.44.820">
+                        <link rel="stylesheet" href="/css/pages/shell-page.css?v=12.44.821">
 
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-xl font-bold text-white">Ruleta</h2>
@@ -635,6 +635,23 @@
 
                         <!-- EDITOR VIEW -->
                         <div id="wheel-editor-view" class="hidden">
+                            <!-- v12.44.821: selector de modo estilo AppSorteos -->
+                            <div class="wheel-mode-switch">
+                                <div class="wheel-mode-card active" id="wheel-mode-classic" data-act="call" data-call="setWheelMode" data-a1="false">
+                                    <div class="wheel-mode-check"><span class="material-symbols-outlined">check</span></div>
+                                    <div class="wheel-mode-info">
+                                        <h4>🎡 Ruleta Clásica</h4>
+                                        <p>Los participantes (o tú) giran la ruleta anónimamente.</p>
+                                    </div>
+                                </div>
+                                <div class="wheel-mode-card" id="wheel-mode-lead" data-act="call" data-call="setWheelMode" data-a1="true">
+                                    <div class="wheel-mode-check"><span class="material-symbols-outlined">check</span></div>
+                                    <div class="wheel-mode-info">
+                                        <h4>📋 Ruleta con Registro</h4>
+                                        <p>Los participantes dejan su nombre y email antes de girar.</p>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="flex gap-4" data-style="min-height:650px">
                                 <!-- SIDEBAR -->
                                 <div class="w-80 flex-shrink-0 space-y-1 overflow-y-auto" data-style="max-height:700px">
@@ -644,10 +661,10 @@
                                         <input id="wheel-name" class="input-field text-sm font-bold flex-1" placeholder="Nombre de la ruleta">
                                     </div>
 
-                                    <!-- CONFIG -->
+                                    <!-- OPCIONES (v12.44.821: antes "Configuración") -->
                                     <div class="wheel-section">
                                         <div class="wheel-section-header" data-act="call" data-call="toggleWheelSection" data-a1="config">
-                                            <span>⚙️ Configuración</span><span class="chevron">▼</span>
+                                            <span>⚙️ Opciones</span><span class="chevron">▼</span>
                                         </div>
                                         <div id="wheel-sec-config" class="wheel-section-body">
                                             <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mb-1">
@@ -671,22 +688,27 @@
                                             <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
                                                 <input type="checkbox" id="wheel-auto-remove" data-act="call" data-call="onWheelConfigChange"> Auto-remover ganador
                                             </label>
+                                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                                                <input type="checkbox" id="wheel-improve" data-act="call" data-call="onWheelDesignChange"> ✨ Mejorar porciones
+                                            </label>
                                             <div class="flex items-center justify-between text-xs text-slate-300 mt-1">
                                                 <span>Duración giro</span>
                                                 <select id="wheel-duration" class="input-field w-16 text-xs" data-act="call" data-call="onWheelConfigChange">
                                                     <option value="6">6s</option><option value="10" selected>10s</option><option value="14">14s</option>
                                                 </select>
                                             </div>
-                                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mt-1">
-                                                <input type="checkbox" id="wheel-capture-leads" data-act="call" data-call="onWheelConfigChange"> 📋 Captura Leads
+                                            <!-- v12.44.821: el modo se elige con las tarjetas de arriba;
+                                                 este checkbox queda oculto como campo que sincroniza ambas UIs -->
+                                            <label class="hidden">
+                                                <input type="checkbox" id="wheel-capture-leads" data-act="call" data-call="onWheelConfigChange"> Captura Leads
                                             </label>
                                         </div>
                                     </div>
 
-                                    <!-- PARTICIPANTS -->
+                                    <!-- ENTRADAS (v12.44.821: antes "Participantes", con contador estilo AppSorteos) -->
                                     <div class="wheel-section">
                                         <div class="wheel-section-header" data-act="call" data-call="toggleWheelSection" data-a1="participants">
-                                            <span>👥 Participantes</span><span class="chevron">▼</span>
+                                            <span>🎁 Entradas <span id="wheel-entries-count-badge" class="wheel-count-badge">0</span></span><span class="chevron">▼</span>
                                         </div>
                                         <div id="wheel-sec-participants" class="wheel-section-body">
                                             <label class="text-xs text-slate-500 mb-1">Fuente de datos:</label>
@@ -698,7 +720,8 @@
                                                 <option value="survey">📊 Respondieron encuesta</option>
                                             </select>
                                             <select id="wheel-survey-template" class="input-field w-full text-xs mb-1 hidden"></select>
-                                            <button id="wheel-btn-import" class="btn-secondary text-xs w-full mb-2 hidden" data-act="call" data-call="importWheelParticipants">🔄 Importar</button>
+                                            <button id="wheel-btn-import" class="btn-secondary text-xs w-full mb-1 hidden" data-act="call" data-call="importWheelParticipants">🔄 Importar</button>
+                                            <button id="wheel-btn-import-file" class="btn-secondary text-xs w-full mb-2" data-act="call" data-call="importWheelFile" title="Añade un nombre por línea desde un archivo de texto o CSV">📄 Importar .txt/.csv</button>
                                             <div class="text-center text-[10px] text-slate-600 my-1">— o escribe manual —</div>
                                             <textarea id="wheel-participants-text" class="input-field w-full text-xs" rows="6" placeholder="Un nombre por línea&#10;Juan Pérez&#10;María García" data-act="call" data-call="onWheelParticipantsChange"></textarea>
                                             <div class="flex gap-1 mt-1">
@@ -707,11 +730,7 @@
                                                 <button class="btn-secondary text-[10px] px-2 py-0.5 text-red-400" data-act="call" data-call="clearWheelParticipants">🗑️ Limpiar</button>
                                             </div>
                                             <p id="wheel-participant-count" class="text-xs text-slate-500 mt-1">0 participantes</p>
-                                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mt-2">
-                                                <input type="checkbox" id="wheel-advanced-mode" data-act="call" data-call="toggleWheelAdvancedMode"> ⚡ Modo avanzado (% probabilidad)
-                                            </label>
-                                            <div id="wheel-advanced-list" class="hidden mt-2 space-y-1 max-h-40 overflow-y-auto"></div>
-                                            <button id="wheel-add-entry-btn" class="btn-secondary text-xs w-full mt-1 hidden" data-act="call" data-call="addWheelEntry">+ Añadir entrada</button>
+                                            <!-- v12.44.821 (orden del dueño): SIN pesos — la ruleta siempre es simétrica -->
                                         </div>
                                     </div>
 
@@ -724,12 +743,21 @@
                                             <label class="text-xs text-slate-500 mb-1">Temas</label>
                                             <div id="wheel-themes" class="flex gap-1 mb-2 overflow-x-auto"></div>
                                             <label class="text-xs text-slate-500 mb-1">Logo</label>
+                                            <!-- v12.44.821: galería de logos integrados elegantes -->
+                                            <div id="wheel-logo-presets" class="flex gap-1.5 flex-wrap mb-2"></div>
                                             <div class="flex items-center gap-2 mb-2">
                                                 <div id="wheel-logo-preview" class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-[10px] text-slate-500 overflow-hidden flex-shrink-0">
                                                     <img id="wheel-logo-img" class="hidden w-full h-full object-cover">
                                                 </div>
                                                 <button class="btn-secondary text-[10px]" data-act="call" data-call="uploadWheelLogo">Subir</button>
                                                 <button id="wheel-btn-remove-logo" class="btn-secondary text-[10px] text-red-400 hidden" data-act="call" data-call="removeWheelLogo">Eliminar</button>
+                                            </div>
+                                            <!-- v12.44.821: imagen de fondo de página (la config ya la soportaba) -->
+                                            <label class="text-xs text-slate-500 mb-1">Imagen de fondo</label>
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <div id="wheel-bg-preview" class="hidden w-10 h-10 rounded bg-slate-700 bg-cover bg-center flex-shrink-0"></div>
+                                                <button class="btn-secondary text-[10px]" data-act="call" data-call="uploadWheelBg">Subir</button>
+                                                <button id="wheel-btn-remove-bg" class="btn-secondary text-[10px] text-red-400 hidden" data-act="call" data-call="removeWheelBg">Eliminar</button>
                                             </div>
                                             <div class="flex items-center justify-between text-xs mb-1">
                                                 <span class="text-slate-300">Fondo página</span>
@@ -788,18 +816,25 @@
                                     <!-- BOTTOM BUTTONS -->
                                     <div class="flex gap-2 mt-3 pt-3 border-t border-slate-700/50 py-3">
                                         <button class="btn-primary flex-1 text-base font-bold py-3 px-4 rounded-lg" data-act="call" data-call="saveWheel">💾 Guardar</button>
-                                        <button class="btn-success flex-1 text-base font-bold py-3 px-4 rounded-lg" data-act="call" data-call="playWheel">▶️ Jugar</button>
-                                        <button class="btn-danger text-base font-bold py-3 px-4 rounded-lg" data-act="call" data-call="deleteCurrentWheel">🗑️</button>
+                                        <button class="btn-success flex-1 text-base font-bold py-3 px-4 rounded-lg" data-act="call" data-call="playWheel">▶️ Comenzar</button>
+                                    </div>
+                                    <!-- v12.44.821: acciones de compartir/registro estilo AppSorteos -->
+                                    <div class="flex gap-2 mt-1 pb-2">
+                                        <button class="btn-secondary flex-1 text-xs py-2 px-3 rounded-lg" data-act="call" data-call="openWheelQr" title="Genera un QR del enlace público para imprimir o proyectar">📱 QR</button>
+                                        <button class="btn-secondary flex-1 text-xs py-2 px-3 rounded-lg" data-act="call" data-call="exportWheelCsv" title="Descarga participantes y registros en CSV">📊 Exportar CSV</button>
+                                        <button class="btn-danger text-sm font-bold py-2 px-3 rounded-lg" data-act="call" data-call="deleteCurrentWheel" title="Eliminar ruleta">🗑️</button>
                                     </div>
                                 </div>
 
                                 <!-- PREVIEW -->
                                 <div id="wheel-preview" class="flex-1 flex flex-col items-center justify-center relative overflow-hidden rounded-2xl" data-style="background:#D1E4FF;min-height:600px;color:#1a1a1a">
-                                    <div class="flex flex-col items-center" data-style="zoom:.7">
+                                    <!-- v12.44.821: estadísticas de la ruleta (visitas/giros/registros) -->
+                                    <div id="wheel-stats-row" class="wheel-stats-row" data-style="position:absolute;top:12px;left:16px"></div>
+                                    <div class="flex flex-col items-center">
                                         <div id="wheel-preview-winner" data-style="display:none;font-size:28px;font-weight:600;margin-bottom:8px;text-align:center;color:#1a1a1a">
                                             <span id="wheel-preview-winner-name"></span>
                                         </div>
-                                        <div class="relative" data-style="width:350px;height:350px;-webkit-transform:rotate(-55deg);transform:rotate(-55deg);padding:8px">
+                                        <div class="relative" data-style="width:410px;height:410px;-webkit-transform:rotate(-55deg);transform:rotate(-55deg);padding:8px">
                                             <img id="wheel-preview-logo-img" class="wof__wheel__logo" data-style="width:60px;height:60px;object-fit:cover;object-position:center;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(55deg);border-radius:50%;border:4px solid rgba(255,255,255,.4);z-index:5">
                                             <canvas id="wheel-canvas" width="500" height="500" data-style="width:100%;height:100%"></canvas>
                                             <div data-style="position:absolute;top:50%;right:-30px;margin-top:-18px;z-index:1000;width:46px;height:34px">
@@ -811,9 +846,9 @@
                                                     </g>
                                                 </svg>
                                             </div>
-                                            <div data-style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%;border:6px solid #111;box-shadow:rgba(50,50,93,0.05)0 30px 60px -12px inset,rgba(0,0,0,0.16)5px 5px 0 0 inset"></div>
+                                            <div data-style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%;border:4px solid #111;box-shadow:rgba(50,50,93,0.05)0 30px 60px -12px inset,rgba(0,0,0,0.12)3px 3px 0 0 inset"></div>
                                         </div>
-                                        <button id="wheel-preview-btn" class="wof__main__btn" data-style="background:#1a1a1a;color:#fff;max-width:260px;margin-top:16px;padding:10px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer" data-act="call" data-call="spinWheelPreview" disabled>🎡 GIRAR</button>
+                                        <button id="wheel-preview-btn" class="wof__main__btn" data-style="background:#1a1a1a;color:#fff;max-width:260px;margin-top:16px;padding:10px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;position:relative;z-index:20" data-act="call" data-call="spinWheelPreview" disabled>🎡 GIRAR</button>
                                         <div id="wheel-preview-winners" data-style="display:none;margin-top:12px;font-size:12px;text-align:center;color:#1a1a1a;opacity:.7"></div>
                                         <div id="wheel-quick-themes" class="flex gap-1.5 mt-3" data-style="display:none"></div>
                                         <div class="flex gap-3 mt-3">

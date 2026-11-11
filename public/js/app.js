@@ -14231,16 +14231,118 @@ navigate(viewName, params = {}, push = true) {
     _wheelState: {
         currentId: null, participants: [], winners: [], results: [],
         isSpinning: false, rotation: 0, soundEnabled: true, logoDataUrl: null,
-        segColors: ['#ff7878','#7eecec','#fff171','#7280fd']
+        segColors: ['#ff7878','#7eecec','#fff171','#7280fd'],
+        // v12.44.821: fuente de verdad con pesos — [{name, weight}] (-1 = Auto, 0-100 = % fijado).
+        // participants sigue existiendo (array de nombres derivado) para las funciones ya probadas.
+        entries: [],
+        _bgImage: null
     },
 
+    // v12.44.821: galería de logos INTEGRADOS — elegantes, genéricos, corporativos
+    _wheelLogos: {
+      trofeo:  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g fill='none' stroke='#475569' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'><path d='M31 24h38v15a19 19 0 0 1-38 0z'/><path d='M31 29H17v7a12 12 0 0 0 12 12'/><path d='M69 29h14v7a12 12 0 0 1-12 12'/><path d='M50 58v11'/><path d='M37 76h26'/><path d='M43 69h14v7H43z'/></g></svg>",
+      estrella:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='#475569' d='M50 13l11.4 23.1 25.5 3.7-18.5 18 4.4 25.4L50 71l-22.3 11.7 4.4-25.4-18.5-18 25.5-3.7z'/></svg>",
+      corona:  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='#475569' d='M22 70l-7-42 18 13 17-22 17 22 18-13-7 42z'/><rect x='22' y='75' width='56' height='9' rx='4' fill='#475569'/></svg>",
+      diamante:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g fill='none' stroke='#475569' stroke-width='4.5' stroke-linejoin='round'><path d='M30 28h40l14 16-34 32L16 44z'/><path d='M16 44h68M30 28l6 16 14-16 14 16 6-16'/></g></svg>",
+      medalla: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='42' r='27' fill='none' stroke='#475569' stroke-width='4.5'/><path fill='#475569' d='M50 29l5.2 10.5 11.6 1.7-8.4 8.2 2 11.6L50 55.6l-10.4 5.4 2-11.6-8.4-8.2 11.6-1.7z'/><path d='M38 66l-6 18 10-5 8 9 4-16z' fill='#475569'/><path d='M62 66l6 18-10-5-8 9-4-16z' fill='#475569'/></svg>",
+      anillo:  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g fill='none' stroke='#475569' stroke-width='4.5'><circle cx='50' cy='50' r='33'/><circle cx='50' cy='50' r='17'/></g><circle cx='50' cy='17' r='5' fill='#475569'/></svg>"
+    },
+    _wheelLogoUri: function(key){ return 'data:image/svg+xml,' + encodeURIComponent(this._wheelLogos[key]); },
+
+    // v12.44.821: aplicar un logo integrado desde la galería del editor
+    useWheelLogoPreset: function(key){
+        if(!this._wheelLogos[key])return;
+        this._wheelState.logoDataUrl=this._wheelLogoUri(key);
+        const img=document.getElementById('wheel-logo-img');
+        if(img){img.src=this._wheelState.logoDataUrl;img.classList.remove('hidden')}
+        const ph=document.getElementById('wheel-logo-preview');
+        if(ph)ph.classList.add('hidden');
+        const rb=document.getElementById('wheel-btn-remove-logo');
+        if(rb)rb.classList.remove('hidden');
+        this.renderWheelCanvas(this._wheelState.rotation)
+    },
+
+    renderWheelLogoPresets: function(){
+        const el=document.getElementById('wheel-logo-presets');if(!el)return;
+        el.innerHTML=Object.keys(this._wheelLogos).map(function(k){
+            return '<div class="logo-preset" data-act="call" data-call="useWheelLogoPreset" data-a1="'+k+'" title="'+k+'"><img src="'+App._wheelLogoUri(k)+'" alt="'+k+'"></div>'
+        }).join('')
+    },
+
+    // v12.44.821: ángulo del puntero en coordenadas del canvas (derecha = 0).
+    // El canvas y el puntero rotan juntos dentro del contenedor con rotate(-55deg),
+    // así que la relación relativa no cambia. Un punto de la rueda en ángulo θ aparece
+    // en el mundo en θ + rot; el segmento bajo el puntero cumple θ = offset - rot.
+    _wheelPointerOffset: 0,
+
+    // Escapado HTML para nombres dentro de value="..." (evita romper atributos con comillas)
+    _wheelEsc: function(s){
+        return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    },
+
+    // Normaliza entries: acepta [{name,weight}] o deriva desde participants (todos Auto)
+    _wheelEntries: function(){
+        if(this._wheelState.entries && this._wheelState.entries.length) return this._wheelState.entries;
+        return this._wheelState.participants.map(function(n){ return {name:n, weight:-1}; });
+    },
+
+    // Recontruye entries desde una lista de nombres conservando el peso pegado al nombre
+    // (para Ordenar/Aleatorio/Importar, donde el conjunto no cambia pero las posiciones sí)
+    _wheelRemapEntries: function(names){
+        const map={};
+        (this._wheelState.entries||[]).forEach(function(e){ if(!(e.name in map)) map[e.name]=e.weight; });
+        this._wheelState.entries=names.map(function(n){ return {name:n, weight:(n in map)?map[n]:-1}; });
+        this._wheelState.participants=names.slice();
+    },
+
+    // Sincroniza textarea + participants + contador desde entries
+    _wheelSyncFromEntries: function(){
+        this._wheelState.participants=this._wheelState.entries.map(function(e){return e.name});
+        const ta=document.getElementById('wheel-participants-text');
+        if(ta)ta.value=this._wheelState.participants.join('\n');
+        this.updateWheelParticipantCount();
+    },
+
+    // v12.44.821 (orden del dueño): la ruleta SIEMPRE es SIMÉTRICA — porciones
+    // idénticas para todos. La función conserva su nombre para no romper llamadas.
+    wheelEffectiveProbs: function(entries){
+        const n=entries.length;
+        if(!n)return [];
+        return entries.map(function(){ return 1/n; });
+    },
+
+    // v12.44.821: índice del segmento que está bajo el puntero para arcos variables
+    segIndexAtPointer: function(rotation, probs){
+        if(!probs||!probs.length) return 0;
+        let f=(this._wheelPointerOffset-(rotation||0))%(2*Math.PI);
+        if(f<0)f+=2*Math.PI;
+        let acc=0;
+        for(let i=0;i<probs.length;i++){ acc+=probs[i]*2*Math.PI; if(f<acc) return i; }
+        return probs.length-1;
+    },
+
+    // v12.44.821: 8 paletas cuidadas — colores vivos, familias alternadas, sin gemelos
     _wheelThemes: [
-        { name:'Clásico', colors:['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD'] },
-        { name:'Océano', colors:['#0077B6','#00B4D8','#90E0EF','#CAF0F8','#48CAE4','#023E8A'] },
-        { name:'Naturaleza', colors:['#2D6A4F','#40916C','#52B788','#95D5B2','#D8F3DC','#1B4332'] },
-        { name:'Fuego', colors:['#FF4500','#FF6347','#FF8C00','#FFA500','#FFD700','#DC143C'] },
-        { name:'Pastel', colors:['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E8BAFF'] },
-        { name:'Neón', colors:['#FF00FF','#00FF00','#FFFF00','#00FFFF','#FF00FF','#FF6600'] }
+        { name:'Clásica (original)', colors:['#6366F1','#22D3EE','#FDE047','#FB7185','#A78BFA','#34D399','#FB923C','#F472B6'] },
+        { name:'Marino & Oro',       colors:['#0A2540','#C9A227','#1B3A5C','#E4D5A2','#13294B','#B08D2E','#0F3460','#D9C5A2'] },
+        { name:'Ejecutivo Azul',     colors:['#16324F','#4A7BA6','#88B0CC','#C5D5E5','#2B4570','#6E93B8','#A9C4E0','#3E5F8A'] },
+        { name:'Burdeos & Dorado',   colors:['#6E1423','#C9A227','#8C2733','#D4AF37','#5C0E1E','#B08D2E','#A34452','#E8C766'] },
+        { name:'Verde Corporativo',  colors:['#14532D','#2E7D5B','#6FA287','#B7CFC0','#1D6A4F','#52796F','#84A98C','#2C4A3B'] },
+        { name:'Grafito',            colors:['#263238','#546E7A','#90A4AE','#CFD8DC','#37474F','#607D8B','#B0BEC5','#78909C'] },
+        { name:'Acero & Cian',       colors:['#37474F','#00ACC1','#455A64','#26C6DA','#263238','#0097A7','#607D8B','#80DEEA'] },
+        { name:'Denim',              colors:['#1B263B','#415A77','#778DA9','#E0E1DD','#2C4160','#5B7BA0','#A3B8CC','#334E75'] },
+        { name:'Esmeralda',          colors:['#0B6E4F','#6FC2B0','#084B3C','#0FA3B1','#14919B','#B4E6D9','#1D5C63','#8FD5CC'] },
+        { name:'Ciruela',            colors:['#5D3A6E','#B9A4CE','#2E1A47','#8B6FA8','#6B4C9A','#D3C4E8','#4A2C6E','#C4B0DE'] },
+        { name:'Tierra',             colors:['#606C38','#DDA15E','#283618','#BC6C25','#7F5539','#B08968','#3A5A40','#9C6644'] },
+        { name:'Petróleo',           colors:['#0B3C49','#14919B','#0B5B6E','#6FC2B0','#0D7A8C','#B4E6D9','#0F6B7A','#9AD1CB'] },
+        { name:'Vino & Arena',       colors:['#6E1423','#D9C5A0','#4A1220','#E4D5A2','#8C2733','#B08968','#5C0E1E','#C4A96A'] },
+        { name:'Mostaza & Pizarra',  colors:['#B08D2E','#343A40','#C9A227','#495057','#8C7321','#212529','#D4B45A','#6C757D'] },
+        { name:'Real Púrpura',       colors:['#3B1F5C','#8B6FA8','#2E1A47','#B9A4CE','#5D3A6E','#D3C4E8','#4A2C6E','#C4B0DE'] },
+        { name:'Tech Azul',          colors:['#0D47A1','#42A5F5','#1565C0','#90CAF9','#0B5394','#64B5F6','#1976D2','#BBDEFB'] },
+        { name:'Arena & Acero',      colors:['#8D99AE','#2B2D42','#EDF2F4','#CCD5E0','#5C6B8A','#D8DEE9','#40506E','#B4C0D8'] },
+        { name:'Café Corporativo',   colors:['#4B2E2B','#8D6E63','#A1887F','#D7CCC8','#5D4037','#BCAAA4','#3E2723','#E0D7D0'] },
+        { name:'Azul Noche',         colors:['#0F3460','#16213E','#1A1A2E','#533483','#0A1931','#3E5C94','#232D4E','#4A6FA5'] },
+        { name:'Coral Ejecutivo',    colors:['#C05C3E','#2B4570','#B08D2E','#0B5B6E','#7A1F2B','#52796F','#A34452','#343A40'] }
     ],
 
     newWheel: function() {
@@ -14293,12 +14395,17 @@ navigate(viewName, params = {}, push = true) {
             this._wheelState.segColors=cfg.wheel_colors||['#ff7878','#7eecec','#fff171','#7280fd'];
             this.renderWheelThemes();
             this.renderWheelSegColorInputs();
-            // Load participants
+            this.renderWheelLogoPresets();
+            // Load participants (v12.44.821: con peso por participante)
             const parts=await this.fetchAPI('/raffles/'+id+'/participants');
-            const names=(parts||[]).map(function(p){return p.name||p.email}).filter(Boolean);
+            this._wheelState.entries=(parts||[]).map(function(p){
+                const nm=p.name||p.email||'';
+                const w=(typeof p.weight==='number'&&p.weight>=0&&p.weight<=100)?p.weight:-1;
+                return nm?{name:nm,weight:w}:null;
+            }).filter(Boolean);
+            this._wheelState.participants=this._wheelState.entries.map(function(e){return e.name});
             const ta=document.getElementById('wheel-participants-text');
-            if(ta){ta.value=names.join('\n')}
-            this._wheelState.participants=names;
+            if(ta){ta.value=this._wheelState.participants.join('\n')}
             this.updateWheelParticipantCount();
             // Load results
             const results=await this.fetchAPI('/raffles/'+id+'/results');
@@ -14306,6 +14413,10 @@ navigate(viewName, params = {}, push = true) {
             this.renderWheelCanvas(0);
             this.onWheelConfigChange();
             this.loadWheelSurveyTemplates();
+            // v12.44.821: modo (tarjetas) + estadísticas del preview + clic en la rueda
+            this.syncWheelModeUI();
+            this.loadWheelStats();
+            this._bindWheelCanvasClick();
         }catch(e){console.error('[WHEEL]',e)}
     },
 
@@ -14324,6 +14435,11 @@ navigate(viewName, params = {}, push = true) {
         c('wheel-confetti',cfg.show_confettis!==false);
         c('wheel-auto-remove',cfg.wheel_auto_remove===true);
         c('wheel-capture-leads',cfg.capture_leads===true);
+        // v12.44.821: mejorar porciones (efecto real: separadores blancos) + imagen de fondo
+        const imp=document.getElementById('wheel-improve');
+        if(imp)imp.checked=cfg.improve_slices===true;
+        this._wheelState._bgImage=cfg.page_background_image||null;
+        this._wheelSyncBgImageUI();
         this._wheelState.soundEnabled=cfg.play_sounds!==false;
 
         const s2=function(id,val){const el=document.getElementById(id);if(el)el.value=val};
@@ -14400,6 +14516,8 @@ navigate(viewName, params = {}, push = true) {
         this.fetchAPI('/raffles/'+id+'/populate',{method:'POST'}).then(function(r){
             Swal.close();
             if(r&&r.participants&&r.participants.length){
+                // v12.44.821: conservar pesos pegados al nombre al importar
+                App._wheelRemapEntries(r.participants);
                 const ta=document.getElementById('wheel-participants-text');
                 if(ta){ta.value=r.participants.join('\n')}
                 App._wheelState.participants=r.participants;
@@ -14415,16 +14533,18 @@ navigate(viewName, params = {}, push = true) {
     onWheelParticipantsChange: function(){
         const ta=document.getElementById('wheel-participants-text');
         const names=(ta?.value||'').split('\n').map(function(s){return s.trim()}).filter(Boolean);
-        this._wheelState.participants=names;
+        // v12.44.821 (orden del dueño): SIN pesos — la ruleta siempre es simétrica
+        this._wheelRemapEntries(names);
         this.updateWheelParticipantCount();
-        if(!document.getElementById('wheel-advanced-mode')?.checked){
-            this.renderWheelCanvas(this._wheelState.rotation)
-        }
+        this.renderWheelCanvas(this._wheelState.rotation)
     },
 
     updateWheelParticipantCount: function(){
         const el=document.getElementById('wheel-participant-count');
         if(el)el.textContent=this._wheelState.participants.length+' participantes';
+        // v12.44.821: badge en el header del panel Entradas
+        const badge=document.getElementById('wheel-entries-count-badge');
+        if(badge)badge.textContent=this._wheelState.participants.length;
         const btn=document.getElementById('wheel-preview-btn');
         if(btn)btn.disabled=this._wheelState.participants.length<2;
     },
@@ -14433,7 +14553,9 @@ navigate(viewName, params = {}, push = true) {
         const ta=document.getElementById('wheel-participants-text');if(!ta)return;
         const lines=ta.value.split('\n').map(function(s){return s.trim()}).filter(Boolean).sort();
         ta.value=lines.join('\n');
-        this.onWheelParticipantsChange()
+        this._wheelRemapEntries(lines);
+        this.updateWheelParticipantCount();
+        this.renderWheelCanvas(this._wheelState.rotation)
     },
 
     shuffleWheelParticipants: function(){
@@ -14441,51 +14563,29 @@ navigate(viewName, params = {}, push = true) {
         const lines=ta.value.split('\n').map(function(s){return s.trim()}).filter(Boolean);
         for(let i=lines.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=lines[i];lines[i]=lines[j];lines[j]=t}
         ta.value=lines.join('\n');
-        this.onWheelParticipantsChange()
+        this._wheelRemapEntries(lines);
+        this.updateWheelParticipantCount();
+        this.renderWheelCanvas(this._wheelState.rotation)
     },
 
     clearWheelParticipants: function(){
         const ta=document.getElementById('wheel-participants-text');if(!ta)return;
-        ta.value='';this.onWheelParticipantsChange()
-    },
-
-    toggleWheelAdvancedMode: function(){
-        const adv=document.getElementById('wheel-advanced-mode')?.checked;
-        const list=document.getElementById('wheel-advanced-list');
-        const btn=document.getElementById('wheel-add-entry-btn');
-        if(!list||!btn)return;
-        if(adv){
-            list.classList.remove('hidden');btn.classList.remove('hidden');
-            this.renderWheelAdvancedList()
-        }else{list.classList.add('hidden');btn.classList.add('hidden')}
-    },
-
-    renderWheelAdvancedList: function(){
-        const list=document.getElementById('wheel-advanced-list');if(!list)return;
-        list.innerHTML=this._wheelState.participants.map(function(n,i){
-            const chance=Math.round(100/App._wheelState.participants.length);
-            return '<div class="wheel-adv-row" data-idx="'+i+'">'+
-                '<input type="text" class="input-field text-xs" value="'+n+'" data-act="call" data-call="updateWheelParticipant" data-a1="'+i+'" data-a2="@this.value">'+
-                '<select class="input-field text-xs" data-act="block"><option value="-1">Auto</option><option value="5">5%</option><option value="10">10%</option><option value="25">25%</option><option value="50">50%</option></select>'+
-                '<button class="btn-icon text-red-400 text-xs" data-act="call" data-call="removeWheelAdvEntry" data-a1="+i+">🗑️</button></div>'
-        }).join('')
-    },
-
-    removeWheelAdvEntry: function(idx){
-        this._wheelState.participants.splice(idx,1);
-        this.renderWheelAdvancedList();
+        ta.value='';
+        this._wheelState.entries=[];
+        this._wheelState.participants=[];
         this.updateWheelParticipantCount();
-        const ta=document.getElementById('wheel-participants-text');
-        if(ta)ta.value=this._wheelState.participants.join('\n');
         this.renderWheelCanvas(this._wheelState.rotation)
     },
 
-    addWheelEntry: function(){
-        this._wheelState.participants.push('');
-        this.renderWheelAdvancedList();
-        const ta=document.getElementById('wheel-participants-text');
-        if(ta)ta.value=this._wheelState.participants.join('\n');
-        this.updateWheelParticipantCount()
+    // v12.44.821: actualizar un color de segmento desde el editor (sin re-render del
+    // pill para no destruir el color picker mientras se usa; solo se refresca el hex)
+    updateWheelSegColor: function(idx, value){
+        const i=parseInt(idx,10);
+        if(isNaN(i)||i<0||i>=this._wheelState.segColors.length)return;
+        this._wheelState.segColors[i]=value;
+        const pill=document.querySelectorAll('#wheel-seg-colors .color-input-pill')[i];
+        if(pill){const sp=pill.querySelector('span');if(sp)sp.textContent=value}
+        this.renderWheelCanvas(this._wheelState.rotation)
     },
 
     renderWheelThemes: function(){
@@ -14493,8 +14593,8 @@ navigate(viewName, params = {}, push = true) {
         let html='';let qhtml='';
         this._wheelThemes.forEach(function(t,i){
             const s=t.colors.map(function(c){return '<span data-style="background:'+c+'"></span>'}).join('');
-            html+='<div class="wheel-palette" data-act="call" data-call="useWheelTheme" data-a1="+i+" title="'+t.name+'">'+s+'</div>';
-            qhtml+='<div class="quick-theme" data-act="call" data-call="useWheelTheme" data-a1="+i+" title="'+t.name+'">'+s.slice(0,2)+'</div>'
+            html+='<div class="wheel-palette" data-act="call" data-call="useWheelTheme" data-a1="'+i+'" title="'+t.name+'">'+s+'</div>';
+            qhtml+='<div class="quick-theme" data-act="call" data-call="useWheelTheme" data-a1="'+i+'" title="'+t.name+'">'+s.slice(0,2)+'</div>'
         });
         if(c)c.innerHTML=html;
         if(q)q.innerHTML=qhtml
@@ -14524,9 +14624,11 @@ navigate(viewName, params = {}, push = true) {
         if(!p)return;
         const bg=document.getElementById('wheel-bg-color')?.value||'#FFFFFF';
         const mc=document.getElementById('wheel-main-color')?.value||'#333333';
-        p.style.background=bg;
+        // v12.44.821: backgroundColor (no shorthand background, que pisaba la imagen de fondo)
+        p.style.backgroundColor=bg;
+        this.updateWheelPreviewBg();
         // Update pointer color
-        const pp=document.querySelector('.wheel-pointer path');
+        const pp=document.querySelector('.wheel-pointer path')||document.getElementById('wheel-pointer-path');
         if(pp)pp.setAttribute('fill',document.getElementById('wheel-pointer-color')?.value||'#FF0000');
         // Update title/desc colors
         const t=document.getElementById('wheel-preview-title');if(t)t.style.color=mc;
@@ -14572,45 +14674,125 @@ navigate(viewName, params = {}, push = true) {
         this.renderWheelCanvas(this._wheelState.rotation)
     },
 
+    // v12.44.821: imagen de fondo de página — la config ya la soportaba
+    // (page_background_image) pero el editor no la exponía. Ahora sí, con preview.
+    _wheelSyncBgImageUI: function(){
+        const prev=document.getElementById('wheel-bg-preview');
+        const rb=document.getElementById('wheel-btn-remove-bg');
+        const has=!!this._wheelState._bgImage;
+        if(prev){
+            if(has){prev.style.backgroundImage='url('+this._wheelState._bgImage+')';prev.classList.remove('hidden')}
+            else{prev.style.backgroundImage='none';prev.classList.add('hidden')}
+        }
+        if(rb)rb.classList.toggle('hidden',!has);
+    },
+
+    updateWheelPreviewBg: function(){
+        const p=document.getElementById('wheel-preview');if(!p)return;
+        const bgc=document.getElementById('wheel-bg-color')?.value||'#D1E4FF';
+        p.style.backgroundColor=bgc;
+        p.style.backgroundImage=this._wheelState._bgImage?('url('+this._wheelState._bgImage+')'):'none';
+        p.style.backgroundSize='cover';p.style.backgroundPosition='center';
+    },
+
+    uploadWheelBg: function(){
+        const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+        const self=this;
+        inp.onchange=function(e){
+            const file=e.target.files[0];if(!file)return;
+            // el dataURL viaja en config_json — límite defensivo de tamaño
+            if(file.size>2*1024*1024){
+                Swal.fire({icon:'warning',title:'Imagen muy grande',text:'Usa una imagen de menos de 2 MB',background:'#0f172a',color:'#fff'});
+                return
+            }
+            const reader=new FileReader();
+            reader.onload=function(ev){
+                self._wheelState._bgImage=ev.target.result;
+                self._wheelSyncBgImageUI();
+                self.updateWheelPreviewBg();
+            };
+            reader.readAsDataURL(file)
+        };
+        inp.click()
+    },
+
+    removeWheelBg: function(){
+        this._wheelState._bgImage=null;
+        this._wheelSyncBgImageUI();
+        this.updateWheelPreviewBg();
+    },
+
     renderWheelCanvas: function(rotation){
         const cv=document.getElementById('wheel-canvas');if(!cv)return;
-        const cx=cv.getContext('2d');const w=cv.width,h=cv.height;
+        const cx=cv.getContext('2d');
+        // v12.44.821: buffer a la resolución REAL renderizada (nitidez y texto proporcional
+        // al tamaño de la rueda); todo el dibujo es relativo a w, solo escalan las medidas
+        const cssW=cv.clientWidth||500;
+        const target=Math.max(300,Math.min(Math.round(cssW*(window.devicePixelRatio||1)),2200));
+        if(cssW>0&&Math.abs(cv.width-target)>24){cv.width=target;cv.height=target}
+        const SC=cv.width/500;
+        const w=cv.width,h=cv.height;
         cx.clearRect(0,0,w,h);cx.save();cx.translate(w/2,h/2);cx.rotate(rotation||0);
-        const parts=this._wheelState.participants;const n=parts.length;
-        if(!n){cx.restore();this.drawWheelCenter(cx,w,h);return}
-        const a=2*Math.PI/n;const cols=this._wheelState.segColors;
+        const entries=this._wheelEntries();const n=entries.length;
+        if(!n){cx.restore();this.drawWheelCenter(cx,w,h,SC);return}
+        const cols=this._wheelState.segColors;
         const tc=document.getElementById('wheel-txt-color')?.value||'#000000';
         const lw=parseInt(document.getElementById('wheel-lines-size')?.value)||0;
-        const fs=n<10?14:n<20?11:n<40?9:n<80?7:n<150?5:0;
-        parts.forEach(function(nm,i){
-            const s=i*a,e=(i+1)*a;
-            cx.beginPath();cx.moveTo(0,0);cx.arc(0,0,w/2-8,s,e);cx.closePath();
-            cx.fillStyle=cols[i%cols.length];cx.fill();
-            if(lw>0){cx.strokeStyle='rgba(0,0,0,0.08)';cx.lineWidth=lw;cx.stroke()}
-            if(fs>0){
-                cx.save();cx.rotate(s+a/2);cx.textAlign='right';cx.fillStyle=tc;
-                cx.font='bold '+fs+'px Inter';cx.shadowColor='rgba(0,0,0,0.3)';cx.shadowBlur=2;
-                let d=nm;if(nm.length>12&&fs>7)d=nm.slice(0,10)+'..';
-                else if(nm.length>18&&fs<=7)d=nm.slice(0,14)+'..';
-                cx.fillText(d,w/2-18,fs/3);cx.restore()
+        const improve=document.getElementById('wheel-improve')?.checked===true;
+        // v12.44.821: segmentos PROPORCIONALES al peso (% del modo avanzado).
+        // Con arco = peso/total y parada uniforme, la probabilidad sale ponderada sola.
+        const probs=this.wheelEffectiveProbs(entries);
+        // tamaño base por cantidad — el límite real lo pone el ancho del arco
+        // v12.44.821: pocos jugadores = fuente GRANDE; muchos = se reduce y se ajusta
+        const fsBase=(n<=4?40:n<=6?32:n<=8?26:n<=12?20:n<=16?16:n<=24?12:n<=40?10:n<=70?8:n<=110?6.5:n<=180?5:4)*SC;
+        // los segmentos llegan hasta el borde (sin hueco contra el marco)
+        const or=w/2-1;
+        let s=0;
+        entries.forEach(function(en,i){
+            const a=probs[i]*2*Math.PI,e=s+a;
+            if(a>0.0001){
+                cx.beginPath();cx.moveTo(0,0);cx.arc(0,0,or,s,e);cx.closePath();
+                cx.fillStyle=cols[i%cols.length];cx.fill();
+                if(lw>0){cx.strokeStyle='rgba(0,0,0,0.08)';cx.lineWidth=lw;cx.stroke()}
+                // improve_slices real: separador blanco entre segmentos
+                if(improve){cx.strokeStyle='rgba(255,255,255,0.85)';cx.lineWidth=3*SC;cx.stroke()}
             }
+            // texto SIEMPRE proporcionado — fs limitado por el arco y truncado por ancho real
+            const fs=Math.min(fsBase,a*(or-16*SC)*0.9);
+            if(fs>=4*SC){
+                cx.save();cx.rotate(s+a/2);cx.textAlign='right';cx.fillStyle=tc;
+                cx.font='bold '+fs+'px Inter';cx.shadowColor='rgba(0,0,0,0.3)';cx.shadowBlur=2*SC;
+                const maxLen=or-28*SC;
+                let d=en.name;
+                if(cx.measureText(d).width>maxLen){
+                    while(d.length>1&&cx.measureText(d+'…').width>maxLen)d=d.slice(0,-1);
+                    d=d+'…';
+                }
+                cx.fillText(d,or-18*SC,fs/3);cx.restore()
+            }
+            s=e;
         });
-        // Pins
+        // Pins en las fronteras de segmento (ángulos acumulados)
         const pinR=Math.min(w,h)/60;
-        for(let i=0;i<n;i++){const an=i*a;cx.beginPath();cx.arc(Math.cos(an)*(w/2-12),Math.sin(an)*(w/2-12),pinR,0,2*Math.PI);cx.fillStyle='rgba(255,255,255,0.5)';cx.fill()}
-        this.drawWheelCenter(cx,w,h);
+        let acc=0;
+        for(let i=0;i<n;i++){
+            cx.beginPath();cx.arc(Math.cos(acc)*(w/2-12),Math.sin(acc)*(w/2-12),pinR,0,2*Math.PI);cx.fillStyle='rgba(255,255,255,0.5)';cx.fill();
+            acc+=probs[i]*2*Math.PI;
+        }
+        this.drawWheelCenter(cx,w,h,SC);
         cx.restore()
     },
 
-    drawWheelCenter: function(cx,w,h){
-        const r=w>=500?55:28;
+    drawWheelCenter: function(cx,w,h,sc){
+        const SC=sc||(w/500);
+        const r=55*SC;
         cx.beginPath();cx.arc(0,0,r,0,2*Math.PI);cx.fillStyle='#fff';cx.fill();
         cx.strokeStyle='rgba(0,0,0,0.1)';cx.lineWidth=2;cx.stroke();
         if(this._wheelState.logoDataUrl){
             try{
                 const limg=new Image();limg.src=this._wheelState.logoDataUrl;
-                cx.save();cx.beginPath();cx.arc(0,0,r-4,0,2*Math.PI);cx.clip();
-                cx.drawImage(limg,-r+4,-r+4,(r-4)*2,(r-4)*2);cx.restore()
+                cx.save();cx.beginPath();cx.arc(0,0,r-4*SC,0,2*Math.PI);cx.clip();
+                cx.drawImage(limg,-r+4*SC,-r+4*SC,(r-4*SC)*2,(r-4*SC)*2);cx.restore()
             }catch(e){}
         }
     },
@@ -14624,28 +14806,36 @@ navigate(viewName, params = {}, push = true) {
         const extra=4+Math.random()*3;
         const target=this._wheelState.rotation+extra*2*Math.PI;
         const start=Date.now();const startRot=this._wheelState.rotation;
+        // v12.44.821: probabilidades ponderadas del modo avanzado (arcos proporcionales)
+        const entries=this._wheelEntries();
+        const probs=this.wheelEffectiveProbs(entries);
 
         if(this._wheelState.soundEnabled)this.playWheelTick();
 
         const self=this;
+        let lastSeg=-1;
         function animate(){
             const p=Math.min((Date.now()-start)/dur,1);
             const ease=1-Math.pow(1-p,4);
             self._wheelState.rotation=startRot+(target-startRot)*ease;
             self.renderWheelCanvas(self._wheelState.rotation);
+            // tick al cruzar cada frontera de segmento (paridad AppSorteos)
+            if(self._wheelState.soundEnabled){
+                const seg=self.segIndexAtPointer(self._wheelState.rotation,probs);
+                if(seg!==lastSeg){lastSeg=seg;self.playWheelTick()}
+            }
             if(p<1)requestAnimationFrame(animate);
             else{
                 self._wheelState.isSpinning=false;if(btn)btn.disabled=false;
-                const segAngle=2*Math.PI/self._wheelState.participants.length;
-                let f=(-self._wheelState.rotation)%(2*Math.PI);if(f<0)f+=2*Math.PI;
-                const idx=Math.floor(f/segAngle)%self._wheelState.participants.length;
-                const win=self._wheelState.participants[idx];
+                const idx=self.segIndexAtPointer(self._wheelState.rotation,probs);
+                const curEntries=self._wheelEntries();
+                const safe=Math.min(idx,curEntries.length-1);
+                const win=curEntries[safe].name;
                 self.showWheelWinner(win);
                 if(document.getElementById('wheel-auto-remove')?.checked){
-                    self._wheelState.participants.splice(idx,1);
-                    const ta=document.getElementById('wheel-participants-text');
-                    if(ta)ta.value=self._wheelState.participants.join('\n');
-                    self.updateWheelParticipantCount()
+                    if(!self._wheelState.entries.length)self._wheelState.entries=curEntries.slice();
+                    self._wheelState.entries.splice(safe,1);
+                    self._wheelSyncFromEntries();
                 }
                 self._wheelState.winners.push(win);
                 self.updateWheelWinnersList();
@@ -14740,13 +14930,21 @@ navigate(viewName, params = {}, push = true) {
             main_color:document.getElementById('wheel-main-color')?.value||'#333333',
             page_background_color:document.getElementById('wheel-bg-color')?.value||'#FFFFFF',
             wheel_lines_size:parseInt(document.getElementById('wheel-lines-size')?.value)||2,
+            improve_slices:document.getElementById('wheel-improve')?.checked===true,
             logo:this._wheelState.logoDataUrl||null,
+            page_background_image:this._wheelState._bgImage||null,
             data_source:document.getElementById('wheel-source')?.value||'manual'
         };
         try{
-            await this.fetchAPI('/raffles/'+id,{method:'PUT',body:JSON.stringify({name:name,config:cfg})});
-            // Save participants
-            const names=this._wheelState.participants.map(function(n){return{name:n}});
+            // v12.44.821: guardar deja la ruleta PUBLICADA — lista para compartir por el
+            // enlace (el guardado sin clave del enlace solo acepta ruletas publicadas)
+            await this.fetchAPI('/raffles/'+id,{method:'PUT',body:JSON.stringify({name:name,config:cfg,status:'published'})});
+            // Save participants (v12.44.821: con peso por entrada)
+            const entries=this._wheelEntries();
+            const names=entries.map(function(e){
+                const w=(typeof e.weight==='number'&&e.weight>=0&&e.weight<=100)?e.weight:-1;
+                return {name:e.name,weight:w};
+            }).filter(function(p){return p.name});
             await this.fetchAPI('/raffles/'+id+'/participants/batch',{method:'POST',body:JSON.stringify({participants:names})});
             Swal.fire({icon:'success',title:'Guardado',timer:1500,showConfirmButton:false,background:'#0f172a',color:'#fff'});
             this.loadWheelList()
@@ -14770,6 +14968,128 @@ navigate(viewName, params = {}, push = true) {
         if(!id){Swal.fire({icon:'warning',title:'Guarda la ruleta primero',background:'#0f172a',color:'#fff'});return}
         const name=(this.state.event?.name||'evento').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
         window.open('/'+name+'/raffle/'+id,'_blank')
+    },
+
+    // ═══ v12.44.821 — modo, QR, CSV, estadísticas (paridad AppSorteos) ═══
+
+    // Selector de modo con tarjetas: sincroniza el checkbox oculto wheel-capture-leads
+    setWheelMode: function(isLead){
+        const chk=document.getElementById('wheel-capture-leads');
+        if(chk)chk.checked=isLead===true;
+        this.syncWheelModeUI();
+    },
+
+    syncWheelModeUI: function(){
+        const lead=document.getElementById('wheel-capture-leads')?.checked===true;
+        const c=document.getElementById('wheel-mode-classic');
+        const l=document.getElementById('wheel-mode-lead');
+        if(c)c.classList.toggle('active',!lead);
+        if(l)l.classList.toggle('active',lead);
+    },
+
+    // Importar entradas desde archivo .txt/.csv (una por línea; csv toma la primera columna)
+    // v12.44.821: el parseo vive en función pura para poder probarlo por auditoría
+    _parseWheelImportText: function(text){
+        const lines=String(text||'').split(/\r?\n/).map(function(l){
+            let v=l.split(',')[0];
+            v=v.replace(/^"/,'').replace(/"$/,'');
+            return v.trim();
+        }).filter(Boolean);
+        // salta cabecera típica de export ("nombre"/"name")
+        if(lines.length&&/^(nombre|nombres|name)$/i.test(lines[0].replace(/"/g,'')))lines.shift();
+        return lines;
+    },
+
+    importWheelFile: function(){
+        const inp=document.createElement('input');inp.type='file';inp.accept='.txt,.csv,text/plain,text/csv';
+        const self=this;
+        inp.onchange=function(e){
+            const file=e.target.files[0];if(!file)return;
+            if(file.size>1*1024*1024){
+                Swal.fire({icon:'warning',title:'Archivo muy grande',text:'Máximo 1 MB',background:'#0f172a',color:'#fff'});
+                return
+            }
+            const reader=new FileReader();
+            reader.onload=function(ev){
+                const lines=self._parseWheelImportText(ev.target.result);
+                if(!lines.length){
+                    Swal.fire({icon:'info',title:'Sin nombres',text:'No se encontraron líneas válidas',background:'#0f172a',color:'#fff'});
+                    return
+                }
+                const ta=document.getElementById('wheel-participants-text');
+                const existing=ta?ta.value.split('\n').map(function(s){return s.trim()}).filter(Boolean):[];
+                const merged=existing.concat(lines);
+                if(ta)ta.value=merged.join('\n');
+                self._wheelRemapEntries(merged);
+                self.updateWheelParticipantCount();
+                self.renderWheelCanvas(self._wheelState.rotation);
+                Swal.fire({icon:'success',title:lines.length+' entradas importadas',timer:1500,showConfirmButton:false,background:'#0f172a',color:'#fff'});
+            };
+            reader.readAsText(file,'UTF-8');
+        };
+        inp.click();
+    },
+
+    // QR del enlace público (endpoint self-hosted GET /api/raffles/:id/qr)
+    openWheelQr: function(){
+        const id=this._wheelState.currentId;
+        if(!id){Swal.fire({icon:'warning',title:'Guarda la ruleta primero',background:'#0f172a',color:'#fff'});return}
+        const name=(this.state.event?.name||'evento').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+        const url=window.location.origin+'/'+name+'/raffle/'+id;
+        Swal.fire({
+            title:'QR de la ruleta',width:'380px',background:'#0f172a',color:'#fff',
+            showCloseButton:true,showConfirmButton:false,
+            html:'<div class="text-center"><img src="/api/raffles/'+id+'/qr?size=300" alt="QR" data-style="background:#fff;padding:12px;border-radius:12px;display:inline-block;max-width:220px">'+
+                 '<p class="text-xs text-slate-400 mt-2" data-style="font-size:12px;color:#94a3b8;margin-top:10px;word-break:break-all">'+url+'</p>'+
+                 '<button id="swal-wheel-copy-url" class="btn-primary btn-standard mt-3" data-style="margin-top:12px">🔗 Copiar enlace</button></div>',
+            didOpen:function(){
+                const b=document.getElementById('swal-wheel-copy-url');
+                if(b)b.onclick=function(){
+                    navigator.clipboard.writeText(url).then(function(){
+                        Swal.fire({icon:'success',title:'✅ Enlace copiado',timer:1200,showConfirmButton:false,background:'#0f172a',color:'#fff'})
+                    })
+                };
+            }
+        })
+    },
+
+    // Descarga CSV de participantes + registros (el backend añade BOM para Excel)
+    exportWheelCsv: async function(){
+        const id=this._wheelState.currentId;
+        if(!id){Swal.fire({icon:'warning',title:'Guarda la ruleta primero',background:'#0f172a',color:'#fff'});return}
+        const user=window.App?.state?.user;
+        try{
+            const res=await fetch('/api/raffles/'+id+'/export-csv',{headers:{'Authorization':user&&user.token?('Bearer '+user.token):''}});
+            if(!res.ok)throw new Error('HTTP '+res.status);
+            const blob=await res.blob();
+            const a=document.createElement('a');
+            a.href=URL.createObjectURL(blob);
+            a.download='ruleta_participantes.csv';
+            document.body.appendChild(a);a.click();a.remove();
+            setTimeout(function(){URL.revokeObjectURL(a.href)},4000);
+        }catch(e){
+            Swal.fire({icon:'error',title:'No se pudo exportar',text:e.message,background:'#0f172a',color:'#fff'})
+        }
+    },
+
+    // Fila de estadísticas sobre el preview (visitas / giros / registros)
+    loadWheelStats: function(){
+        const id=this._wheelState.currentId;if(!id)return;
+        const row=document.getElementById('wheel-stats-row');if(!row)return;
+        row.textContent='Cargando estadísticas…';
+        this.fetchAPI('/raffles/'+id+'/stats').then(function(s){
+            row.innerHTML='<span>👁️ '+(s.visits||0)+' visitas</span><span>🔄 '+(s.spins||0)+' giros</span><span>📋 '+(s.leads||0)+' registros</span>';
+        }).catch(function(){row.textContent=''})
+    },
+
+    // v12.44.821: girar el preview también con clic sobre la ruleta (paridad AppSorteos)
+    _bindWheelCanvasClick: function(){
+        const cv=document.getElementById('wheel-canvas');
+        if(cv && !cv._spinBound){
+            cv._spinBound=true;
+            cv.addEventListener('click',function(){App.spinWheelPreview()});
+            cv.style.cursor='pointer';
+        }
     },
 
     switchEventTab(tabName) {
