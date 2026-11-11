@@ -16084,11 +16084,18 @@ navigate(viewName, params = {}, push = true) {
     },
 
     // v12.44.823 (reporte del dueño): el ojo de la edición alterna AMBOS campos
-    // (nueva contraseña + su confirmación) para poder compararlos visualmente
+    // (nueva contraseña + su confirmación) para poder compararlos visualmente.
+    // v12.44.827: soporta AMBOS contextos (Equipo y Configuración — los ids config
+    // llevan el sufijo -config y antes la función no los encontraba)
     toggleEditPasswordVisibility: function(userId){
-        ['edit-user-password-' + userId, 'edit-user-password-confirm-' + userId].forEach(function(id){
-            const el = document.getElementById(id);
-            if (el) el.type = (el.type === 'password') ? 'text' : 'password';
+        [['edit-user-password-' + userId, 'edit-user-password-confirm-' + userId],
+         ['edit-user-password-config-' + userId, 'edit-user-password-confirm-config-' + userId]].forEach(function(ids){
+            const a = document.getElementById(ids[0]);
+            if (!a) return;
+            const b = document.getElementById(ids[1]);
+            const tipo = (a.type === 'password') ? 'text' : 'password';
+            a.type = tipo;
+            if (b) b.type = tipo;
         });
     },
 
