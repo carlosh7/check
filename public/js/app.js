@@ -4803,7 +4803,7 @@ const App = window.App = {
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Nueva Contraseña <span class="normal-case font-normal">(dejar vacío para mantener)</span></label>
                             <input id="edit-user-password-${user.id}" type="password" value="" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain}; padding-right: 90px;" placeholder="Nueva contraseña">
                             <div data-style="display:flex;gap:12px;margin-top:6px;">
-                                <button type="button" data-act="call" data-call="togglePasswordVisibility" data-a1="edit-user-password-${user.id}" data-style="background:none;border:none;color:${textSecondary};font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;"><span class="material-symbols-outlined" data-style="font-size:14px;">visibility</span>Ver</button>
+                                <button type="button" data-act="call" data-call="toggleEditPasswordVisibility" data-a1="${user.id}" data-style="background:none;border:none;color:${textSecondary};font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;"><span class="material-symbols-outlined" data-style="font-size:14px;">visibility</span>Ver</button>
                                 <button type="button" data-act="call" data-call="suggestEditPassword" data-a1="edit-user-password-${user.id}" data-a2="edit-user-password-confirm-${user.id}" data-style="background:none;border:none;color:#a78bfa;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;"><span class="material-symbols-outlined" data-style="font-size:14px;">casino</span>Sugerir</button>
                             </div>
                             <div>
@@ -15362,7 +15362,7 @@ navigate(viewName, params = {}, push = true) {
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" data-style="color: ${textSecondary};">Nueva Contraseña <span class="normal-case font-normal">(dejar vacío para mantener)</span></label>
                             <input id="edit-user-password-config-${user.id}" type="password" value="" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" data-style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain}; padding-right: 90px;" placeholder="Nueva contraseña">
                             <div data-style="display:flex;gap:12px;margin-top:6px;">
-                                <button type="button" data-act="call" data-call="togglePasswordVisibility" data-a1="edit-user-password-config-${user.id}" data-style="background:none;border:none;color:${textSecondary};font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;"><span class="material-symbols-outlined" data-style="font-size:14px;">visibility</span>Ver</button>
+                                <button type="button" data-act="call" data-call="toggleEditPasswordVisibility" data-a1="${user.id}" data-style="background:none;border:none;color:${textSecondary};font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;"><span class="material-symbols-outlined" data-style="font-size:14px;">visibility</span>Ver</button>
                                 <button type="button" data-act="call" data-call="suggestEditPassword" data-a1="edit-user-password-config-${user.id}" data-a2="edit-user-password-confirm-config-${user.id}" data-style="background:none;border:none;color:#a78bfa;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;"><span class="material-symbols-outlined" data-style="font-size:14px;">casino</span>Sugerir</button>
                             </div>
                             <div>
@@ -16081,6 +16081,15 @@ navigate(viewName, params = {}, push = true) {
     togglePasswordVisibility: function(id){
         const el = document.getElementById(id);
         if (el) el.type = (el.type === 'password') ? 'text' : 'password';
+    },
+
+    // v12.44.823 (reporte del dueño): el ojo de la edición alterna AMBOS campos
+    // (nueva contraseña + su confirmación) para poder compararlos visualmente
+    toggleEditPasswordVisibility: function(userId){
+        ['edit-user-password-' + userId, 'edit-user-password-confirm-' + userId].forEach(function(id){
+            const el = document.getElementById(id);
+            if (el) el.type = (el.type === 'password') ? 'text' : 'password';
+        });
     },
 
     // v12.44.823: error DENTRO del modal de edición (no cierra el Swal del editor)
