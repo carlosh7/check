@@ -414,6 +414,9 @@ app.use((req, res, next) => {
     
     // Ruta raíz (login) cargando desde raíz del proyecto
     if (req.path === '/' || req.path === '/index.html') {
+        // v12.44.824: el HTML SIEMPRE se revalida (sin caché heurística) — así cada
+        // deploy con ?v=NUEVO se ve de inmediato en todos los navegadores
+        res.set('Cache-Control', 'no-cache');
         return res.sendFile(path.join(__dirname, 'index.html'));
     }
     
