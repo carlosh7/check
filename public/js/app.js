@@ -2654,7 +2654,7 @@ const App = window.App = {
         const phone = phoneInput?.value.trim() || '';
         
         if (!name || !email) {
-            Swal.fire({ title: '⚠️ Error', text: 'Nombre y email son obligatorios', icon: 'error', background: '#0f172a', color: '#fff' });
+            this.showEditUserError(userId, 'Nombre y email son obligatorios');
             return;
         }
         
@@ -4782,10 +4782,12 @@ const App = window.App = {
                         <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Editar Staff</span>
                         <span class="text-xs" data-style="color: ${textMain};">${user.display_name || user.username}</span>
                     </div>
-                    <button data-act="call" data-call="saveUserEditInline" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" data-style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                    <button data-act="call" data-call="saveUserEditInline" data-a1="${user.id}" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" data-style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
                     </button>
                 </div>
+                <!-- v12.44.823: errores DENTRO del modal (sin cerrarlo) -->
+                <div id="edit-user-error-${user.id}" class="hidden px-3 py-2 rounded-lg" data-style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; font-size: 12px; margin-bottom: 10px;"></div>
                 <!-- Campos编辑 inline -->
                 <div class="p-4 rounded-2xl" data-style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
                     <div class="space-y-5">
@@ -4834,6 +4836,7 @@ const App = window.App = {
 
     // Guardar edición inline de staff
     saveUserEditInline: async function() {
+        console.log('[SAVE-DEBUG] saveUserEditInline llamado, _editingUserId=', this._editingUserId);
         const userId = this._editingUserId;
         if (!userId) return;
         
@@ -4853,25 +4856,25 @@ const App = window.App = {
         const role = roleSelect.value;
         
         if (!name || !email) {
-            Swal.fire({ title: '⚠️ Error', text: 'Nombre y email son obligatorios', icon: 'error', background: '#0f172a', color: '#fff' });
+            this.showEditUserError(userId, 'Nombre y email son obligatorios');
             return;
         }
         
-        // v12.44.823: política + confirmación de la nueva contraseña
+        // v12.44.823: política + confirmación — el error se muestra DENTRO del modal (sin cerrarlo)
         if (password) {
             const pwIssues = this.passwordPolicyIssues(password);
             if (pwIssues.length) {
-                Swal.fire({ title: '⚠️ Contraseña no válida', text: 'La contraseña requiere: ' + pwIssues.join(', '), icon: 'error', background: '#0f172a', color: '#fff' });
+                this.showEditUserError(userId, 'La contraseña requiere: ' + pwIssues.join(', '));
                 return;
             }
             const pwConfirm = document.getElementById(`edit-user-password-confirm-${userId}`)?.value || '';
             if (password !== pwConfirm) {
-                Swal.fire({ title: '⚠️ Error', text: 'Las contraseñas no coinciden', icon: 'error', background: '#0f172a', color: '#fff' });
+                this.showEditUserError(userId, 'Las contraseñas no coinciden');
                 return;
             }
         }
         
-        const saveBtn = document.querySelector('[data-act="call" data-call="saveUserEditInline"]');
+        const saveBtn = document.querySelector('button[data-call="saveUserEditInline"]');
         if (saveBtn) {
             saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
             saveBtn.style.opacity = '0.6';
@@ -4902,7 +4905,7 @@ const App = window.App = {
                 throw new Error(result?.message || 'Error al guardar');
             }
         } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al guardar', icon: 'error', background: '#0f172a', color: '#fff' });
+            this.showEditUserError(userId, e.message || 'Error al guardar');
         } finally {
             if (saveBtn) {
                 saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar';
@@ -15340,7 +15343,7 @@ navigate(viewName, params = {}, push = true) {
                         <span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Editar Staff</span>
                         <span class="text-xs" data-style="color: ${textMain};">${user.display_name || user.username}</span>
                     </div>
-                    <button data-act="call" data-call="saveUserEditInlineConfig" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" data-style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                    <button data-act="call" data-call="saveUserEditInlineConfig" data-a1="${user.id}" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" data-style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
                     </button>
                 </div>
@@ -15411,25 +15414,25 @@ navigate(viewName, params = {}, push = true) {
         const role = roleSelect.value;
         
         if (!name || !email) {
-            Swal.fire({ title: '⚠️ Error', text: 'Nombre y email son obligatorios', icon: 'error', background: '#0f172a', color: '#fff' });
+            this.showEditUserError(userId, 'Nombre y email son obligatorios');
             return;
         }
         
-        // v12.44.823: política + confirmación de la nueva contraseña
+        // v12.44.823: política + confirmación — error DENTRO del modal
         if (password) {
             const pwIssues = this.passwordPolicyIssues(password);
             if (pwIssues.length) {
-                Swal.fire({ title: '⚠️ Contraseña no válida', text: 'La contraseña requiere: ' + pwIssues.join(', '), icon: 'error', background: '#0f172a', color: '#fff' });
+                this.showEditUserError(userId, 'La contraseña requiere: ' + pwIssues.join(', '));
                 return;
             }
             const pwConfirm = document.getElementById(`edit-user-password-confirm-config-${userId}`)?.value || '';
             if (password !== pwConfirm) {
-                Swal.fire({ title: '⚠️ Error', text: 'Las contraseñas no coinciden', icon: 'error', background: '#0f172a', color: '#fff' });
+                this.showEditUserError(userId, 'Las contraseñas no coinciden');
                 return;
             }
         }
         
-        const saveBtn = document.querySelector('[data-act="call" data-call="saveUserEditInlineConfig"]');
+        const saveBtn = document.querySelector('button[data-call="saveUserEditInlineConfig"]');
         if (saveBtn) {
             saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
             saveBtn.style.opacity = '0.6';
@@ -15460,7 +15463,7 @@ navigate(viewName, params = {}, push = true) {
                 throw new Error(result?.message || 'Error al guardar');
             }
         } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al guardar', icon: 'error', background: '#0f172a', color: '#fff' });
+            this.showEditUserError(userId, e.message || 'Error al guardar');
         } finally {
             if (saveBtn) {
                 saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar';
@@ -16078,6 +16081,12 @@ navigate(viewName, params = {}, push = true) {
     togglePasswordVisibility: function(id){
         const el = document.getElementById(id);
         if (el) el.type = (el.type === 'password') ? 'text' : 'password';
+    },
+
+    // v12.44.823: error DENTRO del modal de edición (no cierra el Swal del editor)
+    showEditUserError: function(userId, message){
+        const el = document.getElementById('edit-user-error-' + userId);
+        if (el) { el.textContent = message; el.classList.remove('hidden'); }
     },
 
     // v12.44.823: sugerir contraseña y rellenarla también en la confirmación
