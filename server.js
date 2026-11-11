@@ -313,19 +313,19 @@ app.get('/', (req, res, next) => {
 // --- STATIC FILES CON CACHE (versionados con ?v=X.Y.Z) ---
 // CSS y JS tienen query string de versión, cacheamos pero permitimos revalidación
 app.use('/css', express.static(path.join(__dirname, 'public/css'), {
-    maxAge: '1m',
+    maxAge: '1d',
     etag: true,
     lastModified: true
 }));
 
 app.use('/js', express.static(path.join(__dirname, 'public/js'), {
-    maxAge: '1m',
+    maxAge: '1d',
     etag: true,
     lastModified: true
 }));
 
 app.use('/html', express.static(path.join(__dirname, 'public/html'), {
-    maxAge: '1m',
+    maxAge: '1d',
     etag: true,
     lastModified: true
 }));
