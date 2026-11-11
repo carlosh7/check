@@ -157,7 +157,10 @@ function act(node, event) {
             if (event && event.key === 'Enter') { const fn = resolve(d.call); if (fn) fn(); }
             break;
         case 'block':
-            if (event) event.preventDefault();
+            // v12.44.823: bloquear SOLO submit/click (su propósito original). Antes
+            // cancelaba también los keydown que burbujeaban desde los inputs del form
+            // → no se podía escribir a mano en formularios con data-act="block" (login).
+            if (event && !['keydown', 'keyup', 'keypress', 'input', 'beforeinput'].includes(event.type)) event.preventDefault();
             break;
         case 'lang':
             if (window.i18n?.setLang) window.i18n.setLang(d.a1);
