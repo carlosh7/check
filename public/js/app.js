@@ -10971,7 +10971,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     switchConfigTab(tabName) {
-        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-gamification', 'config-content-settings', 'config-content-categories', 'config-content-badge', 'config-content-sessions', 'config-content-seatmaps', 'config-content-google', 'config-content-plugins'];
+        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-quiz', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-gamification', 'config-content-settings', 'config-content-categories', 'config-content-badge', 'config-content-sessions', 'config-content-seatmaps', 'config-content-google', 'config-content-plugins'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
@@ -11022,6 +11022,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'email') this.loadMailingData();
         if (tabName === 'agenda') this.loadConfigAgenda();
         if (tabName === 'wheel') this.loadWheelList();
+        if (tabName === 'quiz') this.loadQuizList();
         if (tabName === 'surveys') this.loadSurveys();
         if (tabName === 'gamification') this.loadGamification();
         if (tabName === 'settings') this.loadConfigSettings();
@@ -14227,7 +14228,7 @@ navigate(viewName, params = {}, push = true) {
     
     // Cambiar a pestaña de ruleta
     switchConfigWheelTab(tabName) {
-        const ALL_WHEEL_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel'];
+        const ALL_WHEEL_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-quiz'];
         ALL_WHEEL_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -14251,6 +14252,7 @@ navigate(viewName, params = {}, push = true) {
 
         // Load specific data
         if (tabName === 'wheel') this.loadWheelList();
+        if (tabName === 'quiz') this.loadQuizList();
     },
     
     // ═══ SISTEMA DE RULETA (v12.44.653) ═══
@@ -14386,6 +14388,65 @@ navigate(viewName, params = {}, push = true) {
                 if(res&&res.id){App.openWheelEditor(res.id);App.loadWheelList()}
             }catch(e){console.error(e)}
         });
+    },
+
+    // ── Quiz en vivo (K1 — v12.44.829): lista + abrir editor standalone ──
+    newQuiz: function() {
+        Swal.fire({
+            title:'Nuevo Quiz', width:'400px', background:'#0f172a', color:'#fff',
+            html:'<div class="text-left"><label class="text-xs font-bold text-slate-400">Nombre</label><input id="swal-quiz-name" class="input-field w-full" placeholder="Ej: Trivia de Cierre"></div>',
+            showCancelButton:true, confirmButtonText:'Crear',
+            preConfirm:function(){const n=document.getElementById('swal-quiz-name')?.value?.trim();if(!n){Swal.showValidationMessage('Nombre requerido');return}return n}
+        }).then(async function(r){
+            if(!r.isConfirmed)return;
+            const eId=App.state.event?.id;if(!eId)return;
+            try{
+                const res=await App.fetchAPI('/quizzes/events/'+eId+'/quizzes',{method:'POST',body:JSON.stringify({name:r.value})});
+                if(res&&res.id){App.loadQuizList();App.openQuizPage(res.id)}
+            }catch(e){console.error(e)}
+        });
+    },
+
+    loadQuizList: function() {
+        const eId=this.state.event?.id;if(!eId)return;
+        const list=document.getElementById('quiz-list-view');if(!list)return;
+        list.innerHTML='<p class="text-xs text-slate-500 italic">Cargando...</p>';
+        this.fetchAPI('/quizzes/events/'+eId+'/quizzes').then(function(quizzes){
+            if(!quizzes||!quizzes.length){list.innerHTML='<div class="text-center py-8 text-slate-500"><p>No hay quizzes. Crea uno nuevo.</p></div>';return}
+            list.innerHTML=quizzes.map(function(q){
+                const stats=q.stats||{};
+                return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors cursor-pointer" data-act="call" data-call="openQuizPage" data-a1="' + q.id + '">' +
+                    '<div class="flex items-center gap-3"><span class="text-lg">🧠</span>'+
+                    '<div><p class="text-sm font-bold text-white">'+(q.name||'Sin nombre')+(q.status==='published'?' <span class="text-xs text-emerald-400">● publicado</span>':' <span class="text-xs text-slate-500">● borrador</span>')+'</p>'+
+                    '<p class="text-xs text-slate-500">'+(q.questionCount||0)+' preguntas | '+stats.players+' jugadores en '+stats.sessions+' partidas</p></div></div>'+
+                    '<div class="flex gap-1"><button class="btn-icon text-amber-400" title="Publicar (para enlace compartido)" data-stop="1" data-act="call" data-call="publishQuiz" data-a1="' + q.id + '" data-a2="'+(q.status==='published'?1:0)+'"><span class="material-symbols-outlined text-sm">'+(q.status==='published'?'public':'publish')+'</span></button>'+
+                    '<button class="btn-icon text-red-400" title="Eliminar" data-stop="1" data-act="call" data-call="deleteQuiz" data-a1="' + q.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>'
+            }).join('')
+        }).catch(function(e){list.innerHTML='<p class="text-red-500 text-xs">Error al cargar</p>';console.error(e)})
+    },
+
+    openQuizPage: function(id) {
+        const ev=this.state.event;
+        const name=(ev&&ev.name)?ev.name:'evento';
+        const slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+        window.open('/'+slug+'/quiz/'+id,'_blank');
+    },
+
+    publishQuiz: function(id,isPublished) {
+        const doIt=async function(){
+            try{
+                await App.fetchAPI('/quizzes/'+id,{method:'PUT',body:JSON.stringify({status:isPublished?'draft':'published'})});
+                App.loadQuizList();
+                App._notifyAction(isPublished?'Quiz despublicado':'Quiz publicado', isPublished?'El enlace compartido ya no abre el editor':'El enlace compartido ya permite abrir el editor y partidas','success');
+            }catch(e){App._notifyAction('Error',e.message||'No se pudo cambiar el estado','error')}
+        };
+        if(isPublished){doIt()}
+        else{Swal.fire({title:'¿Publicar quiz?',width:'420px',background:'#0f172a',color:'#fff',html:'<p class="text-sm text-slate-300 text-left">El enlace compartido permitirá abrir el editor y controlar partidas sin clave (misma política que la ruleta).</p>',showCancelButton:true,confirmButtonText:'Publicar',cancelButtonText:'Cancelar'}).then(function(r){if(r.isConfirmed)doIt()})}
+    },
+
+    deleteQuiz: function(id) {
+        if(!confirm('¿Eliminar quiz y todas sus partidas?'))return;
+        this.fetchAPI('/quizzes/'+id,{method:'DELETE'}).then(function(){App.loadQuizList()}).catch(function(e){console.error(e)});
     },
 
     backToWheelList: function() {

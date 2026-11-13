@@ -698,6 +698,67 @@ function createEventTables(db, eventId) {
             FOREIGN KEY (raffle_id) REFERENCES raffles(id) ON DELETE CASCADE
         )
     `);
+    // ── Quiz en vivo (K1, paridad Kahoot — v12.44.829) ──
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS quizzes (
+            id TEXT PRIMARY KEY, event_id TEXT NOT NULL,
+            name TEXT NOT NULL, description TEXT,
+            config_json TEXT, status TEXT DEFAULT 'draft',
+            created_at TEXT, updated_at TEXT
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS quiz_questions (
+            id TEXT PRIMARY KEY, quiz_id TEXT NOT NULL,
+            type TEXT NOT NULL DEFAULT 'quiz',
+            title TEXT NOT NULL, media_url TEXT,
+            time_limit INTEGER DEFAULT 20,
+            points_mode TEXT DEFAULT 'standard',
+            answers_json TEXT NOT NULL DEFAULT '[]',
+            order_index INTEGER DEFAULT 0,
+            created_at TEXT,
+            FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS quiz_sessions (
+            id TEXT PRIMARY KEY, quiz_id TEXT NOT NULL, event_id TEXT NOT NULL,
+            pin TEXT NOT NULL, status TEXT DEFAULT 'lobby',
+            current_index INTEGER DEFAULT -1,
+            question_started_at TEXT, version INTEGER DEFAULT 1,
+            config_json TEXT,
+            created_at TEXT, ended_at TEXT,
+            FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS quiz_players (
+            id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
+            nickname TEXT NOT NULL, guest_id TEXT,
+            points INTEGER DEFAULT 0, streak INTEGER DEFAULT 0,
+            correct_count INTEGER DEFAULT 0,
+            joined_at TEXT, last_seen_at TEXT,
+            FOREIGN KEY (session_id) REFERENCES quiz_sessions(id) ON DELETE CASCADE
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS quiz_responses (
+            id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
+            player_id TEXT NOT NULL, question_id TEXT NOT NULL,
+            answer_index INTEGER, is_correct INTEGER DEFAULT 0,
+            points INTEGER DEFAULT 0, ms_taken INTEGER DEFAULT 0,
+            created_at TEXT,
+            FOREIGN KEY (session_id) REFERENCES quiz_sessions(id) ON DELETE CASCADE
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS quiz_reactions (
+            id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
+            player_id TEXT, nickname TEXT, emoji TEXT,
+            created_at TEXT,
+            FOREIGN KEY (session_id) REFERENCES quiz_sessions(id) ON DELETE CASCADE
+        )
+    `);
     // Transactions table (F3-07)
     try { db.exec("ALTER TABLE guest_categories ADD COLUMN price REAL DEFAULT 0"); } catch (_) {}
     try {
@@ -748,6 +809,14 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_raffle_participants_raffle ON raffle_participants(raffle_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffle_results_raffle ON raffle_results(raffle_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffle_spins_raffle ON raffle_spins(raffle_id)",
+        // Quiz en vivo (K1 — v12.44.829)
+        "CREATE INDEX IF NOT EXISTS idx_quizzes_event ON quizzes(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_quiz_questions_quiz ON quiz_questions(quiz_id)",
+        "CREATE INDEX IF NOT EXISTS idx_quiz_sessions_quiz ON quiz_sessions(quiz_id)",
+        "CREATE INDEX IF NOT EXISTS idx_quiz_sessions_pin ON quiz_sessions(pin)",
+        "CREATE INDEX IF NOT EXISTS idx_quiz_players_session ON quiz_players(session_id)",
+        "CREATE INDEX IF NOT EXISTS idx_quiz_responses_session ON quiz_responses(session_id)",
+        "CREATE INDEX IF NOT EXISTS idx_quiz_reactions_session ON quiz_reactions(session_id)",
         "CREATE INDEX IF NOT EXISTS idx_transactions_event ON transactions(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status)",
         // Performance indexes (C2-09)

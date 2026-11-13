@@ -1,5 +1,8 @@
 # Índice completo
 
+## 14 — Quiz en vivo
+- [Trivia estilo Kahoot: crear, lanzar y puntuar](14-quiz/README.md)
+
 ## 13 — Cumplimiento Legal
 - [Consentimientos, declaración de importación, token de kiosco y documentos legales](13-cumplimiento-legal/README.md)
 

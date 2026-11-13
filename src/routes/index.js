@@ -37,6 +37,7 @@ const complianceRoutes = require('./compliance.routes');
 const venuesRoutes = require('./venues.routes');
 const googleRoutes = require('./google.routes');
 const rafflesRoutes = require('./raffles.routes');
+const quizzesRoutes = require('./quizzes.routes');
 const paymentsRoutes = require('./payments.routes').router;
 const smsRoutes = require('./sms.routes');
 const budgetRoutes = require('./budget.routes');
@@ -242,6 +243,9 @@ app.use('/api/compliance', complianceRoutes);
     // Raffles / Sorteos (V12.45)
     app.use('/api/raffles', rafflesRoutes);
 
+    // Quizzes / Quiz en vivo estilo Kahoot (K1 — v12.44.829)
+    app.use('/api/quizzes', quizzesRoutes);
+
     // Polls / Live Polling (C11-01)
     app.use('/api/polls', pollsRoutes);
 
@@ -267,6 +271,13 @@ app.use('/api/compliance', complianceRoutes);
     // Rutas públicas para páginas standalone
     app.get('/:slug/raffle/:id', (req, res) => {
         res.sendFile(path.join(rootDir, 'public/html/pages/wheel.html'));
+    });
+    // Quiz en vivo (K1 — v12.44.829): pantalla del anfitrión y vista del jugador
+    app.get('/:slug/quiz/:id', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/quiz.html'));
+    });
+    app.get('/:slug/quiz/:id/play', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/quiz.html'));
     });
     app.get('/:slug/survey/:id', (req, res) => {
         res.sendFile(path.join(rootDir, 'public/html/pages/survey.html'));

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Quiz en vivo | Check Pro</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/pages/quiz-page.css?v=12.44.829">
+</head>
+<body>
+<div id="loading"><div><div class="sp"></div><p>Cargando quiz...</p></div></div>
+<div id="error" data-style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#0f172a;z-index:99999;flex-direction:column;text-align:center;padding:32px">
+  <h2 data-style="font-size:20px;margin-bottom:8px;color:#fff">Quiz no disponible</h2>
+  <p id="errmsg" data-style="font-size:14px;color:#94a3b8;margin-bottom:24px"></p>
+  <button data-act="call" data-call="reloadPage" data-style="padding:10px 28px;border:none;border-radius:10px;background:#7c3aed;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Reintentar</button>
+</div>
+
+<!-- ══════════ MODO EDITOR + ANFITRIÓN ══════════ -->
+<div id="editor" class="qz-editor hidden">
+  <!-- SIDEBAR -->
+  <div id="sidebar" class="qz-sidebar">
+    <div class="qz-sidebar__head">
+      <input id="quiz-name" class="form-control form-control-lg" placeholder="Nombre del quiz" maxlength="120">
+    </div>
+    <div class="qz-sidebar__menu">
+      <div class="qz-sidebar__menu-item active" data-act="call" data-call="switchTab" data-a1="questions" data-a2="@this">📝 Preguntas</div>
+      <div class="qz-sidebar__menu-item" data-act="call" data-call="switchTab" data-a1="options" data-a2="@this">⚙️ Opciones</div>
+      <div class="qz-sidebar__menu-item" data-act="call" data-call="switchTab" data-a1="design" data-a2="@this">🎨 Diseño</div>
+    </div>
+    <div class="qz-sidebar__body" id="sidebar-body">
+
+      <!-- TAB PREGUNTAS -->
+      <div id="tab-questions" class="qz-tab">
+        <div class="qz-add-row">
+          <button class="qz-add-btn" data-act="call" data-call="addQuestion" data-a1="quiz">＋ Quiz</button>
+          <button class="qz-add-btn qz-add-btn--vf" data-act="call" data-call="addQuestion" data-a1="true_false">＋ V/F</button>
+        </div>
+        <div id="qlist" class="qz-qlist"></div>
+
+        <div id="qform" class="qz-qform hidden">
+          <div class="qz-qform__head">
+            <span id="qform-num" class="qz-qform__num">1</span>
+            <select id="qform-type" class="form-control" data-style="width:auto;font-size:12px" data-act="call" data-call="onTypeChange">
+              <option value="quiz">Quiz (opciones)</option>
+              <option value="true_false">Verdadero o Falso</option>
+            </select>
+            <span class="qz-qform__spacer"></span>
+            <button class="qz-icon-btn" title="Duplicar" data-act="call" data-call="dupQuestion">⧉</button>
+            <button class="qz-icon-btn qz-icon-btn--danger" title="Eliminar" data-act="call" data-call="delQuestion">🗑</button>
+          </div>
+          <textarea id="qform-title" class="form-control" rows="2" maxlength="500" placeholder="Escribe tu pregunta"></textarea>
+          <div id="qform-answers"></div>
+          <button id="qform-add-answer" class="qz-add-answer" data-act="call" data-call="addAnswer">＋ Añadir respuesta</button>
+          <div class="qz-qform__row">
+            <label class="qz-field">
+              <span>Tiempo</span>
+              <select id="qform-time" class="form-control">
+                <option value="5">5s</option><option value="10">10s</option>
+                <option value="20" selected>20s</option><option value="30">30s</option>
+                <option value="60">60s</option><option value="120">120s</option>
+              </select>
+            </label>
+            <label class="qz-field">
+              <span>Puntos</span>
+              <select id="qform-points" class="form-control">
+                <option value="standard" selected>Estándar</option>
+                <option value="double">Doble</option>
+                <option value="none">Sin puntos</option>
+              </select>
+            </label>
+            <button class="form-control" data-style="width:auto;padding:6px 14px;cursor:pointer" data-act="call" data-call="applyToAll">Aplicar a todas</button>
+          </div>
+          <div class="qz-qform__foot">
+            <button class="form-control" data-style="background:#7c3aed;color:#fff;font-weight:600;cursor:pointer" data-act="call" data-call="saveQuestion">✔ Listo</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB OPCIONES -->
+      <div id="tab-options" class="qz-tab hidden">
+        <div class="custom-check"><input type="checkbox" id="cfg-sq"><label for="cfg-sq">📱 Mostrar la pregunta en el celular del jugador (como Kahoot clásico: apagado)</label></div>
+        <div class="custom-check"><input type="checkbox" id="cfg-snd" checked><label for="cfg-snd">🔊 Sonidos</label></div>
+        <div class="custom-check"><input type="checkbox" id="cfg-rct" checked><label for="cfg-rct">😀 Reacciones de jugadores</label></div>
+        <div class="custom-check"><input type="checkbox" id="cfg-tt" checked><label for="cfg-tt">Título en pantalla</label></div>
+        <input id="cfg-title" class="form-control" placeholder="Título en pantalla (opcional)" maxlength="120">
+        <div class="custom-check"><input type="checkbox" id="cfg-sd"><label for="cfg-sd">Descripción</label></div>
+        <textarea id="cfg-desc" class="form-control" rows="2" placeholder="Descripción (opcional)" maxlength="300"></textarea>
+        <p class="qz-hint">La partida se abre desde el botón <b>Comenzar</b>. Los jugadores entran con el PIN que aparece en pantalla o escaneando el QR.</p>
+      </div>
+
+      <!-- TAB DISEÑO -->
+      <div id="tab-design" class="qz-tab hidden">
+        <div class="form-group"><label>Temas</label><div id="theme-ps" class="qz-themes"></div></div>
+        <div class="flex-cb"><label class="qz-mini-label">Fondo pantalla</label>
+          <div class="color-input"><span id="v-bg">#1e1b4b</span><input type="color" id="c-bg" value="#1e1b4b" data-act="call" data-call="previewStage"></div>
+        </div>
+        <div class="form-group"><label>Colores de respuestas (1–4)</label><div id="ans-cs" class="qz-ans-colors"></div></div>
+        <div class="flex-cb"><label class="qz-mini-label">Color texto</label>
+          <div class="color-input"><span id="v-txt">#ffffff</span><input type="color" id="c-txt" value="#ffffff" data-act="call" data-call="previewStage"></div>
+        </div>
+      </div>
+    </div>
+    <div class="qz-sidebar__footer">
+      <button class="btn btn-primary" id="btn-save" data-act="call" data-call="saveQuiz">💾 Guardar</button>
+      <button class="btn btn-success" id="btn-play" data-act="call" data-call="startGame">▶️ Comenzar</button>
+    </div>
+  </div>
+
+  <!-- ESCENARIO (preview / juego en vivo) -->
+  <div id="stage" class="qz-stage">
+    <!-- intro / preview -->
+    <div id="stage-intro" class="qz-intro">
+      <h2 id="intro-title" class="qz-intro__title">Quiz en vivo</h2>
+      <p id="intro-desc" class="qz-intro__desc"></p>
+      <div id="intro-preview" class="qz-preview"></div>
+      <p class="qz-intro__hint">Pulsa <b>▶️ Comenzar</b> para abrir la sala. El PIN y el QR aparecen para que los jugadores se unan.</p>
+    </div>
+
+    <!-- JUEGO EN VIVO -->
+    <div id="live" class="qz-live hidden">
+      <!-- LOBBY -->
+      <div id="live-lobby" class="qz-view hidden">
+        <div class="qz-lobby__pin">
+          <span class="qz-lobby__pin-label">PIN de juego</span>
+          <span id="lobby-pin" class="qz-lobby__pin-num">———</span>
+        </div>
+        <div class="qz-lobby__join">
+          <span>Únete en</span> <b id="lobby-url">…</b> <span>o escanea el QR</span>
+        </div>
+        <img id="lobby-qr" class="qz-lobby__qr" alt="QR para unirse">
+        <div class="qz-lobby__count"><b id="lobby-count">0</b> participantes</div>
+        <div id="lobby-players" class="qz-lobby__players"></div>
+        <button class="qz-big-btn" data-act="call" data-call="hostShowQuestion" data-a1="0">▶️ Empezar</button>
+      </div>
+
+      <!-- PREGUNTA -->
+      <div id="live-question" class="qz-view hidden">
+        <div class="qz-question__head">
+          <span id="q-progress" class="qz-progress">1 / 1</span>
+          <div class="qz-timer"><svg viewBox="0 0 80 80" class="qz-timer__svg"><circle id="timer-ring" class="qz-timer__ring" cx="40" cy="40" r="34"/></svg><span id="timer-num" class="qz-timer__num">20</span></div>
+        </div>
+        <h2 id="live-qtitle" class="qz-question__title"></h2>
+        <div id="live-answers" class="qz-answers"></div>
+      </div>
+
+      <!-- REVELADO -->
+      <div id="live-reveal" class="qz-view hidden">
+        <h2 id="reveal-title" class="qz-question__title"></h2>
+        <div id="reveal-answers" class="qz-answers qz-answers--reveal"></div>
+        <div id="reveal-fastest" class="qz-reveal__fastest"></div>
+        <button class="qz-big-btn" data-act="call" data-call="hostScoreboard">📊 Marcador</button>
+      </div>
+
+      <!-- MARCADOR -->
+      <div id="live-scoreboard" class="qz-view hidden">
+        <h2 class="qz-view__heading">📊 Marcador</h2>
+        <div id="scoreboard-list" class="qz-scoreboard"></div>
+        <button id="btn-next" class="qz-big-btn" data-act="call" data-call="hostNext">➡️ Siguiente pregunta</button>
+      </div>
+
+      <!-- PODIO -->
+      <div id="live-podio" class="qz-view hidden">
+        <h2 class="qz-view__heading">🏆 Podio</h2>
+        <div id="podio-cols" class="qz-podio"></div>
+        <div class="qz-podio__actions">
+          <button class="form-control" data-style="cursor:pointer;padding:10px 18px" data-act="call" data-call="exportCsv">📥 Resultados CSV</button>
+          <button class="form-control" data-style="cursor:pointer;padding:10px 18px" data-act="call" data-call="newSession">🔁 Nueva partida</button>
+          <button class="form-control" data-style="cursor:pointer;padding:10px 18px" data-act="call" data-call="exitGame">✕ Salir al editor</button>
+        </div>
+        <canvas id="jsccc"></canvas>
+      </div>
+
+      <!-- controles del anfitrión -->
+      <div class="qz-live__controls">
+        <button id="ctl-exit" data-act="call" data-call="exitGame" title="Salir">✕</button>
+        <button id="ctl-snd" data-act="call" data-call="toggleSnd" title="Sonido">🔊</button>
+        <button id="ctl-reveal" data-act="call" data-call="hostReveal" title="Revelar respuesta">👁️</button>
+        <button data-act="call" data-call="toggleFS" title="Pantalla completa">⛶</button>
+      </div>
+      <!-- reacciones flotantes -->
+      <div id="reactions-layer" class="qz-reactions"></div>
+      <div class="watermark">Powered by Check Pro</div>
+    </div>
+
+    <div class="qz-stage__options">
+      <button data-act="call" data-call="toggleFS" title="Pantalla completa">⛶</button>
+    </div>
+    <div class="watermark qz-watermark-editor">Powered by Check Pro</div>
+  </div>
+</div>
+
+<!-- ══════════ MODO JUGADOR ══════════ -->
+<div id="player" class="qz-player hidden">
+  <!-- unirse -->
+  <div id="pl-join" class="qz-pl-view">
+    <div class="qz-pl-logo">🧠 <b>Check Quiz</b></div>
+    <input id="pl-pin" class="qz-pl-input qz-pl-input--pin" inputmode="numeric" maxlength="7" placeholder="PIN de juego" autocomplete="off">
+    <input id="pl-nick" class="qz-pl-input" maxlength="16" placeholder="Tu apodo" autocomplete="off">
+    <button id="pl-join-btn" class="qz-pl-btn" data-act="call" data-call="playerJoin">Unirme</button>
+    <p id="pl-join-err" class="qz-pl-err"></p>
+  </div>
+  <!-- sala de espera -->
+  <div id="pl-wait" class="qz-pl-view hidden">
+    <div id="pl-avatar" class="qz-pl-avatar">🐱</div>
+    <h2 id="pl-nick-big" class="qz-pl-nick"></h2>
+    <p class="qz-pl-waiting">¡Estás dentro! Mira tu apodo en la pantalla 👀</p>
+    <div id="pl-reacts" class="qz-pl-reacts">
+      <button data-act="call" data-call="playerReact" data-a1="👍">👍</button>
+      <button data-act="call" data-call="playerReact" data-a1="👏">👏</button>
+      <button data-act="call" data-call="playerReact" data-a1="❤️">❤️</button>
+      <button data-act="call" data-call="playerReact" data-a1="😂">😂</button>
+      <button data-act="call" data-call="playerReact" data-a1="🤔">🤔</button>
+      <button data-act="call" data-call="playerReact" data-a1="😮">😮</button>
+    </div>
+  </div>
+  <!-- juego -->
+  <div id="pl-game" class="qz-pl-view hidden">
+    <div class="qz-pl-gamehead">
+      <span id="pl-points" class="qz-pl-points">0</span>
+      <span id="pl-progress" class="qz-pl-progress"></span>
+    </div>
+    <h2 id="pl-qtitle" class="qz-pl-qtitle"></h2>
+    <div id="pl-answers" class="qz-pl-answers"></div>
+    <div id="pl-feedback" class="qz-pl-feedback hidden">
+      <span id="pl-fb-icon" class="qz-pl-fb-icon"></span>
+      <span id="pl-fb-text" class="qz-pl-fb-text"></span>
+    </div>
+  </div>
+  <!-- entre preguntas -->
+  <div id="pl-between" class="qz-pl-view hidden">
+    <h2 class="qz-pl-view__heading">Tu posición</h2>
+    <div id="pl-myrank" class="qz-pl-myrank"></div>
+    <p class="qz-pl-waiting">Esperando la siguiente pregunta…</p>
+  </div>
+  <!-- podio personal -->
+  <div id="pl-podio" class="qz-pl-view hidden">
+    <h2 class="qz-pl-view__heading">Fin del quiz 🎉</h2>
+    <div id="pl-podio-me" class="qz-pl-myrank"></div>
+    <div id="pl-podio-top" class="qz-pl-top"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="/socket.io/socket.io.js" defer></script>
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.829"></script>
+<script src="/js/pages/quiz.js?v=12.44.829"></script>
+</body>
+</html>

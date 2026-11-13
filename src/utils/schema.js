@@ -492,7 +492,93 @@ function initSchema(db) {
     try { db.exec("ALTER TABLE raffle_results ADD COLUMN notes TEXT"); } catch (_) {}
     try { db.exec("ALTER TABLE raffle_results ADD COLUMN label TEXT"); } catch (_) {}
     try { db.exec("ALTER TABLE guest_categories ADD COLUMN price REAL DEFAULT 0"); } catch (_) {}
-    
+
+    // ── Quiz en vivo (K1 — paridad Kahoot — v12.44.829) ──
+    db.exec(`CREATE TABLE IF NOT EXISTS quizzes (
+        id TEXT PRIMARY KEY,
+        event_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT,
+        config_json TEXT,
+        status TEXT DEFAULT 'draft',
+        created_at TEXT,
+        updated_at TEXT,
+        FOREIGN KEY (event_id) REFERENCES events(id)
+    )`);
+
+    db.exec(`CREATE TABLE IF NOT EXISTS quiz_questions (
+        id TEXT PRIMARY KEY,
+        quiz_id TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'quiz',
+        title TEXT NOT NULL,
+        media_url TEXT,
+        time_limit INTEGER DEFAULT 20,
+        points_mode TEXT DEFAULT 'standard',
+        answers_json TEXT NOT NULL DEFAULT '[]',
+        order_index INTEGER DEFAULT 0,
+        created_at TEXT,
+        FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
+    )`);
+
+    db.exec(`CREATE TABLE IF NOT EXISTS quiz_sessions (
+        id TEXT PRIMARY KEY,
+        quiz_id TEXT NOT NULL,
+        event_id TEXT NOT NULL,
+        pin TEXT NOT NULL,
+        status TEXT DEFAULT 'lobby',
+        current_index INTEGER DEFAULT -1,
+        question_started_at TEXT,
+        version INTEGER DEFAULT 1,
+        config_json TEXT,
+        created_at TEXT,
+        ended_at TEXT,
+        FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
+    )`);
+
+    db.exec(`CREATE TABLE IF NOT EXISTS quiz_players (
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
+        nickname TEXT NOT NULL,
+        guest_id TEXT,
+        points INTEGER DEFAULT 0,
+        streak INTEGER DEFAULT 0,
+        correct_count INTEGER DEFAULT 0,
+        joined_at TEXT,
+        last_seen_at TEXT,
+        FOREIGN KEY (session_id) REFERENCES quiz_sessions(id) ON DELETE CASCADE
+    )`);
+
+    db.exec(`CREATE TABLE IF NOT EXISTS quiz_responses (
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
+        player_id TEXT NOT NULL,
+        question_id TEXT NOT NULL,
+        answer_index INTEGER,
+        is_correct INTEGER DEFAULT 0,
+        points INTEGER DEFAULT 0,
+        ms_taken INTEGER DEFAULT 0,
+        created_at TEXT,
+        FOREIGN KEY (session_id) REFERENCES quiz_sessions(id) ON DELETE CASCADE
+    )`);
+
+    db.exec(`CREATE TABLE IF NOT EXISTS quiz_reactions (
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
+        player_id TEXT,
+        nickname TEXT,
+        emoji TEXT,
+        created_at TEXT,
+        FOREIGN KEY (session_id) REFERENCES quiz_sessions(id) ON DELETE CASCADE
+    )`);
+
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_quizzes_event ON quizzes(event_id)"); } catch (_) {}
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_quiz_questions_quiz ON quiz_questions(quiz_id)"); } catch (_) {}
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_quiz_sessions_quiz ON quiz_sessions(quiz_id)"); } catch (_) {}
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_quiz_sessions_pin ON quiz_sessions(pin)"); } catch (_) {}
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_quiz_players_session ON quiz_players(session_id)"); } catch (_) {}
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_quiz_responses_session ON quiz_responses(session_id)"); } catch (_) {}
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_quiz_reactions_session ON quiz_reactions(session_id)"); } catch (_) {}
+
     // Transactions table (F3-07)
     db.exec(`CREATE TABLE IF NOT EXISTS transactions (
         id TEXT PRIMARY KEY,
