@@ -673,3 +673,10 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 - v12.44.840: derivar pestañas por CLASE .config-tab-content (28 exactos). Captura final en producción: hub con los 6 juegos visible. El dueño debe confirmar con su clic real (cabecera del evento en "Cargando…" por confirmar).
 - Hallazgos nuevos: N1 PRODUCTOR sin group_users no ve eventos; N2 go-to-signup sin elemento; N3 sesión muere al reiniciar contenedor; N4 npm audit 10 vulns (1 crítica); escalada PRODUCTOR y compliance 404 SIGUEN abiertos (verificados hoy contra HEAD).
 - Doc maestro actualizado con atribuciones corregidas: docs/AUDITORIA-2026-11-13-COMPLETA.md §9.
+
+## 2026-11-13 (noche) — v12.44.841 `df29332` / v12.44.842 `c1c951f`+`5301a30` — ronda de seguridad
+- v841: 34 imports internos de app.js desbloqueados (?v=818→841). Deploy verificado.
+- v842: escalada PRODUCTOR cerrada (grupo obligatorio en PUT/DELETE/role, ADMIN intocable), compliance deja de dar 404 (getEventDb + hasEventAccess + event_id), 2FA exige contraseña (3 flujos UI + tests), npm audit 10→1 alta (zod@4 breaking documentado, dompurify crítico cerrado 3.4.17).
+- Validación EN VIVO con 4 cuentas QA en producción: 403 en toda escalada, 200 en mismo grupo, 2FA 400/403, compliance 403 ajeno / consulta propia operativa. Captura del modal de contraseña. Limpieza verificada a 0 (recursiva por FK, usuarios reales intactos).
+- Suite 455✓ tras cada paso. Guía de usuario 2FA actualizada (docs/user/10-seguridad/01).
+- Nota: existe e2e-prod@test.local ADMIN en producción (previa) — recomendar baja.

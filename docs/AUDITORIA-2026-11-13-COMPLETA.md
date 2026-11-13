@@ -186,3 +186,36 @@ estaban **SIN COMPROMETER** en el working tree (patrón repetido: trabajo no des
 
 **Regla del dueño (2026-11-13), mandatoria:** nada se marca "resuelto" sin commit +
 deploy verificado con checksums + prueba en vivo en producción (captura para UI).
+
+---
+
+## 10. ACTUALIZACIÓN 2026-11-13 NOCHE (v12.44.841 `df29332` / v12.44.842 `c1c951f` + `5301a30`) — ronda de seguridad completada
+
+**v12.44.841:** los 34 imports internos de app.js desbloqueados (?v=818 → 841) — cierre
+de SPA #6.7; los fixes de módulos ya no tardan 1 día en propagarse. Deploy verificado
+(checksums + 34 referencias en el servido).
+
+**v12.44.842 (validado EN VIVO en producción con 4 cuentas QA y limpieza verificada a 0):**
+- **Sistema #1 — escalada PRODUCTOR: CORREGIDA.** PUT /:id, DELETE /:id y PUT /:id/role
+  exigen pertenencia al grupo vía `assertCanManageUser` (paridad con GET /). Pruebas en
+  vivo: editar/rol/eliminar de otro grupo → 403; degradar ADMIN → 403; MISMO grupo → 200
+  (sin regresión). El blanco del test de degradación fue un ADMIN QA, nunca el admin real.
+- **Invitados #2 — compliance 404: CORREGIDO.** getEventDb (cae a BD principal) +
+  `hasEventAccess` + filtro `event_id` en la consulta del invitado. En vivo: evento
+  ajeno → 403; evento propio → la consulta llega al invitado (404 "Invitado no
+  encontrado", antes "Evento no encontrado" SIEMPRE). Legal: derecho al olvido operativo.
+- **Sistema #5 — 2FA sin contraseña: CORREGIDO.** `/me/2fa/setup` y `/me/2fa/disable`
+  exigen la contraseña actual (400 sin clave, 403 clave errónea); los 3 flujos de UI
+  (perfil, disable, wizard de primer arranque) la envían; tests del contrato en suite.
+  Captura en vivo del modal de confirmación en producción.
+- **npm audit: 10 → 1 alta en producción.** La CRÍTICA (dompurify) cerrada → 3.4.17;
+  nodemailer 10.5, sharp 0.35.5, multer 2.5, etc. instalados en el contenedor.
+  **Queda 1 ALTA: zod <4.6.6** — el arreglo exige zod@4 (ROMPEDOR: la API cambia);
+  ciclo propio pendiente, NO forzado.
+
+**Quedan abiertos (sin tocar):** Pagos (9, dinero), Mailing compositor/XSS/adjuntos,
+Encuestas builder/agenda/XSS, webhooks globales, plugins ownership, apikeys, N1
+(PRODUCTOR sin group_users no ve eventos), N2 (go-to-signup sin elemento), N3 (sesión
+muere al reiniciar contenedor), N5 (cabecera por confirmar con clic real).
+**Nota operador:** existe la cuenta `e2e-prod@test.local` con rol ADMIN en producción
+(previsiona a esta sesión) — eliminarla o desactivarla si ya no se usa.
