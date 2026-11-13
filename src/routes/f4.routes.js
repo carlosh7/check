@@ -29,7 +29,9 @@ const fieldSchema = z.object({
 });
 
 function safeParse(json, fallback) {
-    try { return JSON.parse(json); } catch (_) { return fallback; }
+    // v12.44.836 (auditoría): JSON.parse(null) devuelve null sin lanzar — normalizar
+    if (json == null) return fallback;
+    try { const v = JSON.parse(json); return v || fallback; } catch (_) { return fallback; }
 }
 
 router.get('/:eventId/reg-fields', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {

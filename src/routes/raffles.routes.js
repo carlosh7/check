@@ -157,7 +157,11 @@ router.post('/:id/populate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) 
             const guestIds = respondents.map(function(r) { return r.guest_id; }).filter(Boolean);
             if (guestIds.length === 0) return res.json({ added: 0, participants: [], message: 'No hay invitados que respondieron la encuesta' });
             const placeholders = guestIds.map(function() { return '?'; }).join(',');
-            var guests = eventDb.prepare("SELECT id as guest_id, name, email, phone FROM guests WHERE event_id = ? AND id IN (" + placeholders + ")").all.apply(null, [raffle.event_id].concat(guestIds));
+            // v12.44.836 (auditoría): .apply(null, ...) perdía el this del statement
+            // (Illegal invocation SIEMPRE) — poblar desde encuesta estaba roto.
+            // El IN (?, ?, ...) necesita N valores: conservar this con apply(stmt, args)
+            var stmtGuests = eventDb.prepare("SELECT id as guest_id, name, email, phone FROM guests WHERE event_id = ? AND id IN (" + placeholders + ")");
+            var guests = stmtGuests.all.apply(stmtGuests, [raffle.event_id].concat(guestIds));
             sourceSql = null;
             db.prepare("DELETE FROM raffle_participants WHERE raffle_id = ?").run(raffle.id);
             var insert = db.prepare("INSERT INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, ?)");

@@ -9036,7 +9036,7 @@ navigate(viewName, params = {}, push = true) {
             const status = this._getEventStatus(s.event);
             const statusColor = status === 'active' ? 'text-emerald-400' : status === 'upcoming' ? 'text-blue-400' : 'text-slate-400';
             return `
-                <div class="px-4 py-2.5 hover:bg-white/5 cursor-pointer flex items-center justify-between transition-colors" data-act="clearCall" data-call="openEvent:${s.event.id}|hideEventSuggestions">
+                <div class="px-4 py-2.5 hover:bg-white/5 cursor-pointer flex items-center justify-between transition-colors" data-act="thenCall" data-call="openEvent" data-a1="${s.event.id}" data-then="hideEventSuggestions">
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="material-symbols-outlined text-[#0ba5ec] text-sm flex-shrink-0">event</span>
                         <div class="min-w-0">
@@ -11351,7 +11351,10 @@ navigate(viewName, params = {}, push = true) {
 
             const respTbody = document.getElementById('survey-responses-tbody');
             if (respTbody) {
-                await this.fetchAPI('/events/templates/' + templateId + '/export/csv');
+                // v12.44.836 (auditoría B5): la llamada vieja usaba fetchAPI (que hace
+                // response.json() sobre un text/csv → fallaba siempre y ensuciaba la
+                // consola). La descarga real va por exportSurveyCsv (window.open).
+                void respTbody;
             }
         } catch(e) { console.error('[SURVEY] Dashboard error:', e.message); }
     },

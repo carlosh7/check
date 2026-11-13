@@ -14,7 +14,8 @@ router.get('/ai/inventory', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =
     try {
         const items = db.prepare("SELECT * FROM ai_inventory ORDER BY detected_at DESC").all();
         items.forEach(function(item) {
-            try { item.data_processed = JSON.parse(item.data_processed); } catch(e) { item.data_processed = []; }
+            // v12.44.836 (auditoría B1): JSON.parse(null) devuelve null sin lanzar — normalizar
+            item.data_processed = item.data_processed == null ? [] : (function() { try { const v = JSON.parse(item.data_processed); return v || []; } catch(e) { return []; } })();
         });
         res.json(items);
     } catch (err) {

@@ -245,7 +245,7 @@ function renderQAnswers() {
     const removable = q.type !== 'true_false' && q.answers.length > 2;
     return '<div class="qz-answer-row">' +
       '<span class="qz-ans-dot" data-style="background:' + ANS_COLORS[i % 4] + '">' + ANS_SHAPES[i % 4] + '</span>' +
-      '<input id="qa-' + i + '" maxlength="150" placeholder="Respuesta ' + (i + 1) + '" value="' + esc(a.text) + '" data-act="input" data-call="onAnswerInput" data-a1="' + i + '">' +
+      '<input id="qa-' + i + '" maxlength="150" placeholder="Respuesta ' + (i + 1) + '" value="' + esc(a.text) + '" data-act="call" data-call="onAnswerInput" data-a1="' + i + '">' +
       '<button class="qz-ans-ok' + (a.correct ? ' on' : '') + '" title="Marcar como correcta" data-act="call" data-call="toggleCorrect" data-a1="' + i + '">✔</button>' +
       (removable ? '<button class="qz-ans-del" title="Quitar" data-act="call" data-call="delAnswer" data-a1="' + i + '">✕</button>' : '') +
       '</div>';

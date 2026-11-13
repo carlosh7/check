@@ -303,7 +303,16 @@ router.get('/export-excel/:eventId', authMiddleware(), async (req, res) => {
     if (req.query.checked_in === '0') { whereClause += " AND checked_in = 0"; }
     if (req.query.category_id) { whereClause += " AND category_id = ?"; params.push(req.query.category_id); }
     if (req.query.search) { whereClause += " AND (name LIKE ? OR email LIKE ? OR organization LIKE ?)"; const s = '%' + req.query.search + '%'; params.push(s, s, s); }
-    const rows = targetDb.prepare("SELECT name as Nombre, email as Email, organization as Organizacion, phone as Telefono, gender as Genero, category_id as Categoria, CASE WHEN checked_in = 1 THEN 'SÍ' ELSE 'NO' END as Asistio, checkin_time as Hora FROM guests " + whereClause + " ORDER BY name ASC").all.apply(targetDb, params);
+    // v12.44.836 (auditoría): .all.apply(targetDb, params) perdía el this del statement
+    // (Illegal invocation SIEMPRE) y sin try la request quedaba sin respuesta
+    var rows;
+    try {
+        const stmt = targetDb.prepare("SELECT name as Nombre, email as Email, organization as Organizacion, phone as Telefono, gender as Genero, category_id as Categoria, CASE WHEN checked_in = 1 THEN 'SÍ' ELSE 'NO' END as Asistio, checkin_time as Hora FROM guests " + whereClause + " ORDER BY name ASC");
+        rows = params.length ? stmt.all(...params) : stmt.all();
+    } catch (e) {
+        console.error('[GUESTS] Excel error:', e.message);
+        return res.status(500).json({ error: 'No se pudo generar el Excel: ' + e.message });
+    }
     
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Check Pro V10';
@@ -958,7 +967,7 @@ router.post('/:eventId/presence', authMiddleware(), (req, res) => {
         const key = 'presence_' + req.params.eventId;
         const now = Date.now();
         const existing = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").get(key);
-        const users = existing ? JSON.parse(existing.setting_value) : {};
+        const users = existing ? (function() { try { return JSON.parse(existing.setting_value) || {}; } catch(e) { return {}; } })() : {};
         users[req.userId] = now;
         // Clean stale entries (>30s)
         Object.keys(users).forEach(function(u) { if (users[u] < now - 30000) delete users[u]; });

@@ -135,7 +135,10 @@ function getEventGuestDb(eventId) {
 }
 
 function parseJsonSafe(str, fallback) {
-    try { return JSON.parse(str); } catch (e) { return fallback; }
+    // v12.44.836 (auditoría): JSON.parse(null) devuelve null SIN lanzar — el try/catch
+    // no actúa y el jugador de un quiz recién creado recibía 500. Normalizar:
+    if (str == null) return fallback;
+    try { const v = JSON.parse(str); return v || fallback; } catch (e) { return fallback; }
 }
 
 // Notifica el cambio de estado a host y jugadores (socket.io) — la reserva es el

@@ -61,8 +61,22 @@ class Router {
         } else {
             console.error('[ROUTER] No se encontró App.showView');
         }
-        
-        
+
+        // v12.44.836 (auditoría clase C): restaurar la pestaña activa EN EL CONSUMIDOR VIVO.
+        // La restauración que existía en App.navigate (switchConfigTab con
+        // active_config_tab) quedó en una rama muerta: navigate() delega SIEMPRE aquí y
+        // hace return, así que las pestañas de sub-grupo (promos/quiz/sorteos/system/email)
+        // caían en su panel por defecto (staff/users) desde sidebar, F5 o Configuración.
+        // Se ruta por switch*Tab para que syncTabGroup abra el grupo correcto. Idempotente.
+        if (window.App && viewId === 'event-config' && typeof window.App.switchConfigTab === 'function') {
+            const savedConfigTab = window.sessionStorage.getItem('active_config_tab') || 'staff';
+            window.App.switchConfigTab(savedConfigTab);
+        } else if (window.App && viewId === 'system' && typeof window.App.switchSystemTab === 'function') {
+            const savedSystemTab = (window.LS && typeof window.LS.get === 'function') ? window.LS.get('active_system_tab') : null;
+            window.App.switchSystemTab(params?.tab || savedSystemTab || 'users');
+        }
+
+
     }
     
     // Obtener vista por defecto según rol
