@@ -1908,8 +1908,7 @@ const App = window.App = {
             <div data-act="call" data-call="selectSuggestion" data-a1="${safeText}" 
                  class="group-suggestion-item" 
                  data-style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
-                 onmouseover="this.style.background='rgba(124,58,237,0.15)'" 
-                 onmouseout="this.style.background='transparent'">
+>
                 <span class="material-symbols-outlined" data-style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
                 <div class="flex-1 min-w-0">
                     <div data-style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this._highlightMatch(s.text, raw)}</div>
@@ -2454,8 +2453,7 @@ const App = window.App = {
             <div data-act="call" data-call="selectClientSuggestion" data-a1="${s.text.replace(/"/g, '&quot;')}" 
                  class="client-suggestion-item" 
                  data-style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
-                 onmouseover="this.style.background='rgba(16,185,129,0.15)'" 
-                 onmouseout="this.style.background='transparent'">
+>
                 <span class="material-symbols-outlined" data-style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
                 <div class="flex-1 min-w-0">
                     <div data-style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this._highlightMatch(s.text, raw)}</div>
@@ -3414,8 +3412,9 @@ const App = window.App = {
         const clients = this.state.clients || [];
         
         // Usar el parámetro groupIds si viene, si no usar selectedGroups
-        if (!groupIds || groupIds.length === 0) {
-            groupIds = this.state.selectedGroups || [];
+        // (v12.44.837: si llega TEXTO — bug data-a1 interpolado — ignorar y calcular real)
+        if (!groupIds || !Array.isArray(groupIds) || groupIds.length === 0) {
+            groupIds = (this.state.selectedGroups && this.state.selectedGroups.length) ? this.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId);
         }
         
         if (clients.length === 0) {
@@ -3457,19 +3456,19 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" data-style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button data-act="call" data-call="editSelectedGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar">
+                    <button data-act="call" data-call="editSelectedGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
-                    <button data-act="call" data-call="showManageGroupAction" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar">
+                    <button data-act="call" data-call="showManageGroupAction" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar">
                         <span class="material-symbols-outlined text-sm">settings</span>
                     </button>
-                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente">
+                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente">
                         <span class="material-symbols-outlined text-sm">person</span>
                     </button>
-                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff">
+                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff">
                         <span class="material-symbols-outlined text-sm">badge</span>
                     </button>
-                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento">
+                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento">
                         <span class="material-symbols-outlined text-sm">event</span>
                     </button>
                 </div>
@@ -3558,7 +3557,11 @@ const App = window.App = {
     // Modal editar empresa (con campos inline, sin segundo modal)
     editSelectedGroups: function(groupIds) {
         const groups = this.state.groups || [];
-        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
+        // v12.44.837 (auditoría A4): groupIds llegaba como TEXTO (expresión interpolada en
+// data-a1) — .includes sobre el string daba false siempre y los modales pedían
+// "selecciona una empresa" con selección hecha. Calcular la selección real:
+const ids = (Array.isArray(groupIds) && groupIds.length) ? groupIds : ((App.state.selectedGroups && App.state.selectedGroups.length) ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId));
+const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id)));
         if (selectedGroups.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
@@ -3571,19 +3574,19 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" data-style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button data-act="call" data-call="editSelectedGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar">
+                    <button data-act="call" data-call="editSelectedGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #f59e0b;" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
-                    <button data-act="call" data-call="showManageGroupAction" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar">
+                    <button data-act="call" data-call="showManageGroupAction" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar">
                         <span class="material-symbols-outlined text-sm">settings</span>
                     </button>
-                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente">
+                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente">
                         <span class="material-symbols-outlined text-sm">person</span>
                     </button>
-                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff">
+                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff">
                         <span class="material-symbols-outlined text-sm">badge</span>
                     </button>
-                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento">
+                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento">
                         <span class="material-symbols-outlined text-sm">event</span>
                     </button>
                 </div>
@@ -3716,7 +3719,11 @@ const App = window.App = {
     // Modal gestionar empresa
     showManageGroupAction: function(groupIds) {
         const groups = this.state.groups || [];
-        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
+        // v12.44.837 (auditoría A4): groupIds llegaba como TEXTO (expresión interpolada en
+// data-a1) — .includes sobre el string daba false siempre y los modales pedían
+// "selecciona una empresa" con selección hecha. Calcular la selección real:
+const ids = (Array.isArray(groupIds) && groupIds.length) ? groupIds : ((App.state.selectedGroups && App.state.selectedGroups.length) ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId));
+const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id)));
         if (selectedGroups.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
@@ -3727,19 +3734,19 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" data-style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
-                    <button data-act="call" data-call="editSelectedGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar">
+                    <button data-act="call" data-call="editSelectedGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
-                    <button data-act="call" data-call="showManageGroupAction" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar">
+                    <button data-act="call" data-call="showManageGroupAction" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar">
                         <span class="material-symbols-outlined text-sm">settings</span>
                     </button>
-                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente">
+                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente">
                         <span class="material-symbols-outlined text-sm">person</span>
                     </button>
-                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff">
+                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff">
                         <span class="material-symbols-outlined text-sm">badge</span>
                     </button>
-                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento">
+                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento">
                         <span class="material-symbols-outlined text-sm">event</span>
                     </button>
                 </div>
@@ -3813,7 +3820,11 @@ const App = window.App = {
     showEventSelectorForBulkGroups: function(groupIds) {
         const events = this.state.allEvents || [];
         const groups = this.state.groups || [];
-        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
+        // v12.44.837 (auditoría A4): groupIds llegaba como TEXTO (expresión interpolada en
+// data-a1) — .includes sobre el string daba false siempre y los modales pedían
+// "selecciona una empresa" con selección hecha. Calcular la selección real:
+const ids = (Array.isArray(groupIds) && groupIds.length) ? groupIds : ((App.state.selectedGroups && App.state.selectedGroups.length) ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId));
+const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id)));
         if (events.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
@@ -3829,11 +3840,11 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" data-style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button data-act="call" data-call="editSelectedGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button data-act="call" data-call="showManageGroupAction" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button data-act="call" data-call="editSelectedGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageGroupAction" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Evento a Empresas</span><span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span></div>
@@ -3894,7 +3905,11 @@ const App = window.App = {
     showUserSelectorForBulkGroups: function(groupIds) {
         const users = this.state.allUsers || [];
         const groups = this.state.groups || [];
-        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
+        // v12.44.837 (auditoría A4): groupIds llegaba como TEXTO (expresión interpolada en
+// data-a1) — .includes sobre el string daba false siempre y los modales pedían
+// "selecciona una empresa" con selección hecha. Calcular la selección real:
+const ids = (Array.isArray(groupIds) && groupIds.length) ? groupIds : ((App.state.selectedGroups && App.state.selectedGroups.length) ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId));
+const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id)));
         if (users.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay staff disponible', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
@@ -3910,11 +3925,11 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" data-style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button data-act="call" data-call="editSelectedGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button data-act="call" data-call="showManageGroupAction" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="${getCurrentGroupIds}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button data-act="call" data-call="editSelectedGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button data-act="call" data-call="showManageGroupAction" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button data-act="call" data-call="openAssignClientToGroupModal" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button data-act="call" data-call="showUserSelectorForBulkGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button data-act="call" data-call="showEventSelectorForBulkGroups" data-a1="@groupIds" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" data-style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" data-style="color: ${textSecondary};">Asignar Staff a Empresas</span><span class="text-xs" data-style="color: ${textMain};">${subtitleText}</span></div>
@@ -4441,8 +4456,7 @@ const App = window.App = {
             return `
             <div data-act="call" data-call="selectUserSuggestion" data-a1="${safeText}" 
                  data-style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
-                 onmouseover="this.style.background='rgba(59,130,246,0.15)'" 
-                 onmouseout="this.style.background='transparent'">
+>
                 <span class="material-symbols-outlined" data-style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
                 <div class="flex-1 min-w-0">
                     <div data-style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${App.esc(s.text)}</div>
@@ -13299,7 +13313,7 @@ navigate(viewName, params = {}, push = true) {
             grid.innerHTML = photos.map(function(ph) {
                 const approved = ph.approved === 1 || ph.approved === true;
                 return '<div class="card overflow-hidden group relative">' +
-                    '<img src="' + (ph.url || ph.file_path || '') + '" class="w-full h-32 object-cover" onerror="this.style.display=\'none\'">' +
+                    '<img src="' + (ph.url || ph.file_path || '') + '" class="w-full h-32 object-cover" data-hide-on-error="1">' +
                     '<div class="p-2 flex items-center justify-between gap-1">' +
                     '<span class="text-[10px] text-slate-400 truncate">' + App.esc(ph.uploaded_by_name || ph.guest_name || 'organizador') + '</span>' +
                     '<div class="flex gap-1">' +
@@ -13308,6 +13322,12 @@ navigate(viewName, params = {}, push = true) {
                     '<button class="text-red-400 hover:text-red-300" data-act="call" data-call="deleteAlbumPhoto" data-a1="' + ph.id + '"><span class="material-symbols-outlined text-sm">delete</span></button>' +
                     '</div></div></div>';
             }).join('');
+            // v12.44.837 (auditoría): CSP bloquea onerror inline — ocultar fotos rotas por JS
+            grid.querySelectorAll('img[data-hide-on-error="1"]').forEach(function(img) {
+                const ocultar = function() { img.style.display = 'none'; };
+                img.addEventListener('error', ocultar);
+                if (img.complete && img.naturalWidth === 0) ocultar();
+            });
         } catch (e) {
             this.uiState('album-grid', 'error', { message: e.message, retryFn: 'App.loadAlbum()' });
         }

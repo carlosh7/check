@@ -318,3 +318,8 @@
 .sidebar-footer-version { font-size: 10px; color: var(--text-muted); }
 .sidebar-footer-link { font-size: 10px; color: var(--text-muted); text-decoration: none; }
 .sidebar-footer-link:hover { color: var(--text-link); }
+
+/* v12.44.837 (auditoría): hover de sugerencias — antes con onmouseover inline que la CSP bloquea */
+.group-suggestion-item:hover { background: rgba(124, 58, 237, 0.15) !important; }
+.client-suggestion-item:hover { background: rgba(16, 185, 129, 0.15) !important; }
+.user-suggestion-item:hover { background: rgba(59, 130, 246, 0.15) !important; }

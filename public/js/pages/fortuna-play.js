@@ -145,7 +145,7 @@ function renderResult(r){
   $('res-prize').textContent=r.prize.label;
   $('res-prize-box').classList.toggle('hidden',!r.prize.win);
   const link=(r.prize.type==='enlace'&&r.prize.value)?r.prize.value:null;
-  if(link){$('res-prize-box').innerHTML='<a href="'+esc(link)+'" target="_blank" rel="noopener" style="color:#fff;font-weight:800">Abrir enlace →</a>'}
+  if(link){$('res-prize-box').innerHTML='<a href="'+esc(link)+'" target="_blank" rel="noopener" data-style="color:#fff;font-weight:800">Abrir enlace →</a>'}
   else if(r.prize.type==='enlace'){/* sin valor */}
   else{$('res-prize-box').innerHTML='<span class="fzp-prize-label">🎁 Tu premio</span><span id="res-prize" class="fzp-prize">'+esc(r.prize.label)+'</span>'+(r.prize.type==='cupon'&&r.prize.value?'<span id="res-value" class="fzp-value">Código: '+esc(r.prize.value)+'</span>':'')}
   if(data.certificate){$('btn-cert').style.display='block'}
