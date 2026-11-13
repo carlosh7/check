@@ -43,7 +43,7 @@ import './modules/core/DelegatedEvents.js?v=12.44.818';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.815';
+const VERSION = '12.44.839';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -1918,7 +1918,7 @@ const App = window.App = {
             </div>
         `}).join('');
 
-        App.dropdown.showById('group-suggestions');
+        App.dropdown.showById('attendance-suggestions'); // v12.44.838 (auditoría): ID equivocado
     },
 
     // Resaltar coincidencia en el texto
@@ -6599,7 +6599,7 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
                     <input type="text" value="${App.esc(item.title || '')}" data-field="title" placeholder="Título" class="flex-1">
                     <input type="text" value="${App.esc(item.speaker || '')}" data-field="speaker" placeholder="Ponente" class="flex-1">
                 </div>
-                <button data-action="removeParent" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
+                <button data-act="removeParent" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
                     <span class="material-symbols-outlined text-sm">delete</span>
                 </button>
             </div>
@@ -6623,7 +6623,7 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
                 <input type="text" value="" data-field="title" placeholder="Título" class="flex-1">
                 <input type="text" value="" data-field="speaker" placeholder="Ponente" class="flex-1">
             </div>
-<button data-action="removeParent" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
+<button data-act="removeParent" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
                     <span class="material-symbols-outlined text-sm">delete</span>
                 </button>
         `;
@@ -10810,7 +10810,7 @@ navigate(viewName, params = {}, push = true) {
             if (!data) { Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron exportar los datos', background: '#0f172a', color: '#fff' }); return; }
             Swal.fire({
                 icon: 'info', title: 'Datos exportados',
-                html: '<p class="text-sm text-slate-400 mb-3">Datos del invitado exportados en formato JSON compatible con GDPR.</p><button class="btn-primary text-xs px-4 py-2" data-act="call" data-call="downloadJsonFile" data-a1=" + JSON.stringify(JSON.stringify(data)) + " data-a2="' + ('guest-' + guestId.substring(0, 8) + '-data.json') + '">Descargar JSON</button>',
+                html: '<p class="text-sm text-slate-400 mb-3">Datos del invitado exportados en formato JSON compatible con GDPR.</p><button class="btn-primary text-xs px-4 py-2" data-act="call" data-call="downloadJsonFile" data-a1="' + JSON.stringify(JSON.stringify(data)) + '" data-a2="' + ('guest-' + guestId.substring(0, 8) + '-data.json') + '">Descargar JSON</button>',
                 background: '#0f172a', color: '#fff', showConfirmButton: false
             });
         } catch(e) {
@@ -11005,7 +11005,9 @@ navigate(viewName, params = {}, push = true) {
     },
 
     switchConfigTab(tabName) {
-        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-quiz', 'config-content-promos', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-gamification', 'config-content-settings', 'config-content-categories', 'config-content-badge', 'config-content-sessions', 'config-content-seatmaps', 'config-content-google', 'config-content-plugins'];
+        // v12.44.838 (auditoría): derivar del DOM — el array manual solo cubría 16 de las
+        // 28 pestañas y las no listadas (network/album/budget/sponsors/...) quedaban apiladas
+        const ALL_CONFIG_IDS = Array.from(document.querySelectorAll('[id^="config-content-"]')).map(el => el.id);
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
@@ -14001,11 +14003,11 @@ navigate(viewName, params = {}, push = true) {
             if (!data || !data.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Sin propuestas recibidas</td></tr>'; return; }
             tbody.innerHTML = data.map(function(p) {
                 const badge = p.status === 'approved' ? 'text-green-500' : p.status === 'rejected' ? 'text-red-500' : 'text-amber-500';
-                return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-medium text-white">' + (p.title || '') + '</td>' +
-                    '<td class="table-td text-xs text-slate-400">' + (p.guest_name || '') + '</td>' +
+                return '<tr class="hover:bg-white/[0.02]"><td class="table-td font-medium text-white">' + this.esc(p.title || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + this.esc(p.guest_name || '') + '</td>' +
                     '<td class="table-td text-xs text-slate-300">' + (p.votes || 0) + '</td>' +
                     '<td class="table-td"><span class="text-xs font-bold ' + badge + '">' + p.status + '</span></td>' +
-                    '<td class="table-td"><select class="input-field text-xs py-1" data-act="call" data-call="updateProposalStatus" data-a1="' + (' + p.id + ') + '" data-a2="@this.value">' +
+                    '<td class="table-td"><select class="input-field text-xs py-1" data-act="call" data-call="updateProposalStatus" data-a1="' + p.id + '" data-a2="@this.value">' +
                         '<option value="pending"' + (p.status === 'pending' ? ' selected' : '') + '>Pendiente</option>' +
                         '<option value="approved"' + (p.status === 'approved' ? ' selected' : '') + '>Aprobar</option>' +
                         '<option value="rejected"' + (p.status === 'rejected' ? ' selected' : '') + '>Rechazar</option>' +
@@ -20252,7 +20254,7 @@ App.showAttendanceSuggestions = function() {
         </div>
     `).join('');
     
-        App.dropdown.showById('group-suggestions');
+        App.dropdown.showById('attendance-suggestions'); // v12.44.838 (auditoría): ID equivocado
     },
 
 App.hideAttendanceSuggestions = function() {

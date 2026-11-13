@@ -5,7 +5,7 @@
 
 const logger = require('./logger');
 const nodemailer = require('nodemailer');
-const db = require('../../database');
+const { db } = require('../../database'); // v12.44.838 (auditoría): database.js exporta { db } — sin destructurar, db.prepare no existía y NINGÚN email transaccional salía
 const { v4: uuidv4 } = require('uuid');
 const { decryptPassword } = require('../security/encryption');
 

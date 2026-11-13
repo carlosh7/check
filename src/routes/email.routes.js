@@ -256,12 +256,12 @@ router.put('/accounts/:id', (req, res) => {
                 smtp_host = COALESCE(?, smtp_host),
                 smtp_port = COALESCE(?, smtp_port),
                 smtp_user = COALESCE(?, smtp_user),
-                smtp_password = CASE WHEN ? = '***' THEN smtp_password ELSE ? END,
+                smtp_password = CASE WHEN ? IS NULL OR ? = '***' THEN smtp_password ELSE ? END,
                 smtp_ssl = COALESCE(?, smtp_ssl),
                 imap_host = COALESCE(?, imap_host),
                 imap_port = COALESCE(?, imap_port),
                 imap_user = COALESCE(?, imap_user),
-                imap_password = CASE WHEN ? = '***' THEN imap_password ELSE ? END,
+                imap_password = CASE WHEN ? IS NULL OR ? = '***' THEN imap_password ELSE ? END,
                 imap_ssl = COALESCE(?, imap_ssl),
                 imap_folder = COALESCE(?, imap_folder),
                 sender_name = COALESCE(?, sender_name),
@@ -273,10 +273,10 @@ router.put('/accounts/:id', (req, res) => {
             WHERE id = ?
         `).run(
             name, smtp_host, smtp_port, smtp_user, 
-            smtp_password, smtp_password !== '***' ? encryptPassword(smtp_password) : null,
+            smtp_password == null ? null : smtp_password, smtp_password != null && smtp_password !== '***' ? encryptPassword(smtp_password) : null,
             smtp_ssl ? 1 : 0,
             imap_host, imap_port, imap_user,
-            imap_password, imap_password !== '***' ? encryptPassword(imap_password) : null,
+            imap_password == null ? null : imap_password, imap_password != null && imap_password !== '***' ? encryptPassword(imap_password) : null,
             imap_ssl ? 1 : 0,
             imap_folder, sender_name, sender_email,
             is_default ? 1 : 0,
@@ -1137,14 +1137,17 @@ function startCampaignScheduler() {
     schedulerInterval = setInterval(() => {
         try {
             const now = new Date().toISOString();
+            // v12.44.838 (auditoría): el JOIN con c.*, a.* colisionaba el id (devolvía el de
+            // la cuenta) → el UPDATE filtraba por id de cuenta (no-op) y la cola nunca
+            // arrancaba: las campañas SCHEDULED quedaban así para siempre
             const scheduledCampaigns = getEmailDb().prepare(
-                "SELECT c.*, a.* FROM email_campaigns c JOIN email_accounts a ON c.account_id = a.id WHERE c.status = 'SCHEDULED' AND c.scheduled_at <= ?"
+                "SELECT c.id AS campaign_id, c.*, a.* FROM email_campaigns c JOIN email_accounts a ON c.account_id = a.id WHERE c.status = 'SCHEDULED' AND c.scheduled_at <= ?"
             ).all(now);
             
             for (const campaign of scheduledCampaigns) {
-                logger.info(`[SCHEDULER] Auto-starting campaign: ${campaign.name} (${campaign.id})`);
-                getEmailDb().prepare("UPDATE email_campaigns SET status = 'SENDING', updated_at = ? WHERE id = ?").run(now, campaign.id);
-                processEmailQueue(campaign.id, campaign);
+                logger.info(`[SCHEDULER] Auto-starting campaign: ${campaign.name} (${campaign.campaign_id})`);
+                getEmailDb().prepare("UPDATE email_campaigns SET status = 'SENDING', updated_at = ? WHERE id = ?").run(now, campaign.campaign_id);
+                processEmailQueue(campaign.campaign_id, campaign);
             }
         } catch (err) {
             logger.error('[SCHEDULER] Error:', err.message);

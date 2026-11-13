@@ -942,15 +942,8 @@ router.post('/:eventId/social-publish', authMiddleware(['ADMIN', 'PRODUCTOR']), 
 });
 
 // ─── GDPR: Export guest data (C6-18) ───
-// DEPRECATED: Usar /api/compliance/events/:eventId/guests/:guestId/export
-router.get('/:eventId/guests/:guestId/export', (req, res) => {
-    try {
-        const guest = db.prepare("SELECT * FROM guests WHERE id = ? AND event_id = ?").get(req.params.guestId, req.params.eventId);
-        if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
-        const achievements = db.prepare("SELECT * FROM guest_achievements WHERE guest_id = ?").all(req.params.guestId);
-        res.json({ personalData: guest, achievements: achievements, exportDate: new Date().toISOString(), generatedBy: 'Check Pro GDPR' });
-    } catch(err) { res.status(500).json({ error: err.message }); }
-});
+// v12.44.838 (auditoría): export GDPR deprecated SIN auth eliminado — filtraba PII +
+// qr_token (credencial del check-in público) a cualquiera sin sesión. Usa /api/compliance
 
 // DEPRECATED: Usar /api/compliance/events/:eventId/guests/:guestId/personal-data
 router.delete('/:eventId/guests/:guestId/erase', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
