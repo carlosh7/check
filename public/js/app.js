@@ -43,7 +43,7 @@ import './modules/core/DelegatedEvents.js?v=12.44.818';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.839';
+const VERSION = '12.44.840';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -11005,9 +11005,11 @@ navigate(viewName, params = {}, push = true) {
     },
 
     switchConfigTab(tabName) {
-        // v12.44.838 (auditoría): derivar del DOM — el array manual solo cubría 16 de las
-        // 28 pestañas y las no listadas (network/album/budget/sponsors/...) quedaban apiladas
-        const ALL_CONFIG_IDS = Array.from(document.querySelectorAll('[id^="config-content-"]')).map(el => el.id);
+        // v12.44.840 (fix en vivo): derivar por CLASE del panel, no por prefijo de id —
+        // el prefijo [id^="config-content-"] atrapaba también al contenedor
+        // config-content-wrapper y lo ocultaba: el hub quedaba dentro de una caja
+        // hidden, invisible en pantalla (detectado en validación visual 2026-11-13)
+        const ALL_CONFIG_IDS = Array.from(document.querySelectorAll('.config-tab-content')).map(el => el.id);
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
