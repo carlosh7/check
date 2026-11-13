@@ -48,11 +48,13 @@ módulos, páginas standalone), SPA shell, rutas públicas, seguridad de sistema
 8. **api_key de ecommerce expuesta en el listado** (ecommerce.routes.js:12): enmascarar.
 9. **intelligence trigger manual mal llamado** (:132): mismo patrón de argumentos invertidos.
 
-## 2. MAILING/EMAIL 📧 (16 hallazgos — 5 críticos CORREGIDOS ya en v12.44.838)
+## 2. MAILING/EMAIL 📧 (16 hallazgos — 5 críticos CORREGIDOS en v12.44.839, commit `cff7e44`)
 
-**CORREGIDOS**: require roto en email-service.js (ningún email transaccional salía,
-incluida la recuperación de contraseña — 1 línea); colisión de id en el scheduler
-(campañas SCHEDULED nunca se enviaban); edición de cuenta SMTP borraba las 2
+**CORREGIDOS (corrección 2026-11-13 tarde: este documento los atribuía a v12.44.838,
+pero en realidad estaban SIN COMPROMETER en el working tree — entraron en v12.44.839,
+desplegados con checksums verificados)**: require roto en email-service.js (ningún email
+transaccional salía, incluida la recuperación de contraseña — 1 línea); colisión de id en
+el scheduler (campañas SCHEDULED nunca se enviaban); edición de cuenta SMTP borraba las 2
 contraseñas (probado empíricamente el patrón corregido).
 
 **PENDIENTES (prioridad alta):**
@@ -78,11 +80,11 @@ contraseñas (probado empíricamente el patrón corregido).
 
 ## 4. INVITADOS/CHECK-IN/COMPLIANCE 👥 (13+1 hallazgos)
 
-1. **Export GDPR deprecated SIN auth** (guests.routes.js:945): entregaba PII + qr_token (credencial del check-in público) a cualquiera — **ELIMINADO en v12.44.838**.
-2. **Compliance portabilidad/olvido 404 siempre** (compliance.routes.js:79,138): usa getEventConnection (null sin sharding) en vez de getEventDb → el derecho al olvido de L-fase roto en el caso por defecto. Fix: getEventDb (PENDIENTE — legal, prioridad alta).
-3. **Descarga JSON GDPR basura** (app.js:10813): concatenación dentro del string literal — **CORREGIDO v12.44.838**.
-4. **switchConfigTab oculta solo 16 de 28 pestañas** (app.js:11008): secciones apiladas al salir de network/album/budget/etc. — **CORREGIDO v12.44.838** (derivado del DOM).
-5. **Sugerencias de asistencia con ID equivocado** (app.js:11031→20075): mostraba el dropdown de grupos — **CORREGIDO v12.44.838**.
+1. **Export GDPR deprecated SIN auth** (guests.routes.js:945): entregaba PII + qr_token (credencial del check-in público) a cualquiera — **ELIMINADO en v12.44.839** (`cff7e44`; antes figuraba aquí como 838 por error).
+2. **Compliance portabilidad/olvido 404 siempre** (compliance.routes.js:79,138): usa getEventConnection (null sin sharding) en vez de getEventDb → el derecho al olvido de L-fase roto en el caso por defecto. Fix: getEventDb (**PENDIENTE — legal, prioridad alta; sigue en HEAD verificado 2026-11-13 tarde**).
+3. **Descarga JSON GDPR basura** (app.js:10813): concatenación dentro del string literal — **CORREGIDO v12.44.839**.
+4. **switchConfigTab oculta solo 16 de 28 pestañas** (app.js:11008): secciones apiladas al salir de network/album/budget/etc. — **CORREGIDO v12.44.839** (derivado del DOM) y **re-hecho en v12.44.840** (`3a312db`) tras detectar EN VIVO que el prefijo `[id^="config-content-"]` ocultaba también al contenedor `config-content-wrapper` dejando el hub invisible (alto 0); ahora se deriva por clase `.config-tab-content` (28 exactos verificados en DOM vivo) y el hub se validó con captura de pantalla en producción.
+5. **Sugerencias de asistencia con ID equivocado** (app.js:11031→20075): mostraba el dropdown de grupos — **CORREGIDO v12.44.839**.
 6. Excel: workbook fuera del try (parcial, ya mejorado). 7. castId sin guard → invitados huérfanos con event_id NULL (condicional). 8. /:eventId/network directorio con PII sin sesión (verificar diseño). 9-14. menores/latentes.
 13. **XSS nombres de invitados** (registro público sin sanitizar → innerHTML en asistencia del admin): plausible, medio-alta. Pendiente App.esc.
 
@@ -102,7 +104,7 @@ contraseñas (probado empíricamente el patrón corregido).
 
 ## 6. SPA/PÁGINAS PÚBLICAS 🌐 (6 accionables)
 
-1. **`/:evento/registro` devuelve 500 SIEMPRE** (index.js:133): sirve registro.html raíz que no existe; el real vive en public/html/pages/. Página pública rota de plano. Fix: servir pages/registro.html (respetando el comentario de server.js:434 sobre variables del scope) o eliminar la ruta y dejar el fallback.
+1. **`/:evento/registro`** (index.js:133): **CORRECCIÓN 2026-11-13 tarde** — no reproducible como se escribió: el archivo `index.js` NO existe ni en HEAD ni en el working tree, y producción responde **404** (no 500) para `/:evento/registro` verificado con curl dentro del contenedor. La ruta no existe; si se quiere registro público en `/:evento/registro`, es trabajo nuevo, no un fix de 1 línea.
 2. quiz.html sigue en quiz.js?v=831 tras el fix v836 de hoy → bump a 837.
 3. fortuna-play.html en ?v=836 con fixes v837 → bump.
 4. landing.html carga chat-widget.js SIN cache-buster tras el fix de hoy → ?v=837.
@@ -133,3 +135,54 @@ contraseñas (probado empíricamente el patrón corregido).
 8. Router: restaurar pestañas SOLO vía switch*Tab (nunca desocultar paneles directo).
 9. Caché: bump ?v= de toda página tocada + de los imports internos de app.js.
 10. Secretos: nunca en respuestas JSON (mascarar) ni en texto plano (cifrar con encryption.js).
+
+---
+
+## 9. ACTUALIZACIÓN 2026-11-13 TARDE (v12.44.839 `cff7e44` / v12.44.840 `3a312db`) — verificación con evidencia
+
+**Contexto:** el dueño rechazó el "botón Juegos resuelto". La verificación forense con
+checksums probó que el deploy 838 era fiel, pero varios fixes atribuidos aquí a v838
+estaban **SIN COMPROMETER** en el working tree (patrón repetido: trabajo no desplegado
+= trabajo inexistente). Hoy se ejecutó el ciclo completo dos veces.
+
+**Cerrado hoy, verificado:**
+- 2ª ronda (los 4 archivos que estaban en el disco sin commit): email-service require,
+  scheduler colisión de id, contraseñas SMTP/IMAP al editar, export GDPR sin auth
+  eliminado, switchConfigTab (2 intentos, ver arriba), sugerencias de asistencia,
+  removeParent, botón export GDPR, escape de propuestas → **v12.44.839**, suite 455✓,
+  deploy con backup+rsync+md5 verificado, contenedor healthy.
+- Regresión de la propia 839 (wrapper oculto, hub invisible con alto 0): detectada
+  SOLO por la captura de pantalla en producción → **v12.44.840** deriva por clase
+  `.config-tab-content`; captura final en producción con los 6 juegos visibles.
+- `const VERSION` interna de app.js: estaba vieja en 12.44.815 → alineada (hoy 840).
+- AUDIT_DELTA_2026-10-05.md entró al repo (docs `41a03af`).
+- Limpieza de datos TEST de producción verificada a 0 (evento+usuario+grupo+membresía
+  y su BD propia en data/events/).
+
+**Hallazgos NUEVOS de la validación en vivo (pendientes):**
+- N1. **PRODUCTOR sin fila en `group_users` no ve ningún evento** (GET /events filtra
+  por group_users + caché 60s) y los eventos que crea antes de tener grupo le quedan
+  invisibles a él mismo (group_id NULL). Reproducido en producción con cuenta QA.
+  El listado individual GET /events/:id SÍ responde — la hidratación del frontend
+  depende de la lista.
+- N2. **`go-to-signup` sin elemento**: el binding existe (app.js:19414) pero ningún
+  botón/enlace lo dispara en index.html — el registro de cuentas es inalcanzable por UI.
+- N3. **La sesión muere al reiniciar el contenedor** pese a existir JWT_SECRET en el
+  env del contenedor — cada deploy echa a todos los usuarios activos. Investigar
+  (¿otra clave de secreto? ¿wipe de localStorage por check_app_version?).
+- N4. **`npm audit --omit=dev` = 10 vulnerabilidades (4 moderadas, 5 altas, 1
+  CRÍTICA)** — creció desde las 7 del delta 2026-10-05. Pendiente `npm audit fix`.
+- N5. **Cabecera del evento quedó en "Cargando…"** en el flujo de validación sintético
+  (se saltó el cargador que ejecuta el clic real desde la tarjeta) — confirmar con
+  clic real del dueño; si reproduce, es hallazgo.
+
+**Estado real de los "pendientes" previos (verificado hoy contra HEAD):**
+- Escalada PRODUCTOR cross-tenant (users.routes.js PUT /:id): **SIGUE VIVA** — un
+  PRODUCTOR puede editar y cambiar el rol de usuarios no-ADMIN de cualquier grupo
+  (el guard solo protege ADMINs). Prioridad alta.
+- Compliance getEventConnection: **SIGUE** (3 usos en HEAD). Legal, prioridad alta.
+- Imports internos de app.js congelados en ?v=12.44.818: **SIGUEN (29 imports)** —
+  verificar conteo y bump en el próximo ciclo de versión.
+
+**Regla del dueño (2026-11-13), mandatoria:** nada se marca "resuelto" sin commit +
+deploy verificado con checksums + prueba en vivo en producción (captura para UI).

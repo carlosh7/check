@@ -665,3 +665,11 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
   docs del cierre; fueron re-creados en el commit de docs correspondiente.
 
 ---
+
+## 2026-11-13 (tarde) — v12.44.839 `cff7e44` / v12.44.840 `3a312db` — botón Juegos cerrado EN VIVO
+- Reclamo del dueño: "botón Juegos resuelto" era falso. Verificación forense: deploy 838 fiel (checksums), pero el fix real estaba sin comprometer en el working tree.
+- v12.44.839: 2ª ronda de auditoría aterrizada (email×3, GDPR sin auth fuera, switchConfigTab DOM, sugerencias, removeParent, propuestas) + VERSION interna 815→839 + AUDIT_DELTA-2026-10-05 al repo. Suite 455✓. Deploy backup+rsync+md5 verificado.
+- Validación EN VIVO (cuenta QA creada en producción, limpieza verificada a 0 después): detectó regresión de la propia 839 — el prefijo de ids ocultaba al contenedor config-content-wrapper → hub invisible (alto 0) pese a checks programáticos verdes. Solo la captura de pantalla lo reveló.
+- v12.44.840: derivar pestañas por CLASE .config-tab-content (28 exactos). Captura final en producción: hub con los 6 juegos visible. El dueño debe confirmar con su clic real (cabecera del evento en "Cargando…" por confirmar).
+- Hallazgos nuevos: N1 PRODUCTOR sin group_users no ve eventos; N2 go-to-signup sin elemento; N3 sesión muere al reiniciar contenedor; N4 npm audit 10 vulns (1 crítica); escalada PRODUCTOR y compliance 404 SIGUEN abiertos (verificados hoy contra HEAD).
+- Doc maestro actualizado con atribuciones corregidas: docs/AUDITORIA-2026-11-13-COMPLETA.md §9.
