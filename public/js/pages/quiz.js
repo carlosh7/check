@@ -193,7 +193,7 @@ function switchTab(name, el) {
 function renderQList() {
   const box = $('qlist');
   if (!questions.length) {
-    box.innerHTML = '<p class="qz-hint" style="margin:0">Sin preguntas todavía. Agrega la primera con los botones ＋ de arriba.</p>';
+    box.innerHTML = '<p class="qz-hint" data-style="margin:0">Sin preguntas todavía. Agrega la primera con los botones ＋ de arriba.</p>';
     return;
   }
   box.innerHTML = questions.map(function(q, i) {
@@ -244,7 +244,7 @@ function renderQAnswers() {
   box.innerHTML = q.answers.map(function(a, i) {
     const removable = q.type !== 'true_false' && q.answers.length > 2;
     return '<div class="qz-answer-row">' +
-      '<span class="qz-ans-dot" style="background:' + ANS_COLORS[i % 4] + '">' + ANS_SHAPES[i % 4] + '</span>' +
+      '<span class="qz-ans-dot" data-style="background:' + ANS_COLORS[i % 4] + '">' + ANS_SHAPES[i % 4] + '</span>' +
       '<input id="qa-' + i + '" maxlength="150" placeholder="Respuesta ' + (i + 1) + '" value="' + esc(a.text) + '" data-act="input" data-call="onAnswerInput" data-a1="' + i + '">' +
       '<button class="qz-ans-ok' + (a.correct ? ' on' : '') + '" title="Marcar como correcta" data-act="call" data-call="toggleCorrect" data-a1="' + i + '">✔</button>' +
       (removable ? '<button class="qz-ans-del" title="Quitar" data-act="call" data-call="delAnswer" data-a1="' + i + '">✕</button>' : '') +
@@ -348,7 +348,7 @@ function renderThemes() {
   const box = $('theme-ps');
   if (!box) return;
   box.innerHTML = THEMES.map(function(t, i) {
-    return '<div class="qz-theme-dot" title="' + esc(t.name) + '" style="background:linear-gradient(135deg,' + t.colors.join(',') + ')" data-act="call" data-call="applyTheme" data-a1="' + i + '"></div>';
+    return '<div class="qz-theme-dot" title="' + esc(t.name) + '" data-style="background:linear-gradient(135deg,' + t.colors.join(',') + ')" data-act="call" data-call="applyTheme" data-a1="' + i + '"></div>';
   }).join('');
 }
 
@@ -382,10 +382,10 @@ function previewStage() {
   const q = currentQ();
   const box = $('intro-preview');
   if (!q) {
-    box.innerHTML = '<div class="qz-preview__shape" style="background:' + c.answer_colors[0] + '">▲</div>' +
-      '<div class="qz-preview__shape" style="background:' + c.answer_colors[1] + '">◆</div>' +
-      '<div class="qz-preview__shape" style="background:' + c.answer_colors[2] + '">●</div>' +
-      '<div class="qz-preview__shape" style="background:' + c.answer_colors[3] + '">■</div>';
+    box.innerHTML = '<div class="qz-preview__shape" data-style="background:' + c.answer_colors[0] + '">▲</div>' +
+      '<div class="qz-preview__shape" data-style="background:' + c.answer_colors[1] + '">◆</div>' +
+      '<div class="qz-preview__shape" data-style="background:' + c.answer_colors[2] + '">●</div>' +
+      '<div class="qz-preview__shape" data-style="background:' + c.answer_colors[3] + '">■</div>';
     return;
   }
   syncQForm();
@@ -393,7 +393,7 @@ function previewStage() {
   const n = qq.type === 'true_false' ? 2 : 4;
   let html = '';
   for (let i = 0; i < n; i++) {
-    html += '<div class="qz-preview__shape" style="background:' + c.answer_colors[i] + '">' + ANS_SHAPES[i] + ' ' + esc(qq.answers[i] ? qq.answers[i].text : '') + '</div>';
+    html += '<div class="qz-preview__shape" data-style="background:' + c.answer_colors[i] + '">' + ANS_SHAPES[i] + ' ' + esc(qq.answers[i] ? qq.answers[i].text : '') + '</div>';
   }
   box.innerHTML = html;
 }
@@ -548,9 +548,9 @@ function renderQuestionFull(st) {
   $('live-qtitle').textContent = st.question.title;
   const cs = collectConfigStage().answer_colors || ANS_COLORS;
   $('live-answers').innerHTML = st.question.answers.map(function(a, i) {
-    return '<div class="qz-answer" id="la-' + i + '" style="background:' + (cs[i % 4] || ANS_COLORS[i % 4]) + '">' +
+    return '<div class="qz-answer" id="la-' + i + '" data-style="background:' + (cs[i % 4] || ANS_COLORS[i % 4]) + '">' +
       '<span class="qz-answer__shape">' + ANS_SHAPES[i % 4] + '</span>' + esc(a.text) +
-      '<span class="qz-answer__count" id="lac-' + i + '" style="display:none">0</span></div>';
+      '<span class="qz-answer__count" id="lac-' + i + '" data-style="display:none">0</span></div>';
   }).join('');
   live.revealed = false;
 }
@@ -591,10 +591,10 @@ function renderRevealFull(st) {
   const counts = st.answerCounts || [];
   const maxCount = Math.max.apply(null, counts.concat([1]));
   $('reveal-answers').innerHTML = st.question.answers.map(function(a, i) {
-    return '<div class="qz-answer' + (a.correct ? ' qz-answer--correct' : ' qz-answer--dim') + '" style="background:' + (cs[i % 4] || ANS_COLORS[i % 4]) + '">' +
+    return '<div class="qz-answer' + (a.correct ? ' qz-answer--correct' : ' qz-answer--dim') + '" data-style="background:' + (cs[i % 4] || ANS_COLORS[i % 4]) + '">' +
       '<span class="qz-answer__shape">' + ANS_SHAPES[i % 4] + '</span>' + esc(a.text) +
       '<span class="qz-answer__count">' + (counts[i] || 0) + '</span>' +
-      '<span class="qz-answer__bar" style="width:' + Math.round((counts[i] || 0) / maxCount * 100) + '%"></span></div>';
+      '<span class="qz-answer__bar" data-style="width:' + Math.round((counts[i] || 0) / maxCount * 100) + '%"></span></div>';
   }).join('');
   $('reveal-fastest').textContent = st.fastest
     ? ('⚡ El más rápido: ' + st.fastest.nickname + ' (' + Math.round(st.fastest.ms / 100) / 10 + 's) · ✅ ' + (st.correctCount || 0) + ' aciertos')
@@ -613,7 +613,7 @@ function renderScoreboard(st) {
       '<span class="qz-score-row__nick">' + esc(p.nickname) + (p.streak > 1 ? ' 🔥' + p.streak : '') + '</span>' +
       '<span class="qz-score-row__pts">' + p.points + '</span>' +
       '</div>' +
-      '<div class="qz-score-row__bar-wrap"><div class="qz-score-row__bar" style="width:' + Math.round(p.points / maxPts * 100) + '%"></div></div>';
+      '<div class="qz-score-row__bar-wrap"><div class="qz-score-row__bar" data-style="width:' + Math.round(p.points / maxPts * 100) + '%"></div></div>';
   }).join('');
 }
 
@@ -865,7 +865,7 @@ function renderPlayerQuestion(st) {
     // en V/F el texto es siempre visible (como Kahoot); en quiz, solo con la opción activada
     const label = isVf ? esc(a.text) : (showText ? esc(a.text) : '');
     const shape = isVf ? vfIcons[i] : ANS_SHAPES[i % 4];
-    return '<button class="qz-pl-answer" style="background:' + ANS_COLORS[i % 4] + '" data-act="call" data-call="playerAnswer" data-a1="' + i + '">' +
+    return '<button class="qz-pl-answer" data-style="background:' + ANS_COLORS[i % 4] + '" data-act="call" data-call="playerAnswer" data-a1="' + i + '">' +
       '<span class="qz-answer__shape">' + shape + '</span>' + label + '</button>';
   }).join('');
   $('pl-feedback').classList.add('hidden');

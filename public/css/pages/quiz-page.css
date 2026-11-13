@@ -95,7 +95,7 @@ body {
 .qz-intro__desc { font-size: 14px; color: #c7d2fe; margin-bottom: 18px; }
 .qz-intro__hint { font-size: 12.5px; color: #a5b4fc; margin-top: 16px; }
 .qz-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.qz-preview__shape { border-radius: 12px; padding: 16px 12px; font-size: 14px; font-weight: 700; color: #fff; min-height: 64px; display: flex; align-items: center; justify-content: center; text-align: center; }
+.qz-preview__shape { border-radius: 12px; padding: 16px 14px; font-size: 17px; font-weight: 800; color: #fff; min-height: 96px; display: flex; align-items: center; justify-content: center; gap: 10px; text-align: center; }
 
 /* ── Juego en vivo (anfitrión) ── */
 .qz-live { position: absolute; inset: 0; background: #1e1b4b; z-index: 20; overflow-y: auto; }
@@ -114,6 +114,7 @@ body {
 .qz-lobby__players { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; max-width: 720px; max-height: 130px; overflow: hidden; }
 .qz-lobby__chip { background: rgba(255,255,255,.14); border-radius: 999px; padding: 5px 13px; font-size: 13px; font-weight: 600; animation: qzpop .25s ease; }
 @keyframes qzpop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes qzrise { from { transform: translateY(16px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
 
 .qz-big-btn { padding: 15px 44px; border: none; border-radius: 14px; background: #10b981; color: #fff; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #047857; transition: transform .08s; }
 .qz-big-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #047857; }
@@ -125,12 +126,16 @@ body {
 .qz-timer__svg { width: 76px; height: 76px; transform: rotate(-90deg); }
 .qz-timer__ring { fill: none; stroke: #34d399; stroke-width: 7; stroke-linecap: round; stroke-dasharray: 213.6; transition: stroke-dashoffset .2s linear, stroke .3s; }
 .qz-timer__num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; }
-.qz-question__title { font-size: 32px; font-weight: 900; text-align: center; max-width: 880px; line-height: 1.25; }
+.qz-question__title { font-size: 32px; font-weight: 900; text-align: center; max-width: 880px; line-height: 1.25; animation: qzrise .3s ease; }
 
 /* respuestas (2×2) */
-.qz-answers { width: 100%; max-width: 900px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.qz-answer { border-radius: 14px; padding: 20px 16px; min-height: 76px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 19px; font-weight: 800; color: #fff; text-align: center; position: relative; }
-.qz-answer__shape { font-size: 20px; flex-shrink: 0; }
+.qz-answers { width: 100%; max-width: 980px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+/* v12.44.831: bloques grandes paridad Kahoot */
+.qz-answer { border-radius: 14px; padding: 20px 18px; min-height: 116px; display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 24px; font-weight: 800; color: #fff; text-align: center; position: relative; animation: qzrise .3s ease backwards; }
+.qz-answer:nth-child(2) { animation-delay: .05s; }
+.qz-answer:nth-child(3) { animation-delay: .1s; }
+.qz-answer:nth-child(4) { animation-delay: .15s; }
+.qz-answer__shape { font-size: 30px; flex-shrink: 0; }
 .qz-answer__count { position: absolute; top: 8px; right: 10px; background: rgba(0,0,0,.35); border-radius: 999px; padding: 2px 10px; font-size: 13px; font-weight: 800; }
 .qz-answer--correct { outline: 4px solid #34d399; outline-offset: 3px; }
 .qz-answer--dim { filter: grayscale(.75) brightness(.55); }
@@ -196,17 +201,21 @@ body {
 .qz-pl-gamehead { width: 100%; display: flex; justify-content: space-between; align-items: center; }
 .qz-pl-points { background: #34d399; color: #064e3b; font-weight: 900; font-size: 15px; padding: 4px 14px; border-radius: 999px; }
 .qz-pl-progress { color: #a5b4fc; font-weight: 700; font-size: 13.5px; }
-.qz-pl-qtitle { font-size: 20px; font-weight: 800; text-align: center; line-height: 1.3; min-height: 54px; }
-.qz-pl-answers { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.qz-pl-answer { border: none; border-radius: 14px; min-height: 104px; font-size: 15.5px; font-weight: 800; color: #fff; cursor: pointer; padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 0 rgba(0,0,0,.28); transition: transform .07s, filter .15s; font-family: inherit; }
+.qz-pl-qtitle { font-size: 21px; font-weight: 800; text-align: center; line-height: 1.3; min-height: 54px; animation: qzrise .25s ease; }
+.qz-pl-view { max-width: 600px; }
+.qz-pl-answers { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.qz-pl-answer { border: none; border-radius: 14px; min-height: 128px; font-size: 17px; font-weight: 800; color: #fff; cursor: pointer; padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 5px 0 rgba(0,0,0,.28); transition: transform .07s, filter .15s; font-family: inherit; animation: qzrise .28s ease backwards; }
+.qz-pl-answer:nth-child(2) { animation-delay: .05s; }
+.qz-pl-answer:nth-child(3) { animation-delay: .1s; }
+.qz-pl-answer:nth-child(4) { animation-delay: .15s; }
 .qz-pl-answer:active { transform: scale(.96); }
 .qz-pl-answer:disabled { filter: grayscale(.55) brightness(.7); cursor: default; }
-.qz-pl-answer .qz-answer__shape { font-size: 22px; }
+.qz-pl-answer .qz-answer__shape { font-size: 32px; }
 .qz-pl-answers--vf { grid-template-columns: 1fr; }
 .qz-pl-answers--vf .qz-pl-answer { min-height: 84px; flex-direction: row; }
 
 .qz-pl-feedback { display: flex; flex-direction: column; align-items: center; gap: 4px; animation: qzpop .3s ease; }
-.qz-pl-fb-icon { font-size: 54px; }
+.qz-pl-fb-icon { font-size: 64px; animation: qzpop .35s ease; }
 .qz-pl-fb-text { font-size: 18px; font-weight: 900; }
 .qz-pl-fb-text--ok { color: #34d399; }
 .qz-pl-fb-text--bad { color: #f87171; }
