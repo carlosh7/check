@@ -7271,15 +7271,27 @@ navigate(viewName, params = {}, push = true) {
                 this.navigate('my-events');
             }
         });
-        // v12.44.835: acceso rápido consolidado a los juegos (abre el hub en el evento activo)
+        // v12.44.835 (fix v12.44.835.2): acceso rápido consolidado a los juegos.
+// La restauración de pestaña del router NO invoca switchConfigTab para tabs de
+// sub-grupo (promos vive en Experiencia) — el hub no abría. Fix determinista:
+// navegar y forzar el hub cuando la vista/evento esté cargada (reintentos con tope).
         cl('nav-btn-juegos', () => {
             const eventId = this.state.event?.id;
-            if (eventId) {
-                sessionStorage.setItem('active_config_tab', 'promos');
-                this.navigate('event-config', { id: eventId });
-            } else {
-                this.navigate('my-events');
-            }
+            if (!eventId) { this.navigate('my-events'); return; }
+            sessionStorage.setItem('active_config_tab', 'promos');
+            this.navigate('event-config', { id: eventId });
+            let intentos = 0;
+            const forzarHub = () => {
+                intentos++;
+                const panel = document.getElementById('config-content-promos');
+                const list = document.getElementById('promos-list-view');
+                // listo cuando el panel del hub existe, está visible y su listado ya no dice "Cargando"
+                const listo = panel && list && !panel.classList.contains('hidden') && /Cargando/.test(list.textContent) === false;
+                if (!listo && intentos < 20) { setTimeout(forzarHub, 300); return; }
+                this.switchConfigTab('promos');
+                this.loadPromosList();
+            };
+            setTimeout(forzarHub, 400);
         });
         cl('nav-btn-system', () => this.navigate('system', { tab: 'users' }));
         
