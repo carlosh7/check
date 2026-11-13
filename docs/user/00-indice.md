@@ -1,5 +1,8 @@
 # Índice completo
 
+## 15 — Promociones
+- [Ruleta de la Fortuna: leads, premios y probabilidades](15-promociones/README.md)
+
 ## 14 — Quiz en vivo
 - [Trivia estilo Kahoot: crear, lanzar y puntuar](14-quiz/README.md)
 
