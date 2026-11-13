@@ -7283,11 +7283,9 @@ navigate(viewName, params = {}, push = true) {
             let intentos = 0;
             const forzarHub = () => {
                 intentos++;
-                const panel = document.getElementById('config-content-promos');
-                const list = document.getElementById('promos-list-view');
-                // listo cuando el panel del hub existe, está visible y su listado ya no dice "Cargando"
-                const listo = panel && list && !panel.classList.contains('hidden') && /Cargando/.test(list.textContent) === false;
-                if (!listo && intentos < 20) { setTimeout(forzarHub, 300); return; }
+                // listo cuando el evento terminó de cargar en la vista config
+                const eventoListo = this.state.event && this.state.event.id === eventId;
+                if (!eventoListo && intentos < 30) { setTimeout(forzarHub, 250); return; }
                 this.switchConfigTab('promos');
                 this.loadPromosList();
             };
