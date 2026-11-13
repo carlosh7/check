@@ -20,11 +20,26 @@ const purgeSchema = z.object({
 });
 
 // Obtener settings
+// v12.44.838 (auditoría SEC): GET / devolvía TODAS las claves en claro, incluidos
+// secretos de terceros (openrouter, google_client_secret, twitter/linkedin tokens).
+// Lista blanca: solo claves no secretas salen; los secretos se gestionan por sus
+// propias rutas que ya los cifran/mascaran.
+const SECRET_SETTING_KEYS = new Set([
+    'ai_openrouter_key', 'google_client_secret', 'twitter_token', 'twitter_token_secret',
+    'linkedin_token', 'wa_access_token', 'vapid_private_key', 'smtp_password',
+    'imap_password', 'stripe_secret_key', 'paypal_secret'
+]);
 router.get('/', authMiddleware(['ADMIN']), (req, res) => {
     try {
         const rows = db.prepare("SELECT * FROM settings").all();
         const dict = {};
-        rows.forEach(r => dict[r.setting_key] = r.setting_value);
+        rows.forEach(r => {
+            if (SECRET_SETTING_KEYS.has(r.setting_key)) {
+                dict[r.setting_key] = r.setting_value ? '***configurado***' : '';
+            } else {
+                dict[r.setting_key] = r.setting_value;
+            }
+        });
         res.json(dict);
     } catch(err) { res.status(500).json({ error: err.message }); }
 });

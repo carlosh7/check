@@ -114,9 +114,20 @@ router.get('/:groupId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res)
 });
 
 // Agregar usuario a grupo
+// v12.44.838 (auditoría SEC): PRODUCTOR se auto-agregaba a cualquier grupo y luego
+// listaba/eliminaba miembros ajenos (habilitador de la escalada cross-tenant).
+// Si requester no es ADMIN: exigir que ya pertenezca al grupo destino.
+function assertGroupAccess(req, groupId) {
+    if (req.userRole === 'ADMIN') return true;
+    const member = db.prepare("SELECT 1 FROM group_users WHERE group_id = ? AND user_id = ?").get(groupId, req.userId);
+    if (!member) throw Object.assign(new Error('No perteneces a este grupo'), { statusCode: 403 });
+    return true;
+}
+
 router.post('/:groupId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const groupId = castId('groups', req.params.groupId);
     const { user_id, role_in_group } = req.body;
+    assertGroupAccess(req, groupId);
     
     const id = getValidId('group_users');
     db.prepare("INSERT OR IGNORE INTO group_users (id, group_id, user_id, role_in_group, created_at) VALUES (?, ?, ?, ?, ?)")
@@ -127,6 +138,7 @@ router.post('/:groupId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
 
 // Eliminar usuario de grupo
 router.delete('/:groupId/users/:userId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    assertGroupAccess(req, castId('groups', req.params.groupId));
     const groupId = castId('groups', req.params.groupId);
     const userId = castId('users', req.params.userId);
     

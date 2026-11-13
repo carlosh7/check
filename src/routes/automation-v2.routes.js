@@ -104,27 +104,49 @@ router.delete('/workflows/:id', authMiddleware(['ADMIN']), (req, res) => {
 });
 
 // ─── OFFLINE-SYNC (C9-02) ───
-router.post('/sync/pull', authMiddleware(), (req, res) => {
+// v12.44.838 (auditoría SEC): sync offline era AUTH sin roles y SIN filtro de
+// evento/tenant — cualquier cuenta aprobada descargaba TODA la PII de invitados del
+// sistema y escribía en eventos ajenos. Ahora: solo ADMIN/PRODUCTOR + filtro por
+// eventos permitidos del usuario (patrón webhooks.routes.js) y whitelist de tablas.
+function getAllowedEventIds(req) {
+    if (req.userRole === 'ADMIN') return null; // null = sin filtro (todos)
+    const evs = db.prepare("SELECT id FROM events WHERE user_id = ?").all(req.userId);
+    const own = evs.map(e => e.id);
+    const shared = db.prepare("SELECT e.id FROM events e JOIN group_events ge ON ge.event_id = e.id JOIN group_users gu ON gu.group_id = ge.group_id WHERE gu.user_id = ?").all(req.userId).map(r => r.id);
+    return own.concat(shared.filter(id => !own.includes(id)));
+}
+
+router.post('/sync/pull', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const { last_sync_at, tables } = req.body;
         const since = last_sync_at || new Date(0).toISOString();
+        const allowedIds = getAllowedEventIds(req);
         const result = {};
         const allowed = ['guests', 'events', 'guest_categories', 'sessions'];
         for (const table of tables || allowed) {
             if (!allowed.includes(table)) continue;
-            const rows = db.prepare(`SELECT * FROM ${table} WHERE created_at > ? OR updated_at > ?`).all(since, since);
-            result[table] = rows;
+            if (allowedIds === null) {
+                result[table] = db.prepare(`SELECT * FROM ${table} WHERE created_at > ? OR updated_at > ?`).all(since, since);
+            } else if (!allowedIds.length) {
+                result[table] = [];
+            } else {
+                const ph = allowedIds.map(() => '?').join(',');
+                result[table] = db.prepare(`SELECT * FROM ${table} WHERE event_id IN (${ph}) AND (created_at > ? OR updated_at > ?)`).all([...allowedIds, since, since]);
+            }
         }
         res.json({ success: true, data: result, synced_at: new Date().toISOString() });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/sync/push', authMiddleware(), (req, res) => {
+router.post('/sync/push', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const { changes } = req.body;
-        let pushed = 0;
+        const allowedIds = getAllowedEventIds(req);
+        let pushed = 0, rechazados = 0;
         for (const change of changes || []) {
             if (change.table === 'guests' && change.data) {
+                // v12.44.838: rechazar escritura en eventos ajenos (cross-tenant)
+                if (allowedIds !== null && !allowedIds.includes(String(change.data.event_id))) { rechazados++; continue; }
                 const existing = db.prepare("SELECT id FROM guests WHERE id = ?").get(change.data.id);
                 if (existing) {
                     db.prepare("UPDATE guests SET name=?, email=?, phone=?, organization=? WHERE id=?").run(change.data.name, change.data.email, change.data.phone, change.data.organization, change.data.id);
@@ -134,7 +156,7 @@ router.post('/sync/push', authMiddleware(), (req, res) => {
                 pushed++;
             }
         }
-        res.json({ success: true, pushed });
+        res.json({ success: true, pushed, rechazados });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
