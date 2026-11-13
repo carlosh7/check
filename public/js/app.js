@@ -43,7 +43,7 @@ import './modules/core/DelegatedEvents.js?v=12.44.841';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.841';
+const VERSION = '12.44.842';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -6129,9 +6129,27 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
             }
         } catch (e) { badge.textContent = 'N/D'; }
     },
+    // v12.44.842: pide la contraseña actual (modal) para operaciones sensibles de 2FA
+    _ask2faPassword: async function(motivo) {
+        const r = await Swal.fire({
+            title: 'Confirma tu contraseña',
+            text: motivo,
+            input: 'password',
+            inputPlaceholder: 'Tu contraseña actual',
+            inputAttributes: { autocomplete: 'current-password' },
+            showCancelButton: true,
+            confirmButtonText: 'Continuar',
+            cancelButtonText: 'Cancelar',
+            background: '#0f172a', color: '#fff'
+        });
+        return (r.isConfirmed && r.value) ? r.value : null;
+    },
     setup2FA: async function() {
+        // v12.44.842 (seguridad): el servidor exige confirmar la contraseña para gestionar la 2FA
+        const password = await this._ask2faPassword('Para activar la verificación en dos pasos');
+        if (!password) return;
         try {
-            const d = await this.fetchAPI('/me/2fa/setup', { method: 'POST' });
+            const d = await this.fetchAPI('/me/2fa/setup', { method: 'POST', body: JSON.stringify({ password }) });
             document.getElementById('twofa-qr').src = d.qrCode;
             document.getElementById('twofa-secret').textContent = d.secret;
             document.getElementById('twofa-disabled-view').classList.add('hidden');
@@ -6150,8 +6168,11 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
     },
     disable2FA: async function() {
         if (!confirm('¿Desactivar la verificación en dos pasos?')) return;
+        // v12.44.842 (seguridad): el servidor exige confirmar la contraseña para desactivar la 2FA
+        const password = await this._ask2faPassword('Para desactivar la verificación en dos pasos');
+        if (!password) return;
         try {
-            await this.fetchAPI('/me/2fa/disable', { method: 'POST' });
+            await this.fetchAPI('/me/2fa/disable', { method: 'POST', body: JSON.stringify({ password }) });
             this._notifyAction('2FA Desactivada', '', 'info');
             this.refreshTwoFactorStatus();
         } catch (e) { this._notifyAction('Error', e.message, 'error'); }
@@ -6510,9 +6531,13 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
             return;
         }
         try {
+            // v12.44.842 (seguridad): el servidor exige la contraseña para iniciar la 2FA;
+            // el asistente la tiene porque el admin la acaba de definir en el paso anterior
+            const wizardPass = document.getElementById('setup-pass')?.value || '';
             const res = await fetch('/api/me/2fa/setup', {
                 method: 'POST',
-                headers: { 'Authorization': 'Bearer ' + this._setup2faToken }
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + this._setup2faToken },
+                body: JSON.stringify({ password: wizardPass })
             });
             const data = await res.json().catch(() => ({}));
             if (res.ok && data.success && data.qrCode) {

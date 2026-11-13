@@ -1,6 +1,11 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const { db, getEventConnection } = require('../../database');
+const { db } = require('../../database');
+// v12.44.842 (auditoría Invitados #2): getEventConnection devuelve null cuando el evento
+// no tiene BD propia → portabilidad y derecho al olvido daban 404 SIEMPRE en el caso
+// por defecto. getEventDb cae a la BD principal, como el resto de rutas.
+const { getEventDb } = require('../utils/event-db');
+const { hasEventAccess } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 
 const logger = require("../utils/logger");
@@ -76,10 +81,13 @@ router.delete('/classification/:id', authMiddleware(['ADMIN']), (req, res) => {
 // GET /api/events/:eventId/guests/:guestId/export — Portabilidad de datos (exportar datos del invitado en JSON)
 router.get('/events/:eventId/guests/:guestId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
-        const eventDb = getEventConnection(req.params.eventId);
+        // v12.44.842 (seguridad): el evento debe ser del usuario (antes cualquier
+        // PRODUCTOR/ORGANIZER podía pedir datos de invitados de eventos ajenos)
+        if (!hasEventAccess(req.userId, req.params.eventId, req.userRole)) return res.status(403).json({ error: 'No tienes acceso a este evento' });
+        const eventDb = getEventDb(req.params.eventId);
         if (!eventDb) return res.status(404).json({ error: 'Evento no encontrado' });
         const guestId = req.params.guestId;
-        const guest = eventDb.prepare("SELECT * FROM guests WHERE id = ?").get(guestId);
+        const guest = eventDb.prepare("SELECT * FROM guests WHERE id = ? AND event_id = ?").get(guestId, req.params.eventId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
 
         let sessions = [];
@@ -135,10 +143,13 @@ router.get('/events/:eventId/guests/:guestId/export', authMiddleware(['ADMIN', '
 // DELETE /api/events/:eventId/guests/:guestId/personal-data — Derecho al olvido (anonimizar datos personales)
 router.delete('/events/:eventId/guests/:guestId/personal-data', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        const eventDb = getEventConnection(req.params.eventId);
+        // v12.44.842 (seguridad): el evento debe ser del usuario (antes cualquier
+        // PRODUCTOR/ORGANIZER podía pedir datos de invitados de eventos ajenos)
+        if (!hasEventAccess(req.userId, req.params.eventId, req.userRole)) return res.status(403).json({ error: 'No tienes acceso a este evento' });
+        const eventDb = getEventDb(req.params.eventId);
         if (!eventDb) return res.status(404).json({ error: 'Evento no encontrado' });
         const guestId = req.params.guestId;
-        const guest = eventDb.prepare("SELECT * FROM guests WHERE id = ?").get(guestId);
+        const guest = eventDb.prepare("SELECT * FROM guests WHERE id = ? AND event_id = ?").get(guestId, req.params.eventId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
 
         const anonName = 'Anonimizado ' + guestId.substring(0, 8);

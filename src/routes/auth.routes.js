@@ -570,9 +570,29 @@ router.post('/me/delete-account', limiters.authLimiter, authMiddleware(), (req, 
     }
 });
 
+// v12.44.842 (seguridad — auditoría Sistema #5): confirmación de contraseña para las
+// operaciones sensibles de 2FA. Devuelve true si la contraseña del body coincide; si no,
+// responde 400/403 y devuelve false.
+function confirmPasswordFor2FA(req, res) {
+    const password = req.body && req.body.password;
+    if (!password || typeof password !== 'string') {
+        res.status(400).json({ error: 'Confirma tu contraseña para gestionar la verificación en dos pasos' });
+        return false;
+    }
+    const user = db.prepare("SELECT password FROM users WHERE id = ?").get(req.userId);
+    if (!user || !bcrypt.compareSync(password, user.password)) {
+        res.status(403).json({ error: 'Contraseña incorrecta' });
+        return false;
+    }
+    return true;
+}
+
 // ─── 2FA TOTP (C6-15) ───
 router.post('/me/2fa/setup', authMiddleware(), (req, res) => {
     try {
+        // v12.44.842 (seguridad): setup REEMPLAZA el secreto TOTP — con una sesión robada
+        // bastaba llamarlo para tomar o romper la 2FA de la cuenta. Exige la contraseña.
+        if (!confirmPasswordFor2FA(req, res)) return;
         const speakeasy = require('speakeasy');
         const qrcode = require('qrcode');
         const secret = speakeasy.generateSecret({ name: 'Check Pro:' + req.userId });
@@ -595,7 +615,11 @@ router.post('/me/2fa/verify', authMiddleware(), (req, res) => {
 });
 
 router.post('/me/2fa/disable', authMiddleware(), (req, res) => {
-    try { db.prepare("UPDATE users SET totp_secret = NULL, totp_enabled = 0 WHERE id = ?").run(req.userId); res.json({ success: true }); } catch(err) { res.status(500).json({ error: err.message }); }
+    try {
+        // v12.44.842 (seguridad): desactivar la 2FA exige confirmar la contraseña
+        if (!confirmPasswordFor2FA(req, res)) return;
+        db.prepare("UPDATE users SET totp_secret = NULL, totp_enabled = 0 WHERE id = ?").run(req.userId); res.json({ success: true });
+    } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 router.get('/me/2fa/status', authMiddleware(), (req, res) => {

@@ -15,6 +15,22 @@ const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const logger = require("../utils/logger");
 const router = express.Router();
 
+// v12.44.842 (seguridad — auditoría Sistema #1, escalada PRODUCTOR): un PRODUCTOR solo
+// puede gestionar usuarios de SUS grupos (misma regla que el listado GET /) y nunca a
+// un ADMIN. Devuelve true si procede; si no, responde 403/404 y devuelve false.
+function assertCanManageUser(req, res, targetId) {
+    if (req.userRole === 'ADMIN') return true;
+    const target = db.prepare("SELECT role FROM users WHERE id = ?").get(targetId);
+    if (!target) { res.status(404).json({ error: 'Usuario no encontrado' }); return false; }
+    if (target.role === 'ADMIN') { res.status(403).json({ error: 'No tienes permiso para gestionar este usuario' }); return false; }
+    const groupIds = getProducerGroups(req.userId);
+    if (groupIds.length === 0) { res.status(403).json({ error: 'No tienes permiso para gestionar este usuario' }); return false; }
+    const placeholders = groupIds.map(() => '?').join(',');
+    const shared = db.prepare(`SELECT 1 FROM group_users WHERE user_id = ? AND group_id IN (${placeholders}) LIMIT 1`).get(targetId, ...groupIds);
+    if (!shared) { res.status(403).json({ error: 'No tienes permiso para gestionar usuarios de otro grupo' }); return false; }
+    return true;
+}
+
 // Obtener usuario por ID
 router.get('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const targetId = castId('users', req.params.id);
@@ -280,6 +296,10 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         }
     }
     
+    // v12.44.842 (seguridad): el guard de arriba solo protegía ADMINs; un PRODUCTOR
+    // podía editar (y cambiarle contraseña/rol a) usuarios de OTROS grupos.
+    if (req.userId !== targetId && !assertCanManageUser(req, res, targetId)) return;
+
     const { username, display_name, role, password } = result.data;
     logger.info('[PUT USER] body:', result.data);
     
@@ -366,6 +386,10 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         }
     }
     
+    // v12.44.842 (seguridad): además de no poder borrar ADMINs, un PRODUCTOR solo
+    // puede eliminar usuarios de SUS grupos.
+    if (!assertCanManageUser(req, res, targetId)) return;
+
     // Eliminar de grupos
     db.prepare("DELETE FROM group_users WHERE user_id = ?").run(targetId);
     // Eliminar de eventos
@@ -390,6 +414,9 @@ router.put('/:id/role', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     }
 
     const targetId = castId('users', req.params.id);
+    // v12.44.842 (seguridad): era el hueco más grave — no se revisaba al usuario
+    // objetivo: un PRODUCTOR podía DEGRADAR a un ADMIN o cambiar roles de otros grupos.
+    if (req.userId !== targetId && !assertCanManageUser(req, res, targetId)) return;
     db.prepare("UPDATE users SET role = ? WHERE id = ?").run(result.data, targetId);
 
     logAction(req, AUDIT_ACTIONS.USER_UPDATED, { targetId, action: 'role_change', newRole: result.data });

@@ -96,8 +96,25 @@ describe('Setup Wizard: flujo de primer arranque', () => {
     test('v12.44.806: flujo 2FA del wizard con el token del setup (setup→verify→login exige código)', async () => {
         const speakeasy = require('speakeasy');
         // 1. Generar QR+secreto con el token del wizard
-        const setup = await request(app).post('/api/me/2fa/setup')
+        // v12.44.842: setup y disable exigen confirmar la contraseña (auditoría Sistema #5)
+        const sinClave = await request(app).post('/api/me/2fa/setup')
             .set('Authorization', 'Bearer ' + setupAdminToken);
+        expect(sinClave.status).toBe(400);
+        const claveMala = await request(app).post('/api/me/2fa/setup')
+            .set('Authorization', 'Bearer ' + setupAdminToken)
+            .send({ password: 'Incorrecta-999-xX' });
+        expect(claveMala.status).toBe(403);
+        const disableSinClave = await request(app).post('/api/me/2fa/disable')
+            .set('Authorization', 'Bearer ' + setupAdminToken);
+        expect(disableSinClave.status).toBe(400);
+        const disableClaveMala = await request(app).post('/api/me/2fa/disable')
+            .set('Authorization', 'Bearer ' + setupAdminToken)
+            .send({ password: 'Incorrecta-999-xX' });
+        expect(disableClaveMala.status).toBe(403);
+
+        const setup = await request(app).post('/api/me/2fa/setup')
+            .set('Authorization', 'Bearer ' + setupAdminToken)
+            .send({ password: ADMIN_PAYLOAD.password });
         expect(setup.status).toBe(200);
         expect(setup.body.success).toBe(true);
         expect(setup.body.qrCode).toMatch(/^data:image/);
