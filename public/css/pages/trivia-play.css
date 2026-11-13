@@ -1,0 +1,79 @@
+/* Trivia promocional — PÁGINA DE JUEGO pública (P3 — v12.44.834)
+   Tema azul oscuro, botones de respuesta grandes estilo Kahoot promocional,
+   temporizador circular simple con número. */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
+.hidden { display: none !important; }
+.sp { width: 42px; height: 42px; border: 4px solid rgba(255,255,255,.25); border-top-color: #fff; border-radius: 50%; animation: tvspin .9s linear infinite; margin: 0 auto 12px; }
+@keyframes tvspin { to { transform: rotate(360deg); } }
+#loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #1e3a5f; color: #fff; font-size: 14px; z-index: 500; }
+.tvp-toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 999; }
+.tvp-toast.show { opacity: 1; }
+.tvp-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 90; }
+
+.tvp { position: relative; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 34px 18px 60px; overflow: hidden; }
+.tvp-title { font-size: clamp(24px, 5vw, 38px); font-weight: 900; text-align: center; color: #fff; line-height: 1.2; animation: tvrise .4s ease; }
+.tvp-desc { font-size: clamp(13px, 2.4vw, 15px); color: rgba(255,255,255,.92); text-align: center; white-space: pre-line; line-height: 1.55; max-width: 560px; animation: tvrise .5s ease; }
+
+.tvp-screen { display: flex; flex-direction: column; align-items: center; gap: 22px; width: 100%; max-width: 720px; }
+
+/* bienvenida / formulario */
+.tvp-form { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+.tvp-input { padding: 12px 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; font-family: inherit; }
+.tvp-input:focus { outline: 3px solid rgba(255,255,255,.45); }
+.tvp-consent { display: flex; align-items: flex-start; gap: 8px; color: rgba(255,255,255,.92); font-size: 12.5px; line-height: 1.4; }
+.tvp-consent input { margin-top: 2px; accent-color: #0ea5e9; }
+.tvp-btn { padding: 14px 26px; border: none; border-radius: 12px; font-size: 17px; font-weight: 900; cursor: pointer; color: #fff; font-family: inherit; box-shadow: 0 6px 0 rgba(0,0,0,.22); transition: transform .08s; animation: tvrise .5s ease .1s backwards; }
+.tvp-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,.22); }
+.tvp-btn:disabled { opacity: .6; cursor: wait; }
+.tvp-btn--soft { background: rgba(255,255,255,.16); box-shadow: none; font-size: 14px; padding: 11px 20px; }
+.tvp-err { color: #fecdd3; font-size: 13px; min-height: 16px; text-align: center; }
+
+.tvp-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.tvp-pill { font-size: 12.5px; font-weight: 700; color: #fff; background: rgba(255,255,255,.14); border-radius: 999px; padding: 6px 14px; animation: tvrise .55s ease .15s backwards; }
+.tvp-pill--accent { color: #1e293b; background: #fbbf24; }
+.tvp-pill--prize { background: rgba(253,224,71,.2); border: 1px solid rgba(253,224,71,.5); }
+
+/* pregunta */
+.tvp-qhead { display: flex; align-items: center; gap: 12px; min-height: 72px; }
+.tvp-timer { width: 64px; height: 64px; }
+.tvp-timer__track { fill: none; stroke: rgba(255,255,255,.18); stroke-width: 6; }
+.tvp-timer__arc { fill: none; stroke: #fbbf24; stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset .12s linear; }
+.tvp-timer text { fill: #fff; font-size: 20px; font-weight: 800; font-family: 'Inter', sans-serif; }
+.tvp-musicbtn { width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(255,255,255,.16); font-size: 15px; cursor: pointer; align-items: center; justify-content: center; }
+.tvp-qtext { font-size: clamp(18px, 4vw, 26px); font-weight: 900; text-align: center; color: #fff; line-height: 1.3; animation: tvrise .35s ease; }
+.tvp-answers { display: grid; grid-template-columns: 1fr; gap: 12px; width: 100%; animation: tvrise .4s ease .05s backwards; }
+@media (min-width: 560px) { .tvp-answers { grid-template-columns: 1fr 1fr; } }
+.tvp-ans { display: flex; align-items: center; gap: 12px; padding: 18px 18px; border: none; border-radius: 14px; background: rgba(255,255,255,.12); color: #fff; font-size: 15.5px; font-weight: 800; font-family: inherit; text-align: left; cursor: pointer; min-height: 64px; box-shadow: 0 5px 0 rgba(0,0,0,.25); transition: transform .08s, background .15s, opacity .15s; animation: tvrise .4s ease; }
+.tvp-ans:hover { background: rgba(255,255,255,.2); }
+.tvp-ans:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.tvp-ans:disabled { cursor: default; }
+.tvp-ans .tvp-tag { width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,.22); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.tvp-ans--selected { background: rgba(14,165,233,.75); }
+.tvp-ans--correct { background: rgba(16,185,129,.85); }
+.tvp-ans--wrong { background: rgba(239,68,68,.8); }
+.tvp-ans--dim { opacity: .45; }
+.tvp-wait { color: rgba(255,255,255,.85); font-weight: 700; min-height: 20px; text-align: center; }
+
+/* resultado */
+.tvp-result { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; max-width: 560px; animation: tvpop .4s ease; }
+.tvp-emoji { font-size: 62px; }
+.tvp-restitle { font-size: clamp(22px, 5vw, 32px); font-weight: 900; color: #fff; }
+.tvp-resdesc { font-size: 15px; color: rgba(255,255,255,.92); line-height: 1.55; white-space: pre-line; }
+.tvp-badge { font-size: 13px; font-weight: 800; color: #fff; padding: 6px 16px; border-radius: 999px; }
+.tvp-prizebox { display: flex; flex-direction: column; gap: 6px; background: rgba(255,255,255,.14); border-radius: 14px; padding: 14px 26px; }
+.tvp-prize-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.75); }
+.tvp-prize { font-size: 24px; font-weight: 900; color: #fff; }
+.tvp-value { font-size: 18px; font-weight: 800; color: #fde047; letter-spacing: 2px; }
+.tvp-share { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; justify-content: center; }
+.tvp-share a { color: rgba(255,255,255,.85); font-size: 13px; font-weight: 600; text-decoration: none; background: rgba(255,255,255,.12); padding: 7px 14px; border-radius: 999px; }
+.tvp-watermark { position: fixed; bottom: 8px; right: 12px; font-size: 11px; color: rgba(255,255,255,.5); pointer-events: none; z-index: 95; }
+@keyframes tvpop { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes tvrise { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (max-width: 480px) {
+  .tvp-btn { font-size: 15px; padding: 13px 20px; }
+  .tvp-ans { font-size: 14px; padding: 14px; min-height: 56px; }
+}

@@ -788,6 +788,16 @@ function createEventTables(db, eventId) {
             FOREIGN KEY (fortuna_id) REFERENCES fortunas(id) ON DELETE CASCADE
         )
     `);
+    // ── Promociones: Raspa y Gana (P2) + Trivia (P3) + Tragamonedas (P4) — v12.44.834 ──
+    db.exec(`CREATE TABLE IF NOT EXISTS raspas (id TEXT PRIMARY KEY, event_id TEXT NOT NULL, name TEXT NOT NULL, config_json TEXT, status TEXT DEFAULT 'draft', views INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)`);
+    db.exec(`CREATE TABLE IF NOT EXISTS raspa_prizes (id TEXT PRIMARY KEY, raspa_id TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'sin_premio', label TEXT NOT NULL, value TEXT, quantity INTEGER, chance REAL, order_index INTEGER DEFAULT 0, created_at TEXT, FOREIGN KEY (raspa_id) REFERENCES raspas(id) ON DELETE CASCADE)`);
+    db.exec(`CREATE TABLE IF NOT EXISTS raspa_plays (id TEXT PRIMARY KEY, raspa_id TEXT NOT NULL, email TEXT NOT NULL, name TEXT, apellido TEXT, phone TEXT, custom_json TEXT, prize_label TEXT, prize_type TEXT, prize_value TEXT, ip TEXT, device_id TEXT, created_at TEXT, FOREIGN KEY (raspa_id) REFERENCES raspas(id) ON DELETE CASCADE)`);
+    db.exec(`CREATE TABLE IF NOT EXISTS trivias (id TEXT PRIMARY KEY, event_id TEXT NOT NULL, name TEXT NOT NULL, config_json TEXT, status TEXT DEFAULT 'draft', views INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)`);
+    db.exec(`CREATE TABLE IF NOT EXISTS trivia_questions (id TEXT PRIMARY KEY, trivia_id TEXT NOT NULL, question TEXT NOT NULL, answers_json TEXT NOT NULL DEFAULT '[]', correct_index INTEGER DEFAULT 0, order_index INTEGER DEFAULT 0, created_at TEXT, FOREIGN KEY (trivia_id) REFERENCES trivias(id) ON DELETE CASCADE)`);
+    db.exec(`CREATE TABLE IF NOT EXISTS trivia_plays (id TEXT PRIMARY KEY, trivia_id TEXT NOT NULL, email TEXT NOT NULL, name TEXT, apellido TEXT, phone TEXT, custom_json TEXT, score INTEGER DEFAULT 0, total INTEGER DEFAULT 0, passed INTEGER DEFAULT 0, prize_label TEXT, prize_type TEXT, prize_value TEXT, ip TEXT, device_id TEXT, created_at TEXT, FOREIGN KEY (trivia_id) REFERENCES trivias(id) ON DELETE CASCADE)`);
+    db.exec(`CREATE TABLE IF NOT EXISTS slots (id TEXT PRIMARY KEY, event_id TEXT NOT NULL, name TEXT NOT NULL, config_json TEXT, status TEXT DEFAULT 'draft', views INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)`);
+    db.exec(`CREATE TABLE IF NOT EXISTS slot_prizes (id TEXT PRIMARY KEY, slot_id TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'sin_premio', label TEXT NOT NULL, value TEXT, symbols_json TEXT NOT NULL DEFAULT '[]', quantity INTEGER, chance REAL, order_index INTEGER DEFAULT 0, created_at TEXT, FOREIGN KEY (slot_id) REFERENCES slots(id) ON DELETE CASCADE)`);
+    db.exec(`CREATE TABLE IF NOT EXISTS slot_plays (id TEXT PRIMARY KEY, slot_id TEXT NOT NULL, email TEXT NOT NULL, name TEXT, apellido TEXT, phone TEXT, custom_json TEXT, symbols_json TEXT, prize_label TEXT, prize_type TEXT, prize_value TEXT, ip TEXT, device_id TEXT, created_at TEXT, FOREIGN KEY (slot_id) REFERENCES slots(id) ON DELETE CASCADE)`);
     // Transactions table (F3-07)
     try { db.exec("ALTER TABLE guest_categories ADD COLUMN price REAL DEFAULT 0"); } catch (_) {}
     try {
@@ -850,6 +860,15 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_fortuna_prizes_fortuna ON fortuna_prizes(fortuna_id)",
         "CREATE INDEX IF NOT EXISTS idx_fortuna_plays_fortuna ON fortuna_plays(fortuna_id)",
         "CREATE INDEX IF NOT EXISTS idx_fortuna_plays_email ON fortuna_plays(email)",
+        "CREATE INDEX IF NOT EXISTS idx_raspas_event ON raspas(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_raspa_prizes_raspa ON raspa_prizes(raspa_id)",
+        "CREATE INDEX IF NOT EXISTS idx_raspa_plays_raspa ON raspa_plays(raspa_id)",
+        "CREATE INDEX IF NOT EXISTS idx_trivias_event ON trivias(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_trivia_questions_trivia ON trivia_questions(trivia_id)",
+        "CREATE INDEX IF NOT EXISTS idx_trivia_plays_trivia ON trivia_plays(trivia_id)",
+        "CREATE INDEX IF NOT EXISTS idx_slots_event ON slots(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_slot_prizes_slot ON slot_prizes(slot_id)",
+        "CREATE INDEX IF NOT EXISTS idx_slot_plays_slot ON slot_plays(slot_id)",
         "CREATE INDEX IF NOT EXISTS idx_transactions_event ON transactions(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status)",
         // Performance indexes (C2-09)

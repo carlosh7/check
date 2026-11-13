@@ -83,6 +83,9 @@ function draw(){
 // ===== PREVIEW =====
 function setPreview(val,el){
   previewPage=el?el.value:($('pv-page')?$('pv-page').value:'form');
+  // v12.44.834 fix (reportado por P4): asignar lastResult para que Ganador/Perdedor
+  // sí muestren la página de resultado en la preview del editor
+  lastResult=previewPage!=='form'?{win:previewPage==='win'}:null;
   renderPreview()
 }
 function renderPreview(){
@@ -382,6 +385,14 @@ function load(id){
 }
 
 function init(){
+  // v12.44.834 fix: los paneles acordeón (sec-h) no estaban cableados — sin esto
+  // Idioma/Textos/Opciones/Premios/Diseño/Seguridad eran inalcanzables en el editor
+  document.querySelectorAll('.sec-h').forEach(function(h){
+    h.addEventListener('click',function(){
+      const b=h.nextElementSibling;
+      if(b&&b.classList.contains('sec-b')){b.classList.toggle('hidden');h.classList.toggle('collapsed')}
+    });
+  });
   const m=window.location.pathname.match(/\/fortuna\/([a-f0-9-]{36})/i);
   if(!m){$('loading').classList.add('hidden');$('error').style.display='flex';$('errmsg').textContent='Enlace inválido';return}
   const id=m[1];

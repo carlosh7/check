@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tragamonedas | Check Pro</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎰</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/pages/slot-play.css?v=12.44.834">
+</head>
+<body>
+<div id="loading"><div><div class="sp"></div><p>Cargando promoción...</p></div></div>
+<div id="error" data-style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#431407;z-index:99999;flex-direction:column;text-align:center;padding:32px">
+  <h2 data-style="font-size:20px;margin-bottom:8px;color:#fff">Promoción no disponible</h2>
+  <p id="errmsg" data-style="font-size:14px;color:#fde8cd;margin-bottom:24px"></p>
+  <button data-act="call" data-call="reloadPage" data-style="padding:10px 28px;border:none;border-radius:10px;background:#f59e0b;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Reintentar</button>
+</div>
+
+<div id="app" class="slp hidden">
+  <p id="g-desc" class="slp-desc"></p>
+
+  <!-- PANTALLA: FORMULARIO (formulario + máquina en reposo) -->
+  <div id="scr-form" class="slp-screen">
+    <div class="slp-form">
+      <input id="f-email" type="email" class="slp-input" placeholder="Correo Electrónico" autocomplete="email">
+      <input id="f-name" type="text" class="slp-input slp-extra" placeholder="Nombre" data-style="display:none">
+      <input id="f-apellido" type="text" class="slp-input slp-extra" placeholder="Apellido" data-style="display:none">
+      <input id="f-phone" type="tel" class="slp-input slp-extra" placeholder="Teléfono" data-style="display:none">
+      <label id="f-consent-row" class="slp-consent" data-style="display:none"><input type="checkbox" id="f-consent"><span id="f-consent-text"></span></label>
+      <button id="btn-play" class="slp-btn" data-act="call" data-call="play">Jalar Palanca</button>
+      <p id="form-err" class="slp-err"></p>
+    </div>
+    <div class="slp-machine" id="m-form" data-style="background:#f59e0b;border-radius:24px">
+      <div class="slp-machine__marquee"><span class="slp-machine__bulb">💡</span><h1 id="g-title" class="slp-machine__title">¡Pon a prueba tu suerte jalando la palanca!</h1><span class="slp-machine__bulb">💡</span></div>
+      <div class="slp-machine__reels">
+        <div class="slp-reel" id="r0">🍒</div>
+        <div class="slp-reel" id="r1">🍋</div>
+        <div class="slp-reel" id="r2">🔔</div>
+      </div>
+      <div class="slp-machine__panel"><span>🪙</span><span>🪙</span><span>🪙</span></div>
+      <div class="slp-lever" aria-hidden="true"><div class="slp-lever__arm"></div><div class="slp-lever__ball"></div></div>
+    </div>
+  </div>
+
+  <!-- PANTALLA: GIRANDO (palanca jalada + rodillos girando) -->
+  <div id="scr-spinning" class="slp-screen hidden">
+    <div class="slp-machine slp-spinning" id="m-spin" data-style="background:#f59e0b;border-radius:24px">
+      <div class="slp-machine__marquee"><span class="slp-machine__bulb">💡</span><span id="g-title2" class="slp-machine__title">¡Pon a prueba tu suerte jalando la palanca!</span><span class="slp-machine__bulb">💡</span></div>
+      <div class="slp-machine__reels">
+        <div class="slp-reel" id="s0">🍒</div>
+        <div class="slp-reel" id="s1">🍋</div>
+        <div class="slp-reel" id="s2">🔔</div>
+      </div>
+      <div class="slp-machine__panel"><span>🪙</span><span>🪙</span><span>🪙</span></div>
+      <div class="slp-lever slp-lever--pull" id="lever" aria-hidden="true"><div class="slp-lever__arm"></div><div class="slp-lever__ball"></div></div>
+    </div>
+    <p class="slp-wait">Jalando la palanca...</p>
+  </div>
+
+  <!-- PANTALLA: RESULTADO -->
+  <div id="scr-result" class="slp-screen hidden">
+    <div class="slp-result" id="res-box">
+      <span id="res-emoji" class="slp-emoji">🎉</span>
+      <h2 id="res-title" class="slp-restitle"></h2>
+      <p id="res-desc" class="slp-resdesc"></p>
+      <div id="res-prize-box" class="slp-prizebox hidden">
+        <span id="res-symbols" class="slp-symbols"></span>
+        <span class="slp-prize-label">🎁 Tu premio</span>
+        <span id="res-prize" class="slp-prize"></span>
+        <span id="res-value" class="slp-value"></span>
+      </div>
+      <button id="btn-cert" class="slp-btn slp-btn--soft" data-act="call" data-call="downloadCert" data-style="display:none">📄 Descargar comprobante</button>
+      <button id="btn-again" class="slp-btn slp-btn--soft" data-act="call" data-call="playAgain" data-style="display:none">🔄 Jugar de nuevo</button>
+      <div id="res-share" class="slp-share hidden">
+        <a id="sh-wa" target="_blank" rel="noopener">WhatsApp</a>
+        <a id="sh-fb" target="_blank" rel="noopener">Facebook</a>
+        <a id="sh-x" target="_blank" rel="noopener">X</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="slp-watermark">Powered by Check Pro</div>
+</div>
+
+<div id="toast" class="slp-toast"></div>
+<canvas id="jsccc" class="slp-confetti"></canvas>
+
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.834"></script>
+<script src="/js/pages/slot-play.js?v=12.44.834"></script>
+</body>
+</html>

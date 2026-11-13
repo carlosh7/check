@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raspa y Gana | Check Pro</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎫</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/pages/raspa-play.css?v=12.44.834">
+</head>
+<body>
+<div id="loading"><div><div class="sp"></div><p>Cargando promoción...</p></div></div>
+<div id="error" data-style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#1e1b4b;z-index:99999;flex-direction:column;text-align:center;padding:32px">
+  <h2 data-style="font-size:20px;margin-bottom:8px;color:#fff">Promoción no disponible</h2>
+  <p id="errmsg" data-style="font-size:14px;color:#c7d2fe;margin-bottom:24px"></p>
+  <button data-act="call" data-call="reloadPage" data-style="padding:10px 28px;border:none;border-radius:10px;background:#f59e0b;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Reintentar</button>
+</div>
+
+<div id="app" class="rzp hidden">
+  <h1 id="g-title" class="rzp-title">¡Raspa y gana premios!</h1>
+  <p id="g-desc" class="rzp-desc"></p>
+
+  <!-- PANTALLA: FORMULARIO + TARJETA (la tarjeta se activa al participar) -->
+  <div id="scr-form" class="rzp-screen">
+    <div class="rzp-form" id="form-box">
+      <input id="f-email" type="email" class="rzp-input" placeholder="Correo Electrónico" autocomplete="email">
+      <input id="f-name" type="text" class="rzp-input rzp-extra" placeholder="Nombre" data-style="display:none">
+      <input id="f-apellido" type="text" class="rzp-input rzp-extra" placeholder="Apellido" data-style="display:none">
+      <input id="f-phone" type="tel" class="rzp-input rzp-extra" placeholder="Teléfono" data-style="display:none">
+      <label id="f-consent-row" class="rzp-consent" data-style="display:none"><input type="checkbox" id="f-consent"><span id="f-consent-text"></span></label>
+      <button id="btn-play" class="rzp-btn" data-act="call" data-call="play">Probar Suerte</button>
+      <p id="form-err" class="rzp-err"></p>
+    </div>
+    <div class="rzp-card-ct">
+      <div id="card-wrap" class="rzp-card-wrap">
+        <canvas id="scanvas" width="320" height="320"></canvas>
+      </div>
+      <p id="card-hint" class="rzp-wait" data-style="visibility:hidden">Raspa la tarjeta para descubrir tu premio 👆</p>
+    </div>
+  </div>
+
+  <!-- RESULTADO (aparece DEBAJO de la tarjeta al descubrirse) -->
+  <div id="scratch-result" class="rzp-result hidden">
+    <span id="res-emoji" class="rzp-emoji">🎉</span>
+    <h2 id="res-title" class="rzp-restitle"></h2>
+    <p id="res-desc" class="rzp-resdesc"></p>
+    <div id="res-prize-box" class="rzp-prizebox hidden"></div>
+    <button id="btn-cert" class="rzp-btn rzp-btn--soft" data-act="call" data-call="downloadCert" data-style="display:none">📄 Descargar comprobante</button>
+    <button id="btn-again" class="rzp-btn rzp-btn--soft" data-act="call" data-call="playAgain" data-style="display:none">🔄 Jugar de nuevo</button>
+    <div id="res-share" class="rzp-share hidden">
+      <a id="sh-wa" target="_blank" rel="noopener">WhatsApp</a>
+      <a id="sh-fb" target="_blank" rel="noopener">Facebook</a>
+      <a id="sh-x" target="_blank" rel="noopener">X</a>
+    </div>
+  </div>
+
+  <div class="rzp-watermark">Powered by Check Pro</div>
+</div>
+
+<div id="toast" class="rzp-toast"></div>
+<canvas id="jsccc" class="rzp-confetti"></canvas>
+
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.832"></script>
+<script src="/js/pages/raspa-play.js?v=12.44.834"></script>
+</body>
+</html>

@@ -39,6 +39,9 @@ const googleRoutes = require('./google.routes');
 const rafflesRoutes = require('./raffles.routes');
 const quizzesRoutes = require('./quizzes.routes');
 const fortunasRoutes = require('./fortunas.routes');
+const raspasRoutes = require('./raspas.routes');
+const triviasRoutes = require('./trivias.routes');
+const slotsRoutes = require('./slots.routes');
 const paymentsRoutes = require('./payments.routes').router;
 const smsRoutes = require('./sms.routes');
 const budgetRoutes = require('./budget.routes');
@@ -249,6 +252,10 @@ app.use('/api/compliance', complianceRoutes);
 
     // Promociones: Ruleta de la Fortuna (P1 — v12.44.833)
     app.use('/api/fortunas', fortunasRoutes);
+    // Promociones: Raspa y Gana (P2), Trivia (P3), Tragamonedas (P4) — v12.44.834
+    app.use('/api/raspas', raspasRoutes);
+    app.use('/api/trivias', triviasRoutes);
+    app.use('/api/slots', slotsRoutes);
 
     // Polls / Live Polling (C11-01)
     app.use('/api/polls', pollsRoutes);
@@ -289,6 +296,24 @@ app.use('/api/compliance', complianceRoutes);
     });
     app.get('/:slug/fortuna/:id/jugar', (req, res) => {
         res.sendFile(path.join(rootDir, 'public/html/pages/fortuna-play.html'));
+    });
+    app.get('/:slug/raspa/:id', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/raspa.html'));
+    });
+    app.get('/:slug/raspa/:id/jugar', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/raspa-play.html'));
+    });
+    app.get('/:slug/trivia/:id', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/trivia.html'));
+    });
+    app.get('/:slug/trivia/:id/jugar', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/trivia-play.html'));
+    });
+    app.get('/:slug/tragamonedas/:id', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/slot.html'));
+    });
+    app.get('/:slug/tragamonedas/:id/jugar', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/slot-play.html'));
     });
     app.get('/:slug/survey/:id', (req, res) => {
         res.sendFile(path.join(rootDir, 'public/html/pages/survey.html'));

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trivia | Check Pro</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/pages/trivia-play.css?v=12.44.834">
+</head>
+<body>
+<div id="loading"><div><div class="sp"></div><p>Cargando trivia...</p></div></div>
+<div id="error" data-style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#1e3a5f;z-index:99999;flex-direction:column;text-align:center;padding:32px">
+  <h2 data-style="font-size:20px;margin-bottom:8px;color:#fff">Trivia no disponible</h2>
+  <p id="errmsg" data-style="font-size:14px;color:#94a3b8;margin-bottom:24px"></p>
+  <button data-act="call" data-call="reloadPage" data-style="padding:10px 28px;border:none;border-radius:10px;background:#0ea5e9;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Reintentar</button>
+</div>
+
+<div id="app" class="tvp hidden">
+  <h1 id="g-title" class="tvp-title">Bienvenido al Quiz</h1>
+  <p id="g-desc" class="tvp-desc"></p>
+
+  <!-- PANTALLA: BIENVENIDA (registro + botón Comenzar) -->
+  <div id="scr-welcome" class="tvp-screen">
+    <div class="tvp-form">
+      <input id="f-email" type="email" class="tvp-input" placeholder="Correo Electrónico" autocomplete="email">
+      <input id="f-name" type="text" class="tvp-input tvp-extra" placeholder="Nombre" data-style="display:none">
+      <input id="f-apellido" type="text" class="tvp-input tvp-extra" placeholder="Apellido" data-style="display:none">
+      <input id="f-phone" type="tel" class="tvp-input tvp-extra" placeholder="Teléfono" data-style="display:none">
+      <label id="f-consent-row" class="tvp-consent" data-style="display:none"><input type="checkbox" id="f-consent"><span id="f-consent-text"></span></label>
+      <button id="btn-start" class="tvp-btn" data-act="call" data-call="startQuiz">Comenzar</button>
+      <p id="form-err" class="tvp-err"></p>
+    </div>
+    <div class="tvp-meta">
+      <span id="w-questions" class="tvp-pill">❓ 0 preguntas</span>
+      <span id="w-timer" class="tvp-pill tvp-pill--accent" data-style="display:none">⏱️ —</span>
+      <span id="w-prize" class="tvp-pill tvp-pill--prize" data-style="display:none">🎁 —</span>
+    </div>
+  </div>
+
+  <!-- PANTALLA: PREGUNTA -->
+  <div id="scr-question" class="tvp-screen hidden">
+    <div class="tvp-qhead">
+      <span id="q-num" class="tvp-pill tvp-pill--accent">1/10</span>
+      <svg id="timer" class="tvp-timer" viewBox="0 0 72 72" data-style="display:none">
+        <circle class="tvp-timer__track" cx="36" cy="36" r="30"></circle>
+        <circle id="timer-arc" class="tvp-timer__arc" cx="36" cy="36" r="30"></circle>
+        <text id="timer-num" x="36" y="42" text-anchor="middle">30</text>
+      </svg>
+      <button id="btn-music" class="tvp-musicbtn" data-act="call" data-call="toggleMusic" title="Música" data-style="display:none">🎵</button>
+    </div>
+    <h2 id="q-text" class="tvp-qtext"></h2>
+    <div id="q-answers" class="tvp-answers"></div>
+    <p id="q-wait" class="tvp-wait"></p>
+  </div>
+
+  <!-- PANTALLA: FINAL -->
+  <div id="scr-final" class="tvp-screen hidden">
+    <div class="tvp-result">
+      <span id="res-emoji" class="tvp-emoji">🎉</span>
+      <h2 id="res-title" class="tvp-restitle"></h2>
+      <p id="res-desc" class="tvp-resdesc"></p>
+      <div id="res-passed" class="tvp-badge" data-style="display:none"></div>
+      <div id="res-prize-box" class="tvp-prizebox hidden">
+        <span class="tvp-prize-label">🎁 Tu premio</span>
+        <span id="res-prize" class="tvp-prize"></span>
+        <span id="res-value" class="tvp-value"></span>
+      </div>
+      <button id="btn-cert" class="tvp-btn tvp-btn--soft" data-act="call" data-call="downloadCert" data-style="display:none">📄 Descargar comprobante</button>
+      <button id="btn-again" class="tvp-btn tvp-btn--soft" data-act="call" data-call="retryQuiz" data-style="display:none">🔄 Reintentar</button>
+      <div id="res-share" class="tvp-share hidden">
+        <a id="sh-wa" target="_blank" rel="noopener">WhatsApp</a>
+        <a id="sh-fb" target="_blank" rel="noopener">Facebook</a>
+        <a id="sh-x" target="_blank" rel="noopener">X</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="tvp-watermark">Powered by Check Pro</div>
+</div>
+
+<div id="toast" class="tvp-toast"></div>
+<canvas id="jsccc" class="tvp-confetti"></canvas>
+
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.834"></script>
+<script src="/js/pages/trivia-play.js?v=12.44.834"></script>
+</body>
+</html>

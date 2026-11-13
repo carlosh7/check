@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raspa y Gana | Check Pro</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎫</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/pages/raspa-page.css?v=12.44.834">
+</head>
+<body>
+<div id="loading"><div><div class="sp"></div><p>Cargando promoción...</p></div></div>
+<div id="error" data-style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#fff;z-index:99999;flex-direction:column;text-align:center;padding:32px">
+  <h2 data-style="font-size:20px;margin-bottom:8px;color:#1a1a1a">Promoción no disponible</h2>
+  <p id="errmsg" data-style="font-size:14px;color:#6b7280;margin-bottom:24px"></p>
+  <button data-act="call" data-call="reloadPage" data-style="padding:10px 28px;border:none;border-radius:10px;background:#7c3aed;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Reintentar</button>
+</div>
+
+<div class="hero-stats hidden" id="hero-stats">
+  <div class="stats">
+    <span>👁️ <span id="stat-views">0</span> <b>Vistas</b></span>
+    <span>🎫 <span id="stat-plays">0</span> <b>Participaciones</b></span>
+    <span>🎁 <span id="stat-prizes">6</span> <b>Premios</b></span>
+  </div>
+  <div class="actions">
+    <button data-act="call" data-call="openShare">🔗 Compartir</button>
+  </div>
+</div>
+
+<div id="raspa" class="rz">
+  <!-- SIDEBAR -->
+  <div id="sidebar" class="rz__config">
+    <div class="rz__config__menu">
+      <div class="rz__config__menu-item active" data-act="call" data-call="switchTab" data-a1="general" data-a2="@this">⚙️ General</div>
+      <div class="rz__config__menu-item" data-act="call" data-call="switchTab" data-a1="premios" data-a2="@this">🎁 Premios</div>
+      <div class="rz__config__menu-item" data-act="call" data-call="switchTab" data-a1="design" data-a2="@this">🎨 Diseño</div>
+      <div class="rz__config__menu-item" data-act="call" data-call="switchTab" data-a1="seguridad" data-a2="@this">🛡️ Seguridad</div>
+      <div class="rz__config__menu-item" data-act="call" data-call="switchTab" data-a1="form" data-a2="@this">📝 Formulario</div>
+    </div>
+    <div class="rz__config__body" id="sidebar-body">
+
+      <!-- GENERAL -->
+      <div id="tab-general" class="rz-tab">
+        <div class="sec-h"><span>📝</span>Nombre<span class="chev">▼</span></div>
+        <div class="sec-b"><input id="rz-name" class="form-control form-control-lg" placeholder="Nombre de la promoción"></div>
+        <div class="sec-h"><span>🌐</span>Idioma<span class="chev">▼</span></div>
+        <div class="sec-b">
+          <div class="flex-cb"><label class="rz-mini">Idioma del juego</label>
+            <select id="cfg-lang" class="form-control" data-style="width:auto">
+              <option value="es" selected>Español</option><option value="en">English</option>
+              <option value="pt">Português</option><option value="fr">Français</option>
+              <option value="tr">Türkçe</option><option value="de">Deutsch</option>
+              <option value="ja">日本語</option>
+            </select>
+          </div>
+        </div>
+        <div class="sec-h"><span>✏️</span>Textos del juego<span class="chev">▼</span></div>
+        <div class="sec-b">
+          <label class="rz-mini">Título</label>
+          <input id="txt-title" class="form-control" maxlength="120" data-act="call" data-call="refreshP">
+          <label class="rz-mini">Descripción</label>
+          <textarea id="txt-desc" class="form-control" rows="3" maxlength="300" data-act="call" data-call="refreshP"></textarea>
+          <label class="rz-mini">Botón Comenzar</label>
+          <input id="txt-button" class="form-control" maxlength="30" data-act="call" data-call="refreshP">
+          <label class="rz-mini">Título Ganador</label>
+          <input id="txt-wint" class="form-control" maxlength="120" data-act="call" data-call="refreshP">
+          <label class="rz-mini">Descripción Ganador</label>
+          <textarea id="txt-wind" class="form-control" rows="2" maxlength="300" data-act="call" data-call="refreshP"></textarea>
+          <label class="rz-mini">Título Perdedor</label>
+          <input id="txt-loset" class="form-control" maxlength="120" data-act="call" data-call="refreshP">
+          <label class="rz-mini">Descripción Perdedor</label>
+          <textarea id="txt-losed" class="form-control" rows="2" maxlength="300" data-act="call" data-call="refreshP"></textarea>
+          <button class="form-control rz-mini-btn" data-act="call" data-call="applyLang" data-style="background:#faf5ff;color:#7c3aed;font-weight:600;cursor:pointer;border:1px solid #e9d5ff">↺ Restaurar textos del idioma</button>
+        </div>
+        <div class="sec-h"><span>⚙️</span>Opciones<span class="chev">▼</span></div>
+        <div class="sec-b">
+          <div class="custom-check"><input type="checkbox" id="cfg-snd" checked><label for="cfg-snd">🔊 Emitir sonidos</label></div>
+          <div class="custom-check"><input type="checkbox" id="cfg-share"><label for="cfg-share">📤 Mostrar botones para compartir</label></div>
+          <div class="custom-check"><input type="checkbox" id="cfg-cert"><label for="cfg-cert">📄 Descargar comprobante</label></div>
+          <div class="flex-cb"><label class="rz-mini">Jugar de nuevo</label>
+            <select id="cfg-pa" class="form-control" data-style="width:auto">
+              <option value="auto" selected>Automático</option><option value="never">Nunca</option>
+              <option value="always">Siempre</option><option value="win">Solo cuando gana</option>
+              <option value="lose">Solo cuando pierde</option>
+            </select>
+          </div>
+          <div class="flex-cb" id="pa-n-row"><label class="rz-mini">Cada N participaciones</label>
+            <input id="cfg-pa-n" type="number" min="1" value="3" class="form-control" data-style="width:70px">
+          </div>
+        </div>
+      </div>
+
+      <!-- PREMIOS -->
+      <div id="tab-premios" class="rz-tab hidden">
+        <div class="custom-check"><input type="checkbox" id="cfg-chances" data-act="call" data-call="renderPrizes"><label for="cfg-chances">🎯 Limitar chances (% por premio)</label></div>
+        <div class="custom-check"><input type="checkbox" id="cfg-quantities" data-act="call" data-call="renderPrizes"><label for="cfg-quantities">📦 Limitar cantidades (stock por premio)</label></div>
+        <div class="sec-h"><span>🎁</span><span id="prize-count">Premios (6)</span><span class="chev">▼</span></div>
+        <div class="sec-b">
+          <button class="form-control" data-style="background:#faf5ff;color:#7c3aed;font-weight:600;cursor:pointer;border:1px solid #e9d5ff" data-act="call" data-call="addPrize">＋ Nuevo premio</button>
+          <div id="prize-list"></div>
+        </div>
+      </div>
+
+      <!-- DISEÑO -->
+      <div id="tab-design" class="rz-tab hidden">
+        <div class="form-group"><label>Temas</label><div id="theme-ps" class="rz-themes"></div></div>
+        <div class="sec-h"><span>🖼️</span>Fondo<span class="chev">▼</span></div>
+        <div class="sec-b">
+          <div class="flex-cb"><label class="rz-mini">Color de Fondo</label>
+            <div class="color-input"><span id="v-bg">#6d28d9</span><input type="color" id="c-bg" value="#6d28d9" data-act="call" data-call="refreshP"></div>
+          </div>
+        </div>
+        <div class="sec-h"><span>🎫</span>Raspa y Gana<span class="chev">▼</span></div>
+        <div class="sec-b">
+          <div class="flex-cb"><label class="rz-mini">Color de Raspadita</label>
+            <div class="color-input"><span id="v-raspa">#d4a017</span><input type="color" id="c-raspa" value="#d4a017" data-act="call" data-call="refreshP"></div>
+          </div>
+          <label class="rz-mini">Texto de la Raspadita</label>
+          <input id="txt-raspa-texto" class="form-control" maxlength="30" value="Raspa y Gana" data-act="call" data-call="refreshP">
+          <div class="flex-cb"><label class="rz-mini">Color del Texto de Raspadita</label>
+            <div class="color-input"><span id="v-raspa-txt">#7c2d12</span><input type="color" id="c-raspa-txt" value="#7c2d12" data-act="call" data-call="refreshP"></div>
+          </div>
+          <div class="flex-cb"><label class="rz-mini">Color de Tarjeta</label>
+            <div class="color-input"><span id="v-card">#f59e0b</span><input type="color" id="c-card" value="#f59e0b" data-act="call" data-call="refreshP"></div>
+          </div>
+        </div>
+        <div class="sec-h"><span>📝</span>Formulario y Botones<span class="chev">▼</span></div>
+        <div class="sec-b">
+          <div class="flex-cb"><label class="rz-mini">Color de Texto</label>
+            <div class="color-input"><span id="v-txt">#ffffff</span><input type="color" id="c-txt" value="#ffffff" data-act="call" data-call="refreshP"></div>
+          </div>
+          <div class="flex-cb"><label class="rz-mini">Color de Botón</label>
+            <div class="color-input"><span id="v-btn">#f59e0b</span><input type="color" id="c-btn" value="#f59e0b" data-act="call" data-call="refreshP"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEGURIDAD -->
+      <div id="tab-seguridad" class="rz-tab hidden">
+        <label class="rz-mini">Participaciones máximas por email</label>
+        <input id="sec-max" type="number" min="1" value="1" class="form-control">
+        <p class="rz-hint">¿Cuántas veces puede participar un mismo usuario (email)?</p>
+        <label class="rz-mini">Emails permitidos (uno por línea, vacío = todos)</label>
+        <textarea id="sec-allowed" class="form-control" rows="4" placeholder="cliente1@correo.com&#10;cliente2@correo.com"></textarea>
+        <label class="rz-mini">Limitar por dispositivo</label>
+        <select id="sec-device" class="form-control">
+          <option value="off" selected>Desactivado</option>
+          <option value="browser">Navegador</option>
+          <option value="ip">Sólo IP</option>
+        </select>
+        <label class="rz-mini">Máximo por dispositivo</label>
+        <input id="sec-device-max" type="number" min="1" value="1" class="form-control">
+      </div>
+
+      <!-- FORMULARIO -->
+      <div id="tab-form" class="rz-tab hidden">
+        <div class="custom-check"><input type="checkbox" id="fm-name" data-act="call" data-call="refreshP"><label for="fm-name">👤 Pedir Nombre</label></div>
+        <div class="custom-check"><input type="checkbox" id="fm-apellido" data-act="call" data-call="refreshP"><label for="fm-apellido">👤 Pedir Apellido</label></div>
+        <div class="custom-check"><input type="checkbox" id="fm-phone" data-act="call" data-call="refreshP"><label for="fm-phone">📱 Pedir Teléfono</label></div>
+        <label class="rz-mini">Casilla de consentimiento (texto, vacío = sin casilla)</label>
+        <textarea id="fm-consent" class="form-control" rows="2" maxlength="200" placeholder="Acepto las condiciones de la promoción"></textarea>
+        <p class="rz-hint">El email siempre se pide (es el identificador del participante). En AppSorteos los campos avanzados cuestan — aquí son gratis 😉</p>
+      </div>
+
+      <div class="sec-h collapsed" data-act="call" data-call="toggleCollapse" data-a1="@this" data-a2="sec-mis"><span>💾</span>Mis Promociones<span class="chev">▼</span></div>
+      <div id="sec-mis" class="sec-b hidden">
+        <div id="mis-list" data-style="font-size:13px;color:#6b7280;text-align:center;padding:8px">Cargando...</div>
+      </div>
+    </div>
+    <div class="rz__config__footer">
+      <button class="btn btn-primary" id="btn-save" data-act="call" data-call="saveF">💾 Guardar</button>
+      <button class="btn btn-success" id="btn-pub" data-act="call" data-call="publishF">🚀 Publicar</button>
+    </div>
+  </div>
+
+  <!-- ESCENARIO / PREVIEW -->
+  <div id="stage" class="rz-stage">
+    <div class="rz-preview-head">
+      <span class="rz-preview-label">Vista Previa</span>
+      <select id="pv-page" class="form-control" data-style="width:auto" data-act="call" data-call="setPreview">
+        <option value="form" selected>Formulario</option>
+        <option value="win">Página Ganador</option>
+        <option value="lose">Página Perdedor</option>
+      </select>
+    </div>
+    <div id="pv" class="rz-pv">
+      <!-- tarjeta de raspar (solo vista previa: no se raspa en el editor) -->
+      <div id="pv-card-wrap" class="rz-card-wrap">
+        <div id="pv-card" class="rz-raspa-card">Raspa y Gana</div>
+      </div>
+      <div class="rz-pv__right">
+        <h2 id="pv-title" class="rz-pv__title">¡Raspa y gana premios!</h2>
+        <p id="pv-desc" class="rz-pv__desc"></p>
+        <div class="rz-pv__form">
+          <input class="rz-input" placeholder="Correo Electrónico" disabled>
+          <input class="rz-input rz-input--extra" placeholder="Nombre" disabled data-style="display:none">
+          <input class="rz-input rz-input--extra" placeholder="Apellido" disabled data-style="display:none">
+          <input class="rz-input rz-input--extra" placeholder="Teléfono" disabled data-style="display:none">
+          <button class="rz-btn" id="pv-btn">Probar Suerte</button>
+        </div>
+        <div class="rz-pv__result hidden" id="pv-result">
+          <span id="pv-res-emoji" class="rz-pv__emoji">🎉</span>
+          <h3 id="pv-res-title" class="rz-pv__restitle"></h3>
+          <p id="pv-res-desc" class="rz-pv__resdesc"></p>
+          <p id="pv-res-prize" class="rz-pv__resprize"></p>
+        </div>
+      </div>
+    </div>
+    <div class="rz-stage__options">
+      <button data-act="call" data-call="toggleFS" title="Pantalla completa">⛶</button>
+    </div>
+    <div class="watermark">Powered by Check Pro</div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="share-modal">
+  <div class="modal-box">
+    <h3>Compartir promoción</h3>
+    <p>Enlace de juego para tus participantes (y enlace del editor)</p>
+    <input type="text" id="share-url" readonly>
+    <input type="text" id="share-url-edit" readonly data-style="margin-top:6px">
+    <div class="btn-row"><button class="primary" data-act="call" data-call="copyLink">Copiar enlace de juego</button><button class="secondary" data-act="call" data-call="closeModal" data-a1="share-modal">Cerrar</button></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.832"></script>
+<script src="/js/pages/raspa.js?v=12.44.834"></script>
+</body>
+</html>

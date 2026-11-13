@@ -1,0 +1,119 @@
+/* Tragamonedas (P4 — paridad AppSorteos — v12.44.834)
+   Editor standalone: sidebar con paneles General/Premios/Diseño/Seguridad/Formulario
+   + vista previa en vivo con la MÁQUINA dibujada en CSS puro (mueble + marquesina +
+   3 rodillos + palanca). Sin CDNs, sin canvas. Tonos cálidos naranjas/marrones. */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: 'Inter', system-ui, sans-serif; background: #fdf6ec; overflow: hidden; }
+.hidden { display: none !important; }
+.sp { width: 42px; height: 42px; border: 4px solid #fde8cd; border-top-color: #f59e0b; border-radius: 50%; animation: slspin .9s linear infinite; margin: 0 auto 12px; }
+@keyframes slspin { to { transform: rotate(360deg); } }
+#loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #fff; color: #64748b; font-size: 14px; z-index: 500; }
+.toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 999; }
+.toast.show { opacity: 1; }
+.watermark { position: absolute; bottom: 8px; right: 12px; font-size: 11px; color: rgba(255,255,255,.5); pointer-events: none; }
+
+.hero-stats { position: fixed; top: 0; left: 0; right: 0; z-index: 60; background: #431407; color: #fde8cd; display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; font-size: 13px; }
+.hero-stats .stats { display: flex; gap: 18px; }
+.hero-stats .actions button { border: none; background: #f59e0b; color: #fff; border-radius: 8px; padding: 5px 12px; cursor: pointer; font-weight: 600; }
+
+.sl { display: flex; height: 100vh; }
+.sl__config { width: 360px; min-width: 320px; background: #fff; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; }
+.sl__config__menu { display: flex; flex-wrap: wrap; border-bottom: 1px solid #f3e8dd; }
+.sl__config__menu-item { flex: 1 1 33%; text-align: center; padding: 9px 4px; font-size: 12px; font-weight: 700; color: #78716c; cursor: pointer; border-bottom: 2px solid transparent; }
+.sl__config__menu-item.active { color: #d97706; border-bottom-color: #f59e0b; }
+.sl__config__body { flex: 1; overflow-y: auto; padding: 10px; }
+.sl__config__footer { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #f3e8dd; }
+.sl__config__footer .btn { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; font-size: 13.5px; }
+.btn-primary { background: #b45309; color: #fff; }
+.btn-success { background: #10b981; color: #fff; }
+
+.form-control { width: 100%; padding: 8px 10px; border: 1px solid #ddd6cb; border-radius: 8px; font-size: 13.5px; font-family: inherit; }
+.form-control-lg { padding: 10px 12px; font-size: 15px; font-weight: 700; }
+.custom-check { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 13px; color: #44403c; }
+.custom-check input { accent-color: #f59e0b; width: 16px; height: 16px; }
+.flex-cb { display: flex; align-items: center; justify-content: space-between; margin: 10px 0; gap: 8px; }
+.color-input { display: flex; align-items: center; gap: 6px; }
+.color-input span { font-size: 11.5px; color: #78716c; }
+.color-input input[type=color] { width: 34px; height: 26px; border: none; background: none; cursor: pointer; }
+.form-group { margin-bottom: 12px; }
+.form-group > label { display: block; font-size: 12px; font-weight: 700; color: #57534e; margin-bottom: 6px; }
+.sl-mini { font-size: 12px; color: #57534e; display: block; margin: 10px 0 4px; font-weight: 600; }
+.sl-mini-btn { margin-top: 8px; }
+.sl-hint { font-size: 12px; color: #a8a29e; margin-top: 12px; line-height: 1.5; }
+
+.sec-h { display: flex; align-items: center; gap: 7px; padding: 9px 10px; background: #fffbeb; border: 1px solid #f3e8dd; border-radius: 9px; margin: 8px 0 6px; font-size: 13px; font-weight: 700; color: #57534e; cursor: pointer; }
+.sec-h .chev { margin-left: auto; font-size: 10px; color: #a8a29e; }
+.sec-b { padding: 4px 2px 10px; }
+.sec-b label { display: block; }
+.sec-b .sl-mini { margin-top: 8px; }
+.sec-b input[type="text"], .sec-b textarea { margin-bottom: 6px; }
+
+.sl-tab { display: block; }
+.sl-themes { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 4px; }
+.sl-theme-dot { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1.5px #e7dbc9; cursor: pointer; flex-shrink: 0; }
+
+/* premios */
+.sl-prize-row { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; padding: 7px; border: 1.5px solid #f3e8dd; border-radius: 10px; background: #fffdf8; cursor: pointer; flex-wrap: wrap; }
+.sl-prize-row.sel { border-color: #f59e0b; background: #fffbeb; }
+.sl-prize-row .sl-symsmini { font-size: 13px; line-height: 1; letter-spacing: -2px; flex-shrink: 0; max-width: 52px; overflow: hidden; white-space: nowrap; }
+.sl-prize-row select { width: 92px; flex-shrink: 0; padding: 5px 4px; font-size: 11px; border: 1px solid #ddd6cb; border-radius: 7px; }
+.sl-prize-row input { flex: 1; min-width: 70px; padding: 6px 8px; border: 1.5px solid #e7dbc9; border-radius: 8px; font-size: 12px; }
+.sl-prize-row input.sl-syms { flex: 1.2; min-width: 110px; font-size: 12px; }
+.sl-prize-row input.sl-sm { max-width: 52px; padding: 5px 4px; text-align: center; flex: 0 1 52px; }
+.sl-prize-row .sl-del { border: none; background: none; color: #d6d3d1; cursor: pointer; font-size: 14px; }
+.sl-prize-row .sl-del:hover { color: #ef4444; }
+
+/* escenario */
+.sl-stage { flex: 1; position: relative; background: #7c2d12; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding: 56px 20px 30px; }
+.sl-preview-head { position: absolute; top: 14px; left: 20px; display: flex; align-items: center; gap: 10px; z-index: 30; }
+.sl-preview-label { color: rgba(255,255,255,.85); font-size: 13px; font-weight: 700; }
+.sl-stage__options { position: absolute; top: 14px; right: 14px; z-index: 30; }
+.sl-stage__options button { width: 38px; height: 38px; border-radius: 9px; border: none; background: rgba(255,255,255,.16); color: #fff; font-size: 16px; cursor: pointer; }
+
+.sl-pv { display: flex; align-items: center; justify-content: center; gap: 34px; flex-wrap: wrap; max-width: 1020px; }
+
+/* ── LA MÁQUINA (vista previa del editor, CSS puro) ── */
+.sl-machine { position: relative; width: 300px; padding: 16px 16px 14px; box-shadow: 0 18px 40px rgba(0,0,0,.35), inset 0 2px 0 rgba(255,255,255,.35); flex-shrink: 0; }
+.sl-machine__marquee { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 8px 12px; padding: 10px 12px; background: rgba(0,0,0,.16); font-size: 12.5px; font-weight: 900; line-height: 1.25; text-align: center; max-height: 58px; overflow: hidden; }
+.sl-machine__marquee #pv-marquee-txt { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sl-machine__bulb { font-size: 13px; }
+.sl-machine__reels { display: flex; gap: 8px; background: rgba(0,0,0,.22); padding: 10px; border-radius: 12px; }
+.sl-reel { flex: 1; aspect-ratio: 4/5; display: flex; align-items: center; justify-content: center; font-size: 44px; line-height: 1; box-shadow: inset 0 4px 10px rgba(0,0,0,.22); border: 2px solid rgba(255,255,255,.65); overflow: hidden; }
+.sl-machine__panel { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+.sl-machine__coin { font-size: 17px; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+.sl-lever { position: absolute; right: -30px; top: 42px; width: 26px; height: 100px; }
+.sl-lever__arm { position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; width: 8px; height: 72px; background: linear-gradient(180deg, #f5f5f4, #a8a29e); border-radius: 4px; }
+.sl-lever__ball { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f87171, #b91c1c 70%); box-shadow: 0 3px 6px rgba(0,0,0,.4); }
+
+.sl-pv__right { color: #fff; max-width: 300px; }
+.sl-pv__desc { font-size: 13px; opacity: .92; line-height: 1.5; white-space: pre-line; margin-bottom: 14px; }
+.sl-pv__form { display: flex; flex-direction: column; gap: 8px; }
+.sl-input { padding: 10px 12px; border: none; border-radius: 8px; font-size: 13.5px; font-family: inherit; }
+.sl-btn { padding: 11px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 14px; color: #fff; font-family: inherit; }
+.sl-pv__result { text-align: center; animation: slpop .35s ease; }
+.sl-pv__restitle { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
+.sl-pv__resdesc { font-size: 13.5px; opacity: .92; line-height: 1.5; margin-bottom: 10px; }
+.sl-pv__resprize { font-size: 18px; font-weight: 900; background: rgba(255,255,255,.16); padding: 10px 16px; border-radius: 10px; }
+@keyframes slpop { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none; align-items: center; justify-content: center; z-index: 400; }
+.modal-overlay.show { display: flex; }
+.modal-box { background: #fff; border-radius: 14px; padding: 20px; width: 520px; max-width: 92vw; }
+.modal-box h3 { font-size: 16px; margin-bottom: 6px; }
+.modal-box p { font-size: 12.5px; color: #64748b; margin-bottom: 10px; }
+.modal-box input { width: 100%; padding: 9px 11px; border: 1px solid #ddd6cb; border-radius: 8px; font-size: 13px; margin-bottom: 8px; }
+.btn-row { display: flex; gap: 8px; }
+.btn-row button { flex: 1; padding: 9px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.btn-row .primary { background: #b45309; color: #fff; }
+.btn-row .secondary { background: #f1f5f9; color: #334155; }
+
+@media (max-width: 900px) {
+  .sl { flex-direction: column; }
+  .sl__config { width: 100%; min-width: 0; height: 52vh; border-right: none; border-bottom: 1px solid #e5e7eb; }
+  .sl-stage { min-height: 48vh; }
+  .sl-machine { width: 240px; }
+  .sl-reel { font-size: 34px; }
+  .sl-pv__right { max-width: 260px; }
+}

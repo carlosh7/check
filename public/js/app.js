@@ -11023,7 +11023,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'agenda') this.loadConfigAgenda();
         if (tabName === 'wheel') this.loadWheelList();
         if (tabName === 'quiz') this.loadQuizList();
-        if (tabName === 'promos') this.loadFortunaList();
+        if (tabName === 'promos') this.loadPromosList();
         if (tabName === 'surveys') this.loadSurveys();
         if (tabName === 'gamification') this.loadGamification();
         if (tabName === 'settings') this.loadConfigSettings();
@@ -14254,7 +14254,7 @@ navigate(viewName, params = {}, push = true) {
         // Load specific data
         if (tabName === 'wheel') this.loadWheelList();
         if (tabName === 'quiz') this.loadQuizList();
-        if (tabName === 'promos') this.loadFortunaList();
+        if (tabName === 'promos') this.loadPromosList();
     },
     
     // ═══ SISTEMA DE RULETA (v12.44.653) ═══
@@ -14409,71 +14409,105 @@ navigate(viewName, params = {}, push = true) {
         });
     },
 
-    // ── Promociones: Ruleta de la Fortuna (P1 — v12.44.833) ──
-    newFortuna: function() {
+    // ── Promociones (P1-P4 — v12.44.834): 4 juegos con leads, selector por tipo ──
+    // P1 Ruleta de la Fortuna (fortunas) · P2 Raspa y Gana (raspas) · P3 Trivia (trivias) · P4 Tragamonedas (slots)
+    PROMO_TYPES: {
+        fortuna: { api: 'fortunas', slug: 'fortuna', emoji: '🎡', label: 'Ruleta de la Fortuna', publicSuffix: '' },
+        raspa:   { api: 'raspas',   slug: 'raspa',   emoji: '🎫', label: 'Raspa y Gana',  publicSuffix: '' },
+        trivia:  { api: 'trivias',  slug: 'trivia',  emoji: '🧠', label: 'Trivia',        publicSuffix: '' },
+        slot:    { api: 'slots',    slug: 'tragamonedas', emoji: '🎰', label: 'Tragamonedas', publicSuffix: '' }
+    },
+    promosType: 'fortuna',
+
+    setPromosType: function(type) {
+        this.promosType = type;
+        document.querySelectorAll('.promos-type-btn').forEach(function(b) {
+            b.classList.toggle('bg-primary/20', b.dataset.type === type);
+            b.classList.toggle('text-primary', b.dataset.type === type);
+        });
+        this.loadPromosList();
+    },
+
+    newPromo: function() {
+        const self = this;
+        const type = this.promosType;
+        const meta = this.PROMO_TYPES[type];
         Swal.fire({
-            title:'Nueva Ruleta de la Fortuna', width:'420px', background:'#0f172a', color:'#fff',
-            html:'<div class="text-left"><label class="text-xs font-bold text-slate-400">Nombre</label><input id="swal-fortuna-name" class="input-field w-full" placeholder="Ej: Ruleta de Premios de Marzo"></div>',
-            showCancelButton:true, confirmButtonText:'Crear',
-            preConfirm:function(){const n=document.getElementById('swal-fortuna-name')?.value?.trim();if(!n){Swal.showValidationMessage('Nombre requerido');return}return n}
-        }).then(async function(r){
-            if(!r.isConfirmed)return;
-            const eId=App.state.event?.id;if(!eId)return;
-            try{
-                const res=await App.fetchAPI('/fortunas/events/'+eId+'/fortunas',{method:'POST',body:JSON.stringify({name:r.value})});
-                if(res&&res.id){App.loadFortunaList();App.openFortunaPage(res.id)}
-            }catch(e){console.error(e)}
+            title: 'Nueva ' + meta.label, width: '420px', background: '#0f172a', color: '#fff',
+            html: '<div class="text-left"><label class="text-xs font-bold text-slate-400">Nombre</label><input id="swal-promo-name" class="input-field w-full" placeholder="Ej: Promoción de Marzo"></div>',
+            showCancelButton: true, confirmButtonText: 'Crear',
+            preConfirm: function() { const n = document.getElementById('swal-promo-name')?.value?.trim(); if (!n) { Swal.showValidationMessage('Nombre requerido'); return } return n }
+        }).then(async function(r) {
+            if (!r.isConfirmed) return;
+            const eId = App.state.event?.id; if (!eId) return;
+            try {
+                const res = await App.fetchAPI('/' + meta.api + '/events/' + eId + '/' + meta.api, { method: 'POST', body: JSON.stringify({ name: r.value }) });
+                if (res && res.id) { App.loadPromosList(); App.openPromoPage(type, res.id); }
+            } catch (e) { console.error(e); }
         });
     },
-    loadFortunaList: function() {
-        const eId=this.state.event?.id;if(!eId)return;
-        const list=document.getElementById('fortuna-list-view');if(!list)return;
-        list.innerHTML='<p class="text-xs text-slate-500 italic">Cargando...</p>';
-        this.fetchAPI('/fortunas/events/'+eId+'/fortunas').then(function(list2){
-            if(!list2||!list2.length){list.innerHTML='<div class="text-center py-8 text-slate-500"><p>No hay promociones. Crea la primera.</p></div>';return}
-            list.innerHTML=list2.map(function(f){
-                const st=f.stats||{};
-                const pub=f.status==='published';
-                return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors cursor-pointer" data-act="call" data-call="openFortunaPage" data-a1="'+f.id+'">'+
-                    '<div class="flex items-center gap-3"><span class="text-lg">🎯</span>'+
-                    '<div><p class="text-sm font-bold text-white">'+(f.name||'Sin nombre')+(pub?' <span class="text-xs text-emerald-400">● publicada</span>':' <span class="text-xs text-slate-500">● borrador</span>')+'</p>'+
-                    '<p class="text-xs text-slate-500">'+(f.prizeCount||0)+' secciones | '+st.plays+' jugadas | '+st.views+' vistas</p></div></div>'+
-                    '<div class="flex gap-1">'+
-                    (pub?'<button class="btn-icon text-sky-400" title="Ver leads CSV" data-stop="1" data-act="call" data-call="fortunaCsv" data-a1="'+f.id+'"><span class="material-symbols-outlined text-sm">download</span></button>':'')+
-                    '<button class="btn-icon text-amber-400" title="'+(pub?'Despublicar':'Publicar (activa el enlace de juego)')+'" data-stop="1" data-act="call" data-call="publishFortuna" data-a1="'+f.id+'" data-a2="'+(pub?1:0)+'"><span class="material-symbols-outlined text-sm">'+(pub?'public':'publish')+'</span></button>'+
-                    '<button class="btn-icon text-red-400" title="Eliminar" data-stop="1" data-act="call" data-call="deleteFortuna" data-a1="'+f.id+'"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>'
+
+    loadPromosList: function() {
+        const eId = this.state.event?.id; if (!eId) return;
+        const type = this.promosType;
+        const meta = this.PROMO_TYPES[type];
+        const list = document.getElementById('promos-list-view'); if (!list) return;
+        list.innerHTML = '<p class="text-xs text-slate-500 italic">Cargando...</p>';
+        this.fetchAPI('/' + meta.api + '/events/' + eId + '/' + meta.api).then(function(items) {
+            if (!items || !items.length) { list.innerHTML = '<div class="text-center py-8 text-slate-500"><p>No hay promociones de este tipo. Crea la primera.</p></div>'; return }
+            list.innerHTML = items.map(function(f) {
+                const st = f.stats || {};
+                const pub = f.status === 'published';
+                const extra = f.prizeCount != null ? (f.prizeCount + ' secciones') : (f.prizes ? f.prizes.length + ' premios' : '');
+                return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors cursor-pointer" data-act="call" data-call="openPromoPage" data-a1="' + type + '" data-a2="' + f.id + '">' +
+                    '<div class="flex items-center gap-3"><span class="text-lg">' + meta.emoji + '</span>' +
+                    '<div><p class="text-sm font-bold text-white">' + (f.name || 'Sin nombre') + (pub ? ' <span class="text-xs text-emerald-400">● publicada</span>' : ' <span class="text-xs text-slate-500">● borrador</span>') + '</p>' +
+                    '<p class="text-xs text-slate-500">' + extra + ' | ' + (st.plays || 0) + ' jugadas | ' + (st.views || 0) + ' vistas</p></div></div>' +
+                    '<div class="flex gap-1">' +
+                    (pub ? '<button class="btn-icon text-sky-400" title="Descargar leads CSV" data-stop="1" data-act="call" data-call="promosCsv" data-a1="' + type + '" data-a2="' + f.id + '"><span class="material-symbols-outlined text-sm">download</span></button>' : '') +
+                    '<button class="btn-icon text-amber-400" title="' + (pub ? 'Despublicar' : 'Publicar') + '" data-stop="1" data-act="call" data-call="publishPromo" data-a1="' + type + '" data-a2="' + f.id + '" data-a3="' + (pub ? 1 : 0) + '"><span class="material-symbols-outlined text-sm">' + (pub ? 'public' : 'publish') + '</span></button>' +
+                    '<button class="btn-icon text-red-400" title="Eliminar" data-stop="1" data-act="call" data-call="deletePromo" data-a1="' + type + '" data-a2="' + f.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>'
             }).join('')
-        }).catch(function(e){list.innerHTML='<p class="text-red-500 text-xs">Error al cargar</p>';console.error(e)})
+        }).catch(function(e) { list.innerHTML = '<p class="text-red-500 text-xs">Error al cargar</p>'; console.error(e) })
     },
-    openFortunaPage: function(id) {
-        const ev=this.state.event;
-        const name=(ev&&ev.name)?ev.name:'evento';
-        const slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-        window.open('/'+slug+'/fortuna/'+id,'_blank');
+
+    openPromoPage: function(type, id) {
+        const ev = this.state.event;
+        const name = (ev && ev.name) ? ev.name : 'evento';
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const meta = this.PROMO_TYPES[type] || this.PROMO_TYPES.fortuna;
+        window.open('/' + slug + '/' + meta.slug + '/' + id, '_blank');
     },
-    publishFortuna: function(id,isPublished) {
-        const doIt=async function(){
-            try{
-                await App.fetchAPI('/fortunas/'+id,{method:'PUT',body:JSON.stringify({status:isPublished?'draft':'published'})});
-                App.loadFortunaList();
-                App._notifyAction(isPublished?'Promoción despublicada':'Promoción publicada', isPublished?'El enlace de juego ya no está disponible':'El enlace de juego ya está activo','success');
-            }catch(e){App._notifyAction('Error',e.message||'No se pudo cambiar el estado','error')}
+
+    publishPromo: function(type, id, isPublished) {
+        const meta = this.PROMO_TYPES[type];
+        const doIt = async function() {
+            try {
+                await App.fetchAPI('/' + meta.api + '/' + id, { method: 'PUT', body: JSON.stringify({ status: isPublished ? 'draft' : 'published' }) });
+                App.loadPromosList();
+                App._notifyAction(isPublished ? 'Promoción despublicada' : 'Promoción publicada', isPublished ? 'El enlace de juego ya no está disponible' : 'El enlace de juego ya está activo', 'success');
+            } catch (e) { App._notifyAction('Error', e.message || 'No se pudo cambiar el estado', 'error'); }
         };
-        if(isPublished){doIt()}
-        else{Swal.fire({title:'¿Publicar promoción?',width:'420px',background:'#0f172a',color:'#fff',html:'<p class="text-sm text-slate-300 text-left">El enlace de juego se activa y el editor por enlace queda disponible sin clave (misma política que la ruleta).</p>',showCancelButton:true,confirmButtonText:'Publicar',cancelButtonText:'Cancelar'}).then(function(r){if(r.isConfirmed)doIt()})}
+        if (isPublished) { doIt(); }
+        else {
+            Swal.fire({ title: '¿Publicar promoción?', width: '420px', background: '#0f172a', color: '#fff', html: '<p class="text-sm text-slate-300 text-left">El enlace de juego se activa y el editor por enlace queda disponible sin clave (misma política que la ruleta).</p>', showCancelButton: true, confirmButtonText: 'Publicar', cancelButtonText: 'Cancelar' }).then(function(r) { if (r.isConfirmed) doIt(); });
+        }
     },
-    fortunaCsv: function(id) {
-        // el CSV es texto: fetch crudo con el token (App.fetchAPI devuelve JSON)
-        let token=null;
-        try{const uStr=localStorage.getItem('user');const u=uStr&&uStr!=='undefined'?JSON.parse(uStr):{};token=u.token||localStorage.getItem('token')}catch(e){}
-        fetch('/api/fortunas/'+id+'/export-csv',{headers:token?{'Authorization':'Bearer '+token}:{}})
-            .then(function(r){if(!r.ok)throw new Error('No se pudo exportar');return r.blob()})
-            .then(function(b){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='fortuna_leads.csv';a.click()})
-            .catch(function(e){App._notifyAction('Error',e.message||'No se pudo exportar','error')});
+
+    promosCsv: function(type, id) {
+        const meta = this.PROMO_TYPES[type];
+        let token = null;
+        try { const uStr = localStorage.getItem('user'); const u = uStr && uStr !== 'undefined' ? JSON.parse(uStr) : {}; token = u.token || localStorage.getItem('token'); } catch (e) {}
+        fetch('/api/' + meta.api + '/' + id + '/export-csv', { headers: token ? { 'Authorization': 'Bearer ' + token } : {} })
+            .then(function(r) { if (!r.ok) throw new Error('No se pudo exportar'); return r.blob(); })
+            .then(function(b) { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = meta.slug + '_leads.csv'; a.click(); })
+            .catch(function(e) { App._notifyAction('Error', e.message || 'No se pudo exportar', 'error'); });
     },
-    deleteFortuna: function(id) {
-        if(!confirm('¿Eliminar la promoción y sus participantes?'))return;
-        this.fetchAPI('/fortunas/'+id,{method:'DELETE'}).then(function(){App.loadFortunaList()}).catch(function(e){console.error(e)})
+
+    deletePromo: function(type, id) {
+        const meta = this.PROMO_TYPES[type];
+        if (!confirm('¿Eliminar la promoción y sus participantes?')) return;
+        this.fetchAPI('/' + meta.api + '/' + id, { method: 'DELETE' }).then(function() { App.loadPromosList(); }).catch(function(e) { console.error(e); });
     },
 
     loadQuizList: function() {

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trivia | Check Pro</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/pages/trivia-page.css?v=12.44.834">
+</head>
+<body>
+<div id="loading"><div><div class="sp"></div><p>Cargando trivia...</p></div></div>
+<div id="error" data-style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#fff;z-index:99999;flex-direction:column;text-align:center;padding:32px">
+  <h2 data-style="font-size:20px;margin-bottom:8px;color:#1a1a1a">Trivia no disponible</h2>
+  <p id="errmsg" data-style="font-size:14px;color:#6b7280;margin-bottom:24px"></p>
+  <button data-act="reload" data-style="padding:10px 28px;border:none;border-radius:10px;background:#0ea5e9;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Reintentar</button>
+</div>
+
+<div class="hero-stats hidden" id="hero-stats">
+  <div class="stats">
+    <span>👁️ <span id="stat-views">0</span> <b>Vistas</b></span>
+    <span>🎮 <span id="stat-plays">0</span> <b>Participaciones</b></span>
+    <span>❓ <span id="stat-questions">0</span> <b>Preguntas</b></span>
+  </div>
+  <div class="actions">
+    <button data-act="call" data-call="openShare">🔗 Compartir</button>
+  </div>
+</div>
+
+<div id="wof" class="tv">
+  <!-- SIDEBAR -->
+  <div id="sidebar" class="tv__config">
+    <div class="tv__config__menu">
+      <div class="tv__config__menu-item active" data-act="call" data-call="switchTab" data-a1="general" data-a2="@this">⚙️ General</div>
+      <div class="tv__config__menu-item" data-act="call" data-call="switchTab" data-a1="preguntas" data-a2="@this">❓ Preguntas</div>
+      <div class="tv__config__menu-item" data-act="call" data-call="switchTab" data-a1="design" data-a2="@this">🎨 Diseño</div>
+      <div class="tv__config__menu-item" data-act="call" data-call="switchTab" data-a1="seguridad" data-a2="@this">🛡️ Seguridad</div>
+      <div class="tv__config__menu-item" data-act="call" data-call="switchTab" data-a1="form" data-a2="@this">📝 Formulario</div>
+    </div>
+    <div class="tv__config__body" id="sidebar-body">
+
+      <!-- GENERAL -->
+      <div id="tab-general" class="tv-tab">
+        <div class="sec-h"><span>📝</span>Nombre<span class="chev">▼</span></div>
+        <div class="sec-b"><input id="tv-name" class="form-control form-control-lg" placeholder="Nombre de la trivia"></div>
+        <div class="sec-h collapsed" data-act="call" data-call="toggleCollapse" data-a1="@this" data-a2="sec-lang"><span>🌐</span>Idioma<span class="chev">▼</span></div>
+        <div id="sec-lang" class="sec-b hidden">
+          <div class="flex-cb"><label class="tv-mini">Idioma del juego</label>
+            <select id="cfg-lang" class="form-control" data-style="width:auto">
+              <option value="es" selected>Español</option><option value="en">English</option>
+              <option value="pt">Português</option><option value="fr">Français</option>
+              <option value="tr">Türkçe</option><option value="de">Deutsch</option>
+              <option value="ja">日本語</option>
+            </select>
+          </div>
+        </div>
+        <div class="sec-h collapsed" data-act="call" data-call="toggleCollapse" data-a1="@this" data-a2="sec-texts"><span>✏️</span>Textos del juego<span class="chev">▼</span></div>
+        <div id="sec-texts" class="sec-b hidden">
+          <label class="tv-mini">Título de bienvenida</label>
+          <input id="txt-welcome-t" class="form-control" maxlength="120">
+          <label class="tv-mini">Descripción de bienvenida</label>
+          <textarea id="txt-welcome-d" class="form-control" rows="3" maxlength="300"></textarea>
+          <label class="tv-mini">Botón de inicio</label>
+          <input id="txt-start-b" class="form-control" maxlength="30">
+          <label class="tv-mini">Título final</label>
+          <input id="txt-final-t" class="form-control" maxlength="120">
+          <label class="tv-mini">Mensaje final</label>
+          <textarea id="txt-final-d" class="form-control" rows="2" maxlength="300"></textarea>
+          <p class="tv-hint">Usa el código corto <b>[score]</b> en el mensaje final: se sustituye por la puntuación (92% o 10/13 según "Mostrar puntuación").</p>
+          <label class="tv-mini">Texto del botón de comprobante</label>
+          <input id="txt-cert-b" class="form-control" maxlength="40">
+          <button class="form-control tv-mini-btn" data-act="call" data-call="applyLang" data-style="background:#f0f9ff;color:#0369a1;font-weight:600;cursor:pointer;border:1px solid #bae6fd">↺ Restaurar textos del idioma</button>
+        </div>
+        <div class="sec-h collapsed" data-act="call" data-call="toggleCollapse" data-a1="@this" data-a2="sec-quiz"><span>⚙️</span>Opciones del cuestionario<span class="chev">▼</span></div>
+        <div id="sec-quiz" class="sec-b hidden">
+          <div class="custom-check"><input type="checkbox" id="cfg-music"><label for="cfg-music">🎵 Música de fondo</label></div>
+          <div class="custom-check"><input type="checkbox" id="cfg-shuffle-q"><label for="cfg-shuffle-q">🔀 Mezclar preguntas al inicio</label></div>
+          <div class="custom-check"><input type="checkbox" id="cfg-shuffle-a"><label for="cfg-shuffle-a">🔀 Mezclar respuestas al inicio</label></div>
+          <div class="custom-check"><input type="checkbox" id="cfg-numbers" checked><label for="cfg-numbers">🔢 Mostrar número de preguntas</label></div>
+          <div class="custom-check"><input type="checkbox" id="cfg-share" checked><label for="cfg-share">📤 Mostrar botones para compartir</label></div>
+          <div class="custom-check"><input type="checkbox" id="cfg-cert"><label for="cfg-cert">📄 Comprobante para quien apruebe</label></div>
+          <div class="flex-cb"><label class="tv-mini">Retroalimentación</label>
+            <select id="cfg-feedback" class="form-control" data-style="width:auto">
+              <option value="none">No mostrar nada</option>
+              <option value="selected" selected>Solo la seleccionada</option>
+              <option value="selected_correct">Seleccionada + correcta</option>
+            </select>
+          </div>
+          <div class="flex-cb"><label class="tv-mini">Indicador de respuesta</label>
+            <select id="cfg-indicator" class="form-control" data-style="width:auto">
+              <option value="none" selected>Sin indicador</option>
+              <option value="letters">Letras (A, B, C, D)</option>
+              <option value="numbers">Números (1, 2, 3, 4)</option>
+            </select>
+          </div>
+          <div class="flex-cb"><label class="tv-mini">Límite de tiempo por pregunta</label>
+            <select id="cfg-timer" class="form-control" data-style="width:auto">
+              <option value="0" selected>Sin límite</option>
+              <option value="10">10 s</option><option value="15">15 s</option>
+              <option value="20">20 s</option><option value="30">30 s</option>
+              <option value="45">45 s</option><option value="60">60 s</option>
+              <option value="90">90 s</option><option value="120">120 s</option>
+            </select>
+          </div>
+          <div class="flex-cb"><label class="tv-mini">Nota de aprobación</label>
+            <select id="cfg-grade" class="form-control" data-style="width:auto">
+              <option value="0" selected>Sin nota (todos aprueban)</option>
+              <option value="30">30%</option><option value="40">40%</option>
+              <option value="50">50%</option><option value="60">60%</option>
+              <option value="70">70%</option><option value="75">75%</option>
+              <option value="80">80%</option><option value="90">90%</option>
+              <option value="100">100%</option>
+            </select>
+          </div>
+          <div class="flex-cb"><label class="tv-mini">Mostrar puntuación</label>
+            <select id="cfg-scoring" class="form-control" data-style="width:auto">
+              <option value="none">No mostrar</option>
+              <option value="percentage" selected>Porcentaje (92%)</option>
+              <option value="fraction">Fracción (10/13)</option>
+            </select>
+          </div>
+          <div class="flex-cb"><label class="tv-mini">Botón final</label>
+            <select id="cfg-finalbtn" class="form-control" data-style="width:auto">
+              <option value="none">Sin botón</option>
+              <option value="retry" selected>Reintentar</option>
+              <option value="redirect">Redirección</option>
+            </select>
+          </div>
+          <label class="tv-mini">URL de redirección (si el botón final es Redirección)</label>
+          <input id="cfg-redirect" class="form-control" placeholder="https://tu-sitio.com/gracias" maxlength="300">
+        </div>
+      </div>
+
+      <!-- PREGUNTAS -->
+      <div id="tab-preguntas" class="tv-tab hidden">
+        <div class="sec-h"><span>❓</span><span id="q-count">Preguntas (0)</span><span class="chev">▼</span></div>
+        <div class="sec-b" id="sec-preguntas">
+          <div data-style="display:flex;gap:6px;margin-bottom:8px">
+            <button class="form-control" data-style="background:#f0f9ff;color:#0369a1;font-weight:600;cursor:pointer;border:1px solid #bae6fd" data-act="call" data-call="openQuestionModal">＋ Crear pregunta</button>
+            <button class="form-control" data-style="background:#fffbeb;color:#b45309;font-weight:600;cursor:pointer;border:1px solid #fde68a" data-act="call" data-call="openCsvModal">📋 Cargar desde CSV</button>
+          </div>
+          <div id="question-list"></div>
+          <p class="tv-hint">⚠️ Sin preguntas la trivia no se puede jugar. Marca cuál respuesta es la correcta con el círculo verde; la corrección SIEMPRE ocurre en el servidor (el juego público nunca recibe las correctas).</p>
+        </div>
+      </div>
+
+      <!-- DISEÑO -->
+      <div id="tab-design" class="tv-tab hidden">
+        <div class="form-group"><label>Temas</label><div id="theme-ps" class="tv-themes"></div></div>
+        <div class="sec-h"><span>🎨</span>Colores<span class="chev">▼</span></div>
+        <div class="sec-b" id="sec-colors">
+          <div class="flex-cb"><label class="tv-mini">Color de Fondo</label>
+            <div class="color-input"><span id="v-bg">#1e3a5f</span><input type="color" id="c-bg" value="#1e3a5f" data-act="call" data-call="refreshP"></div>
+          </div>
+          <div class="flex-cb"><label class="tv-mini">Color de Texto</label>
+            <div class="color-input"><span id="v-txt">#ffffff</span><input type="color" id="c-txt" value="#ffffff" data-act="call" data-call="refreshP"></div>
+          </div>
+          <div class="flex-cb"><label class="tv-mini">Color de Botón</label>
+            <div class="color-input"><span id="v-btn">#0ea5e9</span><input type="color" id="c-btn" value="#0ea5e9" data-act="call" data-call="refreshP"></div>
+          </div>
+          <div class="flex-cb"><label class="tv-mini">Color de Acento</label>
+            <div class="color-input"><span id="v-acc">#fbbf24</span><input type="color" id="c-acc" value="#fbbf24" data-act="call" data-call="refreshP"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEGURIDAD -->
+      <div id="tab-seguridad" class="tv-tab hidden">
+        <label class="tv-mini">Participaciones máximas por email</label>
+        <input id="sec-max" type="number" min="1" value="1" class="form-control">
+        <p class="tv-hint">¿Cuántas veces puede participar un mismo usuario (email)?</p>
+        <label class="tv-mini">Emails permitidos (uno por línea, vacío = todos)</label>
+        <textarea id="sec-allowed" class="form-control" rows="4" placeholder="cliente1@correo.com&#10;cliente2@correo.com"></textarea>
+        <label class="tv-mini">Limitar por dispositivo</label>
+        <select id="sec-device" class="form-control">
+          <option value="off" selected>Desactivado</option>
+          <option value="browser">Navegador</option>
+          <option value="ip">Sólo IP</option>
+        </select>
+        <label class="tv-mini">Máximo por dispositivo</label>
+        <input id="sec-device-max" type="number" min="1" value="1" class="form-control">
+      </div>
+
+      <!-- FORMULARIO -->
+      <div id="tab-form" class="tv-tab hidden">
+        <div class="custom-check"><input type="checkbox" id="fm-name"><label for="fm-name">👤 Pedir Nombre</label></div>
+        <div class="custom-check"><input type="checkbox" id="fm-apellido"><label for="fm-apellido">👤 Pedir Apellido</label></div>
+        <div class="custom-check"><input type="checkbox" id="fm-phone"><label for="fm-phone">📱 Pedir Teléfono</label></div>
+        <label class="tv-mini">Casilla de consentimiento (texto, vacío = sin casilla)</label>
+        <textarea id="fm-consent" class="form-control" rows="2" maxlength="200" placeholder="Acepto las condiciones del quiz"></textarea>
+        <p class="tv-hint">El email siempre se pide (es el identificador del participante). El servidor valida la seguridad en cada jugada.</p>
+      </div>
+
+    </div>
+    <div class="tv__config__footer">
+      <button class="btn btn-primary" id="btn-save" data-act="call" data-call="saveT">💾 Guardar</button>
+      <button class="btn btn-success" id="btn-pub" data-act="call" data-call="publishT">🚀 Publicar</button>
+    </div>
+  </div>
+
+  <!-- ESCENARIO / PREVIEW -->
+  <div id="stage" class="tv-stage">
+    <div class="tv-preview-head">
+      <span class="tv-preview-label">Vista Previa</span>
+      <select id="pv-page" class="form-control" data-style="width:auto" data-act="call" data-call="setPreview">
+        <option value="welcome" selected>Bienvenida</option>
+        <option value="question">Pregunta</option>
+        <option value="final">Resultado</option>
+      </select>
+    </div>
+    <div id="pv" class="tv-pv">
+      <div id="pv-box" class="tv-pv__box">
+        <!-- BIENVENIDA -->
+        <div id="pv-welcome" class="tv-pv__page">
+          <h2 id="pv-title" class="tv-pv__title">Bienvenido al Quiz</h2>
+          <p id="pv-desc" class="tv-pv__desc"></p>
+          <div class="tv-pv__form">
+            <input class="tvi-input" placeholder="Correo Electrónico" disabled>
+            <input class="tvi-input tvi-input--extra" placeholder="Nombre" disabled data-style="display:none">
+            <input class="tvi-input tvi-input--extra" placeholder="Apellido" disabled data-style="display:none">
+            <input class="tvi-input tvi-input--extra" placeholder="Teléfono" disabled data-style="display:none">
+            <button class="tvi-btn" id="pv-btn">Comenzar</button>
+          </div>
+        </div>
+        <!-- PREGUNTA -->
+        <div id="pv-question" class="tv-pv__page hidden">
+          <span id="pv-qnum" class="tv-pv__qnum">1/4</span>
+          <h3 id="pv-qtext" class="tv-pv__qtext">¿Cuál es la capital de Francia?</h3>
+          <div id="pv-answers" class="tv-pv__answers"></div>
+        </div>
+        <!-- RESULTADO -->
+        <div id="pv-final" class="tv-pv__page hidden">
+          <span class="tv-pv__emoji">🎉</span>
+          <h2 id="pv-final-title" class="tv-pv__title">Felicitaciones, ¡has terminado!</h2>
+          <p id="pv-final-desc" class="tv-pv__desc">Tu puntuación: 92%</p>
+          <p id="pv-final-prize" class="tv-pv__prize">🎁 10% OFF</p>
+          <button class="tvi-btn" id="pv-final-btn">Reintentar</button>
+        </div>
+      </div>
+    </div>
+    <div class="tv-stage__options">
+      <button data-act="call" data-call="toggleFS" title="Pantalla completa">⛶</button>
+    </div>
+    <div class="watermark">Powered by Check Pro</div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="share-modal">
+  <div class="modal-box">
+    <h3>Compartir trivia</h3>
+    <p>Enlace de juego para tus participantes (y enlace del editor)</p>
+    <input type="text" id="share-url" readonly>
+    <input type="text" id="share-url-edit" readonly data-style="margin-top:6px">
+    <div class="btn-row"><button class="primary" data-act="call" data-call="copyLink">Copiar enlace de juego</button><button class="secondary" data-act="call" data-call="closeModal" data-a1="share-modal">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- Modal Nueva/Editar Pregunta -->
+<div class="modal-overlay" id="question-modal">
+  <div class="modal-box">
+    <h3 id="q-modal-title">Nueva pregunta</h3>
+    <p>Escribe la pregunta y sus respuestas; marca con el círculo verde cuál es la correcta.</p>
+    <textarea id="qm-question" class="form-control" rows="2" maxlength="300" placeholder="Texto de la pregunta"></textarea>
+    <div class="tv-qm-answers">
+      <div class="tv-qm-row"><input type="radio" name="qm-correct" id="qm-c0" value="0"><input id="qm-a0" class="form-control" maxlength="120" placeholder="Respuesta A"></div>
+      <div class="tv-qm-row"><input type="radio" name="qm-correct" id="qm-c1" value="1"><input id="qm-a1" class="form-control" maxlength="120" placeholder="Respuesta B"></div>
+      <div class="tv-qm-row"><input type="radio" name="qm-correct" id="qm-c2" value="2"><input id="qm-a2" class="form-control" maxlength="120" placeholder="Respuesta C (opcional)"></div>
+      <div class="tv-qm-row"><input type="radio" name="qm-correct" id="qm-c3" value="3"><input id="qm-a3" class="form-control" maxlength="120" placeholder="Respuesta D (opcional)"></div>
+    </div>
+    <p id="qm-err" class="tv-qm-err"></p>
+    <div class="btn-row"><button class="primary" data-act="call" data-call="confirmQuestion">Guardar pregunta</button><button class="secondary" data-act="call" data-call="closeModal" data-a1="question-modal">Cancelar</button></div>
+  </div>
+</div>
+
+<!-- Modal Importar CSV -->
+<div class="modal-overlay" id="csv-modal">
+  <div class="modal-box">
+    <h3>Cargar preguntas desde CSV</h3>
+    <p>Una pregunta por línea con el formato:<br><b>pregunta;respuesta1;respuesta2;respuesta3;respuesta4;índice_correcto</b><br>(índice 0-based: 0 = primera respuesta; también sirve separar con comas)</p>
+    <textarea id="csv-text" class="form-control" rows="8" placeholder="¿Capital de Francia?;Madrid;París;Roma;Londres;1"></textarea>
+    <p id="csv-err" class="tv-qm-err"></p>
+    <div class="btn-row"><button class="primary" data-act="call" data-call="confirmCsv">Importar</button><button class="secondary" data-act="call" data-call="closeModal" data-a1="csv-modal">Cancelar</button></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.834"></script>
+<script src="/js/pages/trivia.js?v=12.44.834"></script>
+</body>
+</html>
