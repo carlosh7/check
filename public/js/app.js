@@ -14467,8 +14467,9 @@ navigate(viewName, params = {}, push = true) {
         list.innerHTML = '<p class="text-xs text-slate-500 italic">Cargando...</p>';
         const self = this;
         this.fetchAPI('/' + meta.api + '/events/' + eId + '/' + meta.api).then(function(items) {
-            if (!items || !items.length) { list.innerHTML = '<div class="text-center py-8 text-slate-500"><p>No hay promociones de este tipo. Crea la primera.</p></div>'; return }
-            // v12.44.835: botones de los 6 juegos (hub consolidado) — render dinámico
+            // v12.44.835 fix: los botones de los 6 juegos SON la navegación del hub —
+            // se pintan SIEMPRE (antes quedaban tras el early-return de lista vacía
+            // y el hub se quedaba sin botones la primera vez)
             const cont = document.getElementById('config-content-promos');
             const zona = cont && cont.querySelector('.promos-type-zone');
             if (zona) {
@@ -14477,6 +14478,7 @@ navigate(viewName, params = {}, push = true) {
                     return '<button class="btn-secondary btn-standard promos-type-btn' + (t === type ? ' bg-primary/20 text-primary' : '') + '" data-type="' + t + '" data-act="call" data-call="setPromosType" data-a1="' + t + '">' + m.emoji + ' ' + m.label + '</button>';
                 }).join('');
             }
+            if (!items || !items.length) { list.innerHTML = '<div class="text-center py-8 text-slate-500"><p>No hay promociones de este tipo. Crea la primera.</p></div>'; return }
             // stats y acciones según tipo (paridad con cada módulo)
             list.innerHTML = items.map(function(f) {
                 const st = f.stats || {};
