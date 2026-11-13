@@ -13,7 +13,7 @@ let curQ = -1;              // pregunta abierta en el editor
 let dirty = false;
 let sound = true;
 // juego en vivo (anfitrión)
-let live = { sessionId: null, pin: null, st: null, timerId: null, pollId: null, revealed: false, soundOn: true };
+let live = { sessionId: null, pin: null, st: null, timerId: null, pollId: null, revealed: false, soundOn: true, lastSeenVersion: 0 };
 // jugador
 let pl = { pin: null, playerId: null, nickname: null, st: null, pollId: null, answeredFor: null, avatar: '🐱' };
 let socket = null;
@@ -474,16 +474,18 @@ function showLiveView(name) {
   $('ctl-reveal').style.display = name === 'question' ? 'block' : 'none';
 }
 
-// sondeo del anfitrión: durante pregunta trae conteos en vivo (1.2s); en el resto solo refresca al cambiar versión
+// sondeo del anfitrión: refresca SIEMPRE la vista corriente (v12.44.830: antes solo
+// al cambiar versión, y el contador de la sala quedaba congelado cuando nadie más
+// cambiaba el estado); durante pregunta trae conteos en vivo (1.2s)
 function startHostPolling() {
   stopTimers();
-  let lastVersion = -1;
   live.pollId = setInterval(function() {
     api('/quizzes/sessions/' + live.sessionId + '/host-state').then(function(st) {
-      const duringQuestion = st.status === 'question';
-      if (st.version !== lastVersion || duringQuestion) {
-        lastVersion = st.version;
-        renderHostState(st);
+      renderHostState(st);
+      // los cambios de estado (lobby→question→reveal→…) se manejan por versión
+      if (st.version !== live.lastSeenVersion) {
+        live.lastSeenVersion = st.version;
+        enterViewFromState(st);
       }
     }).catch(function(e) {
       if (/no encontrada/i.test(e.message)) { toast('La partida se cerró'); exitGame(); }
@@ -944,6 +946,16 @@ function fetchPlayerStateOnce() {
     .then(function(st) { pl.st = st; renderPlayerState(st); })
     .catch(function() {});
 }
+
+// refresco instantáneo al volver a la pestaña (v12.44.830): los temporizadores
+// quedan racionados en pestañas ocultas — al volver, traer el estado actual sin esperar
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) return;
+  try {
+    if (live.sessionId) { fetchHostStateOnce(); if (!live.pollId) startHostPolling(); }
+    else if (pl.pin && pl.playerId) { fetchPlayerStateOnce(); if (!pl.pollId) startPlayerPolling(); }
+  } catch (e) {}
+});
 
 // carga inicial
 init();

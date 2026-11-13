@@ -223,6 +223,10 @@ describe('Ciclo de partida completo', () => {
             .post('/api/quizzes/public/session/' + pin + '/join')
             .send({ nickname: 'Ana' });
         playerC = r3.body;
+        // v12.44.830 (bugfix en vivo): unir jugador incrementa la versión de la sesión
+        // — sin esto el sondeo del anfitrión no refresca el contador de la sala
+        const v = db.prepare("SELECT version FROM quiz_sessions WHERE id = ?").get(sessionId);
+        expect(v.version).toBeGreaterThanOrEqual(3); // 1 inicial + 2 uniones
     });
 
     test('apodo prohibido rechazado', async () => {

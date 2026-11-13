@@ -708,6 +708,9 @@ router.post('/public/session/:pin/join', (req, res) => {
         db.prepare("INSERT INTO quiz_players (id, session_id, nickname, guest_id, points, streak, correct_count, joined_at, last_seen_at) VALUES (?, ?, ?, ?, 0, 0, 0, ?, ?)").run(
             id, s.id, finalNick, guestId, now, now
         );
+        // v12.44.830 (bugfix en vivo): unir jugador incrementa la versión — sin esto
+        // el sondeo del anfitrión no refrescaba y el contador de la sala quedaba congelado
+        bumpVersion(s.id);
         notifySession(s.id, { joined: finalNick });
         try { const io = require('../../socket').getIO(); if (io) io.to('quiz:' + s.id).emit('quiz_player_joined', { nickname: finalNick }); } catch (e) {}
         res.json({ success: true, playerId: id, nickname: finalNick, sessionId: s.id, quizId: s.quiz_id });
