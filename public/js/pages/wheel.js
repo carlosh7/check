@@ -49,6 +49,35 @@ const POINTER_OFFSET=0;
 
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
+// v12.44.832: idiomas del juego (paridad AppSorteos — 7 idiomas). Elegir idioma
+// pre-llena los textos públicos del juego; siguen editables a mano.
+const LANGS={
+ es:{t:'¡Gira la ruleta y gana!',d:'- Toca la ruleta para girar.\n- ¡Buena suerte!',b:'GIRAR'},
+ en:{t:'Spin the wheel and win!',d:'- Tap the wheel to spin.\n- Good luck!',b:'SPIN'},
+ pt:{t:'Gire a roleta e ganhe!',d:'- Toque na roleta para girar.\n- Boa sorte!',b:'GIRAR'},
+ fr:{t:'Tournez la roue et gagnez !',d:'- Touchez la roue pour tourner.\n- Bonne chance !',b:'TOURNEZ'},
+ tr:{t:'Çarkı çevir ve kazan!',d:'- Çarkı çevirmek için dokun.\n- İyi şanslar!',b:'ÇEVİR'},
+ de:{t:'Dreh das Rad und gewinne!',d:'- Tippe auf das Rad, um zu drehen.\n- Viel Glück!',b:'DREHEN'},
+ ja:{t:'ルーレットを回して当てよう！',d:'- ホイールをタップして回してください。\n- 幸運を！',b:'回す'}
+};
+function applyLang(key){
+  const L=LANGS[key]||LANGS.es;
+  document.getElementById('cfg-st').checked=true;
+  document.getElementById('cfg-title').value=L.t;
+  document.getElementById('cfg-sd').checked=true;
+  document.getElementById('cfg-desc').value=L.d;
+  document.getElementById('cfg-sb').checked=true;
+  document.getElementById('cfg-bt').value=L.b;
+  refreshP()
+}
+// v12.44.832: jugar de nuevo con 5 modos (auto/nunca/siempre/gana/pierde)
+function refreshPA(){
+  const row=document.getElementById('pa-n-row');
+  if(row)row.style.display=document.getElementById('cfg-pa').value==='auto'?'flex':'none';
+}
+// estado de "jugar de nuevo" y comprobante durante el juego
+let paCount=0,lastSpinCode=null;
+
 // v12.44.821 (orden del dueño): SIEMPRE simétrica — porciones idénticas para todos
 function effProbs(){
   const n=parts.length;
@@ -302,7 +331,8 @@ function spin(){
     const fn=document.getElementById('lead-nm')?.value?.trim(),em=document.getElementById('lead-em')?.value?.trim();
     if(!fn||!em){toast('Completa nombre y email','err');return}
     document.getElementById('lead-f').classList.add('submitted');
-    fetch(API+'/raffles/'+data.id+'/spin-with-lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({winnerName:'___lead___',name:fn,email:em})}).catch(function(){});
+    // v12.44.832: el código del giro llega en la respuesta (para el comprobante)
+    fetch(API+'/raffles/'+data.id+'/spin-with-lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({winnerName:'___lead___',name:fn,email:em})}).then(function(r){return r.json()}).then(function(j){if(j&&j.codigo){lastSpinCode=j.codigo;maybeCert()}}).catch(function(){});
   }
   spinning=true;
   document.getElementById('screencast').classList.add('spinning');
@@ -351,9 +381,48 @@ function spin(){
       if(wb){wb.classList.remove('pop');void wb.offsetWidth;wb.classList.add('pop')}
       if(liveCheck('cfg-cft',getC().cft))burstConfetti();
       updWins();
-      fetch(API+'/raffles/'+data.id+'/spin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({winnerName:win})}).catch(function(){});
+      // v12.44.832: código del giro (anónimo) + jugar de nuevo según modo
+      fetch(API+'/raffles/'+data.id+'/spin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({winnerName:win})}).then(function(r){return r.json()}).then(function(j){if(j&&j.codigo){lastSpinCode=j.codigo;maybeCert()}}).catch(function(){});
+      maybeAgain();
     }
   })()
+}
+
+// v12.44.832: mostrar "GIRAR DE NUEVO" según el modo elegido
+// (auto = cada N participaciones; siempre; nunca; solo-gana [en sorteo siempre];
+//  solo-pierde [en sorteo nunca])
+function maybeAgain(){
+  const mode=(document.getElementById('cfg-pa')?.value)||getC().play_again_mode||'auto';
+  const every=parseInt(document.getElementById('cfg-pa-n')?.value,10)||getC().play_again_every||3;
+  paCount++;
+  let show=false;
+  if(mode==='always'||mode==='win')show=true;
+  else if(mode==='auto')show=(paCount>=every);
+  const b=document.getElementById('btn-again');
+  if(b)b.style.display=show?'flex':'none'
+}
+// v12.44.832: girar de nuevo — restaura el estado local pre-giro (la lista del editor
+// NO se toca) y, en modo leads, vuelve a pedir el registro del siguiente participante
+function spinAgain(){
+  const b=document.getElementById('btn-again');if(b)b.style.display='none';
+  const c=document.getElementById('btn-cert');if(c)c.style.display='none';
+  paCount=0;lastSpinCode=null;
+  if(preSpinParts!==null){parts=preSpinParts.slice();draw()}
+  const lf=document.getElementById('lead-f');
+  if(lf)lf.classList.remove('submitted');
+  document.getElementById('win-box').style.display='none';
+  refreshP()
+}
+// v12.44.832: comprobante descargable (PDF generado por el servidor con el giro real)
+function maybeCert(){
+  if(!liveCheck('cfg-cert',getC().certificate))return;
+  if(!lastSpinCode)return;
+  const c=document.getElementById('btn-cert');
+  if(c)c.style.display='flex'
+}
+function downloadCert(){
+  if(!lastSpinCode){toast('Gira la ruleta primero','err');return}
+  window.open(API+'/raffles/'+data.id+'/certificate?codigo='+encodeURIComponent(lastSpinCode),'_blank')
 }
 
 // v12.44.821: girar con clic sobre la ruleta o barra espaciadora (paridad AppSorteos)
@@ -511,7 +580,7 @@ function saveW(){
   const el=document.getElementById('wheel-name'),name=el?.value?.trim();
   if(!name){toast('Nombre requerido','err');return}
   if(!currentId){toast('Primero crea la ruleta','err');return}
-  const cfg={page_background_color:document.getElementById('c-bg').value,page_background_image:window.wheelBgImage,main_color:document.getElementById('c-main').value,pointer_color:document.getElementById('c-ptr').value,wheel_border_color:document.getElementById('c-bdr').value,wheel_slices_text_color:document.getElementById('c-txt').value,wheel_colors:segCs,wheel_lines_size:parseInt(document.getElementById('cfg-ln').value)||0,wheel_spin_duration:parseInt(document.getElementById('cfg-dur').value)||10,play_sounds:document.getElementById('cfg-snd').checked,show_confettis:document.getElementById('cfg-cft').checked,wheel_auto_remove:document.getElementById('cfg-arm').checked,capture_leads:document.getElementById('cfg-lds').checked,improve_slices:document.getElementById('cfg-imp').checked,show_title:document.getElementById('cfg-st').checked,title:document.getElementById('cfg-title').value,show_desc:document.getElementById('cfg-sd').checked,description:document.getElementById('cfg-desc').value,show_start_button:document.getElementById('cfg-sb').checked,start_button:document.getElementById('cfg-bt').value,logo:logoDataUrl};
+  const cfg={page_background_color:document.getElementById('c-bg').value,page_background_image:window.wheelBgImage,main_color:document.getElementById('c-main').value,pointer_color:document.getElementById('c-ptr').value,wheel_border_color:document.getElementById('c-bdr').value,wheel_slices_text_color:document.getElementById('c-txt').value,wheel_colors:segCs,wheel_lines_size:parseInt(document.getElementById('cfg-ln').value)||0,wheel_spin_duration:parseInt(document.getElementById('cfg-dur').value)||10,play_sounds:document.getElementById('cfg-snd').checked,show_confettis:document.getElementById('cfg-cft').checked,wheel_auto_remove:document.getElementById('cfg-arm').checked,capture_leads:document.getElementById('cfg-lds').checked,improve_slices:document.getElementById('cfg-imp').checked,show_title:document.getElementById('cfg-st').checked,title:document.getElementById('cfg-title').value,show_desc:document.getElementById('cfg-sd').checked,description:document.getElementById('cfg-desc').value,show_start_button:document.getElementById('cfg-sb').checked,start_button:document.getElementById('cfg-bt').value,logo:logoDataUrl,language:document.getElementById('cfg-lang')?document.getElementById('cfg-lang').value:'es',play_again_mode:document.getElementById('cfg-pa')?document.getElementById('cfg-pa').value:'auto',play_again_every:parseInt(document.getElementById('cfg-pa-n')?.value,10)||3,certificate:document.getElementById('cfg-cert')?document.getElementById('cfg-cert').checked:false};
   // v12.44.821: desde el ENLACE COMPARTIDO se guarda por /public-config (sin clave):
   // config + participantes en una sola llamada, auditada en el backend. No renombra
   // ni borra ni cambia estado — solo lo que se ajusta de último momento.
@@ -553,6 +622,12 @@ function loadW(id,name){
     document.getElementById('cfg-st').checked=c.show_title!==false;document.getElementById('cfg-title').value=c.title||'';
     document.getElementById('cfg-sd').checked=c.show_desc!==false;document.getElementById('cfg-desc').value=c.description||'';
     document.getElementById('cfg-sb').checked=c.show_start_button!==false;document.getElementById('cfg-bt').value=c.start_button||'Girar';
+    // v12.44.832: idioma, jugar de nuevo y comprobante
+    if(document.getElementById('cfg-lang'))document.getElementById('cfg-lang').value=c.language||'es';
+    if(document.getElementById('cfg-pa'))document.getElementById('cfg-pa').value=c.play_again_mode||'auto';
+    if(document.getElementById('cfg-pa-n'))document.getElementById('cfg-pa-n').value=String(c.play_again_every||3);
+    if(document.getElementById('cfg-cert'))document.getElementById('cfg-cert').checked=c.certificate===true;
+    if(document.getElementById('pa-n-row'))document.getElementById('pa-n-row').style.display=(c.play_again_mode||'auto')==='auto'?'flex':'none';
     segCs=c.wheel_colors||['#ff7878','#7eecec','#fff171','#7280fd'];logoDataUrl=c.logo||null;
     renderSegCs();refreshP();
     fetch(API+'/raffles/'+id+'/participants').then(function(r){return r.json()}).then(function(ps){

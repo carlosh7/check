@@ -202,10 +202,12 @@ router.post('/:id/spin', (req, res) => {
         const raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
         if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
         const { winnerName } = req.body;
+        const spinId = uuidv4();
         db.prepare("INSERT INTO raffle_spins (id, raffle_id, winner_name, ip_address, created_at) VALUES (?, ?, ?, ?, ?)").run(
-            uuidv4(), raffle.id, winnerName || 'Anónimo', req.ip || '', new Date().toISOString()
+            spinId, raffle.id, winnerName || 'Anónimo', req.ip || '', new Date().toISOString()
         );
-        res.json({ success: true });
+        // v12.44.832: código del giro para el comprobante descargable
+        res.json({ success: true, codigo: spinId.slice(0, 8).toUpperCase() });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -218,11 +220,59 @@ router.post('/:id/spin-with-lead', (req, res) => {
         const { winnerName, name, email, phone } = req.body;
         if (!name || !email) return res.status(400).json({ error: 'Nombre y email requeridos' });
         const leadInfo = JSON.stringify({ name: name, email: email, phone: phone || '' });
+        const spinId = uuidv4();
         db.prepare("INSERT INTO raffle_spins (id, raffle_id, winner_name, ip_address, lead_json, created_at) VALUES (?, ?, ?, ?, ?, ?)").run(
-            uuidv4(), raffle.id, winnerName || 'Anónimo', req.ip || '', leadInfo, new Date().toISOString()
+            spinId, raffle.id, winnerName || 'Anónimo', req.ip || '', leadInfo, new Date().toISOString()
         );
-        res.json({ success: true });
+        // v12.44.832: código del giro para el comprobante descargable
+        res.json({ success: true, codigo: spinId.slice(0, 8).toUpperCase() });
     } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Comprobante de participación (público, PDF con jsPDF) ──
+// v12.44.832: paridad AppSorteos "Descargar Comprobante". El jugador pide su
+// comprobante con el código que le devolvió el giro; el PDF se arma con los datos
+// REALES guardados en raffle_spins (no con los parámetros de la URL).
+
+router.get('/:id/certificate', (req, res) => {
+    try {
+        const raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
+        const codigo = String(req.query.codigo || '').trim().toUpperCase();
+        if (!/^[A-F0-9]{8}$/.test(codigo)) return res.status(400).json({ error: 'Código inválido' });
+        const spins = db.prepare("SELECT * FROM raffle_spins WHERE raffle_id = ?").all(raffle.id);
+        const spin = spins.find(function(s) { return s.id.slice(0, 8).toUpperCase() === codigo; });
+        if (!spin) return res.status(404).json({ error: 'Giro no encontrado para ese código' });
+        let lead = {};
+        try { lead = spin.lead_json ? JSON.parse(spin.lead_json) : {}; } catch (e) {}
+        const esLead = spin.winner_name === '___lead___';
+        const evento = db.prepare("SELECT name FROM events WHERE id = ?").get(raffle.event_id);
+
+        const { jsPDF } = require('jspdf');
+        const doc = new jsPDF();
+        doc.setFontSize(20); doc.setTextColor(124, 58, 237);
+        doc.text('Comprobante de Participacion', 14, 28);
+        doc.setFontSize(12); doc.setTextColor(60);
+        doc.text('Ruleta: ' + raffle.name, 14, 40);
+        doc.text('Evento: ' + (evento ? evento.name : 'N/A'), 14, 48);
+        doc.setFontSize(11); doc.setTextColor(80);
+        if (esLead) {
+            doc.text('Participante: ' + (lead.name || '-') + ' <' + (lead.email || '-') + '>', 14, 60);
+        } else {
+            doc.text('Resultado: ' + spin.winner_name, 14, 60);
+        }
+        doc.text('Fecha: ' + (spin.created_at || '').replace('T', ' ').slice(0, 19), 14, 68);
+        doc.setFontSize(13); doc.setTextColor(124, 58, 237);
+        doc.text('Codigo: ' + codigo, 14, 80);
+        doc.setFontSize(9); doc.setTextColor(150);
+        doc.text('Powered by Check Pro', 14, 290);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=comprobante_' + codigo + '.pdf');
+        res.send(Buffer.from(doc.output('arraybuffer')));
+    } catch (err) {
+        logger.error('[RAFFLE] Certificate error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // ── Track visita (público) ──

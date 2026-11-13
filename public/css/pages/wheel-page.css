@@ -222,3 +222,6 @@ body.share-mode{display:none}
 /* v12.44.821: en desktop grande la rueda se adapta a la altura disponible
    (antes era 610px fijos y se recortaba por abajo con el hero y las tarjetas de modo) */
 @media(min-width:1200px){:root{--ws:550px}.wof__wheel{width:min(610px,max(380px,calc(100vh - 420px)));height:min(610px,max(380px,calc(100vh - 420px)))}}
+
+/* v12.44.832: comprobante descargable — botón en tono distinto al GIRAR */
+.wof__main__btn--cert { background: #0ea5e9; box-shadow: 0 3px 0 #0369a1; }
