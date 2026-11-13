@@ -579,6 +579,54 @@ function initSchema(db) {
     try { db.exec("CREATE INDEX IF NOT EXISTS idx_quiz_responses_session ON quiz_responses(session_id)"); } catch (_) {}
     try { db.exec("CREATE INDEX IF NOT EXISTS idx_quiz_reactions_session ON quiz_reactions(session_id)"); } catch (_) {}
 
+    // ── Promociones: Ruleta de la Fortuna (P1 — paridad AppSorteos — v12.44.833) ──
+    db.exec(`CREATE TABLE IF NOT EXISTS fortunas (
+        id TEXT PRIMARY KEY,
+        event_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        config_json TEXT,
+        status TEXT DEFAULT 'draft',
+        views INTEGER DEFAULT 0,
+        created_at TEXT,
+        updated_at TEXT,
+        FOREIGN KEY (event_id) REFERENCES events(id)
+    )`)
+
+    db.exec(`CREATE TABLE IF NOT EXISTS fortuna_prizes (
+        id TEXT PRIMARY KEY,
+        fortuna_id TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'sin_premio',
+        label TEXT NOT NULL,
+        value TEXT,
+        quantity INTEGER,
+        chance REAL,
+        order_index INTEGER DEFAULT 0,
+        created_at TEXT,
+        FOREIGN KEY (fortuna_id) REFERENCES fortunas(id) ON DELETE CASCADE
+    )`)
+
+    db.exec(`CREATE TABLE IF NOT EXISTS fortuna_plays (
+        id TEXT PRIMARY KEY,
+        fortuna_id TEXT NOT NULL,
+        email TEXT NOT NULL,
+        name TEXT,
+        apellido TEXT,
+        phone TEXT,
+        custom_json TEXT,
+        prize_label TEXT,
+        prize_type TEXT,
+        prize_value TEXT,
+        ip TEXT,
+        device_id TEXT,
+        created_at TEXT,
+        FOREIGN KEY (fortuna_id) REFERENCES fortunas(id) ON DELETE CASCADE
+    )`)
+
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_fortunas_event ON fortunas(event_id)"); } catch (_) {}
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_fortuna_prizes_fortuna ON fortuna_prizes(fortuna_id)"); } catch (_) {}
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_fortuna_plays_fortuna ON fortuna_plays(fortuna_id)"); } catch (_) {}
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_fortuna_plays_email ON fortuna_plays(email)"); } catch (_) {}
+
     // Transactions table (F3-07)
     db.exec(`CREATE TABLE IF NOT EXISTS transactions (
         id TEXT PRIMARY KEY,

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruleta de la Fortuna | Check Pro</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/pages/fortuna-page.css?v=12.44.833">
+</head>
+<body>
+<div id="loading"><div><div class="sp"></div><p>Cargando promoción...</p></div></div>
+<div id="error" data-style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#fff;z-index:99999;flex-direction:column;text-align:center;padding:32px">
+  <h2 data-style="font-size:20px;margin-bottom:8px;color:#1a1a1a">Promoción no disponible</h2>
+  <p id="errmsg" data-style="font-size:14px;color:#6b7280;margin-bottom:24px"></p>
+  <button data-act="reload" data-style="padding:10px 28px;border:none;border-radius:10px;background:#7c3aed;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Reintentar</button>
+</div>
+
+<div class="hero-stats hidden" id="hero-stats">
+  <div class="stats">
+    <span>👁️ <span id="stat-views">0</span> <b>Vistas</b></span>
+    <span>🎯 <span id="stat-plays">0</span> <b>Participaciones</b></span>
+    <span>🎁 <span id="stat-prizes">6</span> <b>Secciones</b></span>
+  </div>
+  <div class="actions">
+    <button data-act="call" data-call="openShare">🔗 Compartir</button>
+  </div>
+</div>
+
+<div id="wof" class="fz">
+  <!-- SIDEBAR -->
+  <div id="sidebar" class="fz__config">
+    <div class="fz__config__menu">
+      <div class="fz__config__menu-item active" data-act="call" data-call="switchTab" data-a1="general" data-a2="@this">⚙️ General</div>
+      <div class="fz__config__menu-item" data-act="call" data-call="switchTab" data-a1="premios" data-a2="@this">🎁 Premios</div>
+      <div class="fz__config__menu-item" data-act="call" data-call="switchTab" data-a1="design" data-a2="@this">🎨 Diseño</div>
+      <div class="fz__config__menu-item" data-act="call" data-call="switchTab" data-a1="seguridad" data-a2="@this">🛡️ Seguridad</div>
+      <div class="fz__config__menu-item" data-act="call" data-call="switchTab" data-a1="form" data-a2="@this">📝 Formulario</div>
+    </div>
+    <div class="fz__config__body" id="sidebar-body">
+
+      <!-- GENERAL -->
+      <div id="tab-general" class="fz-tab">
+        <div class="sec-h"><span>📝</span>Nombre<span class="chev">▼</span></div>
+        <div class="sec-b"><input id="fz-name" class="form-control form-control-lg" placeholder="Nombre de la promoción"></div>
+        <div class="sec-h collapsed"><span>🌐</span>Idioma<span class="chev">▼</span></div>
+        <div class="sec-b hidden">
+          <div class="flex-cb"><label class="fz-mini">Idioma del juego</label>
+            <select id="cfg-lang" class="form-control" data-style="width:auto">
+              <option value="es" selected>Español</option><option value="en">English</option>
+              <option value="pt">Português</option><option value="fr">Français</option>
+              <option value="tr">Türkçe</option><option value="de">Deutsch</option>
+              <option value="ja">日本語</option>
+            </select>
+          </div>
+        </div>
+        <div class="sec-h collapsed"><span>✏️</span>Textos del juego<span class="chev">▼</span></div>
+        <div class="sec-b hidden">
+          <label class="fz-mini">Título</label>
+          <input id="txt-title" class="form-control" maxlength="120">
+          <label class="fz-mini">Descripción</label>
+          <textarea id="txt-desc" class="form-control" rows="3" maxlength="300"></textarea>
+          <label class="fz-mini">Botón Comenzar</label>
+          <input id="txt-button" class="form-control" maxlength="30">
+          <label class="fz-mini">Título Ganador</label>
+          <input id="txt-wint" class="form-control" maxlength="120">
+          <label class="fz-mini">Descripción Ganador</label>
+          <textarea id="txt-wind" class="form-control" rows="2" maxlength="300"></textarea>
+          <label class="fz-mini">Título Perdedor</label>
+          <input id="txt-loset" class="form-control" maxlength="120">
+          <label class="fz-mini">Descripción Perdedor</label>
+          <textarea id="txt-losed" class="form-control" rows="2" maxlength="300"></textarea>
+          <button class="form-control fz-mini-btn" data-act="call" data-call="applyLang" data-style="background:#faf5ff;color:#7c3aed;font-weight:600;cursor:pointer;border:1px solid #e9d5ff">↺ Restaurar textos del idioma</button>
+        </div>
+        <div class="sec-h collapsed"><span>⚙️</span>Opciones<span class="chev">▼</span></div>
+        <div class="sec-b hidden">
+          <div class="custom-check"><input type="checkbox" id="cfg-snd" checked><label for="cfg-snd">🔊 Emitir sonidos</label></div>
+          <div class="custom-check"><input type="checkbox" id="cfg-share"><label for="cfg-share">📤 Mostrar botones para compartir</label></div>
+          <div class="custom-check"><input type="checkbox" id="cfg-cert"><label for="cfg-cert">📄 Descargar comprobante</label></div>
+          <div class="flex-cb"><label class="fz-mini">Jugar de nuevo</label>
+            <select id="cfg-pa" class="form-control" data-style="width:auto">
+              <option value="auto" selected>Automático</option><option value="never">Nunca</option>
+              <option value="always">Siempre</option><option value="win">Solo cuando gana</option>
+              <option value="lose">Solo cuando pierde</option>
+            </select>
+          </div>
+          <div class="flex-cb" id="pa-n-row"><label class="fz-mini">Cada N participaciones</label>
+            <input id="cfg-pa-n" type="number" min="1" value="3" class="form-control" data-style="width:70px">
+          </div>
+          <div class="flex-cb"><label class="fz-mini">Duración del giro</label>
+            <select id="cfg-dur" class="form-control" data-style="width:80px">
+              <option value="4">4s</option><option value="6" selected>6s</option><option value="8">8s</option><option value="10">10s</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- PREMIOS -->
+      <div id="tab-premios" class="fz-tab hidden">
+        <div class="custom-check"><input type="checkbox" id="cfg-chances"><label for="cfg-chances">🎯 Limitar chances (% por sección)</label></div>
+        <div class="custom-check"><input type="checkbox" id="cfg-quantities"><label for="cfg-quantities">📦 Limitar cantidades (stock por premio)</label></div>
+        <div class="sec-h"><span>🎁</span><span id="prize-count">Secciones (6)</span><span class="chev">▼</span></div>
+        <div class="sec-b">
+          <button class="form-control" data-style="background:#faf5ff;color:#7c3aed;font-weight:600;cursor:pointer;border:1px solid #e9d5ff" data-act="call" data-call="addPrize">＋ Nueva sección</button>
+          <div id="prize-list"></div>
+        </div>
+      </div>
+
+      <!-- DISEÑO -->
+      <div id="tab-design" class="fz-tab hidden">
+        <div class="form-group"><label>Temas</label><div id="theme-ps" class="fz-themes"></div></div>
+        <div class="sec-h"><span>🖼️</span>Fondo<span class="chev">▼</span></div>
+        <div class="sec-b">
+          <div class="flex-cb"><label class="fz-mini">Color de Fondo</label>
+            <div class="color-input"><span id="v-bg">#9d174d</span><input type="color" id="c-bg" value="#9d174d" data-act="call" data-call="refreshP"></div>
+          </div>
+        </div>
+        <div class="sec-h"><span>🎡</span>Ruleta<span class="chev">▼</span></div>
+        <div class="sec-b">
+          <div class="flex-cb"><label class="fz-mini">Color de Puntero</label>
+            <div class="color-input"><span id="v-ptr">#22d3ee</span><input type="color" id="c-ptr" value="#22d3ee" data-act="call" data-call="refreshP"></div>
+          </div>
+          <div class="flex-cb"><label class="fz-mini">Color de Texto</label>
+            <div class="color-input"><span id="v-wtxt">#ffffff</span><input type="color" id="c-wtxt" value="#ffffff" data-act="call" data-call="draw"></div>
+          </div>
+          <div class="flex-cb"><label class="fz-mini">Color de Bordes</label>
+            <div class="color-input"><span id="v-bdr">#ffffff</span><input type="color" id="c-bdr" value="#ffffff" data-act="call" data-call="draw"></div>
+          </div>
+          <div class="flex-cb"><label class="fz-mini">Grosor de Línea</label>
+            <input type="range" id="cfg-ln" min="0" max="6" step="2" value="2" data-act="call" data-call="draw" data-style="width:80px">
+          </div>
+          <div class="form-group"><label>Centro de Ruleta</label>
+            <div data-style="display:flex;align-items:center;gap:8px">
+              <div id="logo-pv" data-style="width:40px;height:40px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;flex-shrink:0">🎯</div>
+              <button class="form-control" data-style="padding:4px 12px;cursor:pointer;width:auto" data-act="call" data-call="uploadLogo">Subir</button>
+              <button id="btn-rm-logo" class="form-control" data-style="padding:4px 12px;cursor:pointer;width:auto;display:none;color:#ef4444" data-act="call" data-call="rmLogo">Eliminar</button>
+            </div>
+          </div>
+        </div>
+        <div class="sec-h"><span>📝</span>Formulario y Botones<span class="chev">▼</span></div>
+        <div class="sec-b">
+          <div class="flex-cb"><label class="fz-mini">Color de Texto</label>
+            <div class="color-input"><span id="v-txt">#ffffff</span><input type="color" id="c-txt" value="#ffffff" data-act="call" data-call="refreshP"></div>
+          </div>
+          <div class="flex-cb"><label class="fz-mini">Color de Botón</label>
+            <div class="color-input"><span id="v-btn">#ec4899</span><input type="color" id="c-btn" value="#ec4899" data-act="call" data-call="refreshP"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEGURIDAD -->
+      <div id="tab-seguridad" class="fz-tab hidden">
+        <label class="fz-mini">Participaciones máximas por email</label>
+        <input id="sec-max" type="number" min="1" value="1" class="form-control">
+        <p class="fz-hint">¿Cuántas veces puede participar un mismo usuario (email)?</p>
+        <label class="fz-mini">Emails permitidos (uno por línea, vacío = todos)</label>
+        <textarea id="sec-allowed" class="form-control" rows="4" placeholder="cliente1@correo.com&#10;cliente2@correo.com"></textarea>
+        <label class="fz-mini">Limitar por dispositivo</label>
+        <select id="sec-device" class="form-control">
+          <option value="off" selected>Desactivado</option>
+          <option value="browser">Navegador</option>
+          <option value="ip">Sólo IP</option>
+        </select>
+        <label class="fz-mini">Máximo por dispositivo</label>
+        <input id="sec-device-max" type="number" min="1" value="1" class="form-control">
+      </div>
+
+      <!-- FORMULARIO -->
+      <div id="tab-form" class="fz-tab hidden">
+        <div class="custom-check"><input type="checkbox" id="fm-name"><label for="fm-name">👤 Pedir Nombre</label></div>
+        <div class="custom-check"><input type="checkbox" id="fm-apellido"><label for="fm-apellido">👤 Pedir Apellido</label></div>
+        <div class="custom-check"><input type="checkbox" id="fm-phone"><label for="fm-phone">📱 Pedir Teléfono</label></div>
+        <label class="fz-mini">Casilla de consentimiento (texto, vacío = sin casilla)</label>
+        <textarea id="fm-consent" class="form-control" rows="2" maxlength="200" placeholder="Acepto las condiciones del sorteo"></textarea>
+        <p class="fz-hint">El email siempre se pide (es el identificador del participante). En AppSorteos los campos avanzados cuestan — aquí son gratis 😉</p>
+      </div>
+
+      <div class="sec-h collapsed" data-act="call" data-call="toggleCollapse" data-a1="@this" data-a2="sec-mis"><span>💾</span>Mis Promociones<span class="chev">▼</span></div>
+      <div id="sec-mis" class="sec-b hidden">
+        <div id="mis-list" data-style="font-size:13px;color:#6b7280;text-align:center;padding:8px">Cargando...</div>
+      </div>
+    </div>
+    <div class="fz__config__footer">
+      <button class="btn btn-primary" id="btn-save" data-act="call" data-call="saveF">💾 Guardar</button>
+      <button class="btn btn-success" id="btn-pub" data-act="call" data-call="publishF">🚀 Publicar</button>
+    </div>
+  </div>
+
+  <!-- ESCENARIO / PREVIEW -->
+  <div id="stage" class="fz-stage">
+    <div class="fz-preview-head">
+      <span class="fz-preview-label">Vista Previa</span>
+      <select id="pv-page" class="form-control" data-style="width:auto" data-act="call" data-call="setPreview">
+        <option value="form" selected>Formulario</option>
+        <option value="win">Página Ganador</option>
+        <option value="lose">Página Perdedor</option>
+      </select>
+    </div>
+    <div id="pv" class="fz-pv">
+      <canvas id="wcanvas" width="420" height="420"></canvas>
+      <div class="fz-pv__pointer"><svg viewBox="0 0 24 24" width="34" height="34"><path fill="currentColor" d="M12 2 L20 10 L15 10 L15 22 L9 22 L9 10 L4 10 Z" transform="rotate(180 12 12)"/></svg></div>
+      <div class="fz-pv__right">
+        <h2 id="pv-title" class="fz-pv__title">¡Gira la ruleta y gana!</h2>
+        <p id="pv-desc" class="fz-pv__desc"></p>
+        <div class="fz-pv__form">
+          <input class="fz-input" placeholder="Correo Electrónico" disabled>
+          <input class="fz-input fz-input--extra" placeholder="Nombre" disabled data-style="display:none">
+          <input class="fz-input fz-input--extra" placeholder="Apellido" disabled data-style="display:none">
+          <input class="fz-input fz-input--extra" placeholder="Teléfono" disabled data-style="display:none">
+          <button class="fz-btn" id="pv-btn">Probar Suerte</button>
+        </div>
+        <div class="fz-pv__result hidden" id="pv-result">
+          <h3 id="pv-res-title" class="fz-pv__restitle"></h3>
+          <p id="pv-res-desc" class="fz-pv__resdesc"></p>
+          <p id="pv-res-prize" class="fz-pv__resprize"></p>
+        </div>
+      </div>
+    </div>
+    <div class="fz-stage__options">
+      <button data-act="call" data-call="toggleFS" title="Pantalla completa">⛶</button>
+    </div>
+    <div class="watermark">Powered by Check Pro</div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="share-modal">
+  <div class="modal-box">
+    <h3>Compartir promoción</h3>
+    <p>Enlace de juego para tus participantes (y enlace del editor)</p>
+    <input type="text" id="share-url" readonly>
+    <input type="text" id="share-url-edit" readonly data-style="margin-top:6px">
+    <div class="btn-row"><button class="primary" data-act="call" data-call="copyLink">Copiar enlace de juego</button><button class="secondary" data-act="call" data-call="closeModal" data-a1="share-modal">Cerrar</button></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.833"></script>
+<script src="/js/pages/fortuna.js?v=12.44.833"></script>
+</body>
+</html>

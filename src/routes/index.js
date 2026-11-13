@@ -38,6 +38,7 @@ const venuesRoutes = require('./venues.routes');
 const googleRoutes = require('./google.routes');
 const rafflesRoutes = require('./raffles.routes');
 const quizzesRoutes = require('./quizzes.routes');
+const fortunasRoutes = require('./fortunas.routes');
 const paymentsRoutes = require('./payments.routes').router;
 const smsRoutes = require('./sms.routes');
 const budgetRoutes = require('./budget.routes');
@@ -246,6 +247,9 @@ app.use('/api/compliance', complianceRoutes);
     // Quizzes / Quiz en vivo estilo Kahoot (K1 — v12.44.829)
     app.use('/api/quizzes', quizzesRoutes);
 
+    // Promociones: Ruleta de la Fortuna (P1 — v12.44.833)
+    app.use('/api/fortunas', fortunasRoutes);
+
     // Polls / Live Polling (C11-01)
     app.use('/api/polls', pollsRoutes);
 
@@ -278,6 +282,13 @@ app.use('/api/compliance', complianceRoutes);
     });
     app.get('/:slug/quiz/:id/play', (req, res) => {
         res.sendFile(path.join(rootDir, 'public/html/pages/quiz.html'));
+    });
+    // Promociones: Ruleta de la Fortuna (P1 — v12.44.833): editor y página de juego
+    app.get('/:slug/fortuna/:id', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/fortuna.html'));
+    });
+    app.get('/:slug/fortuna/:id/jugar', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/fortuna-play.html'));
     });
     app.get('/:slug/survey/:id', (req, res) => {
         res.sendFile(path.join(rootDir, 'public/html/pages/survey.html'));
