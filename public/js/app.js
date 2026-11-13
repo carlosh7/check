@@ -7271,6 +7271,16 @@ navigate(viewName, params = {}, push = true) {
                 this.navigate('my-events');
             }
         });
+        // v12.44.835: acceso rápido consolidado a los juegos (abre el hub en el evento activo)
+        cl('nav-btn-juegos', () => {
+            const eventId = this.state.event?.id;
+            if (eventId) {
+                sessionStorage.setItem('active_config_tab', 'promos');
+                this.navigate('event-config', { id: eventId });
+            } else {
+                this.navigate('my-events');
+            }
+        });
         cl('nav-btn-system', () => this.navigate('system', { tab: 'users' }));
         
         // Sidebar footer
@@ -14412,10 +14422,12 @@ navigate(viewName, params = {}, push = true) {
     // ── Promociones (P1-P4 — v12.44.834): 4 juegos con leads, selector por tipo ──
     // P1 Ruleta de la Fortuna (fortunas) · P2 Raspa y Gana (raspas) · P3 Trivia (trivias) · P4 Tragamonedas (slots)
     PROMO_TYPES: {
-        fortuna: { api: 'fortunas', slug: 'fortuna', emoji: '🎡', label: 'Ruleta de la Fortuna', publicSuffix: '' },
-        raspa:   { api: 'raspas',   slug: 'raspa',   emoji: '🎫', label: 'Raspa y Gana',  publicSuffix: '' },
-        trivia:  { api: 'trivias',  slug: 'trivia',  emoji: '🧠', label: 'Trivia',        publicSuffix: '' },
-        slot:    { api: 'slots',    slug: 'tragamonedas', emoji: '🎰', label: 'Tragamonedas', publicSuffix: '' }
+        fortuna: { api: 'fortunas', slug: 'fortuna', emoji: '🎡', label: 'Ruleta de la Fortuna', csv: true,  publish: true },
+        raspa:   { api: 'raspas',   slug: 'raspa',   emoji: '🎫', label: 'Raspa y Gana',  csv: true,  publish: true },
+        trivia:  { api: 'trivias',  slug: 'trivia',  emoji: '🧠', label: 'Trivia',        csv: true,  publish: true },
+        slot:    { api: 'slots',    slug: 'tragamonedas', emoji: '🎰', label: 'Tragamonedas', csv: true, publish: true },
+        quiz:    { api: 'quizzes',  slug: 'quiz',    emoji: '🎓', label: 'Quiz en vivo (Kahoot)', csv: false, publish: true },
+        raffle:  { api: 'raffles',  slug: 'raffle',  emoji: '🎯', label: 'Sorteos (Ruleta)', csv: true, publish: true }
     },
     promosType: 'fortuna',
 
@@ -14453,19 +14465,33 @@ navigate(viewName, params = {}, push = true) {
         const meta = this.PROMO_TYPES[type];
         const list = document.getElementById('promos-list-view'); if (!list) return;
         list.innerHTML = '<p class="text-xs text-slate-500 italic">Cargando...</p>';
+        const self = this;
         this.fetchAPI('/' + meta.api + '/events/' + eId + '/' + meta.api).then(function(items) {
             if (!items || !items.length) { list.innerHTML = '<div class="text-center py-8 text-slate-500"><p>No hay promociones de este tipo. Crea la primera.</p></div>'; return }
+            // v12.44.835: botones de los 6 juegos (hub consolidado) — render dinámico
+            const cont = document.getElementById('config-content-promos');
+            const zona = cont && cont.querySelector('.promos-type-zone');
+            if (zona) {
+                zona.innerHTML = Object.keys(self.PROMO_TYPES).map(function(t) {
+                    const m = self.PROMO_TYPES[t];
+                    return '<button class="btn-secondary btn-standard promos-type-btn' + (t === type ? ' bg-primary/20 text-primary' : '') + '" data-type="' + t + '" data-act="call" data-call="setPromosType" data-a1="' + t + '">' + m.emoji + ' ' + m.label + '</button>';
+                }).join('');
+            }
+            // stats y acciones según tipo (paridad con cada módulo)
             list.innerHTML = items.map(function(f) {
                 const st = f.stats || {};
                 const pub = f.status === 'published';
-                const extra = f.prizeCount != null ? (f.prizeCount + ' secciones') : (f.prizes ? f.prizes.length + ' premios' : '');
+                let extra = '';
+                if (type === 'quiz') extra = (f.questionCount || 0) + ' preguntas | ' + (st.players || 0) + ' jugadores en ' + (st.sessions || 0) + ' partidas';
+                else if (type === 'raffle') extra = (f.total_participants || 0) + ' participantes | ' + ((st && st.spins) || 0) + ' giros';
+                else extra = (f.prizeCount != null ? f.prizeCount + ' secciones | ' : '') + (st.plays || 0) + ' jugadas | ' + (st.views || 0) + ' vistas';
+                const csvBtn = meta.csv && pub ? '<button class="btn-icon text-sky-400" title="Descargar CSV" data-stop="1" data-act="call" data-call="promosCsv" data-a1="' + type + '" data-a2="' + f.id + '"><span class="material-symbols-outlined text-sm">download</span></button>' : '';
+                const pubBtn = meta.publish ? '<button class="btn-icon text-amber-400" title="' + (pub ? 'Despublicar' : 'Publicar') + '" data-stop="1" data-act="call" data-call="publishPromo" data-a1="' + type + '" data-a2="' + f.id + '" data-a3="' + (pub ? 1 : 0) + '"><span class="material-symbols-outlined text-sm">' + (pub ? 'public' : 'publish') + '</span></button>' : '';
                 return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors cursor-pointer" data-act="call" data-call="openPromoPage" data-a1="' + type + '" data-a2="' + f.id + '">' +
                     '<div class="flex items-center gap-3"><span class="text-lg">' + meta.emoji + '</span>' +
                     '<div><p class="text-sm font-bold text-white">' + (f.name || 'Sin nombre') + (pub ? ' <span class="text-xs text-emerald-400">● publicada</span>' : ' <span class="text-xs text-slate-500">● borrador</span>') + '</p>' +
-                    '<p class="text-xs text-slate-500">' + extra + ' | ' + (st.plays || 0) + ' jugadas | ' + (st.views || 0) + ' vistas</p></div></div>' +
-                    '<div class="flex gap-1">' +
-                    (pub ? '<button class="btn-icon text-sky-400" title="Descargar leads CSV" data-stop="1" data-act="call" data-call="promosCsv" data-a1="' + type + '" data-a2="' + f.id + '"><span class="material-symbols-outlined text-sm">download</span></button>' : '') +
-                    '<button class="btn-icon text-amber-400" title="' + (pub ? 'Despublicar' : 'Publicar') + '" data-stop="1" data-act="call" data-call="publishPromo" data-a1="' + type + '" data-a2="' + f.id + '" data-a3="' + (pub ? 1 : 0) + '"><span class="material-symbols-outlined text-sm">' + (pub ? 'public' : 'publish') + '</span></button>' +
+                    '<p class="text-xs text-slate-500">' + extra + '</p></div></div>' +
+                    '<div class="flex gap-1">' + csvBtn + pubBtn +
                     '<button class="btn-icon text-red-400" title="Eliminar" data-stop="1" data-act="call" data-call="deletePromo" data-a1="' + type + '" data-a2="' + f.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>'
             }).join('')
         }).catch(function(e) { list.innerHTML = '<p class="text-red-500 text-xs">Error al cargar</p>'; console.error(e) })
