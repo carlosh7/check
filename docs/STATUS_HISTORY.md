@@ -680,3 +680,9 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 - Validación EN VIVO con 4 cuentas QA en producción: 403 en toda escalada, 200 en mismo grupo, 2FA 400/403, compliance 403 ajeno / consulta propia operativa. Captura del modal de contraseña. Limpieza verificada a 0 (recursiva por FK, usuarios reales intactos).
 - Suite 455✓ tras cada paso. Guía de usuario 2FA actualizada (docs/user/10-seguridad/01).
 - Nota: existe e2e-prod@test.local ADMIN en producción (previa) — recomendar baja.
+
+## 2026-11-14 (madrugada) — v12.44.843/844/845 — login descuadrado + resto de seguridad alta + zod4
+- v843: login descuadrado tras logout (flex en línea → fila) CORREGIDO y validado con captura; wipe por versión preserva sesión (N3 cerrado, validado en vivo); registro alcanzable (N2); PRODUCTOR ve sus propios eventos (N1, validado).
+- v844: webhooks globales solo ADMIN (5 rutas+listado+POST), apikeys hash+scopes estrictos+orden de middlewares+columna scopes, plugins esquema unificado+ownership, undo/redo con roles, Pagos #1-#8 (cupón a Stripe, webhook atómico, metadata merge, triggerWebhooks orden real, firma ecommerce, api_key enmascarada), Mailing compositor/prueba/adjuntos/XSS-iframe/duplicate, Encuestas builder/CSV/agenda/polls/certificados, XSS álbum+admin, N5 cabecera. Validación en vivo con 4 cuentas QA + limpieza recursiva a 0 + 3 BD huérfanas fuera + e2e-prod@test.local a PENDING.
+- v845: zod@4.6.7 — npm audit producción = 0 vulnerabilidades (mañana: 10/1 crítica). Suite 455✓. Smoke en vivo de validación.
+- Tag v12.44.842 movido a ff08275 (precedente v828) y cuenta e2e desactivada por orden del dueño ("resuelve todo").

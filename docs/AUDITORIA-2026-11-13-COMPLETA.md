@@ -219,3 +219,72 @@ Encuestas builder/agenda/XSS, webhooks globales, plugins ownership, apikeys, N1
 muere al reiniciar contenedor), N5 (cabecera por confirmar con clic real).
 **Nota operador:** existe la cuenta `e2e-prod@test.local` con rol ADMIN en producción
 (previsiona a esta sesión) — eliminarla o desactivarla si ya no se usa.
+
+---
+
+## 11. ACTUALIZACIÓN 2026-11-14 MADRUGADA (v12.44.843 `a44edbc` / v12.44.844 `b12350e` / v12.44.845 `6ad7014`) — bugs de usuario + resto de seguridad alta
+
+**Reporte del dueño: "al salir e intentar volver a entrar se descuadra el login"** — REPRODUCIDO
+en vivo (captura) y CORREGIDO: `showView('login')` ponía `display:flex` EN LÍNEA y apilaba
+logo/tarjeta/pie EN FILA; ahora limpia el estilo y el CSS original (body flex) centra como en
+la carga limpia. Captura post-fix: login perfecto + enlace de registro.
+
+**v12.44.843:**
+- Login descuadrado tras logout (lo anterior).
+- El wipe por cambio de versión YA NO cierra la sesión en cada deploy (preserva user/token/theme) —
+  cierra N3: la "sesión muerta tras reiniciar" era ESTE wipe disparado por el bump de versión.
+  Validado en vivo: wipe 843→844 con sesión y tema intactos.
+- Registro alcanzable: `go-to-signup` existía desde v818 sin botón — enlace añadido (cierra N2).
+- N1: un PRODUCTOR ve y accede a los eventos que él mismo crea (GET /events por user_id +
+  hasEventAccess con dueño). Validado en vivo: lista 1/1 con productor sin grupos.
+
+**v12.44.844 (ronda de seguridad/funcionalidad del backlog, validado con 4 cuentas QA):**
+- **Sistema #3**: webhooks GLOBALES solo ADMIN en las 5 rutas que tenían el guard condicional
+  (+ listado sin secretos ajenos + POST exige evento propio). Import de hasEventAccess a nivel
+  de módulo (los guards lo usan antes de los requires inline — TDZ evitado).
+- **Sistema #6**: apikeys — la BD guarda SOLO el hash (prod tenía 0 claves), scopes vacíos ya
+  NO significan acceso total y el orden de middlewares se corrigió: `apiKeyAuth` revisaba el
+  scope ANTES de que `requireScope` lo estableciera — el chequeo NUNCA corría (por eso el test
+  viejo pasaba con 200). Columna `scopes` añadida al esquema con migración (no existía).
+- **Sistema #4**: plugins — esquema unificado (la BD principal tenía el esquema pobre sin
+  enabled/settings_schema: instalar daba 500 SIEMPRE) + migración ALTER protegida +
+  ownership en install/uninstall/instance.
+- **Pagos #1-#8**: cupón AHORA viaja al cargo de Stripe (antes cobraba el total), se consume
+  solo al completar el pago (antes se quemaba con carritos abandonados), webhook de completion
+  ATÓMICO (antes marcaba completed antes de crear invitados: pago sin ticket irrecuperable),
+  metadata con MERGE (antes pisada por el evento crudo de Stripe), `triggerWebhooks` con el
+  orden REAL de la firma (eventType, data, eventId) — PAYMENT_COMPLETED jamás se disparaba;
+  disparo manual de intelligence igual; ecommerce verifica firma HMAC sobre body crudo
+  (antes órdenes forjables) y api_key enmascarada en el listado; undo/redo de cambios con
+  roles y acceso al evento (antes cualquier rol aprobado sobre cualquier evento).
+- **Mailing**: el compositor leía `mailing-composer-body` (id inexistente; el real es
+  `mailing-body-html`) → campañas con cuerpo VACÍO; email de prueba sin JSON.stringify
+  (fallaba siempre); adjuntos por fetch crudo+blob (fetchAPI parseaba bytes); HTML externo
+  del buzón en iframe sandbox SIN scripts (XSS en sesión admin); duplicate con columnas
+  reales (500 siempre).
+- **Encuestas**: builder normaliza al contrato real del zod (POST 400 siempre) + enum acepta
+  'time'; CSV con Authorization (window.open → 401 siempre); agenda con botón Guardar y PUT
+  (nunca se guardaba) + no-op de id duplicado corregido; polls editor reparado
+  (loadSessionsSelect/_initPollOptionListener NO existían → 'Nueva' sobrescribía la anterior);
+  certificados persisten título/subtítulo y el PDF los usa (antes 'CERTIFICADO' fijo).
+- **N5**: la cabecera del evento se rellena en CADA visita a configuración (showView se
+  saltaba todo si la vista ya estaba visible → "Cargando..." perpetuo). Validado en vivo con
+  el ciclo completo mis-eventos → abrir → configuración.
+- **XSS**: álbum con whitelist de extensiones (SVG pasaba image/* y ejecutaba JS) + escapes
+  App.esc en presupuesto/ponentes/plantillas/builder/Swal de edición.
+- Limpieza QA verificada a 0 (incl. 3 BD huérfanas de eventos en data/events) y cuenta
+  `e2e-prod@test.local` (ADMIN, PREVIA a esta sesión) DESACTIVADA a PENDING por el dueño.
+
+**v12.44.845:** migración a **zod@4.6.7** — cierra la última vulnerabilidad ALTA de
+producción (GHSA-mrhx-c7xc-m3w5). `npm audit --omit=dev` = **0 vulnerabilidades** (esta
+mañana: 10 con 1 crítica). Suite 455✓ verde a la primera con la API v4. Las 19 restantes
+son DEV-only (tooling de test, no van a producción). Smoke en vivo: validación zod
+respondiendo ("Usuario requerido" con credenciales vacías).
+
+**Sigue abierto (menores/latentes, documentados):** widget mailing muerto (9672), XSS listado
+campañas (17549), null-concat cola (9662), logger TDZ push (16), case legacy (7550),
+processNext sin catch (1525), Excel workbook fuera de try, castId sin guard, network PII sin
+sesión (verificar diseño), toggleSurveyPreview stub, promesas sin catch gamificación,
+handlers síncronos sin try, wizard-composer-body sin elemento (guard null, no rompe),
+`/:evento/registro` como trabajo NUEVO si se quiere ruta pública. Backlog de PRODUCTO
+(Pagos cupón-Stripe ya hecho; resto del flujo de pagos funcional ya verificado esta noche).
