@@ -43,7 +43,7 @@ import './modules/core/DelegatedEvents.js?v=12.44.841';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.844';
+const VERSION = '12.44.845';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
