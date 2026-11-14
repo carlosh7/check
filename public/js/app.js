@@ -43,7 +43,7 @@ import './modules/core/DelegatedEvents.js?v=12.44.841';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.843';
+const VERSION = '12.44.844';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -6847,6 +6847,18 @@ navigate(viewName, params = {}, push = true) {
         
         // Lógica específica por vista (V12.6.0 Unified Hub)
         if (viewName === 'my-events') this.loadEvents(false); // false = usar cache si está disponible
+        // v12.44.844 (hallazgo N5): la cabecera del evento solo se rellenaba en showView,
+        // que se salta TODO cuando la vista ya está visible — al reabrir la configuración
+        // (o cuando el evento carga tarde) quedaba "Cargando..." para siempre.
+        if (viewName === 'event-config' && this.state.event) {
+            const titleEl = document.getElementById('config-event-title');
+            if (titleEl) titleEl.textContent = this.state.event.name;
+            const dateEl = document.getElementById('config-event-date');
+            if (dateEl && this.state.event.date) {
+                const d = new Date(this.state.event.date);
+                dateEl.textContent = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+            }
+        }
         if (viewName === 'system') {
             // Ocultar pestañas.restringidas después de un pequeño delay para asegurar DOM listo
             setTimeout(() => {
@@ -7498,6 +7510,27 @@ navigate(viewName, params = {}, push = true) {
 
         // Agenda
         cl('btn-add-agenda-item', () => this.addAgendaItem());
+        // v12.44.844 (auditoría Encuestas #5): la agenda editada NUNCA se guardaba —
+        // no existía ni el botón ni la llamada al PUT /:eventId/agenda
+        cl('btn-save-agenda', async () => {
+            const eventId = this.state.event?.id;
+            if (!eventId) return this._notifyAction('Error', 'No hay evento seleccionado', 'error');
+            const container = document.getElementById('config-agenda-list');
+            if (!container) return;
+            const items = Array.from(container.querySelectorAll('.agenda-item')).map(item => ({
+                start_time: item.querySelector('[data-field="start_time"]')?.value || '',
+                end_time: item.querySelector('[data-field="end_time"]')?.value || '',
+                title: item.querySelector('[data-field="title"]')?.value.trim() || '',
+                speaker: item.querySelector('[data-field="speaker"]')?.value || ''
+            })).filter(it => it.title);
+            if (!items.length) return this._notifyAction('Info', 'No hay puntos con título para guardar', 'info');
+            try {
+                await this.fetchAPI(`/events/${eventId}/agenda`, { method: 'PUT', body: JSON.stringify({ items }) });
+                this._notifyAction('Agenda guardada', items.length + ' punto(s) guardado(s)', 'success');
+            } catch (e) {
+                this._notifyAction('Error', e.message || 'No se pudo guardar la agenda', 'error');
+            }
+        });
         
         // Event Config botones (Staff)
         cl('btn-config-staff-exist', () => this.showUserSelectorForEvent(this.state.event?.id));
@@ -7756,6 +7789,21 @@ navigate(viewName, params = {}, push = true) {
     },
 
     // --- SURVEYS (NUEVO V11.6 · realineado al builder API en F1 2026-08) ---
+    // v12.44.844 (auditoría Encuestas #2): normaliza una pregunta del builder al contrato
+    // real del backend (enum zod + options como [{label}]) — antes el POST daba 400 SIEMPRE
+    // y el builder no persistía nada.
+    _surveyBuilderToBackend(q) {
+        const mapTipo = { short_text: 'short_text', paragraph: 'long_text', multiple_choice: 'single_choice', checkboxes: 'multiple_choice', dropdown: 'dropdown', linear_scale: 'rating', date: 'date', time: 'time' };
+        const out = { type: mapTipo[q.type] || 'short_text', title: String(q.title || '').slice(0, 500) };
+        if (q.description) out.description = String(q.description).slice(0, 1000);
+        if (Array.isArray(q.options)) {
+            const opts = q.options.map(o => (typeof o === 'string' ? { label: o.trim() } : { label: String((o && o.label) || '').trim() })).filter(o => o.label);
+            if (opts.length) out.options = opts;
+        }
+        if (q.required !== undefined) out.required = !!q.required;
+        if (q.order_index !== undefined) out.order_index = Number(q.order_index) || 0;
+        return out;
+    },
     _surveyTypeToBackend(t, optionsText) {
         if (t === 'stars') return { type: 'rating' };
         if (t === 'yesno') return { type: 'single_choice', options: [{ label: 'Sí' }, { label: 'No' }] };
@@ -11138,7 +11186,7 @@ navigate(viewName, params = {}, push = true) {
     _gm: null,
     async _g() {
         if (!this._gm) {
-            const m = await import('./modules/app-gamification.js?v=12.44.841');
+            const m = await import('./modules/app-gamification.js?v=12.44.844');
             this._gm = m.default || window.GamificationModule || {};
             // Bind App reference for module functions that use window.App
             if (this._gm._init) this._gm._init();
@@ -11190,7 +11238,7 @@ navigate(viewName, params = {}, push = true) {
                     return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors">' +
                         '<div class="flex items-center gap-3">' +
                         '<span class="material-symbols-outlined text-[var(--primary)]">poll</span>' +
-                        '<div><p class="text-sm font-bold text-white">' + (t.title || 'Sin título') + '</p>' +
+                        '<div><p class="text-sm font-bold text-white">' + App.esc(t.title || 'Sin título') + '</p>' + // v12.44.844 XSS
                         '<p class="text-xs text-slate-500">' + (t.total_responses || 0) + ' respuestas</p></div></div>' +
                         '<div class="flex gap-1">' +
                         '<span class="text-xs ' + statusColor + ' flex items-center gap-1"><span class="material-symbols-outlined text-xs">' + statusIcon + '</span>' + t.status + '</span>' +
@@ -11248,11 +11296,11 @@ navigate(viewName, params = {}, push = true) {
             return '<div class="card p-4 border-l-4 border-l-[var(--primary)]" data-qid="' + q.id + '">' +
                 '<div class="flex justify-between items-start">' +
                 '<div class="flex-1"><div class="flex items-center gap-2">' +
-                '<span class="text-xs text-slate-500 font-mono">' + (typeLabels[q.type] || q.type) + '</span>' +
+                '<span class="text-xs text-slate-500 font-mono">' + App.esc(typeLabels[q.type] || q.type) + '</span>' +
                 (q.required ? '<span class="text-xs text-red-400">*</span>' : '') +
                 '</div>' +
-                '<p class="text-sm font-bold text-white mt-1">' + (q.title || 'Pregunta sin título') + '</p>' +
-                (q.description ? '<p class="text-xs text-slate-500">' + q.description + '</p>' : '') +
+                '<p class="text-sm font-bold text-white mt-1">' + App.esc(q.title || 'Pregunta sin título') + '</p>' +
+                (q.description ? '<p class="text-xs text-slate-500">' + App.esc(q.description) + '</p>' : '') +
                 preview + '</div>' +
                 '<div class="flex gap-1 ml-2">' +
                 '<button class="btn-icon" data-act="call" data-call="editSurveyQuestion" data-a1="' + q.id + '"><span class="material-symbols-outlined text-sm">edit</span></button>' +
@@ -11267,7 +11315,7 @@ navigate(viewName, params = {}, push = true) {
         if (this._currentSurveyTemplateId) {
             try {
                 const res = await this.fetchAPI('/events/templates/' + this._currentSurveyTemplateId + '/questions', {
-                    method: 'POST', body: JSON.stringify(q)
+                    method: 'POST', body: JSON.stringify(this._surveyBuilderToBackend(q))
                 });
                 if (res && res.id) q.id = res.id;
             } catch(e) { console.error('[SURVEY] Error adding question:', e); }
@@ -11285,8 +11333,8 @@ navigate(viewName, params = {}, push = true) {
             title: 'Editar pregunta', width: '500px', background: '#0f172a', color: '#fff',
             html: '<div class="text-left space-y-3">' +
                 '<div><label class="text-xs font-bold text-slate-400">Tipo</label><select id="swal-q-type" class="input-field w-full">' + Object.keys(typeLabels).map(function(k) { return '<option value="' + k + '" ' + (q.type === k ? 'selected' : '') + '>' + typeLabels[k] + '</option>'; }).join('') + '</select></div>' +
-                '<div><label class="text-xs font-bold text-slate-400">Título</label><input id="swal-q-title" class="input-field w-full" value="' + (q.title || '') + '"></div>' +
-                '<div><label class="text-xs font-bold text-slate-400">Descripción</label><input id="swal-q-desc" class="input-field w-full" value="' + (q.description || '') + '"></div>' +
+                '<div><label class="text-xs font-bold text-slate-400">Título</label><input id="swal-q-title" class="input-field w-full" value="' + App.esc(q.title || '') + '"></div>' +
+                '<div><label class="text-xs font-bold text-slate-400">Descripción</label><input id="swal-q-desc" class="input-field w-full" value="' + App.esc(q.description || '') + '"></div>' +
                 '<div id="swal-q-options-group" class="' + (['multiple_choice','checkboxes','dropdown'].includes(q.type) ? '' : 'hidden') + '"><label class="text-xs font-bold text-slate-400">Opciones (una por línea)</label><textarea id="swal-q-options" class="input-field w-full" rows="4">' + ((q.options || []).join('\n')) + '</textarea></div>' +
                 '<label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" id="swal-q-required" ' + (q.required ? 'checked' : '') + '> Requerido</label></div>',
             showCancelButton: true, confirmButtonText: 'Guardar',
@@ -11309,8 +11357,8 @@ navigate(viewName, params = {}, push = true) {
             q.required = data.required;
             if (q.id && !q.id.startsWith('tmp_')) {
                 try {
-                    await App.fetchAPI('/events/questions/' + q.id, { method: 'PUT', body: JSON.stringify(data) });
-                } catch(e) { console.warn('[App] Carga opcional falló:', e); }
+                    await App.fetchAPI('/events/questions/' + q.id, { method: 'PUT', body: JSON.stringify(App._surveyBuilderToBackend(data)) });
+                } catch(e) { console.warn('[SURVEY] Error actualizando pregunta:', e); }
             }
             App.renderSurveyBuilderQuestions();
         });
@@ -11413,9 +11461,27 @@ navigate(viewName, params = {}, push = true) {
         } catch(e) { console.error('[SURVEY] Dashboard error:', e.message); }
     },
 
-    exportSurveyCsv: function() {
-        if (this._currentSurveyTemplateId) {
-            window.open('/api/events/templates/' + this._currentSurveyTemplateId + '/export/csv', '_blank');
+    exportSurveyCsv: async function() {
+        // v12.44.844 (auditoría Encuestas #13): window.open NO envía Authorization → 401
+        // SIEMPRE. Fetch crudo + blob + token, igual que los adjuntos.
+        if (!this._currentSurveyTemplateId) return;
+        try {
+            const token = localStorage.getItem('user') ? (JSON.parse(localStorage.getItem('user')).token || '') : '';
+            const res = await fetch('/api/events/templates/' + this._currentSurveyTemplateId + '/export/csv', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const blob = await res.blob();
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'respuestas-encuesta.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        } catch (e) {
+            console.error('[SURVEY] Error exportando CSV:', e);
+            Swal.fire('Error', 'No se pudo exportar el CSV', 'error');
         }
     },
 
@@ -12595,14 +12661,10 @@ navigate(viewName, params = {}, push = true) {
         const eventId = this.state.event?.id;
         if (!eventId) return;
         
-        this.loadEventAgenda(eventId).then(() => {
-            // Copiar del view-admin al view-config
-            const evList = document.getElementById('config-agenda-list');
-            const configList = document.getElementById('config-agenda-list');
-            if (evList && configList) {
-                configList.innerHTML = evList.innerHTML;
-            }
-        });
+        // v12.44.844 (auditoría Encuestas #5): el bloque anterior "copiaba del view-admin
+        // al view-config" consultando DOS VECES el MISMO id (no-op) — hay un solo
+        // contenedor y loadEventAgenda ya renderiza en él.
+        this.loadEventAgenda(eventId);
     },
 
     // Cargar configuración del evento en formulario
@@ -12916,10 +12978,10 @@ navigate(viewName, params = {}, push = true) {
             }
             tbody.innerHTML = data.items.map(function(i) {
                 return '<tr class="hover:bg-white/[0.02]">' +
-                    '<td class="table-td font-medium text-white">' + (i.concept || '') + '</td>' +
-                    '<td class="table-td text-xs"><span class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 text-[10px]">' + (i.category || 'general') + '</span></td>' +
+                    '<td class="table-td font-medium text-white">' + App.esc(i.concept || '') + '</td>' + // v12.44.844 XSS
+                    '<td class="table-td text-xs"><span class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 text-[10px]">' + App.esc(i.category || 'general') + '</span></td>' +
                     '<td class="table-td font-bold text-green-400">$' + parseFloat(i.amount).toFixed(2) + '</td>' +
-                    '<td class="table-td text-xs text-slate-400">' + (i.notes || '') + '</td>' +
+                    '<td class="table-td text-xs text-slate-400">' + App.esc(i.notes || '') + '</td>' +
                     '<td class="table-td"><button class="btn-icon text-red-400" data-act="call" data-call="deleteBudgetItem" data-a1="' + i.id + '"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
             }).join('');
             document.getElementById('budget-total').textContent = '$' + (data.total || 0).toFixed(2);
@@ -13951,8 +14013,8 @@ navigate(viewName, params = {}, push = true) {
                 if (s.social_linkedin) social.push('💼');
                 if (s.social_web) social.push('🌐');
                 return '<tr class="hover:bg-white/[0.02]">' +
-                    '<td class="table-td font-medium text-white">' + (s.name || '') + '</td>' +
-                    '<td class="table-td text-xs text-slate-300">' + (s.topic || '') + '</td>' +
+                    '<td class="table-td font-medium text-white">' + App.esc(s.name || '') + '</td>' + // v12.44.844 XSS
+                    '<td class="table-td text-xs text-slate-300">' + App.esc(s.topic || '') + '</td>' +
                     '<td class="table-td text-xs">' + (social.join(' ') || '-') + '</td>' +
                     '<td class="table-td text-xs text-slate-400">' + (s.sort_order || 0) + '</td>' +
                     '<td class="table-td"><button class="btn-icon" data-act="call" data-call="editSpeaker" data-a1="' + s.id + '"><span class="material-symbols-outlined text-sm">edit</span></button>' +
@@ -17698,7 +17760,19 @@ navigate(viewName, params = {}, push = true) {
             
             const bodyEl = document.getElementById('mail-view-body');
             if (msg.html) {
-                bodyEl.innerHTML = `<div class="prose prose-sm max-w-none" data-style="color: var(--text-main);">${msg.html}</div>`;
+                // v12.44.844 (auditoría Mailing): el HTML del email EXTERNO NUNCA va directo
+                // al DOM de la sesión admin — iframe sandbox SIN allow-scripts (el JS externo
+                // no ejecuta) + auto-ajuste de altura vía same-origin.
+                bodyEl.innerHTML = '';
+                const frame = document.createElement('iframe');
+                frame.setAttribute('sandbox', 'allow-same-origin');
+                frame.setAttribute('referrerpolicy', 'no-referrer');
+                frame.style.cssText = 'width:100%;border:0;background:#fff;border-radius:8px;min-height:420px;';
+                frame.srcdoc = '<base target="_blank">' + msg.html;
+                frame.addEventListener('load', function() {
+                    try { const d = frame.contentDocument; if (d && d.body) frame.style.height = Math.max(420, d.body.scrollHeight + 24) + 'px'; } catch (e) {}
+                });
+                bodyEl.appendChild(frame);
             } else if (msg.text) {
                 bodyEl.innerHTML = `<pre class="text-sm text-[var(--text-main)] whitespace-pre-wrap font-sans leading-relaxed">${this._escapeHtml(msg.text)}</pre>`;
             } else {
@@ -17731,12 +17805,23 @@ navigate(viewName, params = {}, push = true) {
 
     downloadAttachment: async function(attIndex, accountId, folder, uid) {
         try {
-            const res = await this.fetchAPI(`/email/mailbox/attachment/${uid}?account_id=${accountId}&folder=${folder}&index=${attIndex}`);
-            if (res?.url) {
-                window.open(res.url, '_blank');
-            } else {
-                Swal.fire('Info', 'Descarga iniciada', 'info');
-            }
+            // v12.44.844 (auditoría Mailing): el endpoint devuelve BYTES — fetchAPI los
+            // parseaba como JSON y reventaba. Fetch crudo + Authorization + blob.
+            const token = localStorage.getItem('user') ? (JSON.parse(localStorage.getItem('user')).token || '') : '';
+            const res = await fetch(`/api/email/mailbox/attachment/${uid}?account_id=${accountId}&folder=${folder}&index=${attIndex}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const blob = await res.blob();
+            const disp = res.headers.get('content-disposition') || '';
+            const m = disp.match(/filename="?([^";]+)"?/);
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = m ? m[1] : ('adjunto-' + uid + '-' + attIndex);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 4000);
         } catch (e) {
             console.error('[MAILBOX] Error downloading attachment:', e);
             Swal.fire('Error', 'No se pudo descargar el adjunto', 'error');
@@ -17859,7 +17944,7 @@ navigate(viewName, params = {}, push = true) {
             const subjectEl = document.getElementById('mailing-subject');
             
             // Cargar contenido de la plantilla
-            const bodyEl = document.getElementById('mailing-composer-body');
+            const bodyEl = document.getElementById('mailing-body-html') // v12.44.844 (auditoría Mailing): el id real del shell;
             if (bodyEl) {
                 bodyEl.value = template.body_html || template.body_text || '';
             }
@@ -17880,15 +17965,17 @@ navigate(viewName, params = {}, push = true) {
         
         if (email) {
             try {
+                // v12.44.844 (auditoría Mailing): body con JSON.stringify (antes iba el objeto
+                // crudo y el email de prueba fallaba SIEMPRE)
                 await this.fetchAPI('/email/send', {
                     method: 'POST',
-                    body: {
+                    body: JSON.stringify({
                         account_id: accountId,
                         to: email,
                         subject: document.getElementById('mailing-subject')?.value || 'Test',
-                        body_html: document.getElementById('mailing-composer-body')?.value || '',
+                        body_html: document.getElementById('mailing-body-html')?.value || '',
                         variables: { guest_name: 'Test User' }
-                    }
+                    })
                 });
                 Swal.fire('&Eacute;xito', 'Email de prueba enviado', 'success');
             } catch (e) {
@@ -17900,7 +17987,7 @@ navigate(viewName, params = {}, push = true) {
     sendMailing: async function() {
         const accountId = document.getElementById('mailing-account-select')?.value;
         const subject = document.getElementById('mailing-subject')?.value;
-        const bodyHtml = document.getElementById('mailing-composer-body')?.value || '';
+        const bodyHtml = document.getElementById('mailing-body-html') // v12.44.844 (auditoría Mailing): el id real del shell?.value || '';
         
         if (!accountId) return Swal.fire('Error', 'Selecciona una cuenta', 'error');
         if (!subject) return Swal.fire('Error', 'Ingresa un asunto', 'error');
@@ -18085,7 +18172,7 @@ navigate(viewName, params = {}, push = true) {
     switchMailingEditorMode: function(mode) {
         const visualBtn = document.getElementById('btn-mode-visual');
         const htmlBtn = document.getElementById('btn-mode-html');
-        const bodyField = document.getElementById('mailing-composer-body');
+        const bodyField = document.getElementById('mailing-body-html') // v12.44.844 (auditoría Mailing): el id real del shell;
         if (!bodyField) return;
         if (mode === 'visual') {
             if (visualBtn) visualBtn.className = 'flex-1 py-2 rounded-lg bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold';
@@ -18114,7 +18201,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     insertMailingVariable: function(varName) {
-        const field = document.getElementById('mailing-composer-body');
+        const field = document.getElementById('mailing-body-html') // v12.44.844 (auditoría Mailing): el id real del shell;
         if (field) {
             field.value += '{{' + varName + '}}';
             field.focus();

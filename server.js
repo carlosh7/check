@@ -256,6 +256,9 @@ app.use(cors({
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
 // Deploy webhook necesita raw body para verificar firma GitHub
 app.use('/api/deploy/webhook', express.raw({ type: 'application/json' }));
+// v12.44.844 (auditoría Pagos #4): el webhook de ecommerce verifica firma HMAC sobre
+// el body CRUDO — necesita el body sin parsear, igual que Stripe
+app.use('/api/ecommerce/webhook', express.raw({ type: 'application/json' }));
 
 // ⚠️ SECURITY: Limitar tamaño de request JSON para prevenir DoS
 app.use(express.json({ limit: '10mb' }));

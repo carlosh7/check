@@ -1594,11 +1594,13 @@ router.post('/campaigns/:id/duplicate', (req, res) => {
         const newName = `${campaign.name} (copia)`;
         
         getEmailDb().prepare(`
-            INSERT INTO email_campaigns (id, event_id, account_id, name, subject, body_html, recipient_type, group_id, 
-                status, send_type, scheduled_at, total_count, sent_count, failed_count, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, 0, 0, 0, ?, ?)
+            INSERT INTO email_campaigns (id, event_id, account_id, name, subject, body_html, recipient_type, recipient_group_id, 
+                status, scheduled_at, total_recipients, sent_count, failed_count, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?, 0, 0, 0, ?, ?)
         `).run(newId, campaign.event_id, campaign.account_id, newName, campaign.subject, campaign.body_html, 
-            campaign.recipient_type, campaign.group_id, campaign.send_type, campaign.scheduled_at, now, now);
+            campaign.recipient_type, campaign.recipient_group_id, campaign.scheduled_at, now, now);
+        // v12.44.844 (auditoría Mailing): columnas REALES — group_id/send_type/total_count
+        // no existen (son recipient_group_id/total_recipients): duplicar daba 500 SIEMPRE
         
         res.json({ success: true, id: newId, name: newName });
     } catch (error) {

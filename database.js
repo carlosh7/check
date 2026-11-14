@@ -1298,8 +1298,15 @@ try { db.exec("CREATE INDEX IF NOT EXISTS idx_crm_contacts_email ON crm_contacts
 db.exec(`CREATE TABLE IF NOT EXISTS plugins (
     id TEXT PRIMARY KEY, name TEXT UNIQUE, version TEXT DEFAULT '1.0.0',
     author TEXT, description TEXT, source_url TEXT, permissions TEXT DEFAULT 'read',
-    is_active INTEGER DEFAULT 1, installed_at TEXT
+    icon TEXT DEFAULT '🧩', hooks TEXT, script TEXT, settings_schema TEXT,
+    enabled INTEGER DEFAULT 0, is_active INTEGER DEFAULT 1, is_system INTEGER DEFAULT 0, installed_at TEXT
 )`);
+// v12.44.844 (auditoría Sistema #4): migración — las BD previas usaban el esquema pobre
+// sin enabled/settings_schema: instalar un plugin daba 500 SIEMPRE. Las rutas leen
+// plugin.enabled y plugin.settings_schema; sin estas columnas el marketplace está roto.
+['enabled INTEGER DEFAULT 0', 'settings_schema TEXT', 'hooks TEXT', 'script TEXT', "icon TEXT DEFAULT '🧩'", 'is_system INTEGER DEFAULT 0'].forEach(col => {
+    try { db.exec(`ALTER TABLE plugins ADD COLUMN ${col}`); } catch (_) {}
+});
 db.exec(`CREATE TABLE IF NOT EXISTS marketplace_listings (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, version TEXT DEFAULT '1.0.0',
     author TEXT, description TEXT, source_url TEXT, category TEXT DEFAULT 'tools',

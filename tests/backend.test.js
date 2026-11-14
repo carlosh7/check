@@ -1067,10 +1067,24 @@ describe('Integration: API Key Flow', () => {
         const createRes = await request(app)
             .post('/api/api-keys')
             .set('Authorization', 'Bearer ' + adminToken)
-            .send({ name: 'Integration Test Key', permissions: 'read' });
+            .send({ name: 'Integration Test Key', scopes: ['events:read'] });
         expect(createRes.status).toBe(200);
         expect(createRes.body.key).toMatch(/^ck_/);
         const apiKey = createRes.body.key;
+
+        // v12.44.844: una clave SIN scopes no pasa endpoints con scope requerido
+        const noScopeRes = await request(app)
+            .post('/api/api-keys')
+            .set('Authorization', 'Bearer ' + adminToken)
+            .send({ name: 'Key sin scopes', scopes: [] });
+        expect(noScopeRes.status).toBe(200);
+        const deniedRes = await request(app)
+            .get('/api/v1/events')
+            .set('x-api-key', noScopeRes.body.key);
+        expect(deniedRes.status).toBe(403);
+        await request(app)
+            .delete('/api/api-keys/' + noScopeRes.body.id)
+            .set('Authorization', 'Bearer ' + adminToken);
 
         // Use key to list events
         const listRes = await request(app)

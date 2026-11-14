@@ -139,8 +139,11 @@ function initSchema(db) {
     db.exec("CREATE TABLE IF NOT EXISTS performance_logs (id TEXT PRIMARY KEY, operation TEXT, duration_ms INTEGER, details TEXT, created_at TEXT)");
     try { db.exec("CREATE INDEX IF NOT EXISTS idx_perf_logs_created ON performance_logs(created_at)"); } catch (_) {}
     // API Keys (C6-08)
-    db.exec(`CREATE TABLE IF NOT EXISTS api_keys (id TEXT PRIMARY KEY, name TEXT NOT NULL, key TEXT UNIQUE NOT NULL, user_id TEXT, permissions TEXT DEFAULT 'read', last_used_at TEXT, expires_at TEXT, is_active INTEGER DEFAULT 1, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`);
+    db.exec(`CREATE TABLE IF NOT EXISTS api_keys (id TEXT PRIMARY KEY, name TEXT NOT NULL, key TEXT UNIQUE NOT NULL, user_id TEXT, permissions TEXT DEFAULT 'read', scopes TEXT, last_used_at TEXT, expires_at TEXT, is_active INTEGER DEFAULT 1, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`);
     try { db.exec("CREATE INDEX IF NOT EXISTS idx_api_keys_key ON api_keys(key)"); } catch (_) {}
+    // v12.44.844 (auditoría Sistema #6): migración — las BD previas no tienen la columna
+    // scopes (por eso los scopes NUNCA se guardaban y el chequeo se saltaba siempre)
+    try { db.exec("ALTER TABLE api_keys ADD COLUMN scopes TEXT"); } catch (_) {}
     // Guest achievements / gamification (C5-06)
     db.exec(`CREATE TABLE IF NOT EXISTS guest_achievements (id TEXT PRIMARY KEY, guest_id TEXT NOT NULL, event_id TEXT NOT NULL, achievement TEXT NOT NULL, awarded_at TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (guest_id) REFERENCES guests(id))`);
     try { db.exec("CREATE INDEX IF NOT EXISTS idx_guest_achievements ON guest_achievements(guest_id)"); } catch (_) {}
@@ -2080,8 +2083,13 @@ function initSchema(db) {
     db.exec(`CREATE TABLE IF NOT EXISTS plugins (
         id TEXT PRIMARY KEY, name TEXT UNIQUE, version TEXT DEFAULT '1.0.0',
         author TEXT, description TEXT, source_url TEXT, permissions TEXT DEFAULT 'read',
-        is_active INTEGER DEFAULT 1, installed_at TEXT
+        icon TEXT DEFAULT '🧩', hooks TEXT, script TEXT, settings_schema TEXT,
+        enabled INTEGER DEFAULT 0, is_active INTEGER DEFAULT 1, is_system INTEGER DEFAULT 0, installed_at TEXT
     )`);
+    // v12.44.844 (auditoría Sistema #4): migración — BD previas con el esquema pobre
+    ['enabled INTEGER DEFAULT 0', 'settings_schema TEXT', 'hooks TEXT', 'script TEXT', "icon TEXT DEFAULT '🧩'", 'is_system INTEGER DEFAULT 0'].forEach(col => {
+        try { db.exec(`ALTER TABLE plugins ADD COLUMN ${col}`); } catch (_) {}
+    });
     db.exec(`CREATE TABLE IF NOT EXISTS marketplace_listings (
         id TEXT PRIMARY KEY, name TEXT NOT NULL, version TEXT DEFAULT '1.0.0',
         author TEXT, description TEXT, source_url TEXT, category TEXT DEFAULT 'tools',

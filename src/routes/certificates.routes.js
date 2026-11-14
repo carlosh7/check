@@ -23,12 +23,18 @@ router.get('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZ
 
 router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        const { name, config } = req.body;
+        const { name, config, title, subtitle } = req.body;
         if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre requerido' });
         const id = uuidv4();
         const now = new Date().toISOString();
+        // v12.44.844 (auditoría Encuestas #19): título/subtítulo AHORA se guardan (dentro
+        // de config) — antes el backend solo leía name/config y los descartaba
+        let cfgFinal = {};
+        try { cfgFinal = typeof config === 'object' && config ? config : JSON.parse(config || '{}'); } catch(e) {}
+        if (title) cfgFinal.title = String(title).slice(0, 200);
+        if (subtitle) cfgFinal.subtitle = String(subtitle).slice(0, 300);
         db.prepare("INSERT INTO certificate_templates (id, event_id, name, config, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)").run(
-            id, req.params.eventId, name.trim(), config ? JSON.stringify(config) : null, now, now
+            id, req.params.eventId, name.trim(), JSON.stringify(cfgFinal), now, now
         );
         res.json({ success: true, id: id });
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
@@ -36,9 +42,17 @@ router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
 
 router.put('/:eventId/templates/:templateId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        const { name, config } = req.body;
+        const { name, config, title, subtitle } = req.body;
+        // v12.44.844: merge de title/subtitle en config (como en POST)
+        let cfgFinal = null;
+        if (config || title || subtitle) {
+            cfgFinal = {};
+            try { cfgFinal = typeof config === 'object' && config ? config : JSON.parse(config || '{}'); } catch(e) {}
+            if (title) cfgFinal.title = String(title).slice(0, 200);
+            if (subtitle) cfgFinal.subtitle = String(subtitle).slice(0, 300);
+        }
         db.prepare("UPDATE certificate_templates SET name = COALESCE(?, name), config = COALESCE(?, config), updated_at = ? WHERE id = ? AND event_id = ?").run(
-            name || null, config ? JSON.stringify(config) : null, new Date().toISOString(), req.params.templateId, req.params.eventId
+            name || null, cfgFinal ? JSON.stringify(cfgFinal) : null, new Date().toISOString(), req.params.templateId, req.params.eventId
         );
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
@@ -130,10 +144,15 @@ router.get('/download/:certId', (req, res) => {
         doc.setLineWidth(0.5);
         doc.rect(12, 12, 273, 186);
 
-        // Título
+        // Título — v12.44.844: usa el título/subtítulo de la plantilla si existen
         doc.setFontSize(36);
         doc.setTextColor(255, 255, 255);
-        doc.text('CERTIFICADO', 148.5, 50, { align: 'center' });
+        doc.text(cfg.title || 'CERTIFICADO', 148.5, 50, { align: 'center' });
+        if (cfg.subtitle) {
+            doc.setFontSize(12);
+            doc.setTextColor(200, 200, 200);
+            doc.text(String(cfg.subtitle), 148.5, 64, { align: 'center' });
+        }
 
         // Línea decorativa
         doc.setDrawColor(themeColor);

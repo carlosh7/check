@@ -93,7 +93,7 @@ router.get('/templates/:templateId/questions', authMiddleware(['ADMIN', 'PRODUCT
 router.post('/templates/:templateId/questions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const questionSchema = z.object({
-            type: z.enum(['short_text', 'long_text', 'single_choice', 'multiple_choice', 'rating', 'dropdown', 'date', 'email']).optional(),
+            type: z.enum(['short_text', 'long_text', 'single_choice', 'multiple_choice', 'rating', 'dropdown', 'date', 'email', 'time']).optional(), // v12.44.844: 'time' del builder
             title: z.string().min(1, 'Título requerido').max(500),
             description: z.string().max(1000).optional(),
             options: z.array(z.object({ label: z.string().min(1) })).optional(),

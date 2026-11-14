@@ -129,7 +129,14 @@ router.post('/webhooks/:id/execute', authMiddleware(['ADMIN']), async (req, res)
             try {
                 if (action === 'trigger') {
                     const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
-                    await triggerWebhooks(webhook.events, { triggered_by: 'manual', webhook_id: webhook.id, timestamp: new Date().toISOString() });
+                    // v12.44.844 (auditoría Pagos #5): orden real triggerWebhooks(tipo, data, eventId).
+                    // Antes: webhook.events (un ARRAY) entraba como tipo → jamás matcheaba.
+                    let eventosSub = webhook.events;
+                    if (typeof eventosSub === 'string') { try { eventosSub = JSON.parse(eventosSub); } catch(e) { eventosSub = String(eventosSub).split(','); } }
+                    if (!Array.isArray(eventosSub)) eventosSub = [eventosSub];
+                    for (const tipo of eventosSub) {
+                        await triggerWebhooks(tipo, { triggered_by: 'manual', webhook_id: webhook.id, timestamp: new Date().toISOString() }, webhook.event_id || null);
+                    }
                     results.push({ action, status: 'completed' });
                 } else if (action === 'test') {
                     const response = await fetch(webhook.url, { method: 'POST', body: JSON.stringify({ test: true, webhook_id: webhook.id }), headers: { 'Content-Type': 'application/json' } });

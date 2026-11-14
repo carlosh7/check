@@ -16,11 +16,17 @@ if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 const upload = multer({
     storage: multer.diskStorage({
         destination: UPLOAD_DIR,
-        filename: function(req, file, cb) { cb(null, Date.now() + '_' + uuidv4().slice(0, 8) + path.extname(file.originalname)); }
+        filename: function(req, file, cb) {
+        // v12.44.844 (auditoría Invitados #7): extensión BLANCA según mimetype — el nombre
+        // original del invitado NO se usa (un .svg pasa el filtro image/* y ejecuta JS)
+        const seguras = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' };
+        cb(null, Date.now() + '_' + uuidv4().slice(0, 8) + (seguras[file.mimetype] || '.jpg'));
+    }
     }),
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: function(req, file, cb) {
-        if (!file.mimetype.startsWith('image/')) return cb(new Error('Solo imágenes'), false);
+        // v12.44.844: whitelist estricta — SVG fuera (puede contener <script>)
+        if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.mimetype)) return cb(new Error('Solo imágenes (jpg, png, webp, gif)'), false);
         cb(null, true);
     }
 });

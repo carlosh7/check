@@ -36,7 +36,7 @@ const stripe = stripeKey ? require('stripe')(stripeKey) : null;
 
 // ── Checkout Session (Stripe Checkout redirect) ──
 
-router.post('/events/:eventId/checkout-session', (req, res) => {
+router.post('/events/:eventId/checkout-session', async (req, res) => {
     try {
         const event = db.prepare("SELECT * FROM events WHERE id = ?").get(req.params.eventId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
@@ -78,35 +78,53 @@ router.post('/events/:eventId/checkout-session', (req, res) => {
             if (coupon.discount_type === 'percentage') discountAmount = totalAmount * (coupon.discount_value / 100);
             else discountAmount = Math.min(coupon.discount_value, totalAmount);
             appliedCouponId = coupon.id;
-            // Increment usage
-            db.prepare("UPDATE coupons SET current_uses = current_uses + 1 WHERE id = ?").run(coupon.id);
+            // v12.44.844 (auditoría Pagos #3): el uso YA NO se consume al crear el checkout
+            // (un carrito abandonado quemaba el cupón); se incrementa UNA vez al completarse
+            // el pago, en el webhook, leyendo applied_coupon_id del metadata.
         }
 
         const finalAmount = Math.max(0, totalAmount - discountAmount);
         const transactionId = uuidv4();
         (event.currency || 'USD').toLowerCase();
         db.prepare("INSERT INTO transactions (id, event_id, amount, currency, provider, status, guest_name, guest_email, metadata_json, created_at) VALUES (?, ?, ?, ?, 'stripe', 'pending', ?, ?, ?, ?)").run(
-            transactionId, req.params.eventId, finalAmount, event.currency || 'USD', name, email, JSON.stringify({ items: items, categories: categoriesUsed, coupon: coupon_code, discount: discountAmount }), new Date().toISOString()
+            transactionId, req.params.eventId, finalAmount, event.currency || 'USD', name, email, JSON.stringify({ items: items, categories: categoriesUsed, coupon: coupon_code, discount: discountAmount, applied_coupon_id: appliedCouponId }), new Date().toISOString()
         );
 
         const baseUrl = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host');
         const sUrl = success_url || baseUrl + '/registro.html?event=' + req.params.eventId + '&txn=' + transactionId + '&success=1&cart=1';
         const cUrl = cancel_url || baseUrl + '/registro.html?event=' + req.params.eventId + '&cancel=1';
 
-        stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: lineItems,
-            mode: 'payment',
-            success_url: sUrl + '&session_id={CHECKOUT_SESSION_ID}',
-            cancel_url: cUrl,
-            metadata: { transaction_id: transactionId, event_id: req.params.eventId, guest_name: name, guest_email: email }
-        }).then(function(session) {
+        // v12.44.844 (auditoría Pagos #1): el descuento AHORA viaja al cargo de Stripe —
+        // antes el cupón solo vivía en la BD local y Stripe cobraba el TOTAL completo.
+        let stripeDiscountId = null;
+        if (appliedCouponId && discountAmount > 0) {
+            try {
+                const descuento = finalAmount <= 0
+                    ? { percent_off: 100, duration: 'once' }
+                    : { amount_off: Math.round(discountAmount * 100), currency: (event.currency || 'USD').toLowerCase(), duration: 'once' };
+                const sc = await stripe.coupons.create(descuento);
+                stripeDiscountId = sc.id;
+            } catch (e) {
+                logger.error('[PAYMENTS] Cupón de Stripe no creado (se cobra sin descuento): ' + e.message);
+            }
+        }
+        try {
+            const sessionParams = {
+                payment_method_types: ['card'],
+                line_items: lineItems,
+                mode: 'payment',
+                success_url: sUrl + '&session_id={CHECKOUT_SESSION_ID}',
+                cancel_url: cUrl,
+                metadata: { transaction_id: transactionId, event_id: req.params.eventId, guest_name: name, guest_email: email }
+            };
+            if (stripeDiscountId) sessionParams.discounts = [{ coupon: stripeDiscountId }];
+            const session = await stripe.checkout.sessions.create(sessionParams);
             db.prepare("UPDATE transactions SET provider_txn_id = ? WHERE id = ?").run(session.id, transactionId);
             res.json({ success: true, provider: 'stripe', url: session.url, sessionId: session.id, transactionId: transactionId });
-        }).catch(function(err) {
+        } catch (err) {
             db.prepare("UPDATE transactions SET status = 'failed', metadata_json = ? WHERE id = ?").run(JSON.stringify({ error: err.message }), transactionId);
             res.status(500).json({ error: 'Error al crear sesión: ' + err.message });
-        });
+        }
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -187,7 +205,6 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
             var txn = db.prepare("SELECT * FROM transactions WHERE id = ?").get(txnId);
             if (txn && txn.status === 'pending') {
                 var now = new Date().toISOString();
-                db.prepare("UPDATE transactions SET status = 'completed', completed_at = ?, metadata_json = ? WHERE id = ?").run(now, JSON.stringify(event2), txnId);
                 var eventDb = getEventDb(txn.event_id);
                 let firstGuestId = null;
 
@@ -196,23 +213,35 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
                 try { meta2 = JSON.parse(txn.metadata_json || '{}'); if (typeof meta2 === 'string') meta2 = JSON.parse(meta2); } catch(e) { meta2 = {}; }
                 (meta2 && meta2.categories) || (meta2.data && meta2.data.object && meta2.data.object.metadata);
 
-                if (txn.metadata_json) {
-                    try {
+                // v12.44.844 (auditoría Pagos #2 y #7): crear invitados, MERGE del metadata
+                // (antes se pisaba con el evento crudo de Stripe, perdiendo la traza del
+                // cupón), consumir el cupón UNA vez y marcar completed — TODO atómico.
+                // Antes: completed ANTES de crear invitados y sin transacción — un fallo
+                // dejaba pago sin ticket irrecuperable (el guard pending bloqueaba reintentos).
+                db.transaction(() => {
+                    if (txn.metadata_json) {
                         const parsed = JSON.parse(txn.metadata_json);
                         const cats = parsed.categories || [];
                         cats.forEach(function(catId) {
                             const gId = createGuestFromTxn(txn, catId, now, eventDb);
                             if (!firstGuestId) firstGuestId = gId;
                         });
-                    } catch(e) { logger.error('[PAYMENTS] Error procesando categorías: ' + e.message); }
-                }
+                    }
 
-                if (!firstGuestId) {
-                    firstGuestId = createGuestFromTxn(txn, txn.category_id, now, eventDb);
-                }
+                    if (!firstGuestId) {
+                        firstGuestId = createGuestFromTxn(txn, txn.category_id, now, eventDb);
+                    }
 
-                db.prepare("UPDATE transactions SET guest_id = ? WHERE id = ?").run(firstGuestId, txnId);
-                try { triggerWebhooks(txn.event_id, 'PAYMENT_COMPLETED', { transactionId: txnId, guestId: firstGuestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }); } catch(e) { logger.error('[PAYMENTS] Error trigger webhook: ' + e.message); }
+                    if (meta2.applied_coupon_id) {
+                        db.prepare("UPDATE coupons SET current_uses = current_uses + 1 WHERE id = ?").run(meta2.applied_coupon_id);
+                    }
+                    const metaMerge = Object.assign({}, meta2, { stripe_event: event2.type, stripe_event_id: event2.id });
+                    db.prepare("UPDATE transactions SET status = 'completed', completed_at = ?, metadata_json = ?, guest_id = ? WHERE id = ?").run(now, JSON.stringify(metaMerge), firstGuestId, txnId);
+                })();
+                // v12.44.844 (auditoría Pagos #5): orden REAL de la firma
+                // triggerWebhooks(eventType, data, eventId) — antes el UUID entraba como tipo
+                // de evento y PAYMENT_COMPLETED nunca se disparaba.
+                try { triggerWebhooks('PAYMENT_COMPLETED', { transactionId: txnId, guestId: firstGuestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }, txn.event_id); } catch(e) { logger.error('[PAYMENTS] Error trigger webhook: ' + e.message); }
                 try { logAction(req, 'PAYMENT_COMPLETED', { eventId: txn.event_id, transactionId: txnId, guestId: firstGuestId, amount: txn.amount }); } catch(e) { logger.error('[PAYMENTS] Error log action: ' + e.message); }
                 logger.info('[PAYMENTS] Checkout completado: ' + txnId);
             }
@@ -226,18 +255,26 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
             txn = db.prepare("SELECT * FROM transactions WHERE id = ?").get(txnId);
             if (txn && txn.status === 'pending') {
                 now = new Date().toISOString();
-                db.prepare("UPDATE transactions SET status = 'completed', completed_at = ?, metadata_json = ? WHERE id = ?").run(now, JSON.stringify(event2), txnId);
 
-                // Crear guest
+                // v12.44.844 (auditoría Pagos #2): atómico — invitado + completed juntos
+                let metaLocal = {};
+                try { metaLocal = JSON.parse(txn.metadata_json || '{}'); if (typeof metaLocal === 'string') metaLocal = JSON.parse(metaLocal); } catch(e) { metaLocal = {}; }
                 const guestId = uuidv4();
                 const qrToken = uuidv4().replace(/-/g, '').slice(0, 12);
                 eventDb = getEventDb(txn.event_id);
-                eventDb.prepare("INSERT INTO guests (id, event_id, name, email, category_id, qr_token, is_new_registration, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, 'confirmed', ?)").run(
-                    guestId, txn.event_id, txn.guest_name, txn.guest_email, txn.category_id, qrToken, now
-                );
-                db.prepare("UPDATE transactions SET guest_id = ? WHERE id = ?").run(guestId, txnId);
+                const metaMerge2 = Object.assign({}, metaLocal, { stripe_event: event2.type, stripe_event_id: event2.id });
+                db.transaction(() => {
+                    eventDb.prepare("INSERT INTO guests (id, event_id, name, email, category_id, qr_token, is_new_registration, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, 'confirmed', ?)").run(
+                        guestId, txn.event_id, txn.guest_name, txn.guest_email, txn.category_id, qrToken, now
+                    );
+                    if (metaLocal.applied_coupon_id) {
+                        db.prepare("UPDATE coupons SET current_uses = current_uses + 1 WHERE id = ?").run(metaLocal.applied_coupon_id);
+                    }
+                    db.prepare("UPDATE transactions SET status = 'completed', completed_at = ?, metadata_json = ?, guest_id = ? WHERE id = ?").run(now, JSON.stringify(metaMerge2), guestId, txnId);
+                })();
 
-                try { triggerWebhooks(txn.event_id, 'PAYMENT_COMPLETED', { transactionId: txnId, guestId: guestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }); } catch(e) {}
+                // v12.44.844 (auditoría Pagos #5): argumentos en orden real
+                try { triggerWebhooks('PAYMENT_COMPLETED', { transactionId: txnId, guestId: guestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }, txn.event_id); } catch(e) {}
                 try { logAction(req, 'PAYMENT_COMPLETED', { eventId: txn.event_id, transactionId: txnId, guestId: guestId, amount: txn.amount }); } catch(e) {}
 
                 logger.info('[PAYMENTS] Pago completado: ' + txnId + ' - Guest creado: ' + guestId);

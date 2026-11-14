@@ -63,7 +63,10 @@ router.post('/api/api-keys', authMiddleware(['ADMIN']), (req, res) => {
         if (!name) return res.status(400).json({ error: 'Nombre requerido' });
         const key = 'ck_' + crypto.randomBytes(32).toString('hex');
         const id = uuidv4();
-        const scopesStr = Array.isArray(scopes) ? scopes.join(',') : (permissions || 'read');
+        const scopesStr = Array.isArray(scopes) && scopes.length ? scopes.join(',') : (permissions || 'read');
+        // v12.44.844 (seguridad — auditoría Sistema #6): en la BD solo vive el HASH de la
+        // clave (la cruda se muestra UNA vez aquí). Prod tenía 0 claves → sin legado.
+        const keyHash = crypto.createHash('sha256').update(key).digest('hex');
         let expiresAt = null;
         if (expires_in_days && typeof expires_in_days === 'number') {
             expiresAt = new Date(Date.now() + expires_in_days * 86400000).toISOString();
@@ -71,11 +74,11 @@ router.post('/api/api-keys', authMiddleware(['ADMIN']), (req, res) => {
         
         try {
             db.prepare("INSERT INTO api_keys (id, name, key, user_id, permissions, scopes, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
-                .run(id, name, key, req.userId, permissions || 'read', scopesStr, expiresAt);
+                .run(id, name, keyHash, req.userId, permissions || 'read', scopesStr, expiresAt);
         } catch(e) {
             // Fallback without scopes column
             db.prepare("INSERT INTO api_keys (id, name, key, user_id, permissions) VALUES (?, ?, ?, ?, ?)")
-                .run(id, name, key, req.userId, permissions || 'read');
+                .run(id, name, keyHash, req.userId, permissions || 'read');
         }
         
         res.json({ success: true, id: id, key: key, scopes: scopesStr, expires_at: expiresAt });
@@ -119,12 +122,14 @@ router.delete('/api/api-keys/:id', authMiddleware(['ADMIN']), (req, res) => {
 function apiKeyAuth(req, res, next) {
     const key = req.headers['x-api-key'];
     if (!key) return res.status(401).json({ error: 'API key requerida' });
+    // v12.44.844: la BD guarda el hash — comparamos hash contra hash
+    const keyHash = crypto.createHash('sha256').update(String(key)).digest('hex');
     let apiKey;
     try {
-        apiKey = db.prepare("SELECT * FROM api_keys WHERE key = ? AND is_active = 1 AND (expires_at IS NULL OR expires_at > datetime('now'))").get(key);
+        apiKey = db.prepare("SELECT * FROM api_keys WHERE key = ? AND is_active = 1 AND (expires_at IS NULL OR expires_at > datetime('now'))").get(keyHash);
     } catch(e) {
         // Fallback if scopes column doesn't exist
-        apiKey = db.prepare("SELECT * FROM api_keys WHERE key = ? AND is_active = 1").get(key);
+        apiKey = db.prepare("SELECT * FROM api_keys WHERE key = ? AND is_active = 1").get(keyHash);
     }
     if (!apiKey) return res.status(401).json({ error: 'API key inválida o expirada' });
     
@@ -135,8 +140,12 @@ function apiKeyAuth(req, res, next) {
         return res.status(429).json({ error: 'Rate limit exceeded', retry_after: 60 });
     }
     
-    // Check scopes
+    // Check scopes — v12.44.844: scopes vacíos/NULL ya NO significan acceso total:
+    // una clave sin scopes no pasa endpoints con scope requerido.
     const requiredScope = req.requiredScope;
+    if (requiredScope && !apiKey.scopes) {
+        return res.status(403).json({ error: `Scope '${requiredScope}' requerido` });
+    }
     if (requiredScope && apiKey.scopes) {
         const keyScopes = apiKey.scopes.split(',');
         if (!keyScopes.includes(requiredScope) && !keyScopes.includes('admin')) {
@@ -154,14 +163,14 @@ function requireScope(scope) {
     return (req, res, next) => { req.requiredScope = scope; next(); };
 }
 
-router.get('/api/v1/events', apiKeyAuth, requireScope('events:read'), (req, res) => {
+router.get('/api/v1/events', requireScope('events:read'), apiKeyAuth, (req, res) => {
     try {
         const events = db.prepare("SELECT id, name, date, location, status FROM events ORDER BY created_at DESC").all();
         res.json({ data: events, total: events.length });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.get('/api/v1/events/:id', apiKeyAuth, requireScope('events:read'), (req, res) => {
+router.get('/api/v1/events/:id', requireScope('events:read'), apiKeyAuth, (req, res) => {
     try {
         const event = db.prepare("SELECT id, name, date, end_date, location, description, status FROM events WHERE id = ?").get(req.params.id);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
@@ -169,14 +178,14 @@ router.get('/api/v1/events/:id', apiKeyAuth, requireScope('events:read'), (req, 
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.get('/api/v1/events/:id/guests', apiKeyAuth, requireScope('guests:read'), (req, res) => {
+router.get('/api/v1/events/:id/guests', requireScope('guests:read'), apiKeyAuth, (req, res) => {
     try {
         const guests = db.prepare("SELECT id, name, email, organization, checked_in, checkin_time, created_at FROM guests WHERE event_id = ? ORDER BY name ASC").all(req.params.id);
         res.json({ data: guests, total: guests.length });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.get('/api/v1/analytics', apiKeyAuth, requireScope('analytics:read'), (req, res) => {
+router.get('/api/v1/analytics', requireScope('analytics:read'), apiKeyAuth, (req, res) => {
     try {
         const totalEvents = db.prepare("SELECT COUNT(*) as c FROM events").get().c;
         const totalGuests = db.prepare("SELECT COUNT(*) as c FROM guests").get().c;

@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 const { loadPlugin } = require('../engine/plugin-engine');
+const { hasEventAccess } = require('../utils/helpers');
 
 const router = express.Router();
 
@@ -30,6 +31,10 @@ router.post('/:pluginId/install', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, 
         if (!plugin) return res.status(404).json({ error: 'Plugin no encontrado' });
         const { event_id } = req.body;
         if (!event_id) return res.status(400).json({ error: 'event_id requerido' });
+        // v12.44.844 (seguridad — auditoría Sistema #4): instalar exige acceso al evento
+        if (req.userRole !== 'ADMIN' && !hasEventAccess(req.userId, event_id, req.userRole)) {
+            return res.status(403).json({ error: 'No tienes acceso a este evento' });
+        }
         const existing = db.prepare("SELECT id FROM plugin_instances WHERE plugin_id = ? AND event_id = ?").get(req.params.pluginId, event_id);
         if (existing) return res.json({ success: true, alreadyInstalled: true });
         let settings = {};
@@ -52,6 +57,10 @@ router.post('/:pluginId/install', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, 
 router.post('/:pluginId/uninstall', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const { event_id } = req.body;
+        // v12.44.844 (seguridad): desinstalar exige acceso al evento
+        if (req.userRole !== 'ADMIN' && !hasEventAccess(req.userId, event_id, req.userRole)) {
+            return res.status(403).json({ error: 'No tienes acceso a este evento' });
+        }
         db.prepare("DELETE FROM plugin_instances WHERE plugin_id = ? AND event_id = ?").run(req.params.pluginId, event_id);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
@@ -75,6 +84,11 @@ router.get('/event/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']
 
 router.put('/instance/:instanceId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
+        // v12.44.844 (seguridad): editar la instancia exige acceso a su evento
+        const _inst = db.prepare("SELECT event_id FROM plugin_instances WHERE id = ?").get(req.params.instanceId);
+        if (_inst && req.userRole !== 'ADMIN' && !hasEventAccess(req.userId, _inst.event_id, req.userRole)) {
+            return res.status(403).json({ error: 'No tienes acceso a este evento' });
+        }
         const { enabled, settings } = req.body;
         if (enabled !== undefined) db.prepare("UPDATE plugin_instances SET enabled = ? WHERE id = ?").run(enabled ? 1 : 0, req.params.instanceId);
         if (settings !== undefined) db.prepare("UPDATE plugin_instances SET settings = ? WHERE id = ?").run(JSON.stringify(settings), req.params.instanceId);

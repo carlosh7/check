@@ -9,8 +9,9 @@ const router = express.Router();
 // ─── ECOMMERCE CONNECTIONS CRUD (Shopify/WooCommerce) ───
 router.get('/connections', authMiddleware(['ADMIN']), (req, res) => {
     try {
+        // v12.44.844 (auditoría Pagos #8): la api_key sale ENMASCARADA, nunca completa
         const list = db.prepare("SELECT id, platform, name, store_url, api_key, is_active, last_sync_at, created_at FROM ecommerce_connections ORDER BY created_at DESC").all();
-        res.json(list);
+        res.json(list.map(c => ({ ...c, api_key: c.api_key ? (c.api_key.slice(0, 4) + '••••' + c.api_key.slice(-4)) : null })));
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -106,9 +107,21 @@ router.post('/webhook/:connectionId', (req, res) => {
     try {
         const conn = db.prepare("SELECT * FROM ecommerce_connections WHERE id=?").get(req.params.connectionId);
         if (!conn) return res.status(404).json({ error: 'Conexion no encontrada' });
-        
+
+        // v12.44.844 (auditoría Pagos #4): verificar firma HMAC del body CRUDO —
+        // antes CUALQUIER POST forjaba órdenes y creaba leads falsos
+        if (conn.webhook_secret) {
+            const crypto = require('crypto');
+            const raw = typeof req.body === 'string' ? req.body : Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body);
+            const firmaRecibida = req.headers['x-shopify-hmac-sha256'] || req.headers['x-wc-webhook-signature'] || '';
+            const firmaEsperada = crypto.createHmac('sha256', conn.webhook_secret).update(raw).digest('base64');
+            if (!firmaRecibida || firmaRecibida !== firmaEsperada) {
+                return res.status(401).json({ error: 'Firma de webhook inválida' });
+            }
+        }
+
         const event = req.headers['x-shopify-topic'] || req.headers['x-wc-webhook-event'] || 'unknown';
-        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        const body = typeof req.body === 'string' ? JSON.parse(req.body) : (Buffer.isBuffer(req.body) ? JSON.parse(req.body.toString('utf8')) : req.body);
         
         if (event.includes('order') && body.email) {
             const existingGuest = db.prepare("SELECT id FROM guests WHERE email = ? AND event_id IS NULL LIMIT 1").get(body.email);

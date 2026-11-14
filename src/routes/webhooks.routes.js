@@ -88,6 +88,10 @@ const {
 const logger = require("../utils/logger");
 const router = express.Router();
 
+// v12.44.844: import de nivel superior — los guards de acceso lo usan en sus condiciones
+// (antes solo existían requires inline DENTRO de los bloques, después de la condición)
+const { hasEventAccess } = require('../utils/helpers');
+
 // Get all webhooks (admin only or filtered by event access)
 router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
@@ -109,11 +113,11 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
                 return res.json([]);
             }
             
-            // Get webhooks for those events or global webhooks (event_id IS NULL)
+            // v12.44.844: SIN webhooks globales para PRODUCTOR (antes filtraban su secreto HMAC)
             const placeholders = eventIds.map(() => '?').join(',');
             const rows = db.prepare(`
                 SELECT * FROM webhooks 
-                WHERE status = 'ACTIVE' AND (event_id IS NULL OR event_id IN (${placeholders}))
+                WHERE status = 'ACTIVE' AND event_id IN (${placeholders})
                 ORDER BY created_at DESC
             `).all(...eventIds);
             
@@ -142,7 +146,7 @@ router.get('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         }
         
         // Check access
-        if (req.userRole !== 'ADMIN' && webhook.event_id) {
+        if (req.userRole !== 'ADMIN' && (!webhook.event_id || !hasEventAccess(req.userId, webhook.event_id, req.userRole))) { // v12.44.844: los globales (sin evento) son solo ADMIN
             const { hasEventAccess } = require('../utils/helpers');
             if (!hasEventAccess(req.userId, webhook.event_id, req.userRole)) {
                 return res.status(403).json({ error: 'No tienes acceso a este webhook' });
@@ -179,7 +183,7 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         }
         
         // Check event access for non-admins
-        if (req.userRole !== 'ADMIN' && data.event_id) {
+        if (req.userRole !== 'ADMIN' && (!data.event_id || !hasEventAccess(req.userId, data.event_id, req.userRole))) { // v12.44.844: exigir evento propio; sin evento = solo ADMIN
             const { hasEventAccess } = require('../utils/helpers');
             if (!hasEventAccess(req.userId, data.event_id, req.userRole)) {
                 return res.status(403).json({ error: 'No tienes acceso a este evento' });
@@ -215,7 +219,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         }
         
         // Check access
-        if (req.userRole !== 'ADMIN' && webhook.event_id) {
+        if (req.userRole !== 'ADMIN' && (!webhook.event_id || !hasEventAccess(req.userId, webhook.event_id, req.userRole))) { // v12.44.844: los globales (sin evento) son solo ADMIN
             const { hasEventAccess } = require('../utils/helpers');
             if (!hasEventAccess(req.userId, webhook.event_id, req.userRole)) {
                 return res.status(403).json({ error: 'No tienes acceso a este webhook' });
@@ -271,7 +275,7 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         }
         
         // Check access
-        if (req.userRole !== 'ADMIN' && webhook.event_id) {
+        if (req.userRole !== 'ADMIN' && (!webhook.event_id || !hasEventAccess(req.userId, webhook.event_id, req.userRole))) { // v12.44.844: los globales (sin evento) son solo ADMIN
             const { hasEventAccess } = require('../utils/helpers');
             if (!hasEventAccess(req.userId, webhook.event_id, req.userRole)) {
                 return res.status(403).json({ error: 'No tienes acceso a este webhook' });
@@ -301,7 +305,7 @@ router.post('/:id/test', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         }
         
         // Check access
-        if (req.userRole !== 'ADMIN' && webhook.event_id) {
+        if (req.userRole !== 'ADMIN' && (!webhook.event_id || !hasEventAccess(req.userId, webhook.event_id, req.userRole))) { // v12.44.844: los globales (sin evento) son solo ADMIN
             const { hasEventAccess } = require('../utils/helpers');
             if (!hasEventAccess(req.userId, webhook.event_id, req.userRole)) {
                 return res.status(403).json({ error: 'No tienes acceso a este webhook' });
@@ -337,7 +341,7 @@ router.get('/:id/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const webhook = getWebhook(req.params.id);
         if (!webhook) return res.status(404).json({ error: 'Webhook no encontrado' });
-        if (req.userRole !== 'ADMIN' && webhook.event_id) {
+        if (req.userRole !== 'ADMIN' && (!webhook.event_id || !hasEventAccess(req.userId, webhook.event_id, req.userRole))) { // v12.44.844: los globales (sin evento) son solo ADMIN
             const { hasEventAccess } = require('../utils/helpers');
             if (!hasEventAccess(req.userId, webhook.event_id, req.userRole)) return res.status(403).json({ error: 'No tienes acceso' });
         }

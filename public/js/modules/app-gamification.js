@@ -55,6 +55,24 @@ const Gamification = window.GamificationModule = {
         }).catch(() => { container.innerHTML = '<p class="text-xs text-red-400">Error al cargar encuestas</p>'; });
     },
 
+    // v12.44.844 (auditoría Encuestas #3): poblador REAL del selector de sesión
+    loadSessionsSelect() {
+        const eId = App.state.event?.id;
+        const sel = document.getElementById('poll-editor-session');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">Sin sesión</option>';
+        if (!eId) return;
+        API.fetchAPI('/sessions/' + eId).then(function(sesiones) {
+            const lista = Array.isArray(sesiones) ? sesiones : (sesiones.sessions || sesiones.data || []);
+            lista.forEach(function(s) {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.title || s.name || s.id;
+                sel.appendChild(opt);
+            });
+        }).catch(function() { /* sin sesiones: queda "Sin sesión" */ });
+    },
+
     showPollEditor() {
         document.getElementById('gamification-polls').classList.add('hidden');
         document.getElementById('gamification-poll-editor').classList.remove('hidden');
@@ -65,9 +83,12 @@ const Gamification = window.GamificationModule = {
         document.getElementById('poll-editor-timer').value = 0;
         document.getElementById('poll-options-container').innerHTML = '';
         document.getElementById('poll-correct-answer-container').classList.add('hidden');
-        App.loadSessionsSelect();
-        App._initPollOptionListener();
-        App._editingPollId = null;
+        // v12.44.844 (auditoría Encuestas #3): loadSessionsSelect y _initPollOptionListener
+        // NO EXISTÍAN — showPollEditor reventaba aquí y _editingPollId nunca se reseteaba
+        // (crear "Nueva" sobrescribía la anterior con PUT). El "+ Agregar opción" ya usa
+        // el despachador (data-call=addPollOption), no necesita listener.
+        this.loadSessionsSelect();
+        this._editingPollId = null;
     },
 
     editPoll(pollId) {
