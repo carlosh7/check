@@ -133,8 +133,10 @@ function getProducerGroups(userId) {
 function hasEventAccess(userId, eventId, role) {
     if (role === 'ADMIN') return true;
     try {
-        const event = db.prepare("SELECT group_id FROM events WHERE id = ?").get(eventId);
+        const event = db.prepare("SELECT group_id, user_id FROM events WHERE id = ?").get(eventId);
         if (!event) return false;
+        // v12.44.843 (hallazgo N1): el dueño del evento siempre tiene acceso
+        if (event.user_id === userId) return true;
         
         // Verificar acceso directo a través de user_events (el usuario fue asignado directamente al evento)
         const userEvents = db.prepare("SELECT 1 FROM user_events WHERE user_id = ? AND event_id = ?").get(userId, eventId);

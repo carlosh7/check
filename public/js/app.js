@@ -43,7 +43,7 @@ import './modules/core/DelegatedEvents.js?v=12.44.841';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.842';
+const VERSION = '12.44.843';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -51,8 +51,16 @@ if ('caches' in window) {
         caches.keys().then(names => {
             for (const name of names) caches.delete(name);
         }).then(() => {
+            // v12.44.843: la limpieza por cambio de versión YA NO cierra la sesión de
+            // los usuarios en cada deploy — se preservan sesión ('user'/'token') y tema.
+            const preservar = {};
+            ['user', 'token', 'theme'].forEach(k => {
+                const val = localStorage.getItem(k);
+                if (val !== null) preservar[k] = val;
+            });
             localStorage.clear();
             sessionStorage.clear();
+            Object.entries(preservar).forEach(([k, val]) => localStorage.setItem(k, val));
             LS.set('check_app_version', VERSION);
             window.location.reload(true);
         });
@@ -6689,7 +6697,10 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
             const loginEl = document.getElementById('view-login');
             if (loginEl) {
                 loginEl.classList.remove('hidden');
-                loginEl.style.display = 'flex';
+                // v12.44.843 (fix en vivo): 'flex' en línea apilaba logo/tarjeta/pie en
+                // FILA (el diseño correcto es bloque apilado que body centra con su flex).
+                // Limpiar el estilo deja que el CSS original gobierne, igual que al cargar.
+                loginEl.style.display = '';
             }
             const appContainer = document.getElementById('app-container');
             if (appContainer) {

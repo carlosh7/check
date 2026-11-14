@@ -113,7 +113,9 @@ router.get('/', authMiddleware(), async (req, res) => {
             } else if (req.userRole === 'ORGANIZER') {
                 events = db.prepare("SELECT e.* FROM events e INNER JOIN user_events ue ON e.id = ue.event_id WHERE ue.user_id = ? ORDER BY e.created_at DESC").all(req.userId);
             } else {
-                events = db.prepare("SELECT * FROM events WHERE group_id IN (SELECT group_id FROM group_users WHERE user_id = ?) ORDER BY created_at DESC").all(req.userId);
+                // v12.44.843 (hallazgo N1): también los eventos que él mismo crea —
+                // antes un PRODUCTOR sin grupos creaba eventos que quedaban invisibles para él
+                events = db.prepare("SELECT * FROM events WHERE user_id = ? OR group_id IN (SELECT group_id FROM group_users WHERE user_id = ?) ORDER BY created_at DESC").all(req.userId, req.userId);
             }
             
             for (const e of events) {
