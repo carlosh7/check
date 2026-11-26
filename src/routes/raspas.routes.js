@@ -128,7 +128,7 @@ function notifyViews(id) {
 
 // selección ponderada de premio (paridad AppSorteos: chances + cantidades)
 function pickPrize(prizes, config) {
-    let pool = prizes.filter(function(p) {
+    const pool = prizes.filter(function(p) {
         if (config.limit_quantities && p.quantity != null && parseInt(p.quantity) <= 0) return false;
         return true;
     });

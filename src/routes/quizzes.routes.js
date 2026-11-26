@@ -367,7 +367,7 @@ router.get('/:id/public', (req, res) => {
             return {
                 id: q.id, type: q.type, title: q.title, mediaUrl: q.media_url,
                 timeLimit: q.time_limit, pointsMode: q.points_mode,
-                answers: parseJsonSafe(q.answers_json, []).map(function(a) { var safe = Object.assign({}, a); delete safe.correct; return safe; }), orderIndex: idx // v12.44.848 (auditoría 2026-11-25, N7): el estado público entregaba la respuesta correcta
+                answers: parseJsonSafe(q.answers_json, []).map(function(a) { const safe = Object.assign({}, a); delete safe.correct; return safe; }), orderIndex: idx // v12.44.848 (auditoría 2026-11-25, N7): el estado público entregaba la respuesta correcta
             };
         });
         res.json({
@@ -730,7 +730,7 @@ router.post('/public/session/:pin/join', (req, res) => {
 router.get('/public/session/:pin/state', (req, res) => {
     try {
         const pin = String(req.params.pin).trim();
-        let s = db.prepare("SELECT * FROM quiz_sessions WHERE pin = ? ORDER BY created_at DESC").get(pin);
+        const s = db.prepare("SELECT * FROM quiz_sessions WHERE pin = ? ORDER BY created_at DESC").get(pin);
         if (!s) return res.status(404).json({ error: 'PIN no encontrado' });
         const quiz = db.prepare("SELECT name, config_json FROM quizzes WHERE id = ?").get(s.quiz_id);
         const total = db.prepare("SELECT COUNT(*) as c FROM quiz_questions WHERE quiz_id = ?").get(s.quiz_id).c;

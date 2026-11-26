@@ -132,7 +132,7 @@ function sanitizeQuestions(questions) {
 // parsea el índice correcto tolerando formatos comunes ("3", "D", "respuesta3", 1-based)
 function parseCorrectIndex(raw, nAnswers) {
     if (raw == null) return -1;
-    let s = String(raw).trim();
+    const s = String(raw).trim();
     if (!s) return -1;
     // letra A-D (según cantidad de respuestas)
     if (/^[A-Da-d]$/.test(s)) {
@@ -177,7 +177,7 @@ function notifyViews(id) {
 // preguntas para el JUEGO público: SIN correct_index (anti-trampa)
 function publicQuestions(rows) {
     return rows.map(function(q, i) {
-        let answers = parseJsonSafe(q.answers_json, []);
+        const answers = parseJsonSafe(q.answers_json, []);
         return { index: i, question: q.question, answers: answers };
     });
 }
@@ -537,7 +537,7 @@ router.post('/:id/play', (req, res) => {
         const rows = getQuestions(t.id);
         if (!rows.length) return res.status(400).json({ error: 'La trivia no tiene preguntas' });
         // corrección SIEMPRE en el servidor: answers = índices elegidos por pregunta en orden
-        let given = (req.body && Array.isArray(req.body.answers)) ? req.body.answers : [];
+        const given = (req.body && Array.isArray(req.body.answers)) ? req.body.answers : [];
         let score = 0;
         const total = rows.length;
         for (let i = 0; i < total; i++) {

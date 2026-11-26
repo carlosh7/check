@@ -2,7 +2,6 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const bcrypt = require('bcryptjs');
 
 const fs = require('fs');
 const basePath = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH, 'system') : path.resolve(__dirname, 'data/system');

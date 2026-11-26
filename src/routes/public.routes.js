@@ -95,6 +95,19 @@ router.get('/captcha', (req, res) => {
     res.json({ question: captcha.question, token: captcha.token });
 });
 
+// v12.44.849 (auditoría 2026-11-25, I8): busca por id (lo que usan los enlaces) y por `slug` solo si esa columna existe.
+// La tabla events no tiene columna `slug`: la consulta original daba 500 siempre, también cuando se
+// pasaba el id del evento (kiosco, landing y portal abiertos por enlace).
+function findEventBySlugOrId(slug) {
+    if (castId('events', slug)) {
+        const byId = db.prepare('SELECT id, name FROM events WHERE id = ? LIMIT 1').get(slug);
+        if (byId) return byId;
+    }
+    const cols = db.prepare('PRAGMA table_info(events)').all().map(function(c) { return c.name; });
+    if (cols.includes('slug')) return db.prepare('SELECT id, name FROM events WHERE slug = ? LIMIT 1').get(slug) || null;
+    return null;
+}
+
 // Portal del asistente (BL-28)
 router.get('/portal/:guestId', (req, res) => {
     try {
@@ -329,7 +342,8 @@ router.get('/guests/qr/:guestId/token', (req, res) => {
 router.get('/event-by-slug/:slug', (req, res) => {
     try {
         const slug = req.params.slug;
-        const event = db.prepare("SELECT id, name FROM events WHERE slug = ? OR id = ? LIMIT 1").get(slug, slug);
+        // // v12.44.849 (auditoría 2026-11-25, I8): el evento se resuelve por id (o por slug si la columna existe)
+        const event = findEventBySlugOrId(slug);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         res.json(event);
     } catch(err) { res.status(500).json({ error: err.message }); }

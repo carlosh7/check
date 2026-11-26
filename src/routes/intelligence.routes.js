@@ -132,7 +132,7 @@ router.post('/webhooks/:id/execute', authMiddleware(['ADMIN']), async (req, res)
         for (const action of actions) {
             try {
                 if (action === 'trigger') {
-                    const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
+                    const { triggerWebhooks } = require('../utils/webhooks'); // // v12.44.849 (auditoría 2026-11-25, I5): importación sin uso
                     // v12.44.844 (auditoría Pagos #5): orden real triggerWebhooks(tipo, data, eventId).
                     // Antes: webhook.events (un ARRAY) entraba como tipo → jamás matcheaba.
                     let eventosSub = webhook.events;

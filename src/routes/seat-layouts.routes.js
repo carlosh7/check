@@ -1,6 +1,6 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const { db } = require('../../database');
+require('../../database'); // // v12.44.849 (auditoría 2026-11-25, I5): importación sin uso
 const { castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { getEventDb } = require('../utils/event-db');

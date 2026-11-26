@@ -95,11 +95,16 @@ module.exports = [
             'no-self-assign': 'error',
             'no-self-compare': 'error',
             'no-unmodified-loop-condition': 'warn',
-            'no-unused-expressions': 'warn',
+            // v12.44.849 (auditoría 2026-11-25, I5)): `condición && acción()` es un idioma extendido e intencional en este código
+            // (sobre todo en el frontend migrado a CSP). Se permite explícitamente en vez de reescribir
+            // decenas de funciones probadas en producción.
+            'no-unused-expressions': ['warn', { allowShortCircuit: true }],
             'no-useless-return': 'warn',
             'no-throw-literal': 'warn',
             'no-return-await': 'warn',
-            'require-await': 'warn',
+            // v12.44.849 (auditoría 2026-11-25, I5)): los handlers de rutas son `async` aunque no hagan `await` a propósito (Express 5
+            // canaliza así los errores al manejador central). Marcarlos era ruido, no un defecto.
+            'require-await': 'off',
             'no-async-promise-executor': 'error',
             'no-await-in-loop': 'warn',
             'no-promise-executor-return': 'warn',

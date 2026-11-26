@@ -362,7 +362,7 @@ router.get('/export-excel/:eventId', authMiddleware(), async (req, res) => {
     if (req.query.search) { whereClause += " AND (name LIKE ? OR email LIKE ? OR organization LIKE ?)"; const s = '%' + req.query.search + '%'; params.push(s, s, s); }
     // v12.44.836 (auditoría): .all.apply(targetDb, params) perdía el this del statement
     // (Illegal invocation SIEMPRE) y sin try la request quedaba sin respuesta
-    var rows;
+    let rows;
     try {
         const stmt = targetDb.prepare("SELECT name as Nombre, email as Email, organization as Organizacion, phone as Telefono, gender as Genero, category_id as Categoria, CASE WHEN checked_in = 1 THEN 'SÍ' ELSE 'NO' END as Asistio, checkin_time as Hora FROM guests " + whereClause + " ORDER BY name ASC");
         rows = params.length ? stmt.all(...params) : stmt.all();
@@ -387,7 +387,7 @@ router.get('/export-excel/:eventId', authMiddleware(), async (req, res) => {
     ];
     
     // Auto-filtros
-    sheet.autoFilter = { reference: 'A1:H1' };
+    sheet.autoFilter = { from: 'A1', to: 'H1' }; // // v12.44.849 (auditoría 2026-11-25, I8): con `reference` ExcelJS revienta al escribir (el Excel de invitados daba 500 siempre)
     
     sheet.getRow(1).eachCell(cell => {
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7C3AED' } };

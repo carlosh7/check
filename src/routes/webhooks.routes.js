@@ -66,7 +66,6 @@
  */
 
 const express = require('express');
-const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 const { schemas, validate } = require('../security/validation');
@@ -79,9 +78,7 @@ const {
     listWebhooks,
     deleteWebhook,
     generateSecret,
-    triggerWebhooks,
     sendWebhook,
-    logWebhookDelivery,
     getWebhookLogs,
     findBlockedWebhookHeader // v12.44.846 (auditoría 2026-11-25, S7)
 } = require('../utils/webhooks');

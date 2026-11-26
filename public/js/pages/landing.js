@@ -1,6 +1,6 @@
 // v12.44.848 (auditoría 2026-11-25, G7): solo enlaces http(s)/mailto/tel. Un premio con enlace "javascript:" ejecutaba
 // código en la página al hacer clic (esc() escapa HTML, no el esquema de la URL).
-function safeHref(u) { try { var p = String(u == null ? '' : u).trim(); if (/^(https?:|mailto:|tel:)/i.test(p)) return p; } catch (e) {} return '#'; }
+function safeHref(u) { try { const p = String(u == null ? '' : u).trim(); if (/^(https?:|mailto:|tel:)/i.test(p)) return p; } catch (e) {} return '#'; }
 let API='/api',eventData=null,cdInterval=null;
 
 function downloadQR(){

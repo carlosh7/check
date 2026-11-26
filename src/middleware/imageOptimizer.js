@@ -1,8 +1,6 @@
 // imageOptimizer.js - Compresión automática de imágenes
 const logger = require('../utils/logger');
 const sharp = require('sharp');
-const path = require('path');
-const fs = require('fs');
 
 /**
  * Comprime y optimiza una imagen subida

@@ -1,6 +1,6 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const { db, getEventConnection, getDatabase } = require('../../database');
+const { db, getEventConnection } = require('../../database'); // // v12.44.849 (auditoría 2026-11-25, I5): importación sin uso
 const { authMiddleware } = require('../middleware/auth');
 const { logAction } = require('../security/audit');
 const { getValidId, getProducerGroups } = require('../utils/helpers');
@@ -694,7 +694,6 @@ function runSyncWorker() {
 }
 
 function triggerExport(eventId) {
-    const server = require('../../server');
     const http = require('http');
     const url = require('url');
 

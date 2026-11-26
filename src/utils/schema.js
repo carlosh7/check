@@ -2165,15 +2165,7 @@ function initSchema(db) {
     } catch (_) {}
     
     // Importar Database Manager para bases de datos por evento
-    const { 
-        getEventConnection, 
-        createEventDatabase, 
-        eventDatabaseExists,
-        getEventDbPath,
-        getEventDatabases,
-        getEventDatabaseInfo,
-        deleteEventDatabase
-    } = require('./database-manager');
+    require('./database-manager'); // // v12.44.849 (auditoría 2026-11-25, I5): importación sin uso (las 7 funciones importadas aquí no se usaban en este archivo)
     
     // ═══ Tablas del Ciclo 11 (master DB) ═══
     try { db.exec(`

@@ -12,7 +12,6 @@
  * }
  */
 
-const logger = require('../utils/logger');
 const z = require('zod');
 // v12.44.802: toda contraseña nueva usa la política fuerte centralizada
 // (longitud mínima + mayúscula + minúscula + número). La lista de contraseñas

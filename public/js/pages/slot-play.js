@@ -1,6 +1,6 @@
 // v12.44.848 (auditoría 2026-11-25, G7): solo enlaces http(s)/mailto/tel. Un premio con enlace "javascript:" ejecutaba
 // código en la página al hacer clic (esc() escapa HTML, no el esquema de la URL).
-function safeHref(u) { try { var p = String(u == null ? '' : u).trim(); if (/^(https?:|mailto:|tel:)/i.test(p)) return p; } catch (e) {} return '#'; }
+function safeHref(u) { try { const p = String(u == null ? '' : u).trim(); if (/^(https?:|mailto:|tel:)/i.test(p)) return p; } catch (e) {} return '#'; }
 // ===== Tragamonedas — PÁGINA DE JUEGO pública (P4 — v12.44.834) =====
 // Formulario de registro → POST /play (el servidor elige el premio por probabilidades
 // y devuelve SUS símbolos) → la máquina jala la palanca, los 3 rodillos giran con

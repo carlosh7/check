@@ -162,7 +162,7 @@ router.post('/:id/populate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) 
             // v12.44.836 (auditoría): .apply(null, ...) perdía el this del statement
             // (Illegal invocation SIEMPRE) — poblar desde encuesta estaba roto.
             // El IN (?, ?, ...) necesita N valores: conservar this con apply(stmt, args)
-            var stmtGuests = eventDb.prepare("SELECT id as guest_id, name, email, phone FROM guests WHERE event_id = ? AND id IN (" + placeholders + ")");
+            const stmtGuests = eventDb.prepare("SELECT id as guest_id, name, email, phone FROM guests WHERE event_id = ? AND id IN (" + placeholders + ")");
             var guests = stmtGuests.all.apply(stmtGuests, [raffle.event_id].concat(guestIds));
             sourceSql = null;
             db.prepare("DELETE FROM raffle_participants WHERE raffle_id = ?").run(raffle.id);
@@ -365,7 +365,7 @@ router.post('/:id/participants/batch', authMiddleware(['ADMIN', 'PRODUCTOR']), (
         if (!Array.isArray(participants)) return res.status(400).json({ error: 'participants debe ser un array' });
         db.prepare("DELETE FROM raffle_participants WHERE raffle_id = ?").run(req.params.id);
         const insert = db.prepare("INSERT INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, 'manual')");
-        var count = 0;
+        let count = 0;
         participants.forEach(function(p) {
             try { insert.run(uuidv4(), req.params.id, null, p.name || '', p.email || '', p.phone || ''); count++; } catch(e) {}
         });

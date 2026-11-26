@@ -4,7 +4,7 @@
  */
 
 const express = require('express');
-const { db, getEventConnection, createEventDatabase } = require('../../database');
+const { db, createEventDatabase } = require('../../database'); // // v12.44.849 (auditoría 2026-11-25, I5): importación sin uso
 const { getValidId, castId, getProducerGroups, hasEventAccess } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const ExcelJS = require('exceljs');

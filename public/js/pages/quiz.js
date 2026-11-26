@@ -4,7 +4,7 @@
 // Sincronización: socket.io si está disponible + reserva por sondeo (version).
 
 // ===== ESTADO =====
-let API = '/api';
+const API = '/api';
 let quizId = null;          // uuid del quiz en la URL
 let isPlayer = false;       // URL termina en /play
 let quiz = null;            // {id,name,description,config}
@@ -13,9 +13,9 @@ let curQ = -1;              // pregunta abierta en el editor
 let dirty = false;
 let sound = true;
 // juego en vivo (anfitrión)
-let live = { sessionId: null, pin: null, st: null, timerId: null, pollId: null, revealed: false, soundOn: true, lastSeenVersion: 0 };
+const live = { sessionId: null, pin: null, st: null, timerId: null, pollId: null, revealed: false, soundOn: true, lastSeenVersion: 0 };
 // jugador
-let pl = { pin: null, playerId: null, nickname: null, st: null, pollId: null, answeredFor: null, avatar: '🐱' };
+const pl = { pin: null, playerId: null, nickname: null, st: null, pollId: null, answeredFor: null, avatar: '🐱' };
 let socket = null;
 
 const ANS_COLORS = ['#e21b3c', '#1368ce', '#d89e00', '#26890c']; // paridad Kahoot

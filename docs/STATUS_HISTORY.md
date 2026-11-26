@@ -707,3 +707,8 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 - Control de acceso por evento en 113 rutas más (32 routers) y `state` de Google firmado.
 - Error real encontrado de paso: un premio con chance 0 salía ~1 de cada 100 jugadas en tragamonedas, rueda y raspa (era también la causa de un test intermitente).
 - Commit `3e458af`, tag `v12.44.848`. Deploy: 79 archivos con md5 idéntico. Validación EN VIVO: check-in y deshacer de un invitado que solo está en la BD del evento, 403 para PRODUCTOR ajeno en 3 routers, certificados 404 (antes 500), sondeos públicos 404 (antes 401), control de quiz sin token 401, estadísticas 979 = 979, limpieza 0, captura de la pantalla de acceso. Suite 507✓ (+18). Pendiente detallado en `docs/AUDITORIA-2026-11-25-REMEDIACION.md` §6.
+
+## 2026-11-26 — v12.44.849 — Fase 4 de la auditoría externa 2026-11-25 (CI y tests)
+- Lint bajo el umbral del CI: 503 avisos, 0 errores (antes 631 y 2). `ci.yml` arreglado; el workflow sigue desactivado por orden del dueño y se verificó en local.
+- Prueba de humo de routers: 52 cargan y 246 rutas GET sin ningún 500. Encontró 3 errores reales (Excel de invitados, evento por slug, estadísticas de encuesta), corregidos.
+- Suite 511✓ (+4). Pendiente detallado en `docs/AUDITORIA-2026-11-25-REMEDIACION.md` §7. Deploy y validación en vivo: se anotan al cerrar.

@@ -71,7 +71,7 @@ router.get('/:eventId/public', (req, res) => {
         if (landing.showSchedule) {
             try {
                 let targetDb = eventDatabaseExists(eId) ? getEventConnection(eId) : null;
-                if (!targetDb) { const Database = require('better-sqlite3'); targetDb = db; }
+                if (!targetDb) { targetDb = db; }
                 const sessions = targetDb.prepare("SELECT title, start_time, end_time, location, description FROM sessions WHERE event_id = ? ORDER BY start_time ASC").all(eId);
                 landing.sessions = sessions;
             } catch(e) { landing.sessions = []; }

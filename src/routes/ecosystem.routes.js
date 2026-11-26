@@ -79,7 +79,7 @@ router.post('/pricing/tiers', authMiddleware(['ADMIN']), (req, res) => {
 
 router.put('/pricing/tiers/:id', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        const { name, price, currency, features, max_events, max_guests_per_event, is_active, sort_order } = req.body;
+        const { name, price, features, max_events, max_guests_per_event, is_active, sort_order } = req.body; // // v12.44.849 (auditoría 2026-11-25, I5): importación sin uso
         db.prepare("UPDATE pricing_tiers SET name=COALESCE(?,name), price=COALESCE(?,price), features=COALESCE(?,features), max_events=COALESCE(?,max_events), max_guests_per_event=COALESCE(?,max_guests_per_event), is_active=COALESCE(?,is_active), sort_order=COALESCE(?,sort_order) WHERE id=?")
             .run(name, price, features, max_events, max_guests_per_event, is_active != null ? (is_active ? 1 : 0) : null, sort_order, req.params.id);
         res.json({ success: true });

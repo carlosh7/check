@@ -35,7 +35,7 @@ const THEMES=[
 const DEFAULT_SYMBOLS=['🍒','🍋','🔔'];
 const POOL=['🍒','🍋','🔔','💎','7️⃣','🍇','⭐','🎁'];
 function normalizeSymbols(symbols){
-  let arr=Array.isArray(symbols)?symbols.map(function(s){return String(s==null?'':s).trim().slice(0,12)}).filter(Boolean).slice(0,3):[];
+  const arr=Array.isArray(symbols)?symbols.map(function(s){return String(s==null?'':s).trim().slice(0,12)}).filter(Boolean).slice(0,3):[];
   while(arr.length<3)arr.push(DEFAULT_SYMBOLS[arr.length]||'🍒');
   return arr;
 }

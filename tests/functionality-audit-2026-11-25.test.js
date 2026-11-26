@@ -204,3 +204,16 @@ describe('Frontend y juegos (comprobación del código)', () => {
         expect(read('src/routes/public.routes.js')).toMatch(/require\('\.\.\/utils\/webhooks'\)/);
     });
 });
+
+// v12.44.849: el Excel de invitados daba 500 siempre (filtro de hoja con un nombre de propiedad que
+// ExcelJS no entiende). En los eventos con BD propia los invitados viven en esa BD.
+describe('Excel de invitados (v12.44.849)', () => {
+    test('se descarga como archivo xlsx con los invitados de la BD del evento', async () => {
+        const res = await request(app).get(`/api/guests/export-excel/${ownEvent.id}`)
+            .set('Authorization', 'Bearer ' + prodToken).responseType('blob').timeout({ deadline: 15000 });
+        expect(res.status).toBe(200);
+        const body = Buffer.isBuffer(res.body) ? res.body : Buffer.from(res.body);
+        expect(body.length).toBeGreaterThan(1000);
+        expect(body.slice(0, 2).toString('latin1')).toBe('PK'); // un .xlsx es un zip
+    });
+});

@@ -6,7 +6,7 @@ const http = require('http');
 const cors = require('cors');
 const path = require('path');
 const net = require('net');
-const { db } = require('./database');
+require('./database'); // v12.44.849 (auditoría 2026-11-25, I5): importación sin uso (se mantiene la carga: inicializa la BD)
 const fs = require('fs');
 const helmet = require('helmet');
 const logger = require('./src/utils/logger');
@@ -264,7 +264,7 @@ app.use('/api/ecommerce/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
 
 // --- RATE LIMITING GRANULAR (C8-14) ---
-const { limiters, getRateLimitStatus } = require('./src/middleware/rate-limiter');
+const { limiters } = require('./src/middleware/rate-limiter'); // v12.44.849 (auditoría 2026-11-25, I5): importación sin uso
 app.set('trust proxy', 1);
 
 app.use('/api/', limiters.general);

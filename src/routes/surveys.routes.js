@@ -228,6 +228,8 @@ router.get('/templates/:templateId/stats', authMiddleware(['ADMIN', 'PRODUCTOR',
         const questions = getQuestionsWithType(req.params.templateId);
         const responses = db.prepare("SELECT * FROM survey_responses WHERE template_id = ? ORDER BY submitted_at DESC").all(req.params.templateId);
         const template = db.prepare("SELECT * FROM survey_templates WHERE id = ?").get(req.params.templateId);
+        // // v12.44.849 (auditoría 2026-11-25, I8): sin encuesta se respondía 500 en vez de 404
+        if (!template) return res.status(404).json({ error: 'Encuesta no encontrada' });
 
         const total = responses.length;
         const completed = responses.filter(function(r) {

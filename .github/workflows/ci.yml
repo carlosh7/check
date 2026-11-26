@@ -34,7 +34,7 @@ jobs:
         run: npm test -- --runInBand
 
       - name: Lint (baseline progresiva — bajar al limpiar código)
-        run: npx eslint . --max-warnings=520  # tramo 3 (v12.44.806, 504 actuales); composición documentada en AUDIT_REPORT
+        run: npx eslint . --max-warnings=520  # v12.44.849: 503 avisos, 0 errores (umbral mantenido en 520); composición documentada en AUDIT_REPORT
 
   secrets:
     name: Detección de secretos filtrados
@@ -61,20 +61,29 @@ jobs:
         run: npm ci
       - name: Instalar Playwright (driver)
         run: npm i -D playwright --no-save
-      - name: Arrancar servidor
+      # v12.44.849 (auditoría 2026-11-25, I5): el servidor se arrancaba en un step y la batería corría en
+      # el siguiente; GitHub termina los procesos en segundo plano al acabar cada step, así que las
+      # pruebas corrían sin servidor. Ahora servidor y batería viven en el mismo step.
+      # JWT_SECRET de 46 caracteres: en producción el arranque aborta con secretos de menos de 32.
+      - name: Arrancar servidor y batería E2E grupo A (core)
         env:
           DATA_PATH: /tmp/e2e-data
-          JWT_SECRET: e2e-ci-secret-000000000000
+          JWT_SECRET: e2e-ci-secret-000000000000-000000000000-e2e-only
           ADMIN_EMAIL: ci-admin@check.local
           # v12.44.803: contraseña dinámica por run — CERO credenciales literales en el repo
           ADMIN_PASSWORD: ci-run-${{ github.run_id }}-Aa1
           NODE_ENV: production
-        run: |
-          node server.js &
-          sleep 10
-          curl -sf http://localhost:3000/api/health
-      - name: Batería E2E grupo A (core)
-        env:
           E2E_USER: ci-admin@check.local
           E2E_PASS: ci-run-${{ github.run_id }}-Aa1
-        run: node scripts/test-all-features.js A
+        run: |
+          node server.js > /tmp/check-e2e-server.log 2>&1 &
+          SERVER_PID=$!
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/api/health; then break; fi
+            sleep 1
+          done
+          curl -sf http://localhost:3000/api/health
+          node scripts/test-all-features.js A
+          RESULT=$?
+          kill $SERVER_PID 2>/dev/null || true
+          exit $RESULT

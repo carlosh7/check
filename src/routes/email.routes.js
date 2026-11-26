@@ -1353,7 +1353,7 @@ router.get('/mailbox/folders', async (req, res) => {
             await client.logout();
             const folderNames = mailboxList.map(function(m) { return m.path; });
             const standardFolders = ['INBOX', 'Sent', 'Drafts', 'Trash', 'Spam', 'Junk'];
-            for (let sf of standardFolders) {
+            for (const sf of standardFolders) {
                 if (!folderNames.includes(sf) && !folderNames.some(function(f) { return f.toLowerCase() === sf.toLowerCase(); })) {
                     folderNames.push(sf);
                 }
@@ -1656,7 +1656,7 @@ router.get('/mailbox/attachment/:uid', async (req, res) => {
             if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) folderName = 'INBOX.' + folder;
             const lock = await client.getMailboxLock(folderName);
             try {
-                var rawEmail = null;
+                let rawEmail = null;
                 for await (const msg of client.fetch(uid, { uid: true, source: true })) {
                     rawEmail = msg.source;
                 }
