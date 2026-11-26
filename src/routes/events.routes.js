@@ -119,13 +119,20 @@ function castEventIdParam(req, res, next, id) {
     next();
 }
 
+// // v12.44.847 (auditoría 2026-11-25, I4): los logos se guardaban en <repo>/uploads/logos, fuera del volumen persistente en Docker
+// (se perdían al recrear el contenedor y un contenedor sin root no puede escribir ahí). Ahora van a
+// DATA_PATH/uploads/logos; sin DATA_PATH se conserva la carpeta del repositorio.
+function uploadsBase() {
+    return process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH, 'uploads') : path.resolve(__dirname, '../../uploads');
+}
+
 // v12.44.846: la ruta del logo del gafete solo puede ser un archivo dentro de uploads/logos
 // (la URL /uploads/logos/x.png se resuelve dentro de <repo>/uploads, no dentro de public/)
 function isSafeBadgeLogo(logo) {
     if (typeof logo !== 'string' || !/^\/uploads\/logos\/[A-Za-z0-9._-]+$/.test(logo)) return false;
     const path = require('path');
-    const logosDir = path.resolve(__dirname, '../../uploads/logos') + path.sep;
-    return path.resolve(__dirname, '../..', logo.replace(/^\//, '')).startsWith(logosDir);
+    const logosDir = path.join(uploadsBase(), 'logos') + path.sep;
+    return path.resolve(uploadsBase(), logo.replace(/^\/uploads\//, '')).startsWith(logosDir);
 }
 
 // Se pide autenticación en todo el router: así req.userId/req.userRole ya están fijados cuando
@@ -933,7 +940,7 @@ router.post('/:id/clone', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
 
 const badgeStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const dir = path.join(__dirname, '../../uploads/logos');
+        const dir = path.join(uploadsBase(), 'logos');
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         cb(null, dir);
     },
@@ -1014,7 +1021,7 @@ router.delete('/:id/badge-logo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, r
                     if (isSafeBadgeLogo(config.logo)) {
                         const others = db.prepare("SELECT COUNT(*) AS c FROM events WHERE id != ? AND badge_config LIKE ?").get(req.params.id, '%' + config.logo + '%');
                         if (others.c === 0) {
-                            const logoPath = path.resolve(__dirname, '../..', config.logo.replace(/^\//, ''));
+                            const logoPath = path.resolve(uploadsBase(), config.logo.replace(/^\/uploads\//, ''));
                             if (fs.existsSync(logoPath)) fs.unlinkSync(logoPath);
                         }
                     } else {

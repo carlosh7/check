@@ -3,6 +3,9 @@ version: '3.8'
 services:
   check-app:
     build: .
+    # v12.44.847 (auditoría 2026-11-25, I2): la app no corre como root. Requisito previo, una sola vez en el host:
+    #   chown -R 10001:10001 <directorio montado como /usr/src/app/persistence>
+    user: "10001:10001"
     working_dir: /usr/src/app
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
@@ -15,6 +18,8 @@ services:
         required: false
     environment:
       - NODE_ENV=development
+      # HOME escribible para el usuario sin entrada en /etc/passwd
+      - HOME=/tmp
       - PORT=${PORT:-3000}
       - DATA_PATH=${DATA_PATH:-/usr/src/app/persistence}
       - ALLOWED_ORIGINS=http://localhost:${PORT:-3000}

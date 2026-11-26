@@ -54,7 +54,7 @@ Conteos propios que coinciden con el informe: tests 455 pasan / 1 omitido; ESLin
 |------|---------|--------|
 | 0 — verdad de producción | — | ✅ cerrada (arriba) |
 | 1 — parche de seguridad | v12.44.846 | ✅ cerrada — `967645d`, desplegada y validada en vivo |
-| 2 — respaldos y persistencia | v12.44.847 | ⏳ pendiente |
+| 2 — respaldos y persistencia | v12.44.847 | 🔄 despliegue en curso |
 | 3 — funcionalidades rotas | v12.44.848 | ⏳ pendiente |
 | 4 — CI verde y tests | v12.44.849 | ⏳ pendiente |
 
@@ -133,3 +133,21 @@ Comprobaciones con peticiones reales, usando una cuenta PRODUCTOR de prueba (bor
 | Verificar código de recuperación sin indicar la cuenta | 400 |
 
 Pantalla de acceso en el navegador: render correcto (captura), `app.js?v=12.44.846`.
+
+## 5. Fase 2 — respaldos y persistencia (v12.44.847)
+
+| ID | Estado | Evidencia |
+|----|--------|-----------|
+| D2 | ✅ | `src/utils/backup.js`: cada respaldo incluye las BDs de evento (`check_event_backup_<fecha>_<id>.db.enc`) y los archivos subidos (`check_uploads_backup_<fecha>.tar.gz.enc`), cifrados con la misma clave. El verificador de restauración entiende los tres tipos. El segundo respaldo de `webhooks.js` (copia en caliente, sin cifrar) usa el sistema principal |
+| I2 | ✅ | Dockerfile con usuario propio `checkapp` (uid 10001) y `USER`; compose con `user: "10001:10001"`; el script de arranque ya no hace `chmod -R 777` |
+| I4 | ✅ | Logos en `DATA_PATH/uploads/logos` (antes en la carpeta del código, fuera del volumen); `/uploads/photos` se sirve desde `DATA_PATH/photos` (daba 404 en Docker) |
+| I7 | ✅ | `docker-entrypoint.sh`: puertos comprobados con node (antes `/dev/tcp`, que no existe en sh: la comprobación fallaba siempre), ya no reescribe `APP_URL`/`ALLOWED_ORIGINS` del `.env`, no aborta si no puede escribir el `.env`. Dockerfile sin `npm install` con `|| echo` |
+| I1 | ✅ | `portainer-stack*.yml`: el `.env` persiste junto a los datos. No aplica a producción, que usa `docker-compose.yml` con `env_file` |
+| I10 | ✅ | `.dockerignore` excluye `coverage/`, `.zcode/`, `.agent/`, `.gemini/`, `portainer-stack-v2.yml` |
+| P8 | parcial | `logger.js` respeta `DATA_PATH`. Pendiente: una escritura síncrona por línea de log y hash de claves dentro de transacciones |
+| I6 | ⏳ | `deploy.routes.js` sin candado (producción no lo usa: se despliega por rsync) |
+
+Pruebas: `tests/backup-restore.test.js` (12) cubre respaldo cifrado y restorable de eventos, paquete de
+subidas y limpieza por antigüedad. El script de arranque se probó en un directorio aislado con cuatro
+casos (`.env` sin permiso, `.env` escribible, secretos desde el entorno, datos sin permiso).
+Guía de usuario: `docs/user/07-administracion/09-cifrado-datos.md`.

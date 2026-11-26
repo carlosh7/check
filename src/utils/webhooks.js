@@ -494,6 +494,21 @@ async function sendSlackMessage(webhook, payload) {
 // ─── Backup (C5-11) ───
 
 async function createBackup() {
+    // // v12.44.847 (auditoría 2026-11-25, D2): este respaldo copiaba el archivo SQLite en caliente con fs.copyFileSync (inconsistente
+    // en modo WAL), SIN cifrar y solo la BD maestra. Ahora usa el sistema principal de respaldos
+    // (copia consistente con la API de SQLite, cifrado, BDs de evento y archivos subidos).
+    try {
+        const mainBackup = require('./backup');
+        if (mainBackup && typeof mainBackup.createBackup === 'function') {
+            const r = await mainBackup.createBackup();
+            if (r && r.success) {
+                let bytes = 0;
+                try { bytes = require('fs').statSync(r.path).size; } catch (e) {}
+                return { success: true, file: r.path, size: bytes, encrypted: r.encrypted, events: r.events, uploads: r.uploads };
+            }
+            return r;
+        }
+    } catch (e) { /* si falla, se usa el método antiguo de abajo */ }
     const backupDir = process.env.BACKUP_DIR || './backups';
     const fs = require('fs'), path = require('path');
     if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });

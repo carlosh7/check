@@ -20,3 +20,9 @@ nginx-stack.yml
 Makefile
 eslint.config.js
 install.sh
+# v12.44.847 (auditoría 2026-11-25, I10): artefactos locales y stacks alternativos que no deben entrar en la imagen
+coverage/
+.zcode/
+.agent/
+.gemini/
+portainer-stack-v2.yml

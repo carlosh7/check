@@ -121,3 +121,34 @@ Si pierdes `BACKUP_ENCRYPTION_KEY`, los backups `.db.enc` son irrecuperables.
 
 **Recomendacion:** Guarda ambas claves en un gestor de contraseñas (Bitwarden, 1Password, etc.).
 
+
+## Qué incluye cada respaldo (v12.44.847)
+
+Cada 6 horas la aplicación genera un respaldo **cifrado** en `DATOS/system/backups`, en tres partes:
+
+| Archivo | Qué contiene |
+|---|---|
+| `check_app_backup_<fecha>.db.enc` | La base de datos general (usuarios, eventos, empresas) |
+| `check_event_backup_<fecha>_<id de evento>.db.enc` | La base de datos de cada evento: **aquí están los invitados** |
+| `check_uploads_backup_<fecha>.tar.gz.enc` | Los archivos subidos (logos de gafetes y fotos del álbum) |
+
+Antes solo se respaldaba la primera parte, así que los invitados de los eventos con base de datos
+propia quedaban fuera del respaldo. Se conservan 7 días.
+
+**Comprobar que un respaldo se puede restaurar** (descifra, abre y revisa las tablas):
+
+```
+node scripts/verify-backup-restore.js          # el respaldo más reciente de la base general
+node scripts/verify-backup-restore.js --all    # todos los vigentes (general, eventos y subidas)
+node scripts/verify-backup-restore.js --create # crea uno nuevo y lo comprueba
+```
+
+**Para restaurar** (con la aplicación detenida):
+
+1. Descifrar con la clave de respaldos (`BACKUP_ENCRYPTION_KEY`, o `ENCRYPTION_KEY` si no hay otra).
+2. Base general: colocar el archivo como `DATOS/system/database.db`.
+3. Evento: colocar el archivo como `DATOS/events/<id de evento>.db` (el id va en el nombre).
+4. Subidas: descomprimir con `tar -xzf <archivo> -C <carpeta de datos>`.
+
+**Copiar los respaldos fuera del servidor.** Un respaldo que vive en el mismo disco que la aplicación
+no protege frente a la pérdida del disco: descarga la carpeta `DATOS/system/backups` con regularidad.

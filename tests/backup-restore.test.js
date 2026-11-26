@@ -80,3 +80,98 @@ describe('Backup cifrado + restauración (Fase 6)', () => {
         expect(list[0].encrypted).toBe(true);
     });
 });
+
+// v12.44.847 (auditoría 2026-11-25, D2): el respaldo debe incluir las BDs de evento (ahí viven los
+// invitados de los eventos nuevos) y los archivos subidos, no solo la BD maestra.
+describe('Backup incluye BDs de evento y archivos subidos (v12.44.847)', () => {
+    const path = require('path');
+    const eventId = '11111111-2222-4333-8444-555555555555';
+    let created = null;
+
+    beforeAll(() => {
+        const Database = require('better-sqlite3');
+        const evDir = path.join(process.env.DATA_PATH, 'events');
+        const upDir = path.join(process.env.DATA_PATH, 'uploads', 'logos');
+        fs.mkdirSync(evDir, { recursive: true });
+        fs.mkdirSync(upDir, { recursive: true });
+        const edb = new Database(path.join(evDir, eventId + '.db'));
+        edb.exec('CREATE TABLE IF NOT EXISTS guests (id TEXT PRIMARY KEY, event_id TEXT, name TEXT, email TEXT)');
+        edb.prepare('INSERT INTO guests (id, event_id, name, email) VALUES (?, ?, ?, ?)').run('g1', eventId, 'QA Invitado', 'qa@invitado.test');
+        edb.close();
+        fs.writeFileSync(path.join(upDir, 'logo-qa.png'), 'png-de-prueba');
+    });
+
+    afterAll(() => {
+        for (const f of [path.join(process.env.DATA_PATH, 'events', eventId + '.db'), path.join(process.env.DATA_PATH, 'uploads', 'logos', 'logo-qa.png')]) {
+            try { fs.unlinkSync(f); } catch (e) {}
+        }
+    });
+
+    test('createBackup respalda la BD del evento, cifrada y restorable con sus invitados', async () => {
+        created = await backup.createBackup();
+        expect(created.success).toBe(true);
+        expect(created.events.count).toBe(1);
+        const files = backup.listBackups().map(b => b.file);
+        const evBackup = files.find(f => f.startsWith('check_event_backup_') && f.includes(eventId));
+        expect(evBackup).toBeTruthy();
+        const full = path.join(process.env.DATA_PATH, 'system', 'backups', evBackup);
+        expect(fs.readFileSync(full).slice(0, 15).toString('utf8')).not.toBe('SQLite format 3'); // cifrado
+        const plain = backup.restoreBackupToBuffer(full);
+        const Database = require('better-sqlite3');
+        const tmp = path.join(require('os').tmpdir(), 'restore-ev-' + Date.now() + '.db');
+        fs.writeFileSync(tmp, plain);
+        const db = new Database(tmp, { readonly: true });
+        expect(db.prepare('SELECT COUNT(*) AS c FROM guests').get().c).toBe(1);
+        expect(db.prepare('SELECT email FROM guests').get().email).toBe('qa@invitado.test');
+        db.close();
+        fs.unlinkSync(tmp);
+    });
+
+    test('createBackup empaqueta y cifra los archivos subidos', async () => {
+        expect(created.uploads.ok).toBe(true);
+        const files = backup.listBackups().map(b => b.file);
+        const upBackup = files.find(f => f.startsWith('check_uploads_backup_'));
+        expect(upBackup).toBeTruthy();
+        const plain = backup.restoreBackupToBuffer(path.join(process.env.DATA_PATH, 'system', 'backups', upBackup));
+        expect(plain[0]).toBe(0x1f); // gzip
+        expect(plain[1]).toBe(0x8b);
+    });
+
+    test('la limpieza por antigüedad reconoce los tres tipos de respaldo', () => {
+        const stale = ['check_app_backup_2000-01-01.db.enc', 'check_event_backup_2000-01-01_x.db.enc', 'check_uploads_backup_2000-01-01.tar.gz.enc', 'otro-archivo.txt'];
+        const dir = path.join(process.env.DATA_PATH, 'system', 'backups');
+        const old = new Date(Date.now() - 10 * 24 * 3600 * 1000);
+        for (const f of stale) { fs.writeFileSync(path.join(dir, f), 'x'); fs.utimesSync(path.join(dir, f), old, old); }
+        backup.cleanupOldBackups();
+        const left = fs.readdirSync(dir);
+        expect(left).toEqual(expect.arrayContaining(['otro-archivo.txt']));
+        for (const f of stale.slice(0, 3)) expect(left).not.toContain(f);
+    });
+});
+
+describe('verifyBackupRestorable entiende los tres tipos de respaldo (v12.44.847)', () => {
+    const path = require('path');
+    const dir = () => path.join(process.env.DATA_PATH, 'system', 'backups');
+
+    test('un respaldo de evento se verifica solo con su tabla de invitados', async () => {
+        await backup.createBackup();
+        const ev = backup.listBackups().map(b => b.file).find(f => f.startsWith('check_event_backup_'));
+        const r = backup.verifyBackupRestorable(path.join(dir(), ev));
+        expect(r.ok).toBe(true);
+        expect(r.integrity).toBe('ok');
+        expect(r.tables.guests).toBe(1);
+    });
+
+    test('un respaldo de subidas se verifica como gzip válido', async () => {
+        const up = backup.listBackups().map(b => b.file).find(f => f.startsWith('check_uploads_backup_'));
+        const r = backup.verifyBackupRestorable(path.join(dir(), up));
+        expect(r.ok).toBe(true);
+    });
+
+    test('la BD maestra sigue verificándose con todas sus tablas críticas', async () => {
+        const app = backup.listBackups().map(b => b.file).find(f => f.startsWith('check_app_backup_'));
+        const r = backup.verifyBackupRestorable(path.join(dir(), app));
+        expect(r.ok).toBe(true);
+        expect(typeof r.tables.users).toBe('number');
+    });
+});

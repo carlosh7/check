@@ -31,6 +31,11 @@ services:
       - '3000'
     volumes:
       - /home/data_check:/usr/src/app/persistence
+      # v12.44.847 (auditoría 2026-11-25, I1): las claves (JWT_SECRET, ENCRYPTION_KEY…) vivían en un .env efímero dentro del
+      # contenedor y se regeneraban en cada recreación: los secretos guardados y los respaldos
+      # cifrados quedaban ilegibles para siempre. El .env ahora persiste junto a los datos.
+      # Crea el archivo en el host ANTES de desplegar (si no existe, Docker crea una carpeta).
+      - /home/data_check/check.env:/usr/src/app/.env
     environment:
       - NODE_ENV=production
       - PORT=3000

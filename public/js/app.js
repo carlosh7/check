@@ -7,43 +7,43 @@ window.escapeHtml = function(str) {
 };
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.846';
-import { Config } from './modules/core/Config.js?v=12.44.846';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.846';
-import { AppStateManager } from './modules/core/State.js?v=12.44.846';
-import { Constants } from './modules/utils/Constants.js?v=12.44.846';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.846';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.846';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.846';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.846';
-import { TableManager } from './modules/components/Table.js?v=12.44.846';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.846';
-import { FormManager } from './modules/components/Form.js?v=12.44.846';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.846';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.846';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.846';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.846';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.846';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.846';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.846';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.846';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.846';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.846';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.847';
+import { Config } from './modules/core/Config.js?v=12.44.847';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.847';
+import { AppStateManager } from './modules/core/State.js?v=12.44.847';
+import { Constants } from './modules/utils/Constants.js?v=12.44.847';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.847';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.847';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.847';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.847';
+import { TableManager } from './modules/components/Table.js?v=12.44.847';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.847';
+import { FormManager } from './modules/components/Form.js?v=12.44.847';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.847';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.847';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.847';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.847';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.847';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.847';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.847';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.847';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.847';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.847';
 
 // Módulos cableados en v12.44.804 (respaldo de v12.44.802, antes sin usar)
-import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.846';
-import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.846';
-import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.846';
+import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.847';
+import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.847';
+import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.847';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.846';
-import PushModule from './modules/app-push.js?v=12.44.846';
-import ThemeModule from './modules/app-theme.js?v=12.44.846';
-import { AiSecurity } from './modules/features/ai-security.js?v=12.44.846';
-import './modules/core/DelegatedEvents.js?v=12.44.846';
+import ImportExportModule from './modules/app-import.js?v=12.44.847';
+import PushModule from './modules/app-push.js?v=12.44.847';
+import ThemeModule from './modules/app-theme.js?v=12.44.847';
+import { AiSecurity } from './modules/features/ai-security.js?v=12.44.847';
+import './modules/core/DelegatedEvents.js?v=12.44.847';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.846';
+const VERSION = '12.44.847';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -11187,7 +11187,7 @@ navigate(viewName, params = {}, push = true) {
     _gm: null,
     async _g() {
         if (!this._gm) {
-            const m = await import('./modules/app-gamification.js?v=12.44.846');
+            const m = await import('./modules/app-gamification.js?v=12.44.847');
             this._gm = m.default || window.GamificationModule || {};
             // Bind App reference for module functions that use window.App
             if (this._gm._init) this._gm._init();
@@ -12019,7 +12019,7 @@ navigate(viewName, params = {}, push = true) {
         if (!container || !container.innerHTML.trim()) return;
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.846"></head><body>' + container.innerHTML + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.847"></head><body>' + container.innerHTML + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -12054,7 +12054,7 @@ navigate(viewName, params = {}, push = true) {
         const html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.846"></head><body>' + html + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.847"></head><body>' + html + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -12168,7 +12168,7 @@ navigate(viewName, params = {}, push = true) {
             const win = window.open('', '_blank', 'width=400,height=600');
             if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
             win.document.write('<!DOCTYPE html><html><head><title>Gafetes</title>'
-                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.846">'
+                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.847">'
                 + '</head><body class="batch">' + allHtml + '</body></html>');
             win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}

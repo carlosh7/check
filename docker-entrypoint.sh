@@ -1,9 +1,17 @@
 #!/bin/sh
 # Universal Entrypoint (v12.44.775) — Auto-port detection
+#
+# v12.44.847 (auditoría 2026-11-25, I7): este script asumía que corría como root y con bash:
+#   - usaba /dev/tcp (que solo existe en bash) para comprobar puertos: bajo sh la comprobación
+#     fallaba siempre y el puerto "libre" era el primero, fuera o no cierto;
+#   - reescribía APP_URL y ALLOWED_ORIGINS del .env a http://localhost en cada arranque;
+#   - hacía chmod -R 777 de todos los datos y abortaba si no podía escribir el .env, así que con
+#     un usuario sin root el contenedor entraba en bucle de reinicio.
+# Ahora: puertos comprobados con node, sin reescribir URLs, sin 777 y sin depender del .env.
 set -e
 
 echo "--------------------------------------------------------"
-echo "🔍 DIAGNÓSTICO DE ARRANQUE (Check Pro v12.44.775)"
+echo "🔍 DIAGNÓSTICO DE ARRANQUE (Check Pro $(node -e "console.log(require('./package.json').version)" 2>/dev/null || echo '?.?.?'))"
 echo "⏱️  Hora: $(date)"
 echo "👤 Usuario: $(id)"
 echo "📁 Directorio actual: $(pwd)"
@@ -11,20 +19,32 @@ echo "--------------------------------------------------------"
 
 # 0. Diagnóstico de Persistencia
 if [ ! -z "$DATA_PATH" ]; then
-    echo "🔨 Ejecutando test de persistencia en $DATA_PATH..."
+    echo "🔨 Verificando persistencia en $DATA_PATH..."
     mkdir -p "$DATA_PATH/system" "$DATA_PATH/events" "$DATA_PATH/uploads" 2>/dev/null || true
-    date > "$DATA_PATH/ESTOY_VIVO.txt" 2>/dev/null && echo "✅ Archivo ESTOY_VIVO.txt creado en el host." || echo "❌ FALLO: No se pudo escribir en el host."
-    chmod -R 777 "$DATA_PATH" 2>/dev/null || true
+    if date > "$DATA_PATH/ESTOY_VIVO.txt" 2>/dev/null; then
+        echo "✅ Escritura en el volumen de datos correcta."
+    else
+        echo "❌ FALLO: No se pudo escribir en $DATA_PATH (revisa el dueño del directorio)."
+    fi
+    # ANTES: chmod -R 777 "$DATA_PATH" — dejaba la base de datos escribible por cualquier usuario del host.
 else
     echo "⚠️ ADVERTENCIA: DATA_PATH no está definida. Usando almacenamiento interno."
     export DATA_PATH=/usr/src/app/data
     mkdir -p "$DATA_PATH/system" "$DATA_PATH/events" "$DATA_PATH/uploads" 2>/dev/null || true
 fi
 
-# 1. Verificar archivo .env
+# 1. Verificar archivo .env (sin abortar si no se puede crear: valen las variables de entorno)
 if [ ! -f ".env" ]; then
-    cp .env.example .env 2>/dev/null || touch .env
-    echo "✅ Archivo .env creado desde .env.example"
+    if cp .env.example .env 2>/dev/null || touch .env 2>/dev/null; then
+        echo "✅ Archivo .env creado desde .env.example"
+    else
+        echo "⚠️ .env no creado (sin permiso): se usarán las variables de entorno"
+    fi
+fi
+# ¿Se puede escribir el .env? Si no, los ajustes de abajo solo informan.
+ENV_WRITABLE=0
+if [ -f ".env" ] && [ -w ".env" ]; then
+    ENV_WRITABLE=1
 fi
 
 # 2. Auto-detección de puerto
@@ -32,10 +52,9 @@ fi
 DESIRED_PORT=${PORT:-3000}
 PORT_FOUND=0
 
-# Función para verificar si un puerto está libre
+# Función para verificar si un puerto está ocupado (sale 0 si está ocupado, 1 si está libre)
 check_port() {
-    (echo >/dev/tcp/localhost/$1) 2>/dev/null
-    return $?
+    node -e "const s=require('net').createServer();s.once('error',()=>process.exit(0));s.listen({port:Number(process.argv[1]),host:'localhost'},()=>s.close(()=>process.exit(1)));" "$1"
 }
 
 for offset in 0 1 2 3 4 5 6 7 8 9 10; do
@@ -44,14 +63,15 @@ for offset in 0 1 2 3 4 5 6 7 8 9 10; do
         export PORT=$CANDIDATE
         PORT_FOUND=1
         echo "✅ Puerto disponible: $CANDIDATE"
-        
-        # Actualizar .env con el puerto encontrado
-        if [ -f ".env" ]; then
+
+        # Actualizar .env con el puerto encontrado (solo si es escribible)
+        if [ "$ENV_WRITABLE" = "1" ]; then
             sed -i "s/^PORT=.*/PORT=$CANDIDATE/" .env 2>/dev/null || true
-            sed -i "s/^APP_URL=.*/APP_URL=http:\/\/localhost:$CANDIDATE/" .env 2>/dev/null || true
-            sed -i "s/^ALLOWED_ORIGINS=.*/ALLOWED_ORIGINS=http:\/\/localhost:$CANDIDATE/" .env 2>/dev/null || true
         fi
-        
+
+        # ANTES se reescribían aquí APP_URL y ALLOWED_ORIGINS a http://localhost:<puerto>, lo que
+        # pisaba la URL real del despliegue en cada arranque. Esos valores se respetan.
+
         if [ $offset -gt 0 ]; then
             echo "⚠️  Puerto $DESIRED_PORT ocupado. Usando $CANDIDATE en su lugar."
         fi
@@ -71,22 +91,37 @@ node -e "try { require('express'); console.log('  ✅ express OK'); } catch(e) {
 node -e "try { require('jsonwebtoken'); console.log('  ✅ jsonwebtoken OK'); } catch(e) { console.warn('  ⚠️  jsonwebtoken no disponible'); }" || true
 
 # 4. Auto-generar secrets si faltan
+# Solo si no vienen como variable de entorno Y el .env no los tiene. Sin permiso de escritura se avisa
+# (ANTES se imprimía "auto-generado" aunque no se hubiera podido escribir).
 echo "🔑 Verificando secrets..."
-if ! grep -q "JWT_SECRET=.\{32,\}" .env 2>/dev/null; then
-    NEW_JWT=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
-    sed -i "s/^JWT_SECRET=.*/JWT_SECRET=$NEW_JWT/" .env 2>/dev/null || echo "JWT_SECRET=$NEW_JWT" >> .env
-    echo "✅ JWT_SECRET auto-generado"
-fi
-if ! grep -q "ENCRYPTION_KEY=.\{32,\}" .env 2>/dev/null; then
-    NEW_KEY=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
-    sed -i "s/^ENCRYPTION_KEY=.*/ENCRYPTION_KEY=$NEW_KEY/" .env 2>/dev/null || echo "ENCRYPTION_KEY=$NEW_KEY" >> .env
-    echo "✅ ENCRYPTION_KEY auto-generado"
-fi
-if ! grep -q "DEPLOY_WEBHOOK_SECRET=.\{32,\}" .env 2>/dev/null; then
-    NEW_DEPLOY=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
-    sed -i "s/^DEPLOY_WEBHOOK_SECRET=.*/DEPLOY_WEBHOOK_SECRET=$NEW_DEPLOY/" .env 2>/dev/null || echo "DEPLOY_WEBHOOK_SECRET=$NEW_DEPLOY" >> .env
-    echo "✅ DEPLOY_WEBHOOK_SECRET auto-generado"
-fi
+gen_secret() {
+    node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+}
+write_secret() {
+    # $1 = nombre de la variable, $2 = valor. Devuelve 0 solo si quedó escrito en .env.
+    if [ "$ENV_WRITABLE" = "1" ]; then
+        if sed -i "s/^$1=.*/$1=$2/" .env 2>/dev/null && grep -q "^$1=$2\$" .env 2>/dev/null; then
+            return 0
+        fi
+        echo "$1=$2" >> .env 2>/dev/null
+        return $?
+    fi
+    return 1
+}
+
+for SECRET_NAME in JWT_SECRET ENCRYPTION_KEY DEPLOY_WEBHOOK_SECRET; do
+    # Valor actual en el entorno (eval indirecto portable en sh)
+    eval "SECRET_VALUE=\${$SECRET_NAME:-}"
+    if [ ! -z "$SECRET_VALUE" ]; then
+        echo "  ✅ $SECRET_NAME viene del entorno"
+    elif grep -q "^$SECRET_NAME=.\{32,\}" .env 2>/dev/null; then
+        echo "  ✅ $SECRET_NAME ya está en .env"
+    elif write_secret "$SECRET_NAME" "$(gen_secret)"; then
+        echo "  ✅ $SECRET_NAME auto-generado en .env"
+    else
+        echo "  ❌ $SECRET_NAME ausente y .env no escribible: defínelo como variable de entorno"
+    fi
+done
 
 # 5. Verificar base de datos
 echo "🗄️  Verificando base de datos..."
@@ -97,11 +132,12 @@ echo ""
 echo "========================================================="
 echo "🚀 CHECK PRO v$(node -e "console.log(require('./package.json').version)" 2>/dev/null || echo '?.?.?')"
 echo "📍 Puerto: $PORT"
-echo "🌐 URL: http://localhost:$PORT"
 echo "📁 Datos: $DATA_PATH"
 echo "========================================================="
 echo ""
 
 # 7. Iniciar aplicación
+# v12.44.847: se arranca node directamente (npm necesita un usuario con entrada en /etc/passwd y
+# un HOME; la app puede correr con un uid dedicado que no la tiene).
 echo "🚀 Arrancando servidor Node.js en puerto $PORT..."
-exec npm start
+exec node server.js

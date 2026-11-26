@@ -694,3 +694,8 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 - Suite 483✓ (+28 tests nuevos). ESLint 0 errores. `scripts/bump-version.js`: una sola versión de `?v=` en los archivos principales.
 - Commit `967645d`, tag `v12.44.846`. Deploy: 60 archivos con md5 idéntico; contenedor sano a los 18 s. Validación EN VIVO con cuenta PRODUCTOR de prueba (borrada, 0 restantes): 20/20 comprobaciones (escalada por importación rechazada, 403 en eventos/grupos ajenos, logo con `../` → 400, portal y networking sin token → 403, kiosco 200, BD del evento reparada con 978 invitados, captura de la pantalla de acceso). Detalle en `docs/AUDITORIA-2026-11-25-REMEDIACION.md`.
 - Observado (preexistente, no regresión): el PRODUCTOR de producción no es dueño de ningún evento y los 2 eventos están sin grupo, por eso su listado da 0.
+
+## 2026-11-26 — v12.44.847 — Fase 2 de la auditoría externa 2026-11-25 (respaldos y persistencia)
+- Respaldos: además de la BD general se respaldan (cifrados) las BDs de evento —donde viven los invitados— y los archivos subidos. Antes un respaldo "correcto" no servía para recuperar a los asistentes.
+- Contenedor sin root (usuario dedicado uid 10001), sin `chmod -R 777`, script de arranque a prueba de `.env` de solo lectura y con detección de puerto real; logos y fotos bajo `DATA_PATH`.
+- Suite 489✓ (+6 de respaldos). Deploy y validación en vivo: se anotan al cerrar.

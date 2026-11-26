@@ -5,7 +5,7 @@ const options = {
         openapi: '3.0.0',
         info: {
             title: 'Check Pro API',
-            version: '12.44.846',
+            version: '12.44.847',
             description: 'API REST para el sistema de gestión de invitados y eventos Check Pro',
             contact: { name: 'Check Pro Support' }
         },

@@ -20,6 +20,10 @@ services:
       - '3000'
     volumes:
       - /home/data_check:/usr/src/app/persistence
+      # v12.44.847 (auditoría 2026-11-25, I1): el .env persiste junto a los datos (antes se regeneraban las claves en cada
+      # recreación y quedaban ilegibles los secretos guardados y los respaldos cifrados).
+      # Crea el archivo en el host ANTES de desplegar (si no existe, Docker crea una carpeta).
+      - /home/data_check/check.env:/usr/src/app/.env
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -48,7 +52,7 @@ services:
       echo '=== check-app deploy ===' &&
       apt-get update && apt-get install -y git rsync ca-certificates &&
       mkdir -p /usr/src/app/persistence/system /usr/src/app/persistence/events /usr/src/app/persistence/uploads &&
-      chmod -R 777 /usr/src/app/persistence &&
+      true &&  # (v12.44.847 (auditoría 2026-11-25, I2): antes chmod -R 777 de los datos — los dejaba escribibles por cualquier usuario
       rm -rf /tmp/app_new &&
       git clone --depth 1 https://x-access-token:TOKEN_AQUI@github.com/carlosh7/check.git /tmp/app_new &&
       rsync -av /tmp/app_new/. /usr/src/app/ &&

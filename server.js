@@ -345,6 +345,14 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     index: false,
     maxAge: '1d'
 }));
+// // v12.44.847 (auditoría 2026-11-25, I4): los archivos subidos viven en el volumen de datos: logos en DATA_PATH/uploads y fotos del
+// álbum en DATA_PATH/photos. Antes las fotos se guardaban ahí pero se servían desde <repo>/uploads
+// (404 en Docker) y los logos se guardaban fuera del volumen.
+if (process.env.DATA_PATH) {
+    const uploadsStatic = { dotfiles: 'deny', index: false, maxAge: '1d' };
+    app.use('/uploads', express.static(path.join(process.env.DATA_PATH, 'uploads'), uploadsStatic));
+    app.use('/uploads/photos', express.static(path.join(process.env.DATA_PATH, 'photos'), uploadsStatic));
+}
 
 // Archivos estáticos raíz — WHITELIST EXPLÍCITA (P0-2 auditoría 2026-08)
 // NUNCA servir el directorio raíz del proyecto: expone server.js, package.json,

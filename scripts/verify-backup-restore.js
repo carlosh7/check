@@ -40,7 +40,8 @@ async function main() {
         process.exit(1);
     }
 
-    const targets = all ? backups : [backups[0]];
+    // v12.44.847: hay tres tipos de respaldo (app, evento, subidas); "el más nuevo" es el de la BD maestra
+    const targets = all ? backups : [backups.find(function(b) { return b.file.startsWith('check_app_backup_'); })].filter(Boolean);
     console.log(`→ Verificando ${targets.length} backup(s) de ${backups.length} disponibles...\n`);
 
     let failures = 0;

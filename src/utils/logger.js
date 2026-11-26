@@ -13,7 +13,9 @@ const isDev = process.env.NODE_ENV !== 'production';
 const currentLevel = LOG_LEVELS[isDev ? 'debug' : 'info'];
 
 // Directorio de logs
-const LOG_DIR = path.join(__dirname, '../../data/logs');
+// // v12.44.847 (auditoría 2026-11-25, P8): los logs iban siempre a <repo>/data/logs ignorando DATA_PATH. En un contenedor sin root
+// esa carpeta pertenece al código y no es escribible; ahora siguen a los datos persistentes.
+const LOG_DIR = process.env.DATA_PATH ? path.join(process.env.DATA_PATH, 'logs') : path.join(__dirname, '../../data/logs');
 try { fs.mkdirSync(LOG_DIR, { recursive: true }); } catch(e) {}
 
 // Archivos de log (rotación diaria)
