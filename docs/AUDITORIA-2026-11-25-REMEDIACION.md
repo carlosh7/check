@@ -56,7 +56,7 @@ Conteos propios que coinciden con el informe: tests 455 pasan / 1 omitido; ESLin
 | 1 — parche de seguridad | v12.44.846 | ✅ cerrada — `967645d`, desplegada y validada en vivo |
 | 2 — respaldos y persistencia | v12.44.847 | ✅ cerrada — `10983ee`, desplegada y validada en vivo |
 | 3 — funcionalidades rotas | v12.44.848 | ✅ cerrada — `3e458af`, desplegada y validada en vivo |
-| 4 — CI verde y tests | v12.44.849 | 🔄 despliegue en curso |
+| 4 — CI verde y tests | v12.44.849 | ✅ cerrada — `21860c3`, desplegada y validada en vivo |
 
 Cada fase cierra con: bump de versión (4 archivos), commit, tag, push, deploy por rsync + restart,
 y validación en vivo en chek.smarteventos.co. Todo fix queda cubierto por un test.
@@ -250,3 +250,37 @@ Suite: 28 suites, 511 pasan, 1 omitido (al empezar el plan: 25 suites, 455).
 
 Pendiente de esta fase: métodos POST/PUT/DELETE sin prueba, los 120 `return` silenciosos de tests antiguos (I8),
 scripts que abren `check_app.db` (I9), artefactos trackeados (I11), Swagger y SDK desactualizados (I12).
+
+### Validación en vivo de la Fase 4 (2026-11-26)
+
+- Deploy: 63 archivos con md5 idéntico (compose del repositorio fuera de la lista); contenedor sano a los 6 s, `12.44.849`, uid 10001, sin errores de arranque.
+- Batería contra producción: **488 llamadas a 245 rutas GET** (con token de ADMIN y sin él) → **0 respuestas 5xx** (200: 178, 401: 168, 404: 123, 403: 12, 400: 7).
+- `GET /api/event-by-slug/<id>` → 200 con el evento real (antes 500). Inexistente → 404.
+- `GET /api/guests/export-excel/<id>` → 200, `application/vnd…sheet`, 53.574 bytes (antes 500 siempre).
+- `GET /api/events/templates/<id>/stats` inexistente → 404 (antes 500).
+- Kiosco → 200 con 978 invitados. Respaldos automáticos: 4 de la BD del evento y 33 de la general.
+- Pantalla de acceso en el navegador: correcta, `app.js?v=12.44.849`.
+- La prueba de humo del repo se corrigió después (el cálculo del prefijo de montaje no casaba); el commit posterior solo toca tests y docs, no se redespliega.
+
+## 8. Resumen final del plan y avisos para el dueño
+
+| Fase | Versión | Commit | Estado |
+|------|---------|--------|--------|
+| 0 — verdad de producción | — | — | ✅ |
+| 1 — parche de seguridad | v12.44.846 | `967645d` | ✅ validada en vivo (20 comprobaciones) |
+| 2 — respaldos y persistencia | v12.44.847 | `10983ee` | ✅ validada en vivo (8) |
+| 3 — funcionalidades rotas | v12.44.848 | `3e458af` | ✅ validada en vivo (15) |
+| 4 — CI y tests | v12.44.849 | `21860c3` | ✅ validada en vivo (488 llamadas + 7) |
+
+Suite al cerrar: 28 suites, 511 tests pasan, 1 omitido (al empezar: 25 suites, 455). ESLint: 0 errores, 503 avisos.
+
+**Avisos operativos (cambios de comportamiento que conviene saber):**
+
+1. **`JWT_SECRET` corto aborta el arranque en producción.** Si en otro entorno (p. ej. el MacBook del laboratorio) la clave mide menos de 32 caracteres, la app no arranca con `NODE_ENV=production`. Solución: `openssl rand -hex 48` en el `.env` (cierra las sesiones abiertas), o `ALLOW_WEAK_JWT_SECRET=true` como salida de emergencia.
+2. **`DEPLOY_WEBHOOK_SECRET` ya no se genera solo.** El contenedor corre sin root y no escribe el `.env`. Si se usa el auto-despliegue por webhook, hay que definirlo en el entorno.
+3. **Los datos son del usuario de la app (uid 10001).** En el servidor, para leer o modificar `/opt/check/data` hace falta `sudo`.
+4. **Webhooks y tiendas hacia redes internas** (Tailscale, LAN) se rechazan salvo que la red esté en `SSRF_ALLOWED_CIDRS`. Hoy producción no tiene ninguno configurado.
+5. **Los enlaces de eventos y del portal** que antes fallaban (por `slug`) ahora funcionan pasando el id del evento. El portal del asistente exige además su token (`GET /api/guests/:eventId/portal-link/:guestId`).
+6. **El workflow de CI sigue desactivado**, por la congelación de GitHub. Cuando se reactive debe pasar: los dos comandos están verificados en local.
+
+**Lo que queda pendiente** está listado con su sitio en §6 (frontend, módulos que leen solo la BD maestra, resto de correo, `socket.io`, CSV) y en §7 (POST/PUT/DELETE sin prueba, ~270 avisos de variables sin usar, scripts y documentación obsoletos).

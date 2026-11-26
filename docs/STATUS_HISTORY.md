@@ -711,4 +711,5 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 ## 2026-11-26 — v12.44.849 — Fase 4 de la auditoría externa 2026-11-25 (CI y tests)
 - Lint bajo el umbral del CI: 503 avisos, 0 errores (antes 631 y 2). `ci.yml` arreglado; el workflow sigue desactivado por orden del dueño y se verificó en local.
 - Prueba de humo de routers: 52 cargan y 246 rutas GET sin ningún 500. Encontró 3 errores reales (Excel de invitados, evento por slug, estadísticas de encuesta), corregidos.
-- Suite 511✓ (+4). Pendiente detallado en `docs/AUDITORIA-2026-11-25-REMEDIACION.md` §7. Deploy y validación en vivo: se anotan al cerrar.
+- Commit `21860c3`, tag `v12.44.849`. Deploy: 63 archivos con md5 idéntico. Validación EN VIVO: 488 llamadas a 245 rutas GET sin ningún 5xx; evento por enlace 200 (antes 500); Excel de invitados 200 con 53 KB reales (antes 500 siempre); estadísticas de encuesta 404; captura de la pantalla de acceso. Suite 511✓ (+4).
+- **Plan de 4 fases de la auditoría externa CERRADO.** Avisos operativos y pendientes en `docs/AUDITORIA-2026-11-25-REMEDIACION.md` §8.

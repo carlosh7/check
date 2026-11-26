@@ -42,7 +42,9 @@ function mountPrefixes() {
 // Prefijo de montaje según el nombre con que index.js requiere el archivo.
 function prefixFor(file, prefixes) {
     const src = fs.readFileSync(path.join(ROUTES_DIR, 'index.js'), 'utf8');
-    const re = new RegExp("const\\s+(\\w+)\\s*=\\s*require\\('\\./" + file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "'\\)");
+    // el require de index.js no lleva ".js": require('./events.routes')
+    const base = file.replace('.js', '');
+    const re = new RegExp("const\\s+(\\w+)\\s*=\\s*require\\('\\./" + base + "'\\)");
     const m = re.exec(src);
     return m && prefixes[m[1]] ? prefixes[m[1]] : '';
 }
