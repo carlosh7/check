@@ -53,7 +53,7 @@ Conteos propios que coinciden con el informe: tests 455 pasan / 1 omitido; ESLin
 | Fase | Versión | Estado |
 |------|---------|--------|
 | 0 — verdad de producción | — | ✅ cerrada (arriba) |
-| 1 — parche de seguridad | v12.44.846 | 🔄 en curso |
+| 1 — parche de seguridad | v12.44.846 | ✅ cerrada — `967645d`, desplegada y validada en vivo |
 | 2 — respaldos y persistencia | v12.44.847 | ⏳ pendiente |
 | 3 — funcionalidades rotas | v12.44.848 | ⏳ pendiente |
 | 4 — CI verde y tests | v12.44.849 | ⏳ pendiente |
@@ -106,3 +106,30 @@ de más en el `CREATE TABLE` y la reconstrucción eliminó la tabla `transaction
 evento **locales** sin recrearla. Se corrigió antes de desplegar: la reconstrucción ahora restaura la
 tabla original si la nueva no se crea o el conteo de filas no cuadra, y las 110 bases volvieron a
 quedar con su tabla (verificadas con la vía real de la aplicación).
+
+### Validación en vivo de la Fase 1 (2026-11-26, chek.smarteventos.co)
+
+Deploy: 60 archivos con md5 idéntico local/producción; contenedor sano a los 18 s; `/api/health/full`
+informa `version: 12.44.846`. Respaldo previo: archivos reemplazados en `~/check-backups/v12.44.846-*` y
+copia consistente de las 2 bases de datos en `data/system/backups/predeploy-v12.44.846` (solo root).
+
+Comprobaciones con peticiones reales, usando una cuenta PRODUCTOR de prueba (borrada al terminar, 0 restantes):
+
+| Qué | Resultado |
+|-----|-----------|
+| Importar un usuario con role=ADMIN / importarse a sí mismo como ADMIN | rechazado; ningún usuario creado; el rol no cambia |
+| Importar una empresa nueva | rechazado; nº de grupos sin cambios |
+| Auto-asignarse un evento ajeno | 403 |
+| Listar o manipular un grupo ajeno | 403 |
+| Leer o cambiar la config de un evento ajeno | 403 (el ADMIN sigue en 200) |
+| Guardar un logo con `../../` | 400; `.env` intacto y config sin cambios |
+| Perfil de networking / portal sin token | 403 |
+| Clave foránea inválida en la BD del evento | reparada al abrirse; integridad OK; 978 invitados |
+| Kiosco `/kiosk/:id/event` | 200 con estadísticas (antes 500) |
+| Clave de IA ante un PRODUCTOR | sin clave en claro |
+| Tanteo de puerto interno por el test de correo | rechazado |
+| CAPTCHA | token opaco |
+| Cambiar la clave con la actual equivocada | 403 |
+| Verificar código de recuperación sin indicar la cuenta | 400 |
+
+Pantalla de acceso en el navegador: render correcto (captura), `app.js?v=12.44.846`.
