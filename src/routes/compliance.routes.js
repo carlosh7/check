@@ -140,6 +140,159 @@ router.get('/events/:eventId/guests/:guestId/export', authMiddleware(['ADMIN', '
     }
 });
 
+// ─── H2 (v12.44.846, auditoría 2026-11-25): anonimización con las columnas REALES de guests ───
+// guests NO tiene columnas company / dietary_restrictions / special_needs / notes (comprobado con
+// PRAGMA table_info en la BD maestra y en las BD de evento) y además el esquema cambia entre
+// bases: la maestra tiene otp_code, bio, interests, social_linkedin, photo_url, unsubscribed y
+// unsubscribe_token; la de evento no. Por eso el SET se calcula contra el esquema de CADA
+// conexión: solo se escriben columnas que existan (nunca más un 500 por "no such column").
+const ERASURE_NOTE = '[Datos eliminados por solicitud de derecho al olvido]';
+
+// Columnas PERSONALES de guests (las que existen hoy en algún esquema) y con qué se sustituyen:
+//   anon_name / anon_email → generados por invitado (la fila sigue siendo referenciable)
+//   blank   → ''       null → NULL (qr_token es UNIQUE: dos '' chocarían, dos NULL no)
+//   default → el DEFAULT de la columna (dato sensible devuelto a "sin dato")
+// Mapeo del hallazgo: company → organization; dietary_restrictions → dietary_notes (+ restricciones
+// y vegano, mismo dato alimentario sensible); special_needs no tiene equivalente en guests; las
+// notas sobre el invitado viven en guest_status_log.notes.
+const GUEST_PERSONAL_COLUMNS = {
+    name: 'anon_name',
+    email: 'anon_email',
+    phone: 'blank',
+    organization: 'blank',
+    position: 'blank',
+    cargo: 'blank',
+    dietary_notes: 'blank',
+    restricciones: 'blank',
+    vegano: 'default',
+    gender: 'default',
+    qr_token: 'null',
+    otp_code: 'null',
+    unsubscribe_token: 'null',
+    bio: 'blank',
+    interests: 'blank',
+    social_linkedin: 'blank',
+    photo_url: 'blank'
+};
+
+// Las que NO identifican a la persona (estado operativo y trazabilidad del evento) se conservan.
+const GUEST_OPERATIONAL_COLUMNS = new Set([
+    'id', 'event_id', 'status', 'category_id', 'waitlist_position', 'promoted_at', 'waitlisted_at',
+    'is_new_registration', 'checked_in', 'checkin_time', 'validated', 'validated_at', 'validated_by',
+    'created_at', 'parent_guest_id', 'guest_type', 'unsubscribed'
+]);
+
+function quoteIdent(name) { return '"' + String(name).replace(/"/g, '""') + '"'; }
+
+function isTextColumn(type) {
+    const t = String(type || '').toUpperCase();
+    return t === '' || t.includes('TEXT') || t.includes('CHAR') || t.includes('CLOB') || t.includes('BLOB');
+}
+
+// `table` solo llega desde constantes de este archivo; el filtro evita interpolar cualquier otra cosa.
+function tableColumns(conn, table) {
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(table)) return [];
+    try { return conn.prepare('PRAGMA table_info(' + table + ')').all(); } catch (_) { return []; }
+}
+
+function tableHasColumn(conn, table, column) {
+    return tableColumns(conn, table).some(c => c.name === column);
+}
+
+// Columnas personales según el esquema REAL de esta conexión, y las que el catálogo no sabe
+// clasificar (no se tocan: se avisan por log y en la respuesta). ERASURE_EXTRA_GUEST_COLUMNS
+// (CSV de nombres de columna, default vacío) permite declarar personales las de esquemas extendidos.
+function guestPersonalColumns(conn) {
+    const extra = String(process.env.ERASURE_EXTRA_GUEST_COLUMNS || '').split(',')
+        .map(s => s.trim()).filter(s => /^[A-Za-z_][A-Za-z0-9_]*$/.test(s));
+    const personal = [];
+    const unknown = [];
+    for (const c of tableColumns(conn, 'guests')) {
+        const strategy = GUEST_PERSONAL_COLUMNS[c.name] || (extra.includes(c.name) ? 'blank' : null);
+        if (strategy) {
+            personal.push({ name: c.name, strategy, text: isTextColumn(c.type), notnull: !!c.notnull, dflt: c.dflt_value });
+        } else if (!GUEST_OPERATIONAL_COLUMNS.has(c.name)) {
+            unknown.push(c.name);
+        }
+    }
+    return { personal, unknown };
+}
+
+// Asignaciones de anonimización para UNA fila de guests.
+function guestErasureSets(personal, guestId) {
+    const short = String(guestId).substring(0, 8);
+    const sets = [];
+    const values = [];
+    for (const c of personal) {
+        const col = quoteIdent(c.name);
+        if (c.strategy === 'anon_name') { sets.push(col + ' = ?'); values.push('Anonimizado ' + short); continue; }
+        if (c.strategy === 'anon_email') { sets.push(col + ' = ?'); values.push('anon-' + short + '@removed.com'); continue; }
+        // DEFAULT del esquema cuando la estrategia lo pide, o cuando hay que vaciar una columna
+        // NOT NULL o no textual. c.dflt es texto del propio esquema (no viene del usuario).
+        if (c.dflt != null && (c.strategy === 'default' || (c.notnull && (c.strategy === 'null' || !c.text)))) {
+            sets.push(col + ' = ' + c.dflt);
+            continue;
+        }
+        const asEmpty = c.notnull || (c.strategy === 'blank' && c.text);
+        sets.push(col + ' = ?');
+        values.push(asEmpty ? '' : null);
+    }
+    return { sets, values };
+}
+
+// Anonimiza al titular y a sus acompañantes (filas hijas) en UNA conexión, en una sola
+// transacción. Devuelve las columnas de guests sin clasificar en esa base.
+function anonymizeGuestInConnection(conn, eventId, guestId) {
+    const { personal, unknown } = guestPersonalColumns(conn);
+    if (!personal.length) return unknown;
+    const hasParentLink = tableHasColumn(conn, 'guests', 'parent_guest_id');
+    const hasStatusNotes = tableHasColumn(conn, 'guest_status_log', 'notes');
+    conn.transaction((gId, evId) => {
+        const head = guestErasureSets(personal, gId);
+        conn.prepare('UPDATE guests SET ' + head.sets.join(', ') + ' WHERE id = ? AND event_id = ?').run(...head.values, gId, evId);
+        let kidIds = [];
+        if (hasParentLink) {
+            kidIds = conn.prepare('SELECT id FROM guests WHERE parent_guest_id = ?').all(gId).map(r => r.id);
+            // los hijos ya quedan ligados al titular por parent_guest_id
+            for (const kidId of kidIds) {
+                const kid = guestErasureSets(personal, kidId);
+                conn.prepare('UPDATE guests SET ' + kid.sets.join(', ') + ' WHERE id = ?').run(...kid.values, kidId);
+            }
+        }
+        // guests no tiene notas propias: las notas del organizador sobre el invitado (texto libre,
+        // pueden traer datos personales) viven en guest_status_log.notes.
+        if (hasStatusNotes) {
+            const ids = [gId].concat(kidIds);
+            conn.prepare('UPDATE guest_status_log SET notes = ? WHERE guest_id IN (' + ids.map(() => '?').join(', ') + ')').run(ERASURE_NOTE, ...ids);
+        }
+    })(guestId, eventId);
+    return unknown;
+}
+
+// Aplica la anonimización en la BD del evento y, si el evento tiene BD propia, también en la
+// maestra (el registro público guarda allí una copia del invitado). No hay transacción entre dos
+// archivos: si una base falla se informa cuál, sin dar por hecha una eliminación a medias.
+function anonymizeGuestPersonalData(eventId, guestId, eventDb) {
+    const targets = [];
+    if (eventDb && eventDb !== db) targets.push(['evento', eventDb]);
+    targets.push(['maestra', db]);
+    const result = { applied: [], failed: [], unclassified: {} };
+    for (const [label, conn] of targets) {
+        try {
+            const unknown = anonymizeGuestInConnection(conn, eventId, guestId);
+            result.applied.push(label);
+            if (unknown.length) {
+                result.unclassified[label] = unknown;
+                logger.warn('[COMPLIANCE] guests tiene columnas sin clasificar en la BD ' + label + ' (NO se anonimizan; decláralas en ERASURE_EXTRA_GUEST_COLUMNS): ' + unknown.join(', '));
+            }
+        } catch (err) {
+            result.failed.push(label);
+            logger.error('[COMPLIANCE] La anonimización falló en la BD ' + label + ':', err.message);
+        }
+    }
+    return result;
+}
+
 // DELETE /api/events/:eventId/guests/:guestId/personal-data — Derecho al olvido (anonimizar datos personales)
 router.delete('/events/:eventId/guests/:guestId/personal-data', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
@@ -152,10 +305,17 @@ router.delete('/events/:eventId/guests/:guestId/personal-data', authMiddleware([
         const guest = eventDb.prepare("SELECT * FROM guests WHERE id = ? AND event_id = ?").get(guestId, req.params.eventId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
 
-        const anonName = 'Anonimizado ' + guestId.substring(0, 8);
-        eventDb.prepare("UPDATE guests SET name = ?, email = ?, phone = ?, company = 'Anonimizada', position = '', dietary_restrictions = '', special_needs = '', notes = '[Datos eliminados por solicitud de derecho al olvido]' WHERE id = ?").run(
-            anonName, 'anon-' + guestId.substring(0, 8) + '@removed.com', '', guestId
-        );
+        // v12.44.846 (auditoría 2026-11-25, H2): aquí iba un UPDATE fijo sobre company,
+        // dietary_restrictions, special_needs y notes. Esas columnas no existen en guests (ni en la
+        // BD maestra ni en la de evento) → prepare() lanzaba "no such column" y la ruta respondía
+        // 500 SIN anonimizar nada. Además solo tocaba eventDb: si el evento tiene BD propia, la
+        // copia de la maestra conservaba los datos reales. Ahora el SET se arma con las columnas
+        // personales que REALMENTE tenga cada esquema (definiciones justo encima de esta ruta) y se
+        // aplica en la BD del evento y en la maestra. Si alguna falla: 500 y no se sigue.
+        const erasure = anonymizeGuestPersonalData(req.params.eventId, guestId, eventDb);
+        if (erasure.failed.length) {
+            return res.status(500).json({ success: false, error: 'Eliminación incompleta: no se pudo anonimizar en la BD ' + erasure.failed.join(', ') + '. Revisa los logs del servidor.' });
+        }
 
         // C-7/L-4b (v12.44.820): el derecho al olvido alcanza TODAS las tablas con PII del
         // titular, no solo la fila de invitados (hallazgo C-7 del informe legal).
@@ -177,6 +337,10 @@ router.delete('/events/:eventId/guests/:guestId/personal-data', authMiddleware([
         } catch(e) {}
         // - Fotos del álbum: la referencia al titular se rompe (los archivos quedan huérfanos).
         try { eventDb.prepare("UPDATE event_photos SET guest_id = NULL, caption = '' WHERE guest_id = ?").run(guestId); } catch(e) {}
+        // v12.44.846 (auditoría 2026-11-25, H2): la línea de arriba solo tocaba eventDb; cuando el
+        // evento tiene BD propia, en la maestra quedaban el enlace al titular y el pie de foto
+        // (texto libre que puede traer su nombre). Mismo corte en la maestra.
+        try { if (db !== eventDb) db.prepare("UPDATE event_photos SET guest_id = NULL, caption = '' WHERE guest_id = ?").run(guestId); } catch(e) {}
         // - Transacciones: el registro CONTABLE se conserva (obligación fiscal DIAN) pero los
         //  campos de persona se anonimizan. Excepción documentada en la política de retención.
         try {
@@ -194,7 +358,9 @@ router.delete('/events/:eventId/guests/:guestId/personal-data', authMiddleware([
             );
         } catch(e) {}
 
-        res.json({ success: true, message: 'Datos personales eliminados exitosamente' });
+        // v12.44.846 (H2): la respuesta dice en qué bases se aplicó y, si las hay, las columnas de
+        // guests que el catálogo no sabe clasificar (no se tocan).
+        res.json({ success: true, message: 'Datos personales eliminados exitosamente', anonymized_in: erasure.applied, unclassified_columns: erasure.unclassified });
     } catch (err) {
         logger.error('[COMPLIANCE] Erasure error:', err.message);
         res.status(500).json({ error: 'Error al eliminar datos personales' });
@@ -377,3 +543,6 @@ router.delete('/retention/clean', authMiddleware(['ADMIN']), (req, res) => {
 });
 
 module.exports = router;
+// v12.44.846 (auditoría 2026-11-25, H2b): un solo criterio de anonimización para todo el sistema.
+// Lo reutiliza el borrado GDPR deprecado de guests.routes.js cuando el evento tiene BD propia.
+module.exports.anonymizeGuestPersonalData = anonymizeGuestPersonalData;

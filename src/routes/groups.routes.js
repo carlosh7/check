@@ -5,7 +5,7 @@
 const express = require('express');
 const { z } = require('zod');
 const { db } = require('../../database');
-const { getValidId, castId } = require('../utils/helpers');
+const { getValidId, castId, getProducerGroups } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { CACHE_KEYS, del } = require('../utils/cache');
 
@@ -103,6 +103,8 @@ router.delete('/:id', authMiddleware(['ADMIN']), (req, res) => {
 // Obtener usuarios de grupo
 router.get('/:groupId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const groupId = castId('groups', req.params.groupId);
+    // v12.44.846 (auditoría 2026-11-25, S3): listar los miembros exige pertenecer al grupo (salvo ADMIN)
+    try { assertGroupAccess(req, groupId); } catch (e) { return res.status(e.statusCode || 403).json({ error: e.message }); }
     const rows = db.prepare(`
         SELECT u.id, u.username, u.display_name, u.role, u.role_detail, u.status, gu.role_in_group 
         FROM users u 
@@ -127,7 +129,22 @@ function assertGroupAccess(req, groupId) {
 router.post('/:groupId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const groupId = castId('groups', req.params.groupId);
     const { user_id, role_in_group } = req.body;
-    assertGroupAccess(req, groupId);
+    try { assertGroupAccess(req, groupId); } catch (e) { return res.status(e.statusCode || 403).json({ error: e.message }); }
+
+    // v12.44.846 (auditoría 2026-11-25, S3): el usuario destino ya debe compartir grupo con el
+    // solicitante (misma regla que assertCanManageUser) y nunca es ADMIN. Antes se podía meter a
+    // cualquier usuario en el grupo propio y desde ahí cambiarle la clave o el rol.
+    if (req.userRole !== 'ADMIN') {
+        const targetUser = db.prepare("SELECT id, role FROM users WHERE id = ?").get(user_id);
+        if (!targetUser) return res.status(404).json({ error: 'Usuario no encontrado' });
+        if (targetUser.role === 'ADMIN') return res.status(403).json({ error: 'No tienes permiso para gestionar este usuario' });
+        const myGroups = getProducerGroups(req.userId);
+        const placeholders = myGroups.map(() => '?').join(',');
+        const shared = placeholders
+            ? db.prepare(`SELECT 1 FROM group_users WHERE user_id = ? AND group_id IN (${placeholders}) LIMIT 1`).get(targetUser.id, ...myGroups)
+            : null;
+        if (!shared) return res.status(403).json({ error: 'No tienes permiso para gestionar usuarios de otro grupo' });
+    }
     
     const id = getValidId('group_users');
     db.prepare("INSERT OR IGNORE INTO group_users (id, group_id, user_id, role_in_group, created_at) VALUES (?, ?, ?, ?, ?)")
@@ -138,9 +155,15 @@ router.post('/:groupId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
 
 // Eliminar usuario de grupo
 router.delete('/:groupId/users/:userId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    assertGroupAccess(req, castId('groups', req.params.groupId));
     const groupId = castId('groups', req.params.groupId);
     const userId = castId('users', req.params.userId);
+    // v12.44.846 (auditoría 2026-11-25, S3): mismo control que al añadir (y nunca contra un ADMIN)
+    try { assertGroupAccess(req, groupId); } catch (e) { return res.status(e.statusCode || 403).json({ error: e.message }); }
+    if (req.userRole !== 'ADMIN') {
+        const targetUser = db.prepare("SELECT id, role FROM users WHERE id = ?").get(userId);
+        if (targetUser && targetUser.role === 'ADMIN') return res.status(403).json({ error: 'No tienes permiso para gestionar este usuario' });
+        if (req.userId === userId) return res.status(400).json({ error: 'No puedes quitarte a ti mismo del grupo' });
+    }
     
     db.prepare("DELETE FROM group_users WHERE group_id = ? AND user_id = ?").run(groupId, userId);
     res.json({ success: true });

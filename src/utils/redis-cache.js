@@ -14,6 +14,8 @@ try {
 let redisClient = null;
 let isConnected = false;
 let reconnectTimer = null;
+// v12.44.846 (auditoría 2026-11-25, D1): evita que el apagado reprograme reconexiones
+let closing = false;
 const RECONNECT_INTERVAL = 30000; // 30 segundos
 
 async function initRedis() {
@@ -73,6 +75,7 @@ async function initRedis() {
 }
 
 function scheduleReconnect() {
+    if (closing) return; // v12.44.846 (D1): cerrando, no reconectar
     if (reconnectTimer) return; // Ya hay un timer programado
     reconnectTimer = setTimeout(async () => {
         reconnectTimer = null;
@@ -139,6 +142,22 @@ async function flush() {
     }
 }
 
+// v12.44.846 (auditoría 2026-11-25, D1): cierra la conexión al apagar. Antes el apagado llamaba a
+// flush() → FLUSHALL de TODA la instancia de Redis (compartida o no con otros servicios).
+async function close() {
+    if (!redisClient) return false;
+    closing = true;
+    isConnected = false;
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+    try {
+        await redisClient.quit();
+        return true;
+    } catch (err) {
+        try { redisClient.destroy(); } catch (_) {}
+        return false;
+    }
+}
+
 async function keys(pattern = '*') {
     if (!redisClient || !isConnected) return [];
     try {
@@ -192,6 +211,7 @@ module.exports = {
     set, 
     del, 
     flush, 
+    close,
     keys, 
     getStats, 
     CACHE_KEYS, 

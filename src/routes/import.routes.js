@@ -5,7 +5,7 @@
 
 const express = require('express');
 const { db, getEventConnection, createEventDatabase } = require('../../database');
-const { getValidId, castId } = require('../utils/helpers');
+const { getValidId, castId, getProducerGroups, hasEventAccess } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const ExcelJS = require('exceljs');
 
@@ -664,6 +664,22 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         const { type } = req.body;
         const data = req.body.data || {}; // Protección contra undefined
 
+        // v12.44.846 (auditoría 2026-11-25, S1/S11): la importación escribía en tablas globales (grupos,
+        // eventos, usuarios, clientes) usando nombres que vienen del archivo: un PRODUCTOR podía
+        // actualizarse a ADMIN, crear/editar grupos y eventos ajenos o colar asistentes en cualquier
+        // evento. Quien no es ADMIN solo toca sus propios grupos, eventos y usuarios.
+        const importerIsAdmin = req.userRole === 'ADMIN';
+        const importerGroups = importerIsAdmin ? [] : getProducerGroups(req.userId);
+        const IMPORT_ROLES = ['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'LOGISTICO', 'ORGANIZER'];
+        const canUseGroup = (groupId) => importerIsAdmin || importerGroups.includes(groupId);
+        const canUseEvent = (eventId) => importerIsAdmin || hasEventAccess(req.userId, eventId, req.userRole);
+        const rejected = { groups: [], events: [], roles: [], groups_users: [], events_users: [], clients: [] };
+        for (const key of ['groups', 'events', 'users', 'clients']) {
+            if (data[key] !== undefined && !Array.isArray(data[key])) {
+                return res.status(400).json({ success: false, message: 'Datos de "' + key + '" inválidos' });
+            }
+        }
+
         // L-1B.1 (v12.44.818): declaración obligatoria de autorización de tratamiento
         // (Ley 1581 arts. 8-9 y 18). Cada importación queda como acto documentado de
         // debida diligencia: quién, cuándo, qué tipo y cuántos registros.
@@ -709,6 +725,8 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     }
                     
                     if (existing) {
+                        // v12.44.846 (S1/S11): quien no es ADMIN solo actualiza empresas a las que pertenece
+                        if (!canUseGroup(existing.id)) { rejected.groups.push(g.name); continue; }
                         logger.info('[IMPORT] Updating group:', existing.name, 'id:', existing.id);
                         db.prepare("UPDATE groups SET email = ?, phone = ?, status = ?, description = ? WHERE id = ?")
                             .run(g.email, g.phone, g.status, g.description, existing.id);
@@ -716,6 +734,8 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         // Registrar en mapa para siguientes pasos
                         createdGroupsMap[g.name.trim().toLowerCase()] = existing.id;
                     } else {
+                        // v12.44.846 (S1/S11): crear empresas (tenants) es exclusivo del ADMIN
+                        if (!importerIsAdmin) { rejected.groups.push(g.name); continue; }
                         logger.info('[IMPORT] Creating new group:', g.name);
                         const newId = getValidId('groups');
                         db.prepare("INSERT INTO groups (id, name, email, phone, status, description, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
@@ -771,15 +791,25 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     }
                     
                     if (existing) {
+                        // v12.44.846 (S1/S11): quien no es ADMIN solo actualiza eventos a los que ya tiene acceso
+                        if (!canUseEvent(existing.id)) { rejected.events.push(e.name); continue; }
+                        if (!importerIsAdmin && resolvedGroupId && !canUseGroup(resolvedGroupId)) { rejected.events.push(e.name); continue; }
                         logger.info('[IMPORT] Updating event:', existing.name);
+                        let newGroupId = resolvedGroupId || null;
+                        if (!importerIsAdmin) {
+                            const cur = db.prepare("SELECT group_id FROM events WHERE id = ?").get(existing.id);
+                            newGroupId = (cur && cur.group_id) || resolvedGroupId || null;
+                        }
                         db.prepare("UPDATE events SET location = ?, description = ?, group_id = ?, has_own_db = 1 WHERE id = ?")
-                            .run(e.location, e.description, resolvedGroupId || null, existing.id);
+                            .run(e.location, e.description, newGroupId, existing.id);
                         // Crear DB del evento si no existe
                         createEventDatabase(existing.id);
                         updated++;
                         // Registrar en mapa
                         createdEventsMap[e.name.toLowerCase()] = existing.id;
                     } else {
+                        // v12.44.846 (S1/S11): el evento nuevo solo cae en una empresa del importador
+                        if (!canUseGroup(resolvedGroupId)) { rejected.events.push(e.name); continue; }
                         logger.info('[IMPORT] Creating new event:', e.name);
                         const newId = getValidId('events');
                         db.prepare("INSERT INTO events (id, user_id, name, date, location, description, group_id, status, created_at, has_own_db) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, 1)")
@@ -841,11 +871,18 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     
                     if (existingUser) {
                         logger.info('[IMPORT] Updating user:', existingUser.username);
-                        db.prepare("UPDATE users SET display_name = ?, phone = ?, role = ?, group_id = ? WHERE id = ?")
-                            .run(u.display_name, u.phone, u.role, resolvedGroupId || null, existingUser.id);
+                        // v12.44.846 (S1): en una actualización el rol NUNCA cambia (antes venía del archivo y
+                        // un PRODUCTOR podía escribir role=ADMIN sobre su propia fila). El usuario existente
+                        // solo se toca si ya es de una empresa del importador.
+                        const cur = db.prepare("SELECT role, group_id FROM users WHERE id = ?").get(existingUser.id);
+                        if (!cur || !canUseGroup(cur.group_id)) { rejected.groups_users.push(u.username); continue; }
+                        db.prepare("UPDATE users SET display_name = ?, phone = ?, group_id = ? WHERE id = ?")
+                            .run(u.display_name, u.phone, (resolvedGroupId && canUseGroup(resolvedGroupId)) ? resolvedGroupId : (cur.group_id || null), existingUser.id);
                         userId = existingUser.id;
                         updated++;
                     } else {
+                        // v12.44.846 (S1): usuario nuevo solo dentro de una empresa del importador
+                        if (!canUseGroup(resolvedGroupId)) { rejected.groups_users.push(u.username); continue; }
                         logger.info('[IMPORT] Creating new user (APPROVED):', u.username);
                         try {
                             const hashedPassword = u.password ? bcrypt.hashSync(u.password, 10) : bcrypt.hashSync(require('crypto').randomBytes(12).toString('base64url'), 10);
@@ -879,6 +916,8 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                             const eventId = createdEventsMap[eventLower];
                             
                             if (eventId) {
+                                // v12.44.846 (S1/S11): quien no es ADMIN solo vincula usuarios a eventos propios
+                                if (!canUseEvent(eventId)) { rejected.events_users.push(eventName); continue; }
                                 logger.info('[IMPORT] Linking user to event:', u.username, '->', eventName, '(', eventId, ')');
                                 try {
                                     db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
@@ -897,7 +936,18 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     }
                 }
             });
-            usersTx(data.users);
+            // v12.44.846 (S1): el rol ya no llega crudo del archivo: lista cerrada de roles y ADMIN solo si
+            // quien importa es ADMIN (antes un PRODUCTOR se creaba como ADMIN con status APPROVED).
+            const safeUsers = [];
+            for (const u of data.users) {
+                const role = String(u.role || 'STAFF').trim().toUpperCase();
+                if (!IMPORT_ROLES.includes(role) || (role === 'ADMIN' && !importerIsAdmin)) {
+                    rejected.roles.push(u.username);
+                    continue;
+                }
+                safeUsers.push(Object.assign({}, u, { role }));
+            }
+            usersTx(safeUsers);
         }
 
         logger.info('[IMPORT] Result - imported:', imported, 'updated:', updated);
@@ -943,15 +993,17 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     // Buscar por name o email
                     let existingClient = null;
                     if (c.name) {
-                        existingClient = db.prepare("SELECT id, email, phone, organization, position, dietary_notes, vegano FROM clients WHERE LOWER(name) = LOWER(?)").get(c.name);
+                        existingClient = db.prepare("SELECT id, email, phone, organization, position, dietary_notes, vegano, group_id FROM clients WHERE LOWER(name) = LOWER(?)").get(c.name);
                     }
                     if (!existingClient && c.email) {
-                        existingClient = db.prepare("SELECT id, email, phone, organization, position, dietary_notes, vegano FROM clients WHERE email IS NOT NULL AND LOWER(email) = LOWER(?)").get(c.email);
+                        existingClient = db.prepare("SELECT id, email, phone, organization, position, dietary_notes, vegano, group_id FROM clients WHERE email IS NOT NULL AND LOWER(email) = LOWER(?)").get(c.email);
                     }
                     
                     let clientId;
                     
                     if (existingClient) {
+                        // v12.44.846 (S1/S11): quien no es ADMIN solo toca clientes de sus grupos
+                        if (!canUseGroup(existingClient.group_id)) { rejected.clients.push(c.name); continue; }
                         // Actualización inteligente: solo actualizar campos que están vacíos o son diferentes
                         const updates = [];
                         const params = [];
@@ -965,7 +1017,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         if (c.company_name && (!existingClient.organization || existingClient.organization === '')) {
                             updates.push('organization = ?'); params.push(c.company_name);
                         }
-                        if (resolvedGroupId && !existingClient.group_id) {
+                        if (resolvedGroupId && !existingClient.group_id && canUseGroup(resolvedGroupId)) {
                             updates.push('group_id = ?'); params.push(resolvedGroupId);
                         }
                         
@@ -984,13 +1036,15 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         
                         if (updates.length > 0) {
                             params.push(existingClient.id);
-                            db.prepare("UPDATE clients SET " + updates.join(', ') + " WHERE id = ?").apply(params);
+                            db.prepare("UPDATE clients SET " + updates.join(', ') + " WHERE id = ?").run(...params);
                             logger.info('[IMPORT] Updated client:', c.name, '- fields:', updates.join(', '));
                         }
                         
                         clientId = existingClient.id;
                         updated++;
                     } else {
+                        // v12.44.846 (S1/S11): cliente nuevo solo dentro de una empresa del importador
+                        if (!canUseGroup(resolvedGroupId)) { rejected.clients.push(c.name); continue; }
                         // Crear nuevo cliente con todos los campos disponibles
                         clientId = getValidId('clients');
                         if (hasExtendedFields) {
@@ -1014,6 +1068,10 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         if (type === 'attendance') {
             const eventId = castId('events', req.body.eventId);
             if (!eventId) throw new Error('Se requiere un Event ID válido para importar asistentes');
+            // v12.44.846 (auditoría 2026-11-25, S11): los asistentes solo se importan a eventos propios
+            if (!canUseEvent(eventId)) {
+                return res.status(403).json({ success: false, message: 'No tienes acceso a este evento' });
+            }
 
             let attendeesToProcess = [];
 
@@ -1165,7 +1223,9 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             });
         } catch (_) {}
 
-        res.json({ success: true, imported, updated, duplicates, total: imported + updated, attestation_recorded: true });
+        res.json({ success: true, imported, updated, duplicates, total: imported + updated, attestation_recorded: true,
+            // v12.44.846 (S1/S11): filas que el control de acceso dejó fuera (sin tocar datos ajenos)
+            rejected_access: { groups: rejected.groups.length, events: rejected.events.length, roles: rejected.roles.length, groups_users: rejected.groups_users.length, events_users: rejected.events_users.length, clients: rejected.clients.length } });
     } catch(e) {
         logger.error('Error ejecutando importacion:', e);
         res.status(500).json({ success: false, message: 'Error en importacion: ' + e.message });

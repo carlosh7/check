@@ -809,9 +809,8 @@ function createEventTables(db, eventId) {
             status TEXT DEFAULT 'pending',
             guest_name TEXT, guest_email TEXT,
             metadata_json TEXT,
-            created_at TEXT, completed_at TEXT,
-            FOREIGN KEY (event_id) REFERENCES guests(event_id)
-        )`);
+            created_at TEXT, completed_at TEXT
+        )`); // v12.44.846 (auditoría 2026-11-25, D8): sin la clave foránea a guests(event_id) (no es clave única → "foreign key mismatch")
     } catch (_) {}
     // Crear índices para mejor rendimiento
     const indices = [
@@ -907,10 +906,51 @@ function repairEventDatabase(db, eventId) {
         // 0. Verificar versión del esquema (User Version)
         // Esto evita que el sistema intente reparar en cada recarga.
         const currentVersion = db.pragma('user_version', { simple: true });
-        if (currentVersion >= 337) {
+        // v12.44.846 (auditoría 2026-11-25, D8): la clave foránea de transactions apuntaba a guests(event_id),
+        // que no es clave única. SQLite responde "foreign key mismatch" y ningún DELETE FROM guests se podía
+        // preparar en la BD del evento (el borrado de asistentes daba 500). Se reconstruye sin esa clave.
+        // Corre siempre (una consulta barata a sqlite_master) y recrea transactions si faltara.
+        const badFkTables = db.prepare(`
+            SELECT name FROM sqlite_master
+            WHERE type='table' AND sql LIKE '%REFERENCES guests(event_id)%'
+        `).all();
+        const txMissing = !db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='transactions'").get();
+        if (badFkTables.length > 0 || txMissing) {
+            db.pragma('foreign_keys = OFF');
+            db.transaction(() => {
+                for (const row of badFkTables) {
+                    const table = row.name;
+                    db.exec('ALTER TABLE ' + table + ' RENAME TO ' + table + '_fk_old');
+                    createEventTables(db, eventId);
+                    const newCols = db.prepare('PRAGMA table_info(' + table + ')').all().map(c => c.name);
+                    const oldCols = db.prepare('PRAGMA table_info(' + table + '_fk_old)').all().map(c => c.name);
+                    const commonCols = oldCols.filter(c => newCols.includes(c));
+                    if (commonCols.length > 0) {
+                        const colsStr = commonCols.join(', ');
+                        db.exec('INSERT INTO ' + table + ' (' + colsStr + ') SELECT ' + colsStr + ' FROM ' + table + '_fk_old');
+                    }
+                    const oldCount = db.prepare('SELECT COUNT(*) AS c FROM ' + table + '_fk_old').get().c;
+                    const newCount = newCols.length > 0 ? db.prepare('SELECT COUNT(*) AS c FROM ' + table).get().c : -1;
+                    if (newCount !== oldCount) {
+                        // La tabla nueva no se creó o el conteo no cuadra: se restaura la original (sin pérdida).
+                        if (newCols.length > 0) db.exec('DROP TABLE ' + table);
+                        db.exec('ALTER TABLE ' + table + '_fk_old RENAME TO ' + table);
+                        console.error('✗ [REPAIR] No se pudo reconstruir ' + table + ' en el evento ' + eventId + ': se conserva la tabla original.');
+                        continue;
+                    }
+                    db.exec('DROP TABLE ' + table + '_fk_old');
+                    console.warn('⚠️ [REPAIR] Tabla ' + table + ' reconstruida sin la clave foránea inválida en el evento ' + eventId);
+                }
+                if (txMissing) createEventTables(db, eventId);
+            })();
+            db.pragma('foreign_keys = ON');
+        }
+
+        if (currentVersion >= 338) {
             // logger.info(`[MIGRATION] Saltando reparación de ${eventId}, esquema ya validado (v${currentVersion})`);
             return;
         }
+
 
         // 1. Detectar si existe el problema de la llave foránea fantasma mediante SQL RAW
         // Esto es infalible porque lee el código fuente original de la base de datos
@@ -956,7 +996,7 @@ function repairEventDatabase(db, eventId) {
                 }
 
                 // 2. Marcar como reparada (User Version 337)
-                db.pragma('user_version = 337');
+                db.pragma('user_version = 338');
                 
                 // REACTIVAR FK
                 db.pragma('foreign_keys = ON');
@@ -965,7 +1005,7 @@ function repairEventDatabase(db, eventId) {
             logger.info(`✅ [REPAIR] Auto-sanación completada para evento ${eventId}. Las restricciones rotas han sido eliminadas.`);
         } else {
             // Si no estaba envenenada pero no tenía versión, marcarla para el futuro
-            db.pragma('user_version = 337');
+            db.pragma('user_version = 338');
         }
     } catch (error) {
         console.error(`✗ [REPAIR] Falló la auto-sanación de ${eventId}:`, error.message);

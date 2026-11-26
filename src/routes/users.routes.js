@@ -6,7 +6,16 @@ const z = require('zod');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { db } = require('../../database');
-const { getValidId, castId, getProducerGroups } = require('../utils/helpers');
+const { getValidId, castId, getProducerGroups, hasEventAccess } = require('../utils/helpers');
+
+// v12.44.846 (auditoría 2026-11-25, H9): nunca loguear secretos (la línea anterior registraba el
+// cuerpo con la contraseña en claro en stdout y en los archivos de log)
+function sanitizeForLog(obj) {
+    if (!obj || typeof obj !== 'object') return obj;
+    const out = {};
+    for (const [k, val] of Object.entries(obj)) out[k] = /secret|token|key|password/i.test(k) ? '***' : val;
+    return out;
+}
 const { authMiddleware } = require('../middleware/auth');
 const { schemas, validate } = require('../security/validation');
 const { validatePasswordStrength } = require('../security/password-policy');
@@ -257,6 +266,15 @@ router.put('/:id/password', authMiddleware(), (req, res) => {
         return res.status(403).json({ error: 'Acceso Denegado' });
     }
 
+    // v12.44.846 (auditoría 2026-11-25, H4): cambiar la propia clave exige la clave actual
+    // (el esquema ya la pedía pero nunca se comparaba)
+    if (req.userId === targetId && req.userRole !== 'ADMIN') {
+        const row = db.prepare("SELECT password FROM users WHERE id = ?").get(targetId);
+        if (!row || !v.data.currentPassword || !bcrypt.compareSync(v.data.currentPassword, row.password)) {
+            return res.status(403).json({ error: 'Contraseña actual incorrecta' });
+        }
+    }
+
     // v12.44.802: la nueva contraseña no puede ser una de las expuestas
     const pwCheck = validatePasswordStrength(v.data.newPassword);
     if (!pwCheck.valid) return res.status(400).json({ errors: pwCheck.errors });
@@ -264,13 +282,21 @@ router.put('/:id/password', authMiddleware(), (req, res) => {
     const hashedPassword = bcrypt.hashSync(v.data.newPassword, 10);
     db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, targetId);
 
+    // // v12.44.846 (auditoría 2026-11-25, H4): un cambio de clave cierra las sesiones abiertas de la cuenta
+    try { require('../security/jwt').revokeUserTokens(targetId); } catch (e) {
+        return res.status(500).json({ error: 'No se pudieron cerrar las sesiones del usuario' });
+    }
+
     logAction(req, AUDIT_ACTIONS.USER_PASSWORD_CHANGED, { targetId });
 
     res.json({ success: true });
 });
 
 const updateUserBodySchema = z.object({
+    // v12.44.846 (auditoría 2026-11-25, H4): currentPassword es opcional en el esquema (la clave
+    // actual solo se exige cuando el propio usuario cambia su clave o su email).
     username: z.string().email('Email inválido').max(200).optional(),
+    currentPassword: z.string().max(200).optional(),
     display_name: z.string().max(100).optional(),
     role: z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'LOGISTICO', 'ORGANIZER']).optional(),
     // v12.44.802: usa la política fuerte centralizada (antes min 6)
@@ -301,7 +327,22 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     if (req.userId !== targetId && !assertCanManageUser(req, res, targetId)) return;
 
     const { username, display_name, role, password } = result.data;
-    logger.info('[PUT USER] body:', result.data);
+    // v12.44.846 (auditoría 2026-11-25, H9): el cuerpo puede traer la contraseña en claro
+    logger.info('[PUT USER] body:', sanitizeForLog(result.data));
+
+    // v12.44.846 (auditoría 2026-11-25, H4): nadie cambia su propio rol; el cambio de la propia
+    // clave o del propio email exige la clave actual.
+    if (req.userId === targetId && req.userRole !== 'ADMIN') {
+        if (role && role !== req.userRole) return res.status(403).json({ error: 'No puedes cambiar tu propio rol' });
+        if (username) {
+            const row = db.prepare("SELECT username, password FROM users WHERE id = ?").get(targetId);
+            if (!row || String(username).toLowerCase() !== String(row.username).toLowerCase()) {
+                if (!result.data.currentPassword || !bcrypt.compareSync(result.data.currentPassword, row.password)) {
+                    return res.status(403).json({ error: 'Contraseña actual incorrecta' });
+                }
+            }
+        }
+    }
     
     // Verificar que el username no esté en uso por otro usuario
     if (username) {
@@ -317,6 +358,13 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         return res.status(403).json({ error: 'No puedes asignar rol ADMIN' });
     }
     
+    // v12.44.846 (auditoría 2026-11-25, H4): cambiar la propia clave exige la actual
+    if (req.userId === targetId && req.userRole !== 'ADMIN' && password) {
+        const row = db.prepare("SELECT password FROM users WHERE id = ?").get(targetId);
+        if (!row || !result.data.currentPassword || !bcrypt.compareSync(result.data.currentPassword, row.password)) {
+            return res.status(403).json({ error: 'Contraseña actual incorrecta' });
+        }
+    }
     // Construir query dinámicamente
     const updates = [];
     const params = [];
@@ -348,6 +396,12 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         params.push(targetId);
         db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...params);
         logAction(req, AUDIT_ACTIONS.USER_UPDATED, { targetId, fields: updates });
+        // // v12.44.846 (auditoría 2026-11-25, H4): si cambió la clave, se cierran las sesiones abiertas de la cuenta
+        if (password) {
+            try { require('../security/jwt').revokeUserTokens(targetId); } catch (e) {
+                return res.status(500).json({ error: 'No se pudieron cerrar las sesiones del usuario' });
+            }
+        }
     }
     
     const user = db.prepare("SELECT id, username, display_name, role, group_id, phone, status FROM users WHERE id = ?").get(targetId);
@@ -470,6 +524,17 @@ router.put('/:id/events', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => 
         }
     }
     
+    // v12.44.846 (auditoría 2026-11-25, S2): un PRODUCTOR podía darse acceso a cualquier evento ajeno
+    // (reemplazando su lista de eventos sin pasar por hasEventAccess).
+    if (req.userRole !== 'ADMIN') {
+        for (const evId of (Array.isArray(events) ? events : [])) {
+            const eid = castId('events', evId);
+            if (!eid) return res.status(400).json({ error: 'Evento inválido' });
+            if (!hasEventAccess(req.userId, eid, req.userRole)) {
+                return res.status(403).json({ error: 'No tienes acceso a este evento' });
+            }
+        }
+    }
     db.prepare("DELETE FROM user_events WHERE user_id = ?").run(targetId);
     
     if (events && events.length > 0) {
@@ -515,6 +580,16 @@ router.put('/:id/profile', authMiddleware(), (req, res) => {
     
     const { display_name, phone, group_id, username } = req.body;
     
+    if (username && req.userId === targetId && req.userRole !== 'ADMIN') {
+        // v12.44.846 (auditoría 2026-11-25, H4): cambiar el propio email exige la clave actual
+        const row = db.prepare("SELECT username, password FROM users WHERE id = ?").get(targetId);
+        if (!row || String(username).toLowerCase() !== String(row.username).toLowerCase()) {
+            if (!req.body.currentPassword || !bcrypt.compareSync(req.body.currentPassword, row.password)) {
+                return res.status(403).json({ error: 'Contraseña actual incorrecta' });
+            }
+        }
+    }
+
     // Validar username si se proporciona
     if (username) {
         if (typeof username !== 'string' || username.length < 5 || !username.includes('@')) {

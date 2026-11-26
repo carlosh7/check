@@ -1,0 +1,108 @@
+# Auditoría externa 2026-11-25 — verificación y remediación
+
+Informe de otro agente sobre Check Pro v12.44.845 (commit `e9d3546`), pegado por el dueño el 2026-11-25.
+El informe original vive solo en el chat; este documento es la copia verificada.
+
+## 1. Verificación del informe (solo lectura)
+
+107 hallazgos revisados uno por uno contra el código: **77 confirmados, 29 con matices (problema real,
+impacto menor o detalle inexacto) y 1 falso** (`App.showToast` sí existe). Casi nada se solapa con
+`AUDITORIA-2026-11-13-COMPLETA.md`.
+
+Conteos propios que coinciden con el informe: tests 455 pasan / 1 omitido; ESLint 2 errores + 617 avisos
+(límite del CI 520); `npm audit --omit=dev` 0 vulnerabilidades.
+
+### P0 confirmados leyendo el código
+
+| ID | Hallazgo | Dónde |
+|----|----------|------|
+| S1 | `POST /api/import/execute` acepta `role` del cuerpo: un PRODUCTOR se hace ADMIN | `import.routes.js` |
+| S1+ | La importación también actualiza grupos y eventos ajenos por nombre (no estaba en el informe) | `import.routes.js` |
+| S2 | `PUT /users/:id/events` se auto-concede acceso a eventos ajenos | `users.routes.js` |
+| S3 | `POST /groups/:groupId/users` mete a cualquier usuario en el grupo propio | `groups.routes.js` |
+| S4 | `DELETE /events/:id/badge-logo` borra del disco la ruta que venga en la config | `events.routes.js` |
+| S10 | Códigos de recuperación adivinables y contador de intentos evadible | `auth.routes.js`, `server.js` |
+| S12 | `qr_token` (credencial de check-in) entregado sin autenticación | `networking.routes.js`, `public.routes.js` |
+| D2 | Respaldos sin `data/events/*.db` — confirmado en producción (respaldos de 65 KB idénticos) | `src/utils/backup.js` |
+| D9 | `session_speakers` no tiene CREATE TABLE | `sessions.routes.js`, `speakers.routes.js` |
+
+### Matices que bajan la prioridad
+
+- Motor de plugins (`vm`): inalcanzable hoy (`triggerHook` sin llamadores; nadie escribe `plugins.script`).
+- Socket.io sin auth: real, pero sin DoS (el proceso sobrevive a `data = null`) y con datos limitados.
+- FLUSHALL de Redis al apagar: solo aplica si hay Redis configurado; producción no lo tiene.
+- Carreras de stock en juegos y asientos: no explotables en un solo proceso (handlers síncronos).
+- CSRF: no explotable (la sesión va solo en `Authorization: Bearer`).
+- `wheel.js:447`: no revienta (script clásico, global implícita); fuga de JWT en el editor 3D: no real.
+- `App.showToast` existe → ese hallazgo del informe es FALSO.
+
+## 2. Fase 0 — verdad de producción (solo lectura, 2026-11-25)
+
+- Producción NO usa los stacks de Portainer: es `/opt/check/docker-compose.yml` con `build: .`, bind del
+  repo completo (`/opt/check -> /usr/src/app`), volumen `node_modules`, `./data -> /usr/src/app/persistence`
+  y `env_file: .env`. El `.env` del host tiene `JWT_SECRET` y `ENCRYPTION_KEY` estables → **el riesgo de
+  llaves efímeras (I1) NO aplica**.
+- El contenedor corre como **root** y `data/` con 777 (I2 confirmado en producción).
+- **Redis no está configurado** → el FLUSHALL al apagar nunca corre (D1 inactivo).
+- Respaldos: archivos `.db.enc` de 65.827 bytes idénticos cada 6 h; en disco hay **1 base de evento**
+  (`data/events/d77eb0e3-….db` con 2 MB en WAL) fuera de esos respaldos → **D2 confirmado en producción**.
+- `/opt/check/uploads` no existe (sin logos subidos todavía); `data/photos` y `data/uploads` existen.
+
+## 3. Estado del plan
+
+| Fase | Versión | Estado |
+|------|---------|--------|
+| 0 — verdad de producción | — | ✅ cerrada (arriba) |
+| 1 — parche de seguridad | v12.44.846 | 🔄 en curso |
+| 2 — respaldos y persistencia | v12.44.847 | ⏳ pendiente |
+| 3 — funcionalidades rotas | v12.44.848 | ⏳ pendiente |
+| 4 — CI verde y tests | v12.44.849 | ⏳ pendiente |
+
+Cada fase cierra con: bump de versión (4 archivos), commit, tag, push, deploy por rsync + restart,
+y validación en vivo en chek.smarteventos.co. Todo fix queda cubierto por un test.
+
+## 4. Fase 1 — parche de seguridad (v12.44.846)
+
+Reglas aplicadas: guards añadidos al lado del código existente (no se borra nada), causa raíz, nada de
+hardcode, comentario `v12.44.846` en cada cambio.
+
+| ID | Estado | Evidencia |
+|----|--------|-----------|
+| S1 | ✅ | `import.routes.js`: rol con lista cerrada, ADMIN solo si quien importa es ADMIN; un PRODUCTOR solo toca sus grupos, eventos y usuarios; asistentes solo a eventos propios (el informe no vio que la importación también editaba grupos y eventos ajenos por nombre) |
+| S2 | ✅ | `users.routes.js` PUT `/:id/events`: cada evento debe pasar `hasEventAccess` |
+| S3 | ✅ | `groups.routes.js`: listar exige pertenecer al grupo; añadir o quitar exige que el usuario ya comparta grupo y nunca es un ADMIN |
+| S4 | ✅ | `events.routes.js`: ruta del logo validada al guardar y antes de borrar (solo dentro de `uploads/logos`) |
+| S10 | ✅ | `server.js` (limitador cubre `password-reset-request`), `rate-limiter.js` (nadie exento por defecto, `RATE_LIMIT_EXEMPT_CIDRS`, clave sin User-Agent), `auth.routes.js` (cuenta obligatoria, código atado a la cuenta, `crypto.randomInt`) |
+| S11 | ✅ parcial | `events.routes.js` (18 rutas con `:id`), `guests.routes.js` (8 rutas), `email.routes.js` (cuentas, plantillas, campañas, buzón y envío). Pendiente el resto de routers → Fase 3 |
+| S12 | ✅ | `src/security/portal-token.js` (nuevo): token de portal firmado por asistente; el portal y el networking lo exigen y ya no entregan `qr_token` ajeno. Enlace para el organizador: `GET /api/guests/:eventId/portal-link/:guestId` |
+| S7 | ✅ | `src/security/network-policy.js` (nuevo): webhooks, e-commerce e inteligencia rechazan destinos de red interna (`SSRF_ALLOWED_CIDRS` para excepciones); pruebas de correo solo a hosts públicos y puertos estándar (`MAIL_TEST_ALLOWED_HOSTS`) |
+| S9 | ✅ | `ai-security.routes.js`: clave de OpenRouter enmascarada salvo ADMIN; registros ajenos solo ADMIN |
+| H1 | ✅ | `captcha.js`: token opaco, la respuesta vive solo en el servidor |
+| H2 | ✅ | `compliance.routes.js` y `guests.routes.js`: derecho al olvido con las columnas reales, también en la BD del evento |
+| H3 | ✅ | `settings.routes.js`: filtro de secretos por patrón (salía `VAPID_PRIVATE_KEY`) |
+| H4 | ✅ | `users.routes.js`, `auth.routes.js`, `jwt.js`: clave actual obligatoria; un cambio de clave cierra las sesiones abiertas (`users.token_valid_after`) |
+| H5 | ✅ | `server.js`: el montaje de `/uploads` usa las opciones endurecidas |
+| H7 | ✅ | `jwt.js` (secreto débil aborta el arranque en producción; lista negra fail-closed), `public.routes.js` (token de kiosco fail-closed y comparación en tiempo constante) |
+| H8 | ✅ | `encryption.js`: ruta del logger corregida; IV de 12 bytes (lo cifrado antes sigue leyéndose) |
+| H9 | ✅ | `users.routes.js`: logs sin contraseña ni secretos |
+| H11 | ✅ | `settings.routes.js`: "aprobar a todos" solo aprueba cuentas PENDIENTES; "purgar" exige la contraseña del ADMIN |
+| H13 | ✅ | `ai-security.routes.js`: inyección de prompt detectada → la consulta se rechaza (422) |
+| D1 | ✅ | `server.js` + `redis-cache.js`: el apagado cierra Redis y las BDs de evento; ya no hace FLUSHALL |
+| D8 | ✅ | `database-manager.js`: `transactions` sin la clave foránea a `guests(event_id)`; reconstrucción automática de la tabla en las BDs existentes |
+| N1 | ✅ | `import.routes.js`: `.apply()` → `.run(...params)` (actualizar un cliente reventaba) |
+| N3 | ✅ | `public.routes.js`: el kiosco ya no da 500 en `/kiosk/:eventId/event` |
+| S13 | ✅ | `chatbot/engine.js`: `event_id` validado antes de abrir su BD |
+| F1 | ✅ | `app.js:2663` (usaba `userId` inexistente) y `wheel.js:447` |
+| G1 | ✅ parcial | `scripts/bump-version.js` (nuevo): una sola versión de `?v=` en `index.html`, `app-shell.html`, `app.js` y las páginas |
+
+Variables de entorno nuevas (todas con default seguro): `RATE_LIMIT_EXEMPT_CIDRS`, `JWT_SECRET_MIN_LENGTH`,
+`ALLOW_WEAK_JWT_SECRET`, `SSRF_ALLOWED_CIDRS`, `WEBHOOK_RESPONSE_LOG_MAX_BYTES`, `MAIL_TEST_ALLOWED_HOSTS`,
+`PORTAL_TOKEN_SECRET`, `ERASURE_EXTRA_GUEST_COLUMNS`.
+
+Evidencia local: `npm test` → 26 suites, 483 pasan, 1 omitido (antes 455); `npx eslint .` → 0 errores.
+
+Incidencia durante la fase (sin efecto en producción): la primera versión del arreglo D8 dejó una coma
+de más en el `CREATE TABLE` y la reconstrucción eliminó la tabla `transactions` de las 110 bases de
+evento **locales** sin recrearla. Se corrigió antes de desplegar: la reconstrucción ahora restaura la
+tabla original si la nueva no se crea o el conteo de filas no cuadra, y las 110 bases volvieron a
+quedar con su tabla (verificadas con la vía real de la aplicación).

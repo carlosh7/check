@@ -2,6 +2,8 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
+// v12.44.846 (auditoría 2026-11-25, S7-SSRF): portero de destinos salientes (prevención de SSRF)
+const { checkUrlAllowed } = require('../security/network-policy');
 
 const router = express.Router();
 
@@ -139,7 +141,17 @@ router.post('/webhooks/:id/execute', authMiddleware(['ADMIN']), async (req, res)
                     }
                     results.push({ action, status: 'completed' });
                 } else if (action === 'test') {
-                    const response = await fetch(webhook.url, { method: 'POST', body: JSON.stringify({ test: true, webhook_id: webhook.id }), headers: { 'Content-Type': 'application/json' } });
+                    // v12.44.846 (auditoría 2026-11-25, S7-SSRF): este fetch iba directo a webhook.url sin
+                    // validar nada. Ahora el destino pasa por el portero; si no es público no se dispara
+                    // y la acción queda como error con el motivo. Además: sin seguir redirecciones y con
+                    // tope de tiempo (antes no tenía ninguno).
+                    const destination = await checkUrlAllowed(webhook.url);
+                    if (!destination.allowed) {
+                        const blocked = new Error(`Destino bloqueado por la política de red (SSRF): ${destination.reason}`);
+                        blocked.code = 'SSRF_BLOCKED';
+                        throw blocked;
+                    }
+                    const response = await fetch(webhook.url, { method: 'POST', body: JSON.stringify({ test: true, webhook_id: webhook.id }), headers: { 'Content-Type': 'application/json' }, redirect: 'error', signal: AbortSignal.timeout(10000) });
                     results.push({ action, status: response.ok ? 'completed' : 'failed', statusCode: response.status });
                 } else {
                     results.push({ action, status: 'unknown_action' });

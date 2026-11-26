@@ -68,61 +68,61 @@ function generateCaptcha(ip) {
         answer = a * b + c;
     }
     
-    // Create signed token with timestamp
-    const payload = { answer, ts: now };
-    const signature = crypto.createHmac('sha256', ENCRYPTION_KEY)
-        .update(JSON.stringify(payload)).digest('hex');
-    const token = Buffer.from(JSON.stringify({ ...payload, sig: signature })).toString('base64');
-    
-    // Store for replay prevention
-    recentCaptchas.set(token, now);
-    
+    // v12.44.846 (auditoría 2026-11-25, H1): el token entregado al cliente era Base64 de
+    // { answer, ts, sig } — cualquier bot hacía atob(token) y leía la respuesta. Ahora el token es
+    // un identificador opaco y la respuesta vive SOLO en memoria del servidor.
+    const tokenId = crypto.randomBytes(24).toString('hex');
+    const signature = crypto.createHmac('sha256', ENCRYPTION_KEY).update(tokenId + ':' + now).digest('hex');
+    const token = tokenId + '.' + signature;
+
+    // Store for replay prevention + expiry
+    recentCaptchas.set(token, { answer, ts: now });
+
     // Clean old captchas
     if (recentCaptchas.size > MAX_STORED) {
         for (const [k, v] of recentCaptchas) {
-            if (now - v > CAPTCHA_EXPIRY) recentCaptchas.delete(k);
+            if (now - v.ts > CAPTCHA_EXPIRY) recentCaptchas.delete(k);
         }
     }
-    
+
     return { question, token };
 }
 
 function verifyCaptcha(token, userAnswer) {
     try {
         if (!token || !userAnswer) return { valid: false, reason: 'missing' };
-        
-        // Check replay
-        if (!recentCaptchas.has(token)) {
+
+        // Check replay / existence
+        const entry = recentCaptchas.get(token);
+        if (!entry) {
             return { valid: false, reason: 'expired_or_used' };
         }
-        
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf8'));
-        
-        // Verify signature
-        const { sig, ...payload } = decoded;
+
+        const sep = token.indexOf('.');
+        const sig = token.slice(sep + 1);
         const expectedSig = crypto.createHmac('sha256', ENCRYPTION_KEY)
-            .update(JSON.stringify(payload)).digest('hex');
-        
-        if (sig !== expectedSig) {
+            .update(token.slice(0, sep) + ':' + entry.ts).digest('hex');
+
+        if (sig.length !== expectedSig.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig))) {
             return { valid: false, reason: 'invalid_signature' };
         }
-        
+
         // Check expiration
-        if (Date.now() - decoded.ts > CAPTCHA_EXPIRY) {
+        if (Date.now() - entry.ts > CAPTCHA_EXPIRY) {
             recentCaptchas.delete(token);
             return { valid: false, reason: 'expired' };
         }
-        
+
         // Check answer
         const userNum = parseInt(userAnswer, 10);
         if (isNaN(userNum)) {
             return { valid: false, reason: 'not_a_number' };
         }
-        
+
         // Remove used token (prevent replay)
         recentCaptchas.delete(token);
-        
-        return { valid: userNum === decoded.answer };
+
+        return { valid: userNum === entry.answer };
     } catch (e) {
         return { valid: false, reason: 'parse_error' };
     }

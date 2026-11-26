@@ -4,6 +4,21 @@
  */
 const { db } = require('../../database');
 const https = require('https');
+const { castId } = require('../utils/helpers');
+
+// v12.44.846 (auditoría 2026-11-25, S13): event_id llega del body de una ruta PÚBLICA
+// (/api/chatbot/message) y se pasaba tal cual a getEventConnection(), que lo une a una ruta de
+// archivo (`<DATA_DIR>/events/<event_id>.db`): un valor con ../ apuntaba a cualquier archivo .db
+// del servidor y al abrirlo dispara su auto-reparación y migraciones. Ahora solo se acepta un id
+// con formato real de evento (UUID vía castId) y que exista; si no, se sigue SIN BD de evento.
+// Devuelve el id validado o null.
+function safeEventId(eventId) {
+    const id = castId('events', eventId);
+    if (!id) return null;
+    try {
+        return db.prepare("SELECT 1 FROM events WHERE id = ?").get(id) ? id : null;
+    } catch (_) { return null; }
+}
 
 // In-memory conversation store (bounded, per-session)
 const conversations = new Map();
@@ -40,6 +55,8 @@ function addToHistory(sessionId, role, content) {
 }
 
 function getEventContext(eventId) {
+    // v12.44.846 (auditoría 2026-11-25, S13): el id debe ser válido y existir antes de abrir su BD
+    eventId = safeEventId(eventId);
     if (!eventId) return null;
     const event = db.prepare("SELECT id, name, date, end_date, location, description, status, payment_required, currency FROM events WHERE id = ?").get(eventId);
     if (!event) return null;
@@ -105,6 +122,8 @@ async function getAiResponse(message, eventId, history) {
 }
 
 function getRuleResponse(message, eventId) {
+    // v12.44.846 (auditoría 2026-11-25, S13): el id debe ser válido y existir antes de abrir su BD
+    eventId = safeEventId(eventId);
     const msg = (message || '').toLowerCase().trim();
     let event = null;
     if (eventId) {
@@ -191,6 +210,9 @@ function getRuleResponse(message, eventId) {
 }
 
 async function getResponse(message, eventId, sessionId) {
+    // v12.44.846 (auditoría 2026-11-25, S13): punto de entrada desde la ruta pública; desde aquí
+    // eventId solo viaja validado (o null → respuestas generales, sin BD de evento).
+    eventId = safeEventId(eventId);
     const history = sessionId ? (getConversation(sessionId)?.history || []) : [];
     
     // Try rule-based first

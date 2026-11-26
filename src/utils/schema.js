@@ -28,6 +28,12 @@ function initSchema(db) {
     try { db.exec("ALTER TABLE users ADD COLUMN role_detail TEXT DEFAULT 'STAFF'"); } catch (_) {}
     try { db.exec("ALTER TABLE users ADD COLUMN group_id TEXT"); } catch (_) {}
     try { db.exec("ALTER TABLE users ADD COLUMN display_name TEXT"); } catch (_) {}
+    // v12.44.846 (auditoría 2026-11-25, revocación JWT): instante ISO desde el que los tokens del
+    // usuario son válidos. Se actualiza al resetear/cambiar la clave y verifyToken rechaza los tokens
+    // cuyo `iat` sea anterior (los emitidos antes quedan revocados, los posteriores siguen valiendo).
+    // ALTER protegido: las instalaciones existentes ya tienen la tabla users sin esta columna; en una
+    // BD nueva el ALTER se aplica justo después del CREATE TABLE de arriba. NULL = sin revocaciones.
+    try { db.exec("ALTER TABLE users ADD COLUMN token_valid_after TEXT"); } catch (_) {}
     
     // 2. Eventos (Multitenancy)
     db.exec(`CREATE TABLE IF NOT EXISTS events (

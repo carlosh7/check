@@ -272,6 +272,10 @@ app.use('/api/login', limiters.auth);
 app.use('/api/signup', limiters.auth);
 app.use('/api/setup', limiters.auth);
 app.use('/api/password-reset', limiters.auth);
+// v12.44.846 (auditoría 2026-11-25, S10b): la ruta real es /api/password-reset-request.
+// El montaje anterior no la cubre (path-to-regexp exige '/' o fin de cadena tras el prefijo),
+// así que la petición de recuperación quedaba bajo el límite general (10.000/15min).
+app.use('/api/password-reset-request', limiters.auth);
 // L-4 (v12.44.818): los códigos de recuperación son de 6 dígitos (10^6) — sin este
 // límite quedaban bajo el limiter general (10.000) y eran fuerza-bruteables.
 app.use('/api/verify-reset-code', limiters.auth);
@@ -334,7 +338,13 @@ app.use('/html', express.static(path.join(__dirname, 'public/html'), {
 }));
 
 // Archivos subidos (logos, etc.)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// v12.44.846 (auditoría 2026-11-25, H5): este montaje se registraba ANTES del de src/routes/index.js
+// y anulaba sus opciones endurecidas (index: false, dotfiles: 'deny'). Ahora usa las mismas.
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+    dotfiles: 'deny',
+    index: false,
+    maxAge: '1d'
+}));
 
 // Archivos estáticos raíz — WHITELIST EXPLÍCITA (P0-2 auditoría 2026-08)
 // NUNCA servir el directorio raíz del proyecto: expone server.js, package.json,
@@ -565,9 +575,14 @@ try {
             
             // Cerrar conexiones de BD
             try { const { db } = require('./database'); db.close(); } catch(e) {}
-            
+            // v12.44.846 (auditoría 2026-11-25, D1): también las BDs por evento, que antes quedaban
+            // abiertas (archivos SQLite en modo WAL sin cerrar)
+            try { require('./src/utils/database-manager').closeAllConnections(); } catch(e) {}
+
             // Cerrar Redis si está activo
-            try { const redis = require('./src/utils/redis-cache'); if (redis.isRedisAvailable()) redis.flush(); } catch(e) {}
+            // v12.44.846 (auditoría 2026-11-25, D1): antes se llamaba a redis.flush() → FLUSHALL de
+            // TODA la instancia de Redis al apagar. Ahora solo se cierra la conexión.
+            try { const redis = require('./src/utils/redis-cache'); if (redis.isRedisAvailable()) redis.close(); } catch(e) {}
             
             // Flush de logs
             logger.info('Cleanup completado. Saliendo...');

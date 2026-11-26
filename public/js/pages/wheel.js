@@ -444,7 +444,7 @@ function resetW(){
     const t=document.getElementById('parts-ta');if(t)t.value=parts.join('\n');
     const pc=document.getElementById('part-cnt');if(pc)pc.textContent=parts.length;
     updWins();
-    preSpinParts=null;preSpinWts=null
+    preSpinParts=null;preSpinWins=0 /* v12.44.846 (F1): preSpinWts no existía */
   }
   document.getElementById('screencast').classList.remove('spinning');
   document.getElementById('wheel-ct').classList.remove('zooming');

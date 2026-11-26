@@ -100,6 +100,39 @@ function getEventDbForAttendance(eventId) {
 const logger = require("../utils/logger");
 const router = express.Router();
 
+// v12.44.846 (auditoría 2026-11-25, S4/S11): acceso por evento. Antes solo 3 rutas de este archivo
+// comprobaban hasEventAccess; un PRODUCTOR leía o modificaba eventos ajenos por id.
+// ADMIN pasa siempre; el resto necesita ser dueño, estar asignado (user_events) o en el grupo.
+function requireEventAccess(req, res) {
+    if (req.userRole === 'ADMIN') return true;
+    const eventId = castId('events', req.params.id);
+    if (!eventId || !hasEventAccess(req.userId, eventId, req.userRole)) {
+        res.status(403).json({ error: 'No tienes acceso a este evento' });
+        return false;
+    }
+    return true;
+}
+
+// v12.44.846: id de evento con formato válido para todas las rutas con :id
+function castEventIdParam(req, res, next, id) {
+    if (!castId('events', id)) return res.status(400).json({ error: 'ID de evento inválido' });
+    next();
+}
+
+// v12.44.846: la ruta del logo del gafete solo puede ser un archivo dentro de uploads/logos
+// (la URL /uploads/logos/x.png se resuelve dentro de <repo>/uploads, no dentro de public/)
+function isSafeBadgeLogo(logo) {
+    if (typeof logo !== 'string' || !/^\/uploads\/logos\/[A-Za-z0-9._-]+$/.test(logo)) return false;
+    const path = require('path');
+    const logosDir = path.resolve(__dirname, '../../uploads/logos') + path.sep;
+    return path.resolve(__dirname, '../..', logo.replace(/^\//, '')).startsWith(logosDir);
+}
+
+// Se pide autenticación en todo el router: así req.userId/req.userRole ya están fijados cuando
+// corre el control de acceso por evento (antes cada ruta repetía authMiddleware; se mantiene ahí).
+router.use(authMiddleware());
+router.param('id', castEventIdParam);
+
 router.get('/', authMiddleware(), async (req, res) => {
     try {
         const cacheKey = req.userRole === 'ADMIN' 
@@ -141,6 +174,8 @@ router.get('/', authMiddleware(), async (req, res) => {
 });
 
 router.get('/:id', authMiddleware(), async (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     try {
         const eventId = castId('events', req.params.id);
         const row = await cacheOrFetch(CACHE_KEYS.EVENT(eventId), () => {
@@ -229,6 +264,8 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
 // en /api/kiosk/*/search, /api/kiosk/checkin y /api/guests/qr/:id/token.
 // DELETE lo revoca (el kiosco vuelve al modo público/legacy salvo KIOSK_TOKEN_MODE=strict).
 router.post('/:id/kiosk-token', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     try {
         const eventId = castId('events', req.params.id);
         if (!eventId) return res.status(400).json({ error: 'ID de evento inválido' });
@@ -240,6 +277,8 @@ router.post('/:id/kiosk-token', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
 });
 
 router.delete('/:id/kiosk-token', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     try {
         const eventId = castId('events', req.params.id);
         if (!eventId) return res.status(400).json({ error: 'ID de evento inválido' });
@@ -250,6 +289,8 @@ router.delete('/:id/kiosk-token', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, 
 });
 
 router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     const v = validate(schemas.updateEvent, req.body);
     if (!v.valid) return res.status(400).json({ errors: v.errors });
 
@@ -338,6 +379,8 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
 });
 
 router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     const targetId = castId('events', req.params.id);
     
     // Verificar permisos: PRODUCTOR solo puede borrar sus propios eventos
@@ -407,6 +450,8 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
 
 // Obtener invitados de evento (con paginación)
 router.get('/:id/guests', authMiddleware(), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     try {
         const eId = castId('events', req.params.id);
         if (!eId) return res.status(400).json({ error: 'ID inválido' });
@@ -420,6 +465,8 @@ router.get('/:id/guests', authMiddleware(), (req, res) => {
 
 // Obtener pre-registros de evento
 router.get('/:id/pre-registrations', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     try {
         const eId = castId('events', req.params.id);
         const rows = db.prepare("SELECT id, name, email, phone, organization, position, gender, status, registered_at FROM pre_registrations WHERE event_id = ? AND status = 'PENDING' ORDER BY registered_at DESC").all(eId);
@@ -606,6 +653,8 @@ router.get('/:id/database', authMiddleware(), (req, res) => {
 
 // GET /api/events/:id/attendance - Obtener lista de asistencia (vía tabla guests)
 router.get('/:id/attendance', authMiddleware(), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     const eventId = castId('events', req.params.id);
     if (!eventId) return res.status(400).json({ error: 'ID de evento no válido' });
     
@@ -649,6 +698,8 @@ router.get('/:id/attendance', authMiddleware(), (req, res) => {
 
 // POST /api/events/:id/attendance - Agregar asistente manual
 router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     const eventId = castId('events', req.params.id);
     const { name, email, phone, organization, cargo, vegano, restricciones, category_id } = req.body;
     
@@ -703,6 +754,8 @@ router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER'
 
 // PUT /api/events/:id/attendance/:id - Actualizar asistente (Dashboard)
 router.put('/:id/attendance/:attendanceId', authMiddleware(), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     const eventId = castId('events', req.params.id);
     const attendanceId = req.params.attendanceId;
     const { validated, organization, cargo, vegano, restricciones, category_id } = req.body;
@@ -751,6 +804,8 @@ router.put('/:id/attendance/:attendanceId', authMiddleware(), (req, res) => {
 
 // DELETE /api/events/:id/attendance/:attendanceId - Eliminar asistente
 router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     const eventId = castId('events', req.params.id);
     const attendanceId = req.params.attendanceId;
     
@@ -792,6 +847,8 @@ router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCT
 // CLONAR EVENTO
 // ══════════════════════════════════════════════════════════════
 router.post('/:id/clone', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     try {
         const eventId = castId('events', req.params.id);
         if (!eventId) return res.status(400).json({ error: 'ID de evento inválido' });
@@ -892,6 +949,8 @@ const uploadLogo = multer({ storage: badgeStorage, limits: { fileSize: 2 * 1024 
 
 // GET /api/events/:id/badge-config
 router.get('/:id/badge-config', authMiddleware(), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     try {
         const event = db.prepare("SELECT badge_config FROM events WHERE id = ?").get(req.params.id);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
@@ -906,8 +965,16 @@ router.get('/:id/badge-config', authMiddleware(), (req, res) => {
 
 // PUT /api/events/:id/badge-config
 router.put('/:id/badge-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     try {
-        const config = JSON.stringify(req.body.config || {});
+        // v12.44.846 (auditoría 2026-11-25, S4): la ruta del logo se valida al guardar (antes se
+        // aceptaba cualquier texto y luego se borraba del disco tal cual)
+        const cfg = req.body.config || {};
+        if (cfg.logo !== undefined && !isSafeBadgeLogo(cfg.logo)) {
+            return res.status(400).json({ error: 'Logo de gafete inválido' });
+        }
+        const config = JSON.stringify(cfg);
         db.prepare("UPDATE events SET badge_config = ? WHERE id = ?").run(config, req.params.id);
         res.json({ success: true });
     } catch (err) {
@@ -918,6 +985,8 @@ router.put('/:id/badge-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
 
 // POST /api/events/:id/badge-logo
 router.post('/:id/badge-logo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     uploadLogo.single('logo')(req, res, (err) => {
         if (err) return res.status(400).json({ error: 'Error al subir: ' + (err.message || 'archivo invalido') });
         if (!req.file) return res.status(400).json({ error: 'No se envio archivo' });
@@ -928,16 +997,29 @@ router.post('/:id/badge-logo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
 
 // DELETE /api/events/:id/badge-logo
 router.delete('/:id/badge-logo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     try {
         const event = db.prepare("SELECT badge_config FROM events WHERE id = ?").get(req.params.id);
         if (event && event.badge_config) {
             let config = {};
             try { config = JSON.parse(event.badge_config); } catch(e) { config = {}; }
             if (config.logo) {
+                // v12.44.846 (auditoría 2026-11-25, S4): antes se borraba la ruta que viniera en la
+                // config (../../.env borraba archivos del servidor) y, por un directorio base
+                // equivocado, nunca borraba el logo real. Ahora solo se borra un logo válido que
+                // ningún otro evento use.
                 try {
                     const fs = require('fs'), path = require('path');
-                    const logoPath = path.join(__dirname, '../../public', config.logo);
-                    if (fs.existsSync(logoPath)) fs.unlinkSync(logoPath);
+                    if (isSafeBadgeLogo(config.logo)) {
+                        const others = db.prepare("SELECT COUNT(*) AS c FROM events WHERE id != ? AND badge_config LIKE ?").get(req.params.id, '%' + config.logo + '%');
+                        if (others.c === 0) {
+                            const logoPath = path.resolve(__dirname, '../..', config.logo.replace(/^\//, ''));
+                            if (fs.existsSync(logoPath)) fs.unlinkSync(logoPath);
+                        }
+                    } else {
+                        logger.warn('[BADGE_CONFIG] Intento de borrar un logo con ruta inválida; se ignora');
+                    }
                 } catch(e) {}
             }
             delete config.logo;
@@ -953,6 +1035,8 @@ router.delete('/:id/badge-logo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, r
 // ─── Branding (BL-16) ───
 
 router.get('/:id/branding', authMiddleware(), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     try {
         const event = db.prepare("SELECT custom_css, brand_header_html, brand_footer_html, brand_primary_color, brand_logo_url, logo_url, reg_logo_url, ticket_bg_url, ticket_accent_color, qr_color_dark, qr_color_light FROM events WHERE id = ?").get(req.params.id);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
@@ -961,6 +1045,8 @@ router.get('/:id/branding', authMiddleware(), (req, res) => {
 });
 
 router.put('/:id/branding', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): control de acceso al evento
+    if (!requireEventAccess(req, res)) return;
     try {
         const d = req.body;
         db.prepare("UPDATE events SET custom_css = COALESCE(?, custom_css), brand_header_html = COALESCE(?, brand_header_html), brand_footer_html = COALESCE(?, brand_footer_html), brand_primary_color = COALESCE(?, brand_primary_color), brand_logo_url = COALESCE(?, brand_logo_url) WHERE id = ?").run(

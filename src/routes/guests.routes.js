@@ -62,7 +62,7 @@ const { z } = require('zod');
 const ExcelJS = require('exceljs');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
-const { getValidId, castId } = require('../utils/helpers');
+const { getValidId, castId, hasEventAccess } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { getIO: socketGetIO } = require('../socket');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
@@ -77,6 +77,61 @@ const logger = require("../utils/logger");
 const router = express.Router();
 
 const tempImport = {};
+
+// v12.44.846 (auditoría 2026-11-25, S11): acceso por evento para las rutas de este archivo que
+// llevan :eventId y solo comprobaban el rol (ADMIN/PRODUCTOR): un PRODUCTOR borraba la lista de
+// invitados o editaba categorías de eventos ajenos cambiando el id de la URL. ADMIN pasa siempre;
+// el resto necesita ser dueño del evento, estar asignado (user_events) o en su grupo.
+// Responde 400/403 y devuelve false cuando no hay que seguir.
+function requireEventAccess(req, res) {
+    const eventId = castId('events', req.params.eventId);
+    if (!eventId) { res.status(400).json({ error: 'ID invalido' }); return false; }
+    if (!hasEventAccess(req.userId, eventId, req.userRole)) {
+        res.status(403).json({ error: 'No tienes acceso a este evento' });
+        return false;
+    }
+    return true;
+}
+
+// v12.44.846 (auditoría 2026-11-25, S11): liga el :guestId de la URL a su :eventId. Sin esto el
+// guard anterior se salta poniendo un evento propio en la URL y el id de un invitado ajeno.
+// Busca en la BD del evento (si tiene propia) y en la maestra.
+function guestBelongsToEvent(eventId, guestId) {
+    const eId = castId('events', eventId);
+    const eventDb = getEventDb(eId) || db;
+    const sql = 'SELECT 1 FROM guests WHERE id = ? AND event_id = ?';
+    try { if (eventDb.prepare(sql).get(guestId, eId)) return true; } catch (_) {}
+    try { return !!db.prepare(sql).get(guestId, eId); } catch (_) { return false; }
+}
+
+// v12.44.846 (auditoría 2026-11-25, H2b): el borrado GDPR deprecado (DELETE .../erase) solo tocaba
+// la BD maestra; si el evento tiene BD propia, la fila con los datos reales seguía allí. Aplica el
+// mismo borrado en la BD del evento y, si la fila no se puede borrar, la anonimiza con el criterio
+// de /api/compliance. No se puede borrar cuando: (a) tiene filas dependientes (FOREIGN KEY sin
+// cascada) o (b) la BD del evento trae la clave foránea mal formada
+// transactions.event_id → guests(event_id) (createEventTables): con foreign_keys=ON SQLite rechaza
+// preparar CUALQUIER DELETE sobre guests con "foreign key mismatch". En ambos casos los datos
+// personales deben desaparecer igual, así que se anonimiza y se deja constancia en el log.
+function eraseGuestFromEventDb(eventId, guestId) {
+    const eventDb = getEventDb(eventId);
+    if (!eventDb || eventDb === db) return { event_db: 'sin_bd_propia' };
+    const tables = eventDb.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all().map(r => r.name);
+    try {
+        eventDb.transaction((gId, evId) => {
+            if (tables.includes('guest_achievements')) eventDb.prepare("DELETE FROM guest_achievements WHERE guest_id = ?").run(gId);
+            eventDb.prepare("DELETE FROM guests WHERE id = ? AND event_id = ?").run(gId, evId);
+        })(guestId, eventId);
+        return { event_db: 'borrada' };
+    } catch (err) {
+        if (!/FOREIGN KEY constraint|foreign key mismatch/i.test(String(err && err.message))) throw err;
+        logger.warn('[ERASE] La fila no se puede borrar en la BD del evento (' + err.message + '); se anonimiza.');
+        const compliance = require('./compliance.routes');
+        if (typeof compliance.anonymizeGuestPersonalData !== 'function') throw err;
+        const outcome = compliance.anonymizeGuestPersonalData(eventId, guestId, eventDb);
+        if (outcome.failed.length) throw new Error('anonimización falló en la BD ' + outcome.failed.join(', '), { cause: err });
+        return { event_db: 'anonimizada' };
+    }
+}
 
 // Obtener invitado por ID (público - para tickets)
 // L-2.2 (v12.44.818): minimización de datos — el ticket solo necesita nombre/estado;
@@ -430,6 +485,9 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
 
 // Limpiar base de datos de evento
 router.post('/clear/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S11): antes cualquier PRODUCTOR vaciaba la lista de
+    // invitados de cualquier evento cambiando el id de la URL.
+    if (!requireEventAccess(req, res)) return;
     const eId = castId('events', req.params.eventId);
     const targetDb = getEventDb(eId) || db;
     targetDb.prepare("DELETE FROM guests WHERE event_id = ?").run(eId);
@@ -538,6 +596,8 @@ const updateCategorySchema = z.object({
 
 router.post('/:eventId/categories', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
+        // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario
+        if (!requireEventAccess(req, res)) return;
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
         const result = createCategorySchema.safeParse(req.body);
@@ -559,6 +619,8 @@ router.post('/:eventId/categories', authMiddleware(['ADMIN', 'PRODUCTOR']), (req
 
 router.put('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
+        // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario
+        if (!requireEventAccess(req, res)) return;
         const eId = castId('events', req.params.eventId);
         const catId = req.params.catId;
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
@@ -580,6 +642,8 @@ router.put('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR'])
 
 router.delete('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
+        // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario
+        if (!requireEventAccess(req, res)) return;
         const eId = castId('events', req.params.eventId);
         const catId = req.params.catId;
         const targetDb = getEventDb(eId);
@@ -874,6 +938,10 @@ router.get('/:eventId/network', (req, res) => {
 
 router.put('/:eventId/guests/:guestId/profile', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
+        // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario Y el invitado
+        // debe ser de ese evento (esta ruta escribe en la BD maestra solo por guestId)
+        if (!requireEventAccess(req, res)) return;
+        if (!guestBelongsToEvent(req.params.eventId, req.params.guestId)) return res.status(404).json({ error: 'Invitado no encontrado' });
         const { bio, interests, social_linkedin, photo_url } = req.body;
         const old = db.prepare("SELECT bio, interests, social_linkedin, photo_url FROM guests WHERE id = ?").get(req.params.guestId);
         db.prepare("UPDATE guests SET bio = COALESCE(?, bio), interests = COALESCE(?, interests), social_linkedin = COALESCE(?, social_linkedin), photo_url = COALESCE(?, photo_url) WHERE id = ?").run(
@@ -898,6 +966,10 @@ router.get('/:eventId/achievements/:guestId', (req, res) => {
 
 router.post('/:eventId/achievements/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
+        // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario Y el invitado
+        // debe ser de ese evento
+        if (!requireEventAccess(req, res)) return;
+        if (!guestBelongsToEvent(req.params.eventId, req.params.guestId)) return res.status(404).json({ error: 'Invitado no encontrado' });
         const { achievement } = req.body;
         if (!achievement) return res.status(400).json({ error: 'Achievement requerido' });
         const id = require('uuid').v4();
@@ -909,6 +981,9 @@ router.post('/:eventId/achievements/:guestId', authMiddleware(['ADMIN', 'PRODUCT
 // ─── Social Media auto-publish (C5-08) ───
 router.post('/:eventId/social-publish', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
+        // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario (antes un
+        // PRODUCTOR publicaba en redes el evento ajeno que pusiera en la URL)
+        if (!requireEventAccess(req, res)) return;
         const event = db.prepare("SELECT id, name, date, location, description FROM events WHERE id = ?").get(req.params.eventId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
 
@@ -948,9 +1023,16 @@ router.post('/:eventId/social-publish', authMiddleware(['ADMIN', 'PRODUCTOR']), 
 // DEPRECATED: Usar /api/compliance/events/:eventId/guests/:guestId/personal-data
 router.delete('/:eventId/guests/:guestId/erase', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
+        // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario Y el invitado debe
+        // ser de ese evento (guest_achievements se borra solo por guest_id)
+        if (!requireEventAccess(req, res)) return;
+        if (!guestBelongsToEvent(req.params.eventId, req.params.guestId)) return res.status(404).json({ error: 'Invitado no encontrado' });
         db.prepare("DELETE FROM guest_achievements WHERE guest_id = ?").run(req.params.guestId);
         db.prepare("DELETE FROM guests WHERE id = ? AND event_id = ?").run(req.params.guestId, req.params.eventId);
-        res.json({ success: true, message: 'Datos eliminados conforme a GDPR' });
+        // v12.44.846 (auditoría 2026-11-25, H2b): mismo borrado sobre la BD del evento, si tiene una
+        // propia (antes la fila con los datos reales quedaba intacta allí).
+        const erasedIn = eraseGuestFromEventDb(req.params.eventId, req.params.guestId);
+        res.json({ success: true, message: 'Datos eliminados conforme a GDPR', event_db: erasedIn.event_db });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -976,6 +1058,19 @@ router.get('/:eventId/editors', authMiddleware(), (req, res) => {
         const { getActiveEditors } = require('../socket');
         res.json({ editors: getActiveEditors(req.params.eventId) || [] });
     } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// v12.44.846 (auditoría 2026-11-25, S12): enlace del portal del asistente con su token firmado.
+// Solo el organizador con acceso al evento puede obtenerlo (antes cualquier persona que conociera
+// el id del invitado entraba a su portal).
+router.get('/:eventId/portal-link/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    if (!requireEventAccess(req, res)) return;
+    const guestId = castId('guests', req.params.guestId);
+    if (!guestId) return res.status(400).json({ error: 'ID invalido' });
+    const row = guestBelongsToEvent(req.params.eventId, guestId) ? db.prepare('SELECT id FROM guests WHERE id = ?').get(guestId) : null;
+    if (!row) return res.status(404).json({ error: 'Invitado no encontrado' });
+    const { portalTokenFor } = require('../security/portal-token');
+    res.json({ url: '/' + req.params.eventId + '/portal?g=' + guestId + '&t=' + portalTokenFor(guestId) });
 });
 
 module.exports = router;

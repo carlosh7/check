@@ -1,4 +1,4 @@
-let API='/api',guestData=null,deferredPrompt=null;
+let API='/api',guestData=null,deferredPrompt=null,portalToken='';
 const tabs=['ticket','agenda','participate','networking','event'];
 
 // PWA Install
@@ -71,7 +71,7 @@ function votePoll(btn){
   if(selected.length===0){btn.style.background='#dc2626';setTimeout(function(){btn.style.background=''},500);return}
   const optionIds=[];
   selected.forEach(function(cb){optionIds.push(cb.value)});
-  const qrToken=guestData?.guest?.qr_token;
+  const qrToken=guestData?.guest?.portal_token;
   if(!qrToken){alert('Debes estar registrado para votar');return}
   fetch(API+'/polls/public/'+pollId+'/vote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({guest_token:qrToken,option_id:optionIds[0]})})
   .then(function(r){return r.json()})
@@ -165,14 +165,14 @@ function loadNetworking() {
   const qrUrl = window.location.origin + '/api/guests/qr/' + guestId;
   document.getElementById('networking-qr-img').src = qrUrl;
   // Load score
-  fetch(API + '/networking/' + eventId + '/guest/' + guestId + '/score').then(function(r) { return r.json(); }).then(function(data) {
+  fetch(API + '/networking/' + eventId + '/guest/' + guestId + '/score?t=' + encodeURIComponent(portalToken)).then(function(r) { return r.json(); }).then(function(data) {
     if (data) {
       document.getElementById('net-score').textContent = data.score || 0;
       document.getElementById('net-connections').textContent = data.uniqueConnections || 0;
     }
   }).catch(function() {});
   // Load connections list
-  fetch(API + '/networking/' + eventId + '/guest/' + guestId).then(function(r) { return r.json(); }).then(function(conns) {
+  fetch(API + '/networking/' + eventId + '/guest/' + guestId + '?t=' + encodeURIComponent(portalToken)).then(function(r) { return r.json(); }).then(function(conns) {
     const c = document.getElementById('net-connections-list');
     if (!conns || conns.length === 0) { c.innerHTML = '<p data-style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">Aún no tienes conexiones. Escanea el QR de otros asistentes.</p>'; return; }
     c.innerHTML = conns.map(function(n) {
@@ -184,7 +184,7 @@ function loadNetworking() {
     }).join('');
   }).catch(function() {});
   // A4: Sugerencias de networking
-  fetch(API + '/networking/' + eventId + '/guest/' + guestId + '/suggestions').then(function(r) { return r.json(); }).then(function(sugs) {
+  fetch(API + '/networking/' + eventId + '/guest/' + guestId + '/suggestions?t=' + encodeURIComponent(portalToken)).then(function(r) { return r.json(); }).then(function(sugs) {
     const box = document.getElementById('net-suggestions-list');
     if (!box) return;
     if (!sugs || sugs.length === 0) { box.innerHTML = '<p data-style="font-size:12px;color:rgba(255,255,255,0.3);padding:10px;text-align:center">Aún no hay sugerencias. Conéctate con alguien para desbloquear recomendaciones.</p>'; return; }
@@ -193,7 +193,7 @@ function loadNetworking() {
         + '<span data-style="font-size:18px">🤝</span>'
         + '<div data-style="flex:1;min-width:0"><span data-style="font-size:13px;font-weight:600;color:#e2e8f0">' + escHtml(sg.name) + '</span>'
         + '<span data-style="font-size:11px;color:rgba(255,255,255,0.4);display:block">' + escHtml(sg.organization || sg.position || '') + (sg.shared_connections ? ' · ' + sg.shared_connections + ' conexiones en común' : '') + '</span></div>'
-        + (sg.qr_token ? '<button data-act="call" data-call="connectSuggestion" data-a1="' + sg.qr_token + '" data-a2="' + escHtml(sg.name).replace(/'/g,'') + '" data-style="padding:6px 12px;border-radius:8px;border:none;background:rgba(16,185,129,0.15);color:#34d399;font-size:11px;font-weight:700;cursor:pointer">Conectar</button>' : '')
+        + (sg.portal_token ? '<button data-act="call" data-call="connectSuggestion" data-a1="' + sg.portal_token + '" data-a2="' + escHtml(sg.name).replace(/'/g,'') + '" data-style="padding:6px 12px;border-radius:8px;border:none;background:rgba(16,185,129,0.15);color:#34d399;font-size:11px;font-weight:700;cursor:pointer">Conectar</button>' : '')
         + '</div>';
     }).join('');
   }).catch(function() {});
@@ -202,7 +202,7 @@ function loadNetworking() {
 function connectSuggestion(toToken, name) {
   if (!guestData) return;
   const eventId = guestData.event?.id;
-  const myToken = guestData.guest?.qr_token;
+  const myToken = guestData.guest?.portal_token;
   fetch(API + '/networking/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ event_id: eventId, from_guest_token: myToken, to_guest_token: toToken })
   }).then(function(r) { return r.json(); }).then(function(res) {
@@ -237,7 +237,7 @@ function toggleNetQR() {
 function handleNetQR(token) {
   if (!guestData) return;
   const eventId = guestData.event?.id;
-  const myToken = guestData.guest?.qr_token;
+  const myToken = guestData.guest?.portal_token;
   if (!eventId || !myToken) { alert('Error: datos de invitado no disponibles'); return; }
   if (token === myToken) { alert('¡Este es tu propio código!'); return; }
   fetch(API + '/networking/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -275,7 +275,7 @@ function loadPortalAlbum() {
 function uploadPortalPhoto(input) {
   if (!input || !input.files || !input.files[0]) return;
   const eId = guestData?.event?.id;
-  const token = guestData?.guest?.qr_token;
+  const token = guestData?.guest?.portal_token;
   if (!eId || !token) { alert('Debes estar registrado'); return; }
   const caption = document.getElementById('portal-photo-caption').value.trim();
   const formData = new FormData();
@@ -306,9 +306,10 @@ function viewPhoto(url, caption) {
 async function load(){
   const p=window.location.pathname.split('/'),params=new URLSearchParams(window.location.search);
   const guestId=params.get('g');
+  portalToken=params.get('t')||'';
   if(!guestId){document.getElementById('loading').classList.add('hidden');document.getElementById('main').innerHTML='<div data-style="padding:40px;text-align:center"><h2 data-style="color:#ef4444">Enlace inválido</h2></div>';document.getElementById('main').style.display='block';return}
   try{
-    const r=await fetch(API+'/portal/'+guestId);if(!r.ok)throw Error('No encontrado');
+    const r=await fetch(API+'/portal/'+guestId+'?t='+encodeURIComponent(portalToken));if(!r.ok)throw Error('No encontrado');
     guestData=await r.json();
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('main').style.display='block';
@@ -387,8 +388,8 @@ load();
     if (!guestData) return;
     const eventId = guestData.event?.id;
     const myId = guestData.guest?.id;
-    fetch(API + '/networking/profile/' + guestId + '?event_id=' + eventId).then(function(r){ return r.json(); }).then(function(prof) {
-      fetch(API + '/networking/' + eventId + '/guest/' + guestId + '/mutual?other=' + myId).then(function(r){ return r.json(); }).then(function(mutual) {
+    fetch(API + '/networking/profile/' + guestId + '?event_id=' + eventId + '&t=' + encodeURIComponent(portalToken)).then(function(r){ return r.json(); }).then(function(prof) {
+      fetch(API + '/networking/' + eventId + '/guest/' + guestId + '/mutual?other=' + myId + '&t=' + encodeURIComponent(portalToken)).then(function(r){ return r.json(); }).then(function(mutual) {
         const mutualNames = Array.isArray(mutual) ? mutual.map(function(x){ return x.name || x; }) : [];
         const sessionsHtml = (prof.sessions || []).map(function(s2){
           return '<div data-style="font-size:12px;color:#94a3b8">• ' + escHtml(s2.title) + (s2.start_time ? ' · ' + s2.start_time : '') + '</div>';

@@ -2,7 +2,9 @@ const crypto = require('crypto');
 const fs = require('fs');
 
 const ALGORITHM = 'aes-256-gcm';
-const IV_LENGTH = 16;
+// v12.44.846 (auditoría 2026-11-25, H8): IV estándar de GCM (96 bits). Antes era de 16 bytes; los
+// datos ya cifrados siguen leyéndose porque la longitud del IV va implícita en el texto cifrado.
+const IV_LENGTH = 12;
 const KEY_LENGTH = 32;
 const PREFIX = '$aes-gcm$';
 
@@ -22,7 +24,7 @@ function warnPlaintextFallback(context) {
     const msg = '[ENCRYPTION] ⚠️ ENCRYPTION_KEY no configurada: ' + (context || 'dato') +
         ' se guardará/leerá SIN CIFRAR. Configura ENCRYPTION_KEY (o BACKUP_ENCRYPTION_KEY para backups) en el entorno.';
     console.error(msg);
-    try { require('./logger').error(msg); } catch (_) {}
+    try { require('../utils/logger').error(msg); } catch (_) {}
     try {
         const { db } = require('../../database');
         db.prepare("INSERT INTO audit_logs (id, user_id, user_name, action, details, ip_address) VALUES (?, 'system', 'system', 'ENCRYPTION_KEY_MISSING', ?, '')")
@@ -188,7 +190,7 @@ function migrateTwilioSettings() {
                 migrated.twilio++;
             }
         } catch (e) {
-            require('./logger').error('[ENCRYPTION] migrateTwilioSettings ' + settingKey + ': ' + e.message);
+            require('../utils/logger').error('[ENCRYPTION] migrateTwilioSettings ' + settingKey + ': ' + e.message);
         }
     }
     return migrated;

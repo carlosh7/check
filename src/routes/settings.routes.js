@@ -16,7 +16,9 @@ const updateLegalSchema = z.object({
 });
 
 const purgeSchema = z.object({
-    confirm: z.literal('PURGE', { errorMap: () => ({ message: 'confirm debe ser "PURGE" para eliminar todos los datos' }) })
+    confirm: z.literal('PURGE', { errorMap: () => ({ message: 'confirm debe ser "PURGE" para eliminar todos los datos' }) }),
+    // // v12.44.846 (auditoría 2026-11-25, H11): purgar es irreversible; además de la palabra hay que confirmar con la contraseña
+    password: z.string().min(1, 'Contraseña del administrador requerida')
 });
 
 // Obtener settings
@@ -29,12 +31,22 @@ const SECRET_SETTING_KEYS = new Set([
     'linkedin_token', 'wa_access_token', 'vapid_private_key', 'smtp_password',
     'imap_password', 'stripe_secret_key', 'paypal_secret'
 ]);
+// v12.44.846 (auditoría 2026-11-25, H3): la lista de arriba compara nombres exactos y distingue
+// mayúsculas: `VAPID_PRIVATE_KEY` se guarda en mayúsculas (push.routes.js) y salía EN CLARO en
+// GET /api/settings. Ahora se enmascara además por patrón, sin listar nombres concretos: cualquier
+// clave cuyo nombre contenga (sin distinguir mayúsculas, guiones o camelCase) secret / token / key /
+// password / passwd / pwd / passphrase / credential / private se trata como secreto. Enmascarar de
+// más no filtra nada; el valor real se gestiona desde la ruta propia de cada integración.
+const SECRET_SETTING_PATTERN = /(secret|token|key|password|passwd|pwd|passphrase|credential|private)/i;
+function isSecretSettingKey(settingKey) {
+    return typeof settingKey === 'string' && SECRET_SETTING_PATTERN.test(settingKey);
+}
 router.get('/', authMiddleware(['ADMIN']), (req, res) => {
     try {
         const rows = db.prepare("SELECT * FROM settings").all();
         const dict = {};
         rows.forEach(r => {
-            if (SECRET_SETTING_KEYS.has(r.setting_key)) {
+            if (SECRET_SETTING_KEYS.has(r.setting_key) || isSecretSettingKey(r.setting_key)) {
                 dict[r.setting_key] = r.setting_value ? '***configurado***' : '';
             } else {
                 dict[r.setting_key] = r.setting_value;
@@ -87,6 +99,14 @@ router.post('/purge', authMiddleware(['ADMIN']), (req, res) => {
 
     logger.warn(`[ADMIN] PURGE requested by user: ${req.userId}`);
 
+    // // v12.44.846 (auditoría 2026-11-25, H11): antes bastaba con escribir la palabra PURGE. Si las tablas quedan vacías,
+    // /api/setup/admin vuelve a permitir crear un ADMIN sin autenticación.
+    const bcryptPurge = require('bcryptjs');
+    const adminRow = db.prepare("SELECT password FROM users WHERE id = ?").get(req.userId);
+    if (!adminRow || !bcryptPurge.compareSync(result.data.password, adminRow.password)) {
+        return res.status(403).json({ error: 'Contraseña incorrecta' });
+    }
+
     try {
         // Disable foreign keys temporarily
         db.prepare("PRAGMA foreign_keys = OFF").run();
@@ -128,7 +148,7 @@ router.post('/approve-user', authMiddleware(['ADMIN']), (req, res) => {
 // Admin: approve ALL pending users
 router.post('/approve-all-users', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        const result = db.prepare("UPDATE users SET status = 'APPROVED' WHERE status != 'APPROVED'").run();
+        const result = db.prepare("UPDATE users SET status = 'APPROVED' WHERE status = 'PENDING'").run();
         res.json({ success: true, updated: result.changes });
     } catch (e) {
         res.status(500).json({ error: e.message });

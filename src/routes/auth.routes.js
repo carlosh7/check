@@ -33,6 +33,8 @@ const { generateToken } = require('../security/jwt');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { authMiddleware } = require('../middleware/auth');
 const { blacklistToken } = require('../security/jwt');
+// v12.44.846 (auditoría 2026-11-25, revocación JWT): cierra las sesiones emitidas antes de un cambio de clave
+const { revokeUserTokens } = require('../security/jwt');
 const { limiters } = require('../middleware/rate-limiter');
 
 const logger = require("../utils/logger");
@@ -69,6 +71,23 @@ function registerResetAttempt(resetId) {
         db.prepare("UPDATE password_resets SET attempts = ? WHERE id = ?").run(attempts, resetId);
     } catch (_) {}
     return false;
+}
+
+// v12.44.846 (auditoría 2026-11-25, S10c): cuenta a la que se dedica un código de recuperación.
+// Lee `username` o `email` del cuerpo y lo normaliza igual que se guardan en users.username y en
+// password_resets.email (sin espacios y en minúsculas). Devuelve '' si no viene ninguno o si el
+// campo viene vacío o sin ser texto: en esos casos la ruta responde 400. Si viene `username`, manda
+// sobre `email` (misma prioridad que el código de abajo), de modo que ambos coinciden siempre.
+function getResetTargetUsername(body) {
+    if (!body || typeof body !== 'object') return '';
+    for (const field of ['username', 'email']) {
+        if (!Object.prototype.hasOwnProperty.call(body, field)) continue;
+        const value = body[field];
+        if (typeof value !== 'string') return '';
+        const normalized = value.trim().toLowerCase();
+        return normalized.length > 0 && normalized.length <= 254 ? normalized : '';
+    }
+    return '';
 }
 
 /**
@@ -261,7 +280,11 @@ router.post('/password-reset-request', (req, res) => {
         const user = db.prepare("SELECT * FROM users WHERE username = ?").get(username.toLowerCase());
         if (!user) return res.json({ success: true, message: 'Si el email existe, recibirás un código de recuperación' });
 
-        const code = String(Math.floor(100000 + Math.random() * 900000));
+        // v12.44.846 (auditoría 2026-11-25, S10 — código de recuperación): antes
+        // `String(Math.floor(100000 + Math.random() * 900000))`. Math.random() NO es criptográfico:
+        // sus salidas son predecibles para quien observa unas cuantas. crypto.randomInt sale del
+        // generador seguro del sistema, sin sesgo de redondeo; rango [100000, 1000000) = 6 dígitos.
+        const code = String(require('crypto').randomInt(100000, 1000000));
         const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString();
         // C-6 (v12.44.820): hash del código + email ligado + un solo código activo por usuario
         db.prepare("UPDATE password_resets SET used = 1 WHERE user_id = ? AND used = 0").run(user.id);
@@ -291,6 +314,14 @@ router.post('/password-reset-request', (req, res) => {
 router.post('/verify-reset-code', (req, res) => {
     const v = validate(schemas.verifyResetCode, req.body);
     if (!v.valid) return res.status(400).json({ errors: v.errors });
+
+    // v12.44.846 (auditoría 2026-11-25, S10c): guard — sin username/email la rama `else` de abajo
+    // buscaba el código entre TODAS las solicitudes activas y jamás llamaba a registerResetAttempt():
+    // probando códigos sin identificar la cuenta se evadía el bloqueo de 5 intentos. Ahora falta el
+    // dato → 400, y la rama sin usuario queda inalcanzable.
+    if (!getResetTargetUsername(req.body)) {
+        return res.status(400).json({ success: false, error: 'Indica el email de la cuenta para verificar el código' });
+    }
 
     // C-6 (v12.44.820): comparación contra hash HMAC + contador de intentos (máx 5).
     // `username` es opcional: si el wizard lo envía, el código se liga a ese usuario y los
@@ -324,6 +355,14 @@ router.post('/reset-password', (req, res) => {
     const v = validate(schemas.resetPassword, req.body);
     if (!v.valid) return res.status(400).json({ errors: v.errors });
 
+    // v12.44.846 (auditoría 2026-11-25, S10c): guard — sin username/email el código se aceptaba
+    // para la cuenta que fuera y nunca se contaban intentos (ver verify-reset-code). Ahora falta
+    // el dato → 400, y la rama sin usuario queda inalcanzable.
+    const resetTarget = getResetTargetUsername(req.body);
+    if (!resetTarget) {
+        return res.status(400).json({ error: 'Indica el email de la cuenta para restablecer la contraseña' });
+    }
+
     const { code, new_password } = v.data;
 
     // v12.44.802: la nueva contraseña no puede ser una de las expuestas
@@ -352,6 +391,14 @@ router.post('/reset-password', (req, res) => {
         return res.status(400).json({ error: 'Código inválido o expirado' });
     }
 
+    // v12.44.846 (auditoría 2026-11-25, S10c): el código solo sirve para el usuario indicado. El
+    // dueño del código (password_resets.user_id) tiene que ser la cuenta con ese email; si no
+    // coincide se responde lo mismo que para un código inválido, sin revelar nada.
+    const targetUser = db.prepare("SELECT id FROM users WHERE username = ?").get(resetTarget);
+    if (!targetUser || targetUser.id !== reset.user_id) {
+        return res.status(400).json({ error: 'Código inválido o expirado' });
+    }
+
     const user = db.prepare("SELECT * FROM users WHERE id = ?").get(reset.user_id);
     if (!user) {
         return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -359,6 +406,9 @@ router.post('/reset-password', (req, res) => {
 
     const hashedPassword = bcrypt.hashSync(new_password, 10);
     db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, user.id);
+    // v12.44.846 (auditoría 2026-11-25, revocación JWT): resetear la clave cierra todas las sesiones
+    // abiertas de la cuenta — los tokens emitidos antes de este instante dejan de valer.
+    revokeUserTokens(user.id);
     db.prepare("UPDATE password_resets SET used = 1 WHERE id = ?").run(reset.id);
 
     logAction(req, AUDIT_ACTIONS.USER_PASSWORD_CHANGED, { userId: user.id });
@@ -520,6 +570,15 @@ router.put('/me/password', authMiddleware(), (req, res) => {
 
         const hashedPassword = bcrypt.hashSync(newPassword, 10);
         db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, req.userId);
+        // v12.44.846 (auditoría 2026-11-25, revocación JWT): cambiar la clave cierra todas las
+        // sesiones de la cuenta. Incluye el token con el que se hace el cambio: después de esto
+        // hay que volver a iniciar sesión (los tokens nuevos sí valen).
+        revokeUserTokens(req.userId);
+        // La marca token_valid_after tiene precisión de 1 segundo: un token emitido en ese mismo
+        // segundo no se distingue de uno posterior. El que hizo el cambio se revoca además por su
+        // jti (lista negra), así queda muerto siempre, sea cual sea su antigüedad.
+        const bearer = req.headers.authorization;
+        if (typeof bearer === 'string' && bearer.startsWith('Bearer ')) blacklistToken(bearer.substring(7));
         logAction(req, AUDIT_ACTIONS.USER_PASSWORD_CHANGED, { userId: req.userId });
         
         res.json({ success: true, message: 'Contraseña actualizada' });
@@ -558,6 +617,12 @@ router.post('/me/delete-account', limiters.authLimiter, authMiddleware(), (req, 
         const randomPassword = bcrypt.hashSync(crypto.randomBytes(24).toString('hex'), 10);
         db.prepare(`UPDATE users SET username = ?, display_name = ?, phone = '', password = ?, totp_secret = NULL, totp_enabled = 0, status = 'DELETED' WHERE id = ?`)
           .run(anonEmail, 'Usuario eliminado', randomPassword, req.userId);
+        // v12.44.846 (auditoría 2026-11-25, revocación JWT): la cuenta cambia de clave al anonimizarse;
+        // se revocan también sus tokens por si un ADMIN la reaprueba más adelante.
+        revokeUserTokens(req.userId);
+        // El token que hizo el borrado se revoca además por su jti (misma razón que en /me/password).
+        const bearer = req.headers.authorization;
+        if (typeof bearer === 'string' && bearer.startsWith('Bearer ')) blacklistToken(bearer.substring(7));
 
         // La bitácora conserva el evento sin datos personales del titular (username previo
         // se registra solo como referencia operativa mínima para soporte/fraude).

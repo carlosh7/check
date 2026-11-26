@@ -8,8 +8,37 @@ const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 const logger = require('../utils/logger');
+// v12.44.846 (auditoría 2026-11-25, S12): identidad pública del portal sin exponer qr_token
+const { portalTokenFor, verifyPortalToken } = require('../security/portal-token');
 
 const router = express.Router();
+
+// v12.44.846 (auditoría 2026-11-25, S12): las rutas del portal ya no usan qr_token (la credencial
+// del check-in) como identidad. Exigen el token de portal del propio asistente.
+function portalSelfOk(req, res) {
+    if (!verifyPortalToken(req.query.t, req.params.guestId)) {
+        res.status(403).json({ error: 'Token de portal inválido' });
+        return false;
+    }
+    return true;
+}
+
+// Devuelve el invitado al que apunta un token de portal (el "to" al escanear un QR ajeno)
+function guestByPortalToken(token, eventId) {
+    const guestId = verifyPortalToken(token);
+    if (!guestId) return null;
+    return db.prepare("SELECT id, name FROM guests WHERE id = ? AND event_id = ?").get(guestId, eventId) || null;
+}
+
+// Las sugerencias llevan el token de portal del otro asistente, nunca su qr_token
+function withPortalToken(rows) {
+    return rows.map(function(r) {
+        const row = Object.assign({}, r);
+        row.portal_token = portalTokenFor(row.id);
+        delete row.qr_token;
+        return row;
+    });
+}
 
 const connectSchema = z.object({
     event_id: z.string().min(1, 'event_id requerido'),
@@ -26,8 +55,9 @@ router.post('/connect', (req, res) => {
             return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
         }
         const { event_id, from_guest_token, to_guest_token, notes } = parsed.data;
-        const fromGuest = db.prepare("SELECT id, name FROM guests WHERE qr_token = ? AND event_id = ?").get(from_guest_token, event_id);
-        const toGuest = db.prepare("SELECT id, name FROM guests WHERE qr_token = ? AND event_id = ?").get(to_guest_token, event_id);
+        // v12.44.846 (S12): los dos tokens son de portal (firmados), nunca qr_token
+        const fromGuest = guestByPortalToken(from_guest_token, event_id);
+        const toGuest = guestByPortalToken(to_guest_token, event_id);
         if (!fromGuest || !toGuest) return res.status(404).json({ error: 'Invitado no encontrado' });
         if (fromGuest.id === toGuest.id) return res.status(400).json({ error: 'No puedes conectarte contigo mismo' });
         const existing = db.prepare("SELECT id FROM networking_connections WHERE event_id = ? AND from_guest_id = ? AND to_guest_id = ?").get(event_id, fromGuest.id, toGuest.id);
@@ -44,6 +74,8 @@ router.post('/connect', (req, res) => {
 
 // ─── Conexiones de un guest (enriquecido) ───
 router.get('/:eventId/guest/:guestId', (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S12): el portal exige el token de portal del propio asistente
+    if (!portalSelfOk(req, res)) return;
     try {
         const connections = db.prepare(`
             SELECT nc.*, g.name as connected_name, g.email as connected_email, 
@@ -59,6 +91,8 @@ router.get('/:eventId/guest/:guestId', (req, res) => {
 
 // ─── Conexiones mutuas ───
 router.get('/:eventId/guest/:guestId/mutual', (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S12): el portal exige el token de portal del propio asistente
+    if (!portalSelfOk(req, res)) return;
     try {
         const mutual = db.prepare(`
             SELECT g.id, g.name, g.email, g.organization, g.position,
@@ -76,6 +110,8 @@ router.get('/:eventId/guest/:guestId/mutual', (req, res) => {
 
 // ─── Sugerencias de conexión (gustos compartidos) ───
 router.get('/:eventId/guest/:guestId/suggestions', (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S12): el portal exige el token de portal del propio asistente
+    if (!portalSelfOk(req, res)) return;
     try {
         // Get connected guest IDs
         const connected = db.prepare("SELECT to_guest_id FROM networking_connections WHERE event_id = ? AND from_guest_id = ?").all(req.params.eventId, req.params.guestId).map(r => r.to_guest_id);
@@ -94,7 +130,7 @@ router.get('/:eventId/guest/:guestId/suggestions', (req, res) => {
                 ORDER BY shared_connections DESC
                 LIMIT 10
             `).all(req.params.eventId, ...connected, ...connected);
-            return res.json(suggestions);
+            return res.json(withPortalToken(suggestions));
         }
         
         // If no connections yet, suggest random guests from same event
@@ -103,12 +139,14 @@ router.get('/:eventId/guest/:guestId/suggestions', (req, res) => {
             WHERE event_id = ? AND id != ? AND name IS NOT NULL
             ORDER BY RANDOM() LIMIT 10
         `).all(req.params.eventId, req.params.guestId);
-        res.json(suggestions);
+        res.json(withPortalToken(suggestions));
     } catch (err) { logger.error('[NETWORKING] Suggestions error:', err.message); res.status(500).json({ error: 'Error interno' }); }
 });
 
 // ─── Score de networking ───
 router.get('/:eventId/guest/:guestId/score', (req, res) => {
+    // v12.44.846 (auditoría 2026-11-25, S12): el portal exige el token de portal del propio asistente
+    if (!portalSelfOk(req, res)) return;
     try {
         const total = db.prepare("SELECT COUNT(*) as c FROM networking_connections WHERE event_id = ? AND from_guest_id = ?").get(req.params.eventId, req.params.guestId).c;
         const uniqueTo = db.prepare("SELECT COUNT(DISTINCT to_guest_id) as c FROM networking_connections WHERE event_id = ? AND from_guest_id = ?").get(req.params.eventId, req.params.guestId).c;
@@ -132,7 +170,10 @@ router.get('/:eventId/guest/:guestId/score', (req, res) => {
 // ─── Perfil público de guest (para escanear QR) ───
 router.get('/profile/:guestId', (req, res) => {
     try {
-        const guest = db.prepare("SELECT id, name, email, organization, position, qr_token FROM guests WHERE id = ?").get(req.params.guestId);
+        // v12.44.846 (auditoría 2026-11-25, S12): hace falta un token de portal válido; y la respuesta
+        // ya no entrega el email ni el qr_token (credencial de check-in) de otro asistente.
+        if (!verifyPortalToken(req.query.t)) { return res.status(403).json({ error: 'Token de portal inválido' }); }
+        const guest = db.prepare("SELECT id, name, organization, position FROM guests WHERE id = ?").get(req.params.guestId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
         const eventId = req.query.event_id;
         if (eventId) {
@@ -146,6 +187,7 @@ router.get('/profile/:guestId', (req, res) => {
             `).all(guest.id, eventId);
             guest.sessions = sessions;
         }
+        guest.portal_token = portalTokenFor(guest.id);
         res.json(guest);
     } catch (err) { logger.error('[NETWORKING] Profile error:', err.message); res.status(500).json({ error: 'Error interno' }); }
 });

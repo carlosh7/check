@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.845",
+  "version": "12.44.846",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "server.js",
   "scripts": {
@@ -77,6 +77,9 @@
     "swagger-ui-express": "^5.0.0"
   },
   "jest": {
+    "setupFiles": [
+      "<rootDir>/tests/setup-env.js"
+    ],
     "coverageThreshold": {
       "global": {
         "statements": 37,

@@ -162,6 +162,9 @@ router.post('/ai/chat', authMiddleware(['ADMIN', 'PRODUCTOR', 'STAFF', 'ORGANIZE
                 JSON.stringify({ prompt: maskedPrompt, riskScore: validation.riskScore, patterns: validation.matchedPatterns })
             );
             try { logAction(req, AUDIT_ACTIONS.AI_INJECTION_DETECTED, { logId: logId, riskScore: validation.riskScore, patterns: validation.matchedPatterns }); } catch(e) {}
+            // v12.44.846 (auditoría 2026-11-25, H13): antes se registraba la alerta y la consulta seguía
+            // igualmente al proveedor de IA; ahora se rechaza la petición.
+            return res.status(422).json({ error: 'Consulta rechazada: se detectó un intento de manipulación del asistente', alertId: alertId });
         }
 
         // Enviar a OpenRouter
@@ -252,6 +255,8 @@ router.get('/ai/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 
         const where = [];
         const params = [];
+        // v12.44.846 (auditoría 2026-11-25, S9): un PRODUCTOR solo ve sus propios registros
+        if (req.userRole !== 'ADMIN') { where.push("user_id = ?"); params.push(req.userId); }
         if (userId) { where.push("user_id = ?"); params.push(userId); }
         if (riskMin > 0) { where.push("risk_score >= ?"); params.push(riskMin); }
         if (injectionOnly) { where.push("injection_detected = 1"); }
@@ -272,6 +277,11 @@ router.get('/ai/logs/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
     try {
         const log = db.prepare("SELECT * FROM ai_prompt_logs WHERE id = ?").get(req.params.id);
         if (!log) return res.status(404).json({ error: 'Log no encontrado' });
+        // v12.44.846 (auditoría 2026-11-25, S9): el prompt y la respuesta crudos solo los ve el ADMIN;
+        // un PRODUCTOR únicamente sus propios registros
+        if (req.userRole !== 'ADMIN' && log.user_id !== req.userId) {
+            return res.status(403).json({ error: 'Solo puedes ver tus propios registros' });
+        }
         res.json(log);
     } catch (err) {
         logger.error('[AI_LOGS] Error:', err.message);
@@ -357,6 +367,11 @@ router.get('/ai/settings', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
             const val = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").pluck().get(k);
             settings[k] = val || '';
         });
+        // v12.44.846 (auditoría 2026-11-25, S9): la clave de OpenRouter solo la ve el ADMIN; el resto
+        // recibe una máscara que indica si está configurada
+        if (req.userRole !== 'ADMIN' && settings.ai_openrouter_key) {
+            settings.ai_openrouter_key = '••••' + String(settings.ai_openrouter_key).slice(-4);
+        }
         res.json(settings);
     } catch (err) {
         logger.error('[AI_SETTINGS] Error:', err.message);

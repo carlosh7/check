@@ -53,6 +53,7 @@
  */
 
 const express = require('express');
+const crypto = require('crypto');
 const { db, getEventConnection, eventDatabaseExists } = require('../../database');
 const { generateCaptcha, verifyCaptcha } = require('../security/captcha');
 
@@ -99,6 +100,11 @@ router.get('/portal/:guestId', (req, res) => {
     try {
         const gId = castId('guests', req.params.guestId);
         if (!gId) return res.status(400).json({ error: 'ID de invitado no válido' });
+        // v12.44.846 (auditoría 2026-11-25, S12): el portal exige el token de portal del asistente.
+        // Antes bastaba conocer el id del invitado para leer sus datos y obtener su qr_token
+        // (la credencial del check-in).
+        const { verifyPortalToken, portalTokenFor } = require('../security/portal-token');
+        if (!verifyPortalToken(req.query.t, gId)) return res.status(403).json({ error: 'Token de portal inválido' });
         const guest = db.prepare("SELECT g.*, e.name as event_name, e.date as event_date, e.location as event_location, e.description as event_description FROM guests g JOIN events e ON g.event_id = e.id WHERE g.id = ?").get(gId);
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
 
@@ -113,7 +119,7 @@ router.get('/portal/:guestId', (req, res) => {
         } catch(_) {}
 
         res.json({
-            guest: { id: guest.id, name: guest.name, email: guest.email, checked_in: guest.checked_in, qr_token: guest.qr_token, category_id: guest.category_id },
+            guest: { id: guest.id, name: guest.name, email: guest.email, checked_in: guest.checked_in, qr_token: guest.qr_token, category_id: guest.category_id, portal_token: portalTokenFor(guest.id) },
             event: { id: guest.event_id, name: guest.event_name, date: guest.event_date, location: guest.event_location, description: guest.event_description },
             sessions: sessions
         });
@@ -127,17 +133,36 @@ router.get('/portal/:guestId', (req, res) => {
 // - Si NO tiene token: en modo 'optional' (default) se permite como antes (compatibilidad
 //   con kioscos existentes); en modo 'strict' (env KIOSK_TOKEN_MODE=strict) se bloquea.
 // El token se genera con POST /api/events/:id/kiosk-token (ADMIN/PRODUCTOR).
+
+// v12.44.846 (auditoría 2026-11-25, H7): comparación de secrets en tiempo constante.
+// `provided === configured` sale en el primer byte distinto: el tiempo de respuesta delata
+// cuántos caracteres del token van bien. crypto.timingSafeEqual compara siempre los buffers
+// completos, pero exige la MISMA longitud (si no lanza RangeError): longitudes distintas se
+// rechazan sin comparar. El token es un uuidv4 (36 caracteres fijos), así que su longitud no es
+// un secreto.
+function secretEquals(provided, expected) {
+    const a = Buffer.from(String(provided), 'utf8');
+    const b = Buffer.from(String(expected), 'utf8');
+    if (a.length === 0 || b.length === 0 || a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
+}
+
 function kioskTokenOk(eventId, req) {
     let configured = null;
     try {
         const ev = db.prepare("SELECT kiosk_token FROM events WHERE id = ?").get(eventId);
         configured = ev ? ev.kiosk_token : null;
-    } catch (_) { return true; }
+    } catch (_) {
+        // v12.44.846 (auditoría 2026-11-25, H7): antes `return true` (fail-open): si la lectura
+        // fallaba, el kiosco quedaba autorizado en todos los eventos. Ahora se deniega.
+        return false;
+    }
     if (!configured) {
         return String(process.env.KIOSK_TOKEN_MODE || 'optional') !== 'strict';
     }
     const provided = String(req.get('x-kiosk-token') || req.query.kt || '');
-    return provided === configured;
+    // v12.44.846 (auditoría 2026-11-25, H7): antes `provided === configured` (comparación cortante)
+    return secretEquals(provided, configured);
 }
 
 // Buscar invitados por nombre (para kiosko)
@@ -194,13 +219,21 @@ router.get('/kiosk/:eventId/event', (req, res) => {
     try {
         const eId = require('../utils/helpers').castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'Evento inválido' });
-        const event = db.prepare("SELECT id, name, date, location, logo_url, brand_primary_color as primary_color FROM events WHERE id = ?").get(eId);
+        // v12.44.846 (auditoría 2026-11-25, N3): se pide has_own_db porque el bloque de abajo lo
+        // consulta (sin ella era siempre undefined y nunca se usaba la BD del evento).
+        const event = db.prepare("SELECT id, name, date, location, logo_url, brand_primary_color as primary_color, has_own_db FROM events WHERE id = ?").get(eId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         // Obtener stats
-        let targetDb = require('../../database');
+        // v12.44.846 (auditoría 2026-11-25, N3): aquí se asignaba el MÓDULO require('../../database')
+        // en vez de una conexión → "targetDb.prepare is not a function" → 500 SIEMPRE. Ahora: la BD
+        // del evento si tiene una propia, y si no la maestra.
+        let targetDb = db;
         if (event.has_own_db) {
-            try { targetDb = require('../utils/database-manager').getEventConnection(eId) || targetDb; } catch(e) {}
+            try { targetDb = getEventConnection(eId) || targetDb; } catch(e) {}
         }
+        // v12.44.846 (N3): has_own_db es un detalle interno; esta ruta es pública y su respuesta
+        // nunca lo incluyó.
+        delete event.has_own_db;
         const total = targetDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ?").get(eId).c;
         const checkedIn = targetDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1").get(eId).c;
         event.stats = { total: total, checkedIn: checkedIn };

@@ -82,7 +82,8 @@ const {
     triggerWebhooks,
     sendWebhook,
     logWebhookDelivery,
-    getWebhookLogs
+    getWebhookLogs,
+    findBlockedWebhookHeader // v12.44.846 (auditoría 2026-11-25, S7)
 } = require('../utils/webhooks');
 
 const logger = require("../utils/logger");
@@ -91,6 +92,31 @@ const router = express.Router();
 // v12.44.844: import de nivel superior — los guards de acceso lo usan en sus condiciones
 // (antes solo existían requires inline DENTRO de los bloques, después de la condición)
 const { hasEventAccess } = require('../utils/helpers');
+
+// v12.44.846 (auditoría 2026-11-25, S7): portero de destinos salientes (prevención de SSRF).
+// Antes la única validación era `new URL(url)`, que acepta http://localhost,
+// http://169.254.169.254/, http://10.0.0.5/ o cualquier otra dirección interna.
+const { checkUrlAllowed } = require('../security/network-policy');
+
+/**
+ * v12.44.846 (auditoría 2026-11-25, S7): guard común a crear y editar.
+ * Comprueba la URL de destino (si se envía o si se indica `checkUrl`) y las
+ * cabeceras. Devuelve { error, code } para responder 400, o null si todo es seguro.
+ * @param {Object} data
+ * @param {{checkUrl: boolean}} [options]
+ */
+async function findUnsafeWebhookConfig(data, options) {
+    const blockedHeader = findBlockedWebhookHeader(data.headers);
+    if (blockedHeader) {
+        return { error: `Cabecera no permitida en webhooks: ${blockedHeader}`, code: 'WEBHOOK_HEADER_BLOCKED' };
+    }
+    const checkUrl = options ? options.checkUrl !== false : true;
+    if (checkUrl) {
+        const destination = await checkUrlAllowed(data.url);
+        if (!destination.allowed) return { error: destination.reason, code: destination.code };
+    }
+    return null;
+}
 
 // Get all webhooks (admin only or filtered by event access)
 router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
@@ -161,7 +187,7 @@ router.get('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 });
 
 // Create new webhook
-router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
         const v = validate(schemas.createWebhook || {}, req.body);
         if (!v.valid) {
@@ -180,6 +206,14 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
             new URL(data.url);
         } catch (_) {
             return res.status(400).json({ error: 'URL inválida' });
+        }
+        
+        // v12.44.846 (auditoría 2026-11-25, S7): la URL debe apuntar a un destino público (se
+        // resuelve el nombre y se rechaza si alguna dirección es privada/reservada) y las
+        // cabeceras no pueden ser Host / Content-Length / Connection.
+        const unsafe = await findUnsafeWebhookConfig(data);
+        if (unsafe) {
+            return res.status(400).json(unsafe);
         }
         
         // Check event access for non-admins
@@ -211,7 +245,7 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 });
 
 // Update webhook
-router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
         const webhook = getWebhook(req.params.id);
         if (!webhook) {
@@ -235,6 +269,15 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
             } catch (_) {
                 return res.status(400).json({ error: 'URL inválida' });
             }
+        }
+        
+        // v12.44.846 (auditoría 2026-11-25, S7): mismo guard que al crear, sobre la URL nueva y
+        // las cabeceras. Se valida la URL solo si el PUT la trae (`if (data.url)` dejaba pasar
+        // una URL vacía o nula): así un webhook antiguo con destino interno todavía se puede
+        // desactivar o reeditarse, y su destino se vuelve a comprobar en cada envío.
+        const unsafe = await findUnsafeWebhookConfig(data, { checkUrl: data.url !== undefined });
+        if (unsafe) {
+            return res.status(400).json(unsafe);
         }
         
         // Validate events array if provided
@@ -327,6 +370,16 @@ router.post('/:id/test', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
             message: 'Webhook enviado exitosamente'
         });
     } catch (error) {
+        // v12.44.846 (auditoría 2026-11-25, S7): destino bloqueado por la política de red → 400 claro
+        // con el motivo, en vez de un 500 genérico. El envío no llegó a hacerse.
+        if (error && error.code === 'SSRF_BLOCKED') {
+            logger.warn(`[WEBHOOKS] Prueba de ${req.params.id} no enviada: ${error.message}`);
+            return res.status(400).json({
+                success: false,
+                error: error.message,
+                message: 'El destino del webhook no está permitido por la política de red'
+            });
+        }
         logger.error('Error testing webhook:', error);
         res.status(500).json({ 
             success: false, 
@@ -358,6 +411,13 @@ router.delete('/:id/logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
     try {
         const webhook = getWebhook(req.params.id);
         if (!webhook) return res.status(404).json({ error: 'Webhook no encontrado' });
+        // v12.44.846 (auditoría 2026-11-25, S7-ACCESS): control de acceso que faltaba. Era la única
+        // ruta de webhooks sin hasEventAccess: cualquier PRODUCTOR borraba el historial de
+        // entregas de UN WEBHOOK AJENO sabiendo su id (y así borraba las pruebas de un abuso).
+        // Mismo criterio que GET /:id/logs: los globales (sin evento) son solo ADMIN.
+        if (req.userRole !== 'ADMIN' && (!webhook.event_id || !hasEventAccess(req.userId, webhook.event_id, req.userRole))) {
+            return res.status(403).json({ error: 'No tienes acceso' });
+        }
         db.prepare("DELETE FROM webhook_logs WHERE webhook_id = ?").run(req.params.id);
         res.json({ success: true });
     } catch (error) {

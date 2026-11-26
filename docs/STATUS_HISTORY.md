@@ -686,3 +686,10 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 - v844: webhooks globales solo ADMIN (5 rutas+listado+POST), apikeys hash+scopes estrictos+orden de middlewares+columna scopes, plugins esquema unificado+ownership, undo/redo con roles, Pagos #1-#8 (cupón a Stripe, webhook atómico, metadata merge, triggerWebhooks orden real, firma ecommerce, api_key enmascarada), Mailing compositor/prueba/adjuntos/XSS-iframe/duplicate, Encuestas builder/CSV/agenda/polls/certificados, XSS álbum+admin, N5 cabecera. Validación en vivo con 4 cuentas QA + limpieza recursiva a 0 + 3 BD huérfanas fuera + e2e-prod@test.local a PENDING.
 - v845: zod@4.6.7 — npm audit producción = 0 vulnerabilidades (mañana: 10/1 crítica). Suite 455✓. Smoke en vivo de validación.
 - Tag v12.44.842 movido a ff08275 (precedente v828) y cuenta e2e desactivada por orden del dueño ("resuelve todo").
+
+## 2026-11-26 — v12.44.846 — Fase 1 de la auditoría externa 2026-11-25 (parche de seguridad)
+- Informe de otro agente verificado (77/107 confirmados, 29 con matices, 1 falso) y remediación por fases: `docs/AUDITORIA-2026-11-25-REMEDIACION.md`.
+- Fase 0 (producción, solo lectura): llaves estables en el `.env` del host (el riesgo de llaves efímeras no aplica), sin Redis, contenedor como root, respaldos sin `data/events/*.db` (D2 confirmado en producción).
+- Fase 1: S1 (la importación ya no deja hacerse ADMIN ni tocar grupos/eventos ajenos), S2, S3, S4 (borrado de archivos por el logo del gafete), S10, S12 (token de portal firmado), S7 (destinos de red interna), S9, H1-H5, H7-H9, H11, H13, D1, D8, N1, N3, S13, F1; S11 y G1 parciales (resto en Fases 3-4).
+- Suite 483✓ (+28 tests nuevos). ESLint 0 errores. `scripts/bump-version.js`: una sola versión de `?v=` en los archivos principales.
+- Deploy y validación en vivo: se anotan al cerrar.

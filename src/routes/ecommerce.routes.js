@@ -3,6 +3,10 @@ const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 const https = require('https');
+// v12.44.846 (auditoría 2026-11-25, S7-SSRF): portero de destinos salientes. La dirección de
+// la tienda (store_url) la escribe el usuario y antes se guardaba y se consultaba sin más:
+// valía para hacer que el servidor pidiera http://localhost:9443 o la red interna.
+const { checkUrlAllowed, createPinnedLookup } = require('../security/network-policy');
 
 const router = express.Router();
 
@@ -15,10 +19,14 @@ router.get('/connections', authMiddleware(['ADMIN']), (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/connections', authMiddleware(['ADMIN']), (req, res) => {
+router.post('/connections', authMiddleware(['ADMIN']), async (req, res) => {
     try {
         const { platform, name, store_url, api_key, api_secret, webhook_secret } = req.body;
         if (!platform || !name || !store_url || !api_key) return res.status(400).json({ error: 'platform, name, store_url y api_key son requeridos' });
+        // v12.44.846 (auditoría 2026-11-25, S7-SSRF): la dirección de la tienda debe ser un destino
+        // público; no se guarda una conexión que apunte a una red privada o reservada
+        const destination = await checkUrlAllowed(toStoreUrl(store_url));
+        if (!destination.allowed) return res.status(400).json({ error: `Dirección de tienda no permitida: ${destination.reason}`, code: destination.code });
         const id = uuidv4();
         const now = new Date().toISOString();
         db.prepare("INSERT INTO ecommerce_connections (id, platform, name, store_url, api_key, api_secret, webhook_secret, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)")
@@ -27,9 +35,14 @@ router.post('/connections', authMiddleware(['ADMIN']), (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.put('/connections/:id', authMiddleware(['ADMIN']), (req, res) => {
+router.put('/connections/:id', authMiddleware(['ADMIN']), async (req, res) => {
     try {
         const { name, store_url, api_key, api_secret, webhook_secret, is_active } = req.body;
+        // v12.44.846 (auditoría 2026-11-25, S7-SSRF): igual que al crear, solo cuando se cambia la dirección
+        if (store_url !== undefined && store_url !== null) {
+            const destination = await checkUrlAllowed(toStoreUrl(store_url));
+            if (!destination.allowed) return res.status(400).json({ error: `Dirección de tienda no permitida: ${destination.reason}`, code: destination.code });
+        }
         db.prepare("UPDATE ecommerce_connections SET name=COALESCE(?,name), store_url=COALESCE(?,store_url), api_key=COALESCE(?,api_key), api_secret=COALESCE(?,api_secret), webhook_secret=COALESCE(?,webhook_secret), is_active=COALESCE(?,is_active) WHERE id=?")
             .run(name, store_url, api_key, api_secret, webhook_secret, is_active != null ? (is_active ? 1 : 0) : null, req.params.id);
         res.json({ success: true });
@@ -71,7 +84,12 @@ router.post('/connections/:id/sync-products', authMiddleware(['ADMIN']), async (
         
         db.prepare("UPDATE ecommerce_connections SET last_sync_at = ? WHERE id = ?").run(now, conn.id);
         res.json({ success: true, synced, total: products.length });
-    } catch(err) { res.status(500).json({ error: err.message }); }
+    } catch(err) {
+        // v12.44.846 (auditoría 2026-11-25, S7-SSRF): dirección de tienda bloqueada → 400 con el motivo,
+        // en vez de un 500. La petición hacia la tienda no llegó a hacerse.
+        if (err && err.code === 'SSRF_BLOCKED') return res.status(400).json({ error: err.message, code: err.code });
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // B2 (v12.44.793): mapeo producto de tienda → categoría de boleto
@@ -139,12 +157,48 @@ router.post('/webhook/:connectionId', (req, res) => {
 });
 
 // ─── HELPERS ───
-function fetchShopifyProducts(conn) {
+/**
+ * v12.44.846 (auditoría 2026-11-25, S7-SSRF): dirección de la tienda en forma de URL http(s).
+ * Si no trae esquema se le pone https://, que es lo que ya hacen los helpers de abajo
+ * (siempre consultan por https).
+ * @param {string} storeUrl
+ * @returns {string}
+ */
+function toStoreUrl(storeUrl) {
+    const raw = String(storeUrl === undefined || storeUrl === null ? '' : storeUrl).trim();
+    return /^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`;
+}
+
+/**
+ * v12.44.846 (auditoría 2026-11-25, S7-SSRF): valida el destino de la tienda justo antes de la
+ * petición (aunque se validó al guardarla: el DNS puede haber cambiado desde entonces).
+ * Lanza un error con code SSRF_BLOCKED si no es un destino público.
+ * @param {string} storeUrl
+ * @returns {Promise<{hostname: string, addresses: {address: string, family: number}[]}>}
+ */
+async function assertStoreTarget(storeUrl) {
+    const checked = await checkUrlAllowed(toStoreUrl(storeUrl));
+    if (!checked.allowed) {
+        const blocked = new Error(`Dirección de tienda no permitida por la política de red: ${checked.reason}`);
+        blocked.code = 'SSRF_BLOCKED';
+        throw blocked;
+    }
+    return checked;
+}
+
+async function fetchShopifyProducts(conn) {
+    // v12.44.846 (auditoría 2026-11-25, S7-SSRF): destino validado antes de la petición
+    const target = await assertStoreTarget(conn.store_url);
     return new Promise((resolve, reject) => {
         const store = conn.store_url.replace(/\/+$/, '').replace(/^https?:\/\//, '');
         const options = {
             hostname: store, path: '/admin/api/2024-01/products.json?limit=50&status=active',
-            method: 'GET', headers: { 'X-Shopify-Access-Token': conn.api_key, 'Content-Type': 'application/json' }
+            method: 'GET', headers: { 'X-Shopify-Access-Token': conn.api_key, 'Content-Type': 'application/json' },
+            // v12.44.846 (auditoría 2026-11-25, S7-SSRF): la conexión usa SOLO las direcciones que acaba de
+            // validar el portero (no vuelve a preguntar al DNS: cierra el "DNS rebinding"). Con su propio
+            // agente, para no reutilizar un socket abierto hacia ese host por otra petición.
+            agent: false,
+            lookup: createPinnedLookup(target.addresses, target.hostname)
         };
         https.get(options, (res) => {
             let data = '';
@@ -163,13 +217,18 @@ function fetchShopifyProducts(conn) {
     });
 }
 
-function fetchWooCommerceProducts(conn) {
+async function fetchWooCommerceProducts(conn) {
+    // v12.44.846 (auditoría 2026-11-25, S7-SSRF): destino validado antes de la petición
+    const target = await assertStoreTarget(conn.store_url);
     return new Promise((resolve, reject) => {
         const base = conn.store_url.replace(/\/+$/, '');
         const auth = Buffer.from(conn.api_key + ':' + (conn.api_secret || '')).toString('base64');
         const options = {
             hostname: new URL(base).hostname, path: '/wp-json/wc/v3/products?per_page=50',
-            method: 'GET', headers: { 'Authorization': 'Basic ' + auth, 'Content-Type': 'application/json' }
+            method: 'GET', headers: { 'Authorization': 'Basic ' + auth, 'Content-Type': 'application/json' },
+            // v12.44.846 (auditoría 2026-11-25, S7-SSRF): mismas direcciones validadas, sin volver a resolver
+            agent: false,
+            lookup: createPinnedLookup(target.addresses, target.hostname)
         };
         https.get(options, (res) => {
             let data = '';
