@@ -55,7 +55,7 @@ Conteos propios que coinciden con el informe: tests 455 pasan / 1 omitido; ESLin
 | 0 — verdad de producción | — | ✅ cerrada (arriba) |
 | 1 — parche de seguridad | v12.44.846 | ✅ cerrada — `967645d`, desplegada y validada en vivo |
 | 2 — respaldos y persistencia | v12.44.847 | ✅ cerrada — `10983ee`, desplegada y validada en vivo |
-| 3 — funcionalidades rotas | v12.44.848 | 🔄 despliegue en curso |
+| 3 — funcionalidades rotas | v12.44.848 | ✅ cerrada — `3e458af`, desplegada y validada en vivo |
 | 4 — CI verde y tests | v12.44.849 | ⏳ pendiente |
 
 Cada fase cierra con: bump de versión (4 archivos), commit, tag, push, deploy por rsync + restart,
@@ -209,3 +209,14 @@ ESLint: 0 errores, 631 avisos (límite del CI: 520 → Fase 4).
 - Backend: módulos que leen solo la BD maestra (D6: listado de invitados, certificados, networking, leaderboard, SMS, API v1, chatbot); cola de campañas programadas y servicio de correo (N10).
 - Backend: motor de plugins `vm` (S5, inalcanzable hoy), `socket.io` sin autenticación (S6), inyección de fórmulas en 10 exports CSV (H12), rendimiento P1-P11, `deploy.routes.js` sin candado (I6).
 - Infra y tests: 24 routers sin tests, scripts que abren `check_app.db`, Swagger/SDK desactualizados (I8-I12) → Fase 4.
+
+### Validación en vivo de la Fase 3 (2026-11-26)
+
+- Deploy: 79 archivos con md5 idéntico (el compose del repositorio excluido de la lista; el de producción, intacto). Contenedor sano a los 6 s, `12.44.848`, sin errores de arranque.
+- Con un invitado de prueba que existe SOLO en la BD del evento: check-in → 200 y `checked_in=1`; repetir → 200 y `checked_in=0`. Antes daba 404.
+- Un PRODUCTOR ajeno al evento recibe 403 en check-in, quizzes y cupones; el ADMIN sigue en 200.
+- Certificado inexistente → 404 (antes 500). Resultados públicos de sondeo → 404 (antes 401). Control del anfitrión del quiz sin token → 401.
+- Estadísticas del evento: total 979 = 979 invitados distintos (antes contaba por duplicado a los de registro público).
+- `session_speakers` presente en la BD del evento; borrado de invitados preparable; chance 0 corregido en los tres juegos.
+- Limpieza: cuenta, invitado y filas del registro de cambios de prueba borradas (0 restantes).
+- Pantalla de acceso en el navegador: correcta, `app.js?v=12.44.848`, `DelegatedEvents.js` servido con el filtro de teclado.
