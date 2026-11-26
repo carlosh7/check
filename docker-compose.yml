@@ -1,3 +1,6 @@
+# PLANTILLA DE DESARROLLO LOCAL. El compose de PRODUCCIÓN es distinto (puerto, URLs, NODE_ENV,
+# .env obligatorio) y vive solo en el servidor. NUNCA copiar este archivo encima del
+# docker-compose.yml de producción: arrancaría en modo desarrollo y con otro puerto.
 version: '3.8'
 
 services:

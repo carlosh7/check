@@ -54,7 +54,7 @@ Conteos propios que coinciden con el informe: tests 455 pasan / 1 omitido; ESLin
 |------|---------|--------|
 | 0 — verdad de producción | — | ✅ cerrada (arriba) |
 | 1 — parche de seguridad | v12.44.846 | ✅ cerrada — `967645d`, desplegada y validada en vivo |
-| 2 — respaldos y persistencia | v12.44.847 | 🔄 despliegue en curso |
+| 2 — respaldos y persistencia | v12.44.847 | ✅ cerrada — `10983ee`, desplegada y validada en vivo |
 | 3 — funcionalidades rotas | v12.44.848 | ⏳ pendiente |
 | 4 — CI verde y tests | v12.44.849 | ⏳ pendiente |
 
@@ -151,3 +151,18 @@ Pruebas: `tests/backup-restore.test.js` (12) cubre respaldo cifrado y restorable
 subidas y limpieza por antigüedad. El script de arranque se probó en un directorio aislado con cuatro
 casos (`.env` sin permiso, `.env` escribible, secretos desde el entorno, datos sin permiso).
 Guía de usuario: `docs/user/07-administracion/09-cifrado-datos.md`.
+
+### Validación en vivo de la Fase 2 (2026-11-26)
+
+- Migración de usuario: propiedad de `/opt/check/data` para uid 10001 y sin escritura para "otros" (era 777).
+- Compose de producción: solo dos cambios (`user: "10001:10001"` y `HOME=/tmp`); contenedor recreado con `docker compose up -d`.
+- Resultado: el proceso `node` corre con uid 10001; salud 200 a los 15 s; `/api/health/full` → `12.44.847`.
+- Respaldo automático: aparece `check_event_backup_…_d77eb0e3-….db.enc` (237 KB, cifrado); restaurado en memoria da integridad OK y 978 invitados.
+- `POST /api/system/backup` usa el sistema nuevo (2 archivos cifrados) y ya no escribe copias en claro en `./backups`.
+- Las 9 variables del `.env` del host siguen llegando al contenedor. Logs activos. Captura de la pantalla de acceso correcta.
+- Cambio de comportamiento: `DEPLOY_WEBHOOK_SECRET` ya no se autogenera (el script no puede escribir el `.env`). Si se usa el auto-despliegue por webhook, hay que definirlo en el entorno.
+
+**Incidencia evitada:** al desplegar la lista de archivos del commit se copió el `docker-compose.yml` del
+repositorio (plantilla de desarrollo) encima del de producción. Se detectó al revisar el compose antes de
+recrear el contenedor; se restauró desde el respaldo (misma huella que el original) y solo se aplicaron los
+dos cambios previstos. Regla desde aquí: el compose de producción nunca se despliega desde el repo.

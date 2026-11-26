@@ -698,4 +698,6 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 ## 2026-11-26 — v12.44.847 — Fase 2 de la auditoría externa 2026-11-25 (respaldos y persistencia)
 - Respaldos: además de la BD general se respaldan (cifrados) las BDs de evento —donde viven los invitados— y los archivos subidos. Antes un respaldo "correcto" no servía para recuperar a los asistentes.
 - Contenedor sin root (usuario dedicado uid 10001), sin `chmod -R 777`, script de arranque a prueba de `.env` de solo lectura y con detección de puerto real; logos y fotos bajo `DATA_PATH`.
-- Suite 489✓ (+6 de respaldos). Deploy y validación en vivo: se anotan al cerrar.
+- Commit `10983ee`, tag `v12.44.847`. Producción corre SIN ROOT (uid 10001) desde `docker compose up -d`; datos con dueño 10001 y sin escritura para otros. Validación EN VIVO 8/8: respaldo del evento restorable (978 invitados, cifrado), `POST /api/system/backup` con el sistema nuevo, logs activos, salud 12.44.847, captura de la pantalla de acceso.
+- `DEPLOY_WEBHOOK_SECRET` ya no se autogenera: definirlo en el entorno si se usa el auto-despliegue por webhook.
+- Incidencia evitada: el compose del repo se copió sobre el de producción; se restauró desde el respaldo antes de recrear el contenedor. El compose de producción nunca se despliega desde el repo.
