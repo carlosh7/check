@@ -93,7 +93,7 @@ router.delete('/api/tenants/:id', authMiddleware(['ADMIN']), (req, res) => {
 router.get('/api/tenants/:id/members', authMiddleware(['ADMIN']), (req, res) => {
     try {
         const members = db.prepare(`
-            SELECT tm.*, u.username, u.email, u.role as user_role
+            SELECT tm.*, u.username, u.role as user_role
             FROM tenant_members tm
             LEFT JOIN users u ON u.id = tm.user_id
             WHERE tm.tenant_id = ?

@@ -9,9 +9,11 @@ const { authMiddleware } = require('../middleware/auth');
 const logger = require('../utils/logger');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // GET /api/events/:eventId/speakers
-router.get('/events/:eventId/speakers', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/events/:eventId/speakers', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const speakers = db.prepare("SELECT * FROM speakers WHERE event_id = ? ORDER BY sort_order ASC, name ASC").all(req.params.eventId);
         // Attach session assignments
@@ -31,7 +33,7 @@ router.get('/events/:eventId/speakers', authMiddleware(['ADMIN', 'PRODUCTOR', 'O
 });
 
 // POST /api/events/:eventId/speakers
-router.post('/events/:eventId/speakers', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/events/:eventId/speakers', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { name, bio, photo_url, social_twitter, social_linkedin, social_web, topic, sort_order, session_ids } = req.body;
         if (!name) return res.status(400).json({ error: 'Nombre requerido' });
@@ -49,7 +51,7 @@ router.post('/events/:eventId/speakers', authMiddleware(['ADMIN', 'PRODUCTOR']),
 });
 
 // PUT /api/events/:eventId/speakers/:speakerId
-router.put('/events/:eventId/speakers/:speakerId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/events/:eventId/speakers/:speakerId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const d = req.body;
         db.prepare("UPDATE speakers SET name = COALESCE(?, name), bio = COALESCE(?, bio), photo_url = COALESCE(?, photo_url), social_twitter = COALESCE(?, social_twitter), social_linkedin = COALESCE(?, social_linkedin), social_web = COALESCE(?, social_web), topic = COALESCE(?, topic), sort_order = COALESCE(?, sort_order) WHERE id = ? AND event_id = ?").run(
@@ -66,7 +68,7 @@ router.put('/events/:eventId/speakers/:speakerId', authMiddleware(['ADMIN', 'PRO
 });
 
 // DELETE /api/events/:eventId/speakers/:speakerId
-router.delete('/events/:eventId/speakers/:speakerId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/events/:eventId/speakers/:speakerId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         db.prepare("DELETE FROM session_speakers WHERE speaker_id = ?").run(req.params.speakerId);
         db.prepare("DELETE FROM speakers WHERE id = ? AND event_id = ?").run(req.params.speakerId, req.params.eventId);

@@ -34,6 +34,16 @@ function initSchema(db) {
     // ALTER protegido: las instalaciones existentes ya tienen la tabla users sin esta columna; en una
     // BD nueva el ALTER se aplica justo después del CREATE TABLE de arriba. NULL = sin revocaciones.
     try { db.exec("ALTER TABLE users ADD COLUMN token_valid_after TEXT"); } catch (_) {}
+    // v12.44.848 (auditoría 2026-11-25, D9): session_speakers se usa en sesiones y ponentes pero no tenía CREATE TABLE
+    // (borrar una sesión o un ponente respondía 500 siempre).
+    try {
+        db.exec(`CREATE TABLE IF NOT EXISTS session_speakers (
+            session_id TEXT NOT NULL,
+            speaker_id TEXT NOT NULL,
+            created_at TEXT,
+            PRIMARY KEY (session_id, speaker_id)
+        )`);
+    } catch (_) {}
     
     // 2. Eventos (Multitenancy)
     db.exec(`CREATE TABLE IF NOT EXISTS events (

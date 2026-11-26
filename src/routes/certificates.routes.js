@@ -8,10 +8,12 @@ const { authMiddleware } = require('../middleware/auth');
 const { getEventDb } = require('../utils/event-db');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // ─── CRUD Templates ───
 
-router.get('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const templates = db.prepare("SELECT * FROM certificate_templates WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         res.json(templates.map(function(t) {
@@ -21,7 +23,7 @@ router.get('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZ
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { name, config, title, subtitle } = req.body;
         if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre requerido' });
@@ -40,7 +42,7 @@ router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.put('/:eventId/templates/:templateId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/:eventId/templates/:templateId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { name, config, title, subtitle } = req.body;
         // v12.44.844: merge de title/subtitle en config (como en POST)
@@ -58,7 +60,7 @@ router.put('/:eventId/templates/:templateId', authMiddleware(['ADMIN', 'PRODUCTO
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.delete('/:eventId/templates/:templateId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/:eventId/templates/:templateId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         db.prepare("DELETE FROM guest_certificates WHERE template_id = ?").run(req.params.templateId);
         db.prepare("DELETE FROM certificate_templates WHERE id = ? AND event_id = ?").run(req.params.templateId, req.params.eventId);
@@ -68,7 +70,7 @@ router.delete('/:eventId/templates/:templateId', authMiddleware(['ADMIN', 'PRODU
 
 // ─── Generar certificados para un template ───
 
-router.post('/:eventId/templates/:templateId/generate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId/templates/:templateId/generate', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const template = db.prepare("SELECT * FROM certificate_templates WHERE id = ? AND event_id = ?").get(req.params.templateId, req.params.eventId);
         if (!template) return res.status(404).json({ error: 'Plantilla no encontrada' });
@@ -93,7 +95,7 @@ router.post('/:eventId/templates/:templateId/generate', authMiddleware(['ADMIN',
 
 // ─── Listar certificados generados ───
 
-router.get('/:eventId/templates/:templateId/certificates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/:eventId/templates/:templateId/certificates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const certs = db.prepare(`
             SELECT gc.*, g.name as guest_name, g.email as guest_email
@@ -113,8 +115,7 @@ router.get('/download/:certId', (req, res) => {
         const cert = db.prepare(`
             SELECT gc.*, g.name as guest_name, g.email as guest_email, g.qr_token,
                    t.name as template_name, t.config, t.event_id,
-                   e.name as event_name, e.date as event_date,
-                   tm.name as template_config
+                   e.name as event_name, e.date as event_date
             FROM guest_certificates gc
             JOIN guests g ON g.id = gc.guest_id
             JOIN certificate_templates t ON t.id = gc.template_id

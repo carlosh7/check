@@ -76,7 +76,7 @@ function searchGuests(q) {
       const statusClass = g.checked_in ? 'done' : 'pending';
       const statusText = g.checked_in ? '✅ Ingresó' : '⏳ Pendiente';
       const disabledClass = g.checked_in ? 'disabled' : '';
-      return '<div class="result-item ' + disabledClass + "'" + (g.checked_in ? '' : ' data-act="call" data-call="selectGuest" data-a1="' + g.id + '" data-a2="' + escJs(g.name) + '" data-a3="' + escJs(g.email || '') + '" data-a4="' + escJs(g.organization || '') + '"')  + "'">
+      return '<div class="result-item ' + disabledClass + '"' + (g.checked_in ? '' : ' data-act="call" data-call="selectGuest" data-a1="' + g.id + '" data-a2="' + escJs(g.name) + '" data-a3="' + escJs(g.email || '') + '" data-a4="' + escJs(g.organization || '') + '"')  + '">'
         + '<div class="info"><div class="name">' + escHtml(g.name) + '</div>'
         + '<div class="detail">' + escHtml(g.email || g.organization || '') + '</div></div>'
         + '<div class="status ' + statusClass + '">' + statusText + '</div></div>';

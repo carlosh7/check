@@ -1,3 +1,6 @@
+// v12.44.848 (auditoría 2026-11-25, G7): solo enlaces http(s)/mailto/tel. Un premio con enlace "javascript:" ejecutaba
+// código en la página al hacer clic (esc() escapa HTML, no el esquema de la URL).
+function safeHref(u) { try { var p = String(u == null ? '' : u).trim(); if (/^(https?:|mailto:|tel:)/i.test(p)) return p; } catch (e) {} return '#'; }
 // ===== Trivia promocional — PÁGINA DE JUEGO pública (P3 — v12.44.834) =====
 // Bienvenida (registro) → preguntas (con temporizador opcional) → final con
 // puntuación, premio si aprueba, reintento/redirección, compartir y comprobante.
@@ -307,7 +310,7 @@ function renderFinal(r){
 }
 function retryQuiz(){
   const fb=(data&&data.final_button)||'retry';
-  if(fb==='redirect'&&data.redirect_url){window.location.href=data.redirect_url;return}
+  if(fb==='redirect'&&data.redirect_url){window.location.href=safeHref(data.redirect_url);return}
   $('btn-again').style.display='none';
   $('btn-cert').style.display='none';
   $('res-share').classList.add('hidden');

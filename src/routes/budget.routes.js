@@ -8,9 +8,11 @@ const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // GET /api/events/:eventId/budget — List items with summary
-router.get('/events/:eventId/budget', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/events/:eventId/budget', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const items = db.prepare("SELECT * FROM budgets WHERE event_id = ? ORDER BY category ASC, created_at DESC").all(req.params.eventId);
         const total = items.reduce(function(sum, i) { return sum + (parseFloat(i.amount) || 0); }, 0);
@@ -36,7 +38,7 @@ router.get('/events/:eventId/budget', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORG
 
 // GET /api/events/:eventId/budget/stats — Chart data
 // B3 (v12.44.793): P&L — ingresos reales (transacciones) + gastos presupuestados
-router.get('/events/:eventId/budget/summary', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/events/:eventId/budget/summary', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const eId = req.params.eventId;
         let income = 0, txCount = 0;
@@ -54,7 +56,7 @@ router.get('/events/:eventId/budget/summary', authMiddleware(['ADMIN', 'PRODUCTO
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.get('/events/:eventId/budget/stats', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/events/:eventId/budget/stats', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const items = db.prepare("SELECT * FROM budgets WHERE event_id = ?").all(req.params.eventId);
         const total = items.reduce(function(sum, i) { return sum + (parseFloat(i.amount) || 0); }, 0);
@@ -94,7 +96,7 @@ router.get('/events/:eventId/budget/stats', authMiddleware(['ADMIN', 'PRODUCTOR'
 });
 
 // GET /api/events/:eventId/budget/export — Export as CSV
-router.get('/events/:eventId/budget/export', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/events/:eventId/budget/export', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const items = db.prepare("SELECT * FROM budgets WHERE event_id = ? ORDER BY category ASC, created_at DESC").all(req.params.eventId);
         const total = items.reduce(function(sum, i) { return sum + (parseFloat(i.amount) || 0); }, 0);
@@ -117,7 +119,7 @@ router.get('/events/:eventId/budget/export', authMiddleware(['ADMIN', 'PRODUCTOR
 });
 
 // POST /api/events/:eventId/budget — Create item
-router.post('/events/:eventId/budget', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/events/:eventId/budget', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { concept, amount, category, notes } = req.body;
         if (!concept || amount === undefined) return res.status(400).json({ error: 'Concepto y monto requeridos' });
@@ -128,7 +130,7 @@ router.post('/events/:eventId/budget', authMiddleware(['ADMIN', 'PRODUCTOR']), (
 });
 
 // PUT /api/events/:eventId/budget/:itemId — Update item
-router.put('/events/:eventId/budget/:itemId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/events/:eventId/budget/:itemId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { concept, amount, category, notes } = req.body;
         db.prepare("UPDATE budgets SET concept = COALESCE(?, concept), amount = COALESCE(?, amount), category = COALESCE(?, category), notes = COALESCE(?, notes) WHERE id = ? AND event_id = ?").run(
@@ -139,7 +141,7 @@ router.put('/events/:eventId/budget/:itemId', authMiddleware(['ADMIN', 'PRODUCTO
 });
 
 // DELETE /api/events/:eventId/budget/:itemId — Delete item
-router.delete('/events/:eventId/budget/:itemId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/events/:eventId/budget/:itemId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         db.prepare("DELETE FROM budgets WHERE id = ? AND event_id = ?").run(req.params.itemId, req.params.eventId);
         res.json({ success: true });

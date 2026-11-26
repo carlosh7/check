@@ -3,11 +3,14 @@ const { v4: uuidv4 } = require('uuid');
 const { db, getEventConnection, getDatabase } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 const { logAction } = require('../security/audit');
-const { getValidId } = require('../utils/helpers');
+const { getValidId, getProducerGroups } = require('../utils/helpers');
+const crypto = require('crypto');
 const { google } = require('googleapis');
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 function escapeHtml(str) {
     if (!str) return '';
@@ -171,6 +174,30 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 
 // ── OAuth: Iniciar autenticación para grupo ──
 
+// v12.44.848 (auditoría 2026-11-25, S8): el "state" de OAuth viajaba como JSON sin firma y el callback es público: se confiaba en el
+// userId / groupId que vinieran ahí, así que un atacante podía iniciar el enlace con SU cuenta de
+// Google y un state apuntando a la cuenta de la víctima. Ahora el state va firmado con HMAC
+// (GOOGLE_OAUTH_STATE_SECRET o JWT_SECRET) y caduca a los 10 minutos.
+function oauthStateSecret() { return process.env.GOOGLE_OAUTH_STATE_SECRET || process.env.JWT_SECRET || ''; }
+function signOauthState(payload) {
+    const body = Buffer.from(JSON.stringify(Object.assign({}, payload, { ts: Date.now() }))).toString('base64url');
+    return body + '.' + crypto.createHmac('sha256', oauthStateSecret()).update(body).digest('base64url');
+}
+function verifyOauthState(raw) {
+    if (typeof raw !== 'string' || raw.length === 0 || raw.length > 4000) return null;
+    const dot = raw.lastIndexOf('.');
+    if (dot <= 0) return null;
+    const body = raw.slice(0, dot);
+    const given = Buffer.from(raw.slice(dot + 1));
+    const expected = Buffer.from(crypto.createHmac('sha256', oauthStateSecret()).update(body).digest('base64url'));
+    if (given.length !== expected.length || !crypto.timingSafeEqual(given, expected)) return null;
+    try {
+        const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
+        if (!payload || typeof payload.ts !== 'number' || Date.now() - payload.ts > 10 * 60 * 1000) return null;
+        return payload;
+    } catch (e) { return null; }
+}
+
 router.get('/auth', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const oauth2 = getOAuth2Client();
@@ -179,8 +206,10 @@ router.get('/auth', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         const groupId = req.query.group_id;
         const label = req.query.label || 'Mi cuenta Google';
         if (!groupId) return res.status(400).json({ error: 'group_id requerido' });
+        // // v12.44.848 (auditoría 2026-11-25, S8): un PRODUCTOR solo enlaza Google a un grupo al que pertenece
+        if (req.userRole !== 'ADMIN' && !getProducerGroups(req.userId).includes(groupId)) return res.status(403).json({ error: 'No perteneces a este grupo' });
 
-        const state = JSON.stringify({ type: 'group', groupId: groupId, label: label, userId: req.userId });
+        const state = signOauthState({ type: 'group', groupId: groupId, label: label, userId: req.userId });
         const authUrl = oauth2.generateAuthUrl({
             access_type: 'offline',
             scope: getAuthScope(),
@@ -201,7 +230,7 @@ router.get('/user/auth', authMiddleware(), (req, res) => {
         const oauth2 = getOAuth2Client();
         if (!oauth2) return res.status(400).json({ error: 'Google OAuth no configurado.' });
 
-        const state = JSON.stringify({ type: 'user', userId: req.userId });
+        const state = signOauthState({ type: 'user', userId: req.userId });
         const authUrl = oauth2.generateAuthUrl({
             access_type: 'offline',
             scope: getAuthScope(),
@@ -253,7 +282,8 @@ router.delete('/user/disconnect', authMiddleware(), (req, res) => {
 router.get('/callback', async (req, res) => {
     try {
         const code = req.query.code;
-        const state = JSON.parse(req.query.state || '{}');
+        const state = verifyOauthState(req.query.state);
+        if (!state) return res.status(400).send('Enlace de autorizacion invalido o caducado. Vuelve a intentarlo desde la aplicacion.');
         if (!code) return res.status(400).send('Código de autorización requerido');
 
         const oauth2 = getOAuth2Client();
@@ -348,7 +378,7 @@ router.delete('/groups/:groupId/accounts/:id', authMiddleware(['ADMIN', 'PRODUCT
 
 // ── Exportar evento a Google Sheets + PDFs en carpeta Drive ──
 
-router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), async (req, res) => {
+router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), async (req, res) => {
     try {
         const eId = req.params.eventId;
         const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
@@ -543,7 +573,7 @@ router.post('/events/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
 
 // ── Importar desde Google Sheets ──
 
-router.post('/events/:eventId/import', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.post('/events/:eventId/import', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), async (req, res) => {
     try {
         const eId = req.params.eventId;
         const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
@@ -668,19 +698,25 @@ function triggerExport(eventId) {
     const http = require('http');
     const url = require('url');
 
-    const baseUrl = process.env.APP_URL || 'http://localhost:' + (process.env.PORT || 3000);
+    // v12.44.848 (auditoría 2026-11-25, N12): la sincronización automática hacía una petición a su propia API sin token (401 perpetuo)
+    // y contra APP_URL, que en producción es https. Ahora va al propio proceso por 127.0.0.1:PORT
+    // con el token del dueño del evento.
+    const baseUrl = 'http://127.0.0.1:' + (process.env.PORT || 3000);
     const parsedUrl = url.parse(baseUrl);
 
     const postData = JSON.stringify({});
+    const internalHeaders = { 'Content-Type': 'application/json', 'x-internal-sync': 'true' };
+    try {
+        const owner = db.prepare("SELECT u.id, u.username, u.role FROM events e JOIN users u ON u.id = e.user_id WHERE e.id = ? AND u.status = 'APPROVED'").get(eventId)
+            || db.prepare("SELECT id, username, role FROM users WHERE role = 'ADMIN' AND status = 'APPROVED' LIMIT 1").get();
+        if (owner) internalHeaders['Authorization'] = 'Bearer ' + require('../security/jwt').generateToken({ userId: owner.id, username: owner.username, role: owner.role });
+    } catch (e) { logger.error('[GOOGLE] No se pudo emitir el token interno de sincronización: ' + e.message); }
     const options = {
         hostname: parsedUrl.hostname || 'localhost',
         port: parsedUrl.port || 3000,
         path: '/api/google/events/' + eventId + '/export',
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-internal-sync': 'true'
-        }
+        headers: internalHeaders
     };
 
     const req = http.request(options, function(res) {
@@ -713,7 +749,7 @@ function stopSyncWorker() {
 
 // ── Configurar sync de evento ──
 
-router.put('/events/:eventId/sync-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/events/:eventId/sync-config', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const eId = req.params.eventId;
         const accountId = req.body.google_account_id || null;
@@ -744,7 +780,7 @@ function notifyCheckin(eventId) {
 
 // ─── Google Calendar Sync (C3-02) ───
 
-router.post('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.post('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), async (req, res) => {
     try {
         const eventId = require('../utils/helpers').castId('events', req.params.eventId);
         const event = db.prepare("SELECT id, name, date, end_date, location, description FROM events WHERE id = ?").get(eventId);
@@ -767,7 +803,7 @@ router.post('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTO
     } catch(err) { logger.error('[GCAL] Error:', err.message); res.status(500).json({ error: err.message }); }
 });
 
-router.delete('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.delete('/events/:eventId/sync-calendar', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), async (req, res) => {
     try {
         const eventId = require('../utils/helpers').castId('events', req.params.eventId);
         const event = db.prepare("SELECT id, google_account_id FROM events WHERE id = ?").get(eventId);

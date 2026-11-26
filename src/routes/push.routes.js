@@ -128,7 +128,7 @@ router.get('/vapid-status', authMiddleware(['ADMIN']), (req, res) => {
  * Suscribirse a notificaciones push
  * Puede ser pública (sin auth) o con usuario autenticado
  */
-router.post('/subscribe', (req, res) => {
+router.post('/subscribe', authMiddleware(), (req, res) => { // v12.44.848 (auditoría 2026-11-25, N11): sin auth, req.userId era undefined y la suscripción se guardaba sin dueño
     try {
         const subscription = req.body;
         
@@ -349,7 +349,7 @@ async function sendPushToEventUsers(eventId, notification) {
             SELECT DISTINCT u.id 
             FROM users u
             LEFT JOIN events e ON u.group_id = e.group_id
-            WHERE e.id = ? AND u.status = 'ACTIVE'
+            WHERE e.id = ? AND u.status = 'APPROVED' /* // v12.44.848 (auditoría 2026-11-25, N11): 'ACTIVE' no existe como estado → 0 destinatarios */
         `).all(eventId);
         
         if (users.length === 0) {

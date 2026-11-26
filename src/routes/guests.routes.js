@@ -75,6 +75,8 @@ const { limiters } = require('../middleware/rate-limiter');
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess: eventAccessMiddleware } = require('../middleware/event-access');
 
 const tempImport = {};
 
@@ -413,10 +415,33 @@ router.get('/export-excel/:eventId', authMiddleware(), async (req, res) => {
 // Check-in
 router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'ORGANIZER']), (req, res) => {
     const gId = castId('guests', req.params.guestId);
-    const guest = db.prepare("SELECT * FROM guests WHERE id = ?").get(gId);
+    // v12.44.848 (auditoría 2026-11-25, D4): el estado se leía solo de la BD maestra, pero los invitados importados o creados por
+    // Stripe viven SOLO en la BD del evento (daban 404) y los de registro público nunca podían
+    // deshacer su check-in (la marca se escribía en una BD y se leía en la otra).
+    let guest = null;
+    const hintedEvent = castId('events', (req.body && (req.body.eventId || req.body.event_id)) || req.query.eventId || null);
+    if (hintedEvent) {
+        const hintedDb = getEventDb(hintedEvent);
+        if (hintedDb) guest = hintedDb.prepare("SELECT * FROM guests WHERE id = ?").get(gId);
+    }
+    if (!guest) {
+        const withOwnDb = db.prepare("SELECT id FROM events WHERE has_own_db = 1").all();
+        for (const ev of withOwnDb) {
+            const edb = getEventDb(ev.id);
+            if (!edb) continue;
+            const row = edb.prepare("SELECT * FROM guests WHERE id = ?").get(gId);
+            if (row) { guest = row; break; }
+        }
+    }
+    if (!guest) guest = db.prepare("SELECT * FROM guests WHERE id = ?").get(gId);
+    if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+    // v12.44.848 (auditoría 2026-11-25, S11): solo se hace check-in de eventos a los que se tiene acceso
+    if (!hasEventAccess(req.userId, guest.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso a este evento' });
+    }
     if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
     
-    const targetDb = getEventDb(guest.event_id);
+    const targetDb = getEventDb(guest.event_id) || db; // eventos sin BD propia escriben en la maestra
     const io = socketGetIO();
     
     if (guest.checked_in) {
@@ -484,7 +509,7 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
 });
 
 // Limpiar base de datos de evento
-router.post('/clear/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/clear/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), eventAccessMiddleware(), (req, res) => {
     // v12.44.846 (auditoría 2026-11-25, S11): antes cualquier PRODUCTOR vaciaba la lista de
     // invitados de cualquier evento cambiando el id de la URL.
     if (!requireEventAccess(req, res)) return;
@@ -594,7 +619,7 @@ const updateCategorySchema = z.object({
     price: z.number().min(0).optional()
 });
 
-router.post('/:eventId/categories', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId/categories', authMiddleware(['ADMIN', 'PRODUCTOR']), eventAccessMiddleware(), (req, res) => {
     try {
         // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario
         if (!requireEventAccess(req, res)) return;
@@ -617,7 +642,7 @@ router.post('/:eventId/categories', authMiddleware(['ADMIN', 'PRODUCTOR']), (req
     }
 });
 
-router.put('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR']), eventAccessMiddleware(), (req, res) => {
     try {
         // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario
         if (!requireEventAccess(req, res)) return;
@@ -640,7 +665,7 @@ router.put('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR'])
     }
 });
 
-router.delete('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR']), eventAccessMiddleware(), (req, res) => {
     try {
         // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario
         if (!requireEventAccess(req, res)) return;
@@ -936,7 +961,7 @@ router.get('/:eventId/network', (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.put('/:eventId/guests/:guestId/profile', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/:eventId/guests/:guestId/profile', authMiddleware(['ADMIN', 'PRODUCTOR']), eventAccessMiddleware(), (req, res) => {
     try {
         // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario Y el invitado
         // debe ser de ese evento (esta ruta escribe en la BD maestra solo por guestId)
@@ -964,7 +989,7 @@ router.get('/:eventId/achievements/:guestId', (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/:eventId/achievements/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId/achievements/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR']), eventAccessMiddleware(), (req, res) => {
     try {
         // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario Y el invitado
         // debe ser de ese evento
@@ -979,7 +1004,7 @@ router.post('/:eventId/achievements/:guestId', authMiddleware(['ADMIN', 'PRODUCT
 });
 
 // ─── Social Media auto-publish (C5-08) ───
-router.post('/:eventId/social-publish', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.post('/:eventId/social-publish', authMiddleware(['ADMIN', 'PRODUCTOR']), eventAccessMiddleware(), async (req, res) => {
     try {
         // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario (antes un
         // PRODUCTOR publicaba en redes el evento ajeno que pusiera en la URL)
@@ -1021,7 +1046,7 @@ router.post('/:eventId/social-publish', authMiddleware(['ADMIN', 'PRODUCTOR']), 
 // qr_token (credencial del check-in público) a cualquiera sin sesión. Usa /api/compliance
 
 // DEPRECATED: Usar /api/compliance/events/:eventId/guests/:guestId/personal-data
-router.delete('/:eventId/guests/:guestId/erase', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/:eventId/guests/:guestId/erase', authMiddleware(['ADMIN', 'PRODUCTOR']), eventAccessMiddleware(), (req, res) => {
     try {
         // v12.44.846 (auditoría 2026-11-25, S11): el evento debe ser del usuario Y el invitado debe
         // ser de ese evento (guest_achievements se borra solo por guest_id)
@@ -1063,7 +1088,7 @@ router.get('/:eventId/editors', authMiddleware(), (req, res) => {
 // v12.44.846 (auditoría 2026-11-25, S12): enlace del portal del asistente con su token firmado.
 // Solo el organizador con acceso al evento puede obtenerlo (antes cualquier persona que conociera
 // el id del invitado entraba a su portal).
-router.get('/:eventId/portal-link/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/:eventId/portal-link/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR']), eventAccessMiddleware(), (req, res) => {
     if (!requireEventAccess(req, res)) return;
     const guestId = castId('guests', req.params.guestId);
     if (!guestId) return res.status(400).json({ error: 'ID invalido' });

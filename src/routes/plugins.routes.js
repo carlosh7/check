@@ -9,6 +9,8 @@ const { loadPlugin } = require('../engine/plugin-engine');
 const { hasEventAccess } = require('../utils/helpers');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // ─── Listar todos los plugins disponibles ───
 
@@ -68,7 +70,7 @@ router.post('/:pluginId/uninstall', authMiddleware(['ADMIN', 'PRODUCTOR']), (req
 
 // ─── Plugins instalados en un evento ───
 
-router.get('/event/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/event/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const instances = db.prepare("SELECT pi.*, p.name, p.description, p.icon, p.version, p.author, p.hooks, p.settings_schema FROM plugin_instances pi JOIN plugins p ON p.id = pi.plugin_id WHERE pi.event_id = ? ORDER BY p.name ASC").all(req.params.eventId);
         instances.forEach(function(i) {
@@ -98,7 +100,7 @@ router.put('/instance/:instanceId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req
 
 // ─── Logs de plugins ───
 
-router.get('/logs/:eventId', authMiddleware(['ADMIN']), (req, res) => {
+router.get('/logs/:eventId', authMiddleware(['ADMIN']), requireEventAccess(), (req, res) => {
     try {
         const logs = db.prepare("SELECT pl.*, p.name as plugin_name FROM plugin_logs pl JOIN plugins p ON p.id = pl.plugin_id WHERE pl.event_id = ? ORDER BY pl.logged_at DESC LIMIT 100").all(req.params.eventId);
         res.json(logs);

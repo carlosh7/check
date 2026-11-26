@@ -66,6 +66,8 @@ const { logAction } = require('../security/audit');
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 function getEventGuestDb(eventId) {
     const event = db.prepare("SELECT has_own_db FROM events WHERE id = ?").get(eventId);
@@ -78,7 +80,7 @@ function getEventGuestDb(eventId) {
 
 // ── CRUD ──
 
-router.get('/events/:eventId/raffles', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/events/:eventId/raffles', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const raffles = db.prepare("SELECT * FROM raffles WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         raffles.forEach(function(r) {
@@ -90,7 +92,7 @@ router.get('/events/:eventId/raffles', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/events/:eventId/raffles', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/events/:eventId/raffles', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { name, data_source, source_template_id, config } = req.body;
         if (!name) return res.status(400).json({ error: 'Nombre requerido' });
@@ -481,6 +483,8 @@ router.get('/:id/public', (req, res) => {
         let config = {};
         if (raffle.config_json) try { config = JSON.parse(raffle.config_json); } catch(e) {}
         const participantNames = participants.map(function(p) { return p.name || p.email || 'Participante'; });
+        // v12.44.848 (auditoría 2026-11-25, N9): los resultados públicos incluían email y teléfono de los ganadores
+        results.forEach(function(r) { r.winners = (r.winners || []).map(function(w) { return { name: (w && w.name) || 'Ganador' }; }); delete r.winners_json; });
         res.json({
             id: raffle.id,
             name: raffle.name,

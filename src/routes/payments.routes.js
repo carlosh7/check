@@ -10,13 +10,15 @@ const logger = require('../utils/logger');
 const { limiters } = require('../middleware/rate-limiter');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 const checkoutSessionSchema = z.object({
     name: z.string().min(1, 'Nombre requerido').max(200),
     email: z.string().email('Email inválido'),
     items: z.array(z.object({
         category_id: z.string().min(1),
-        quantity: z.number().int().min(1).optional()
+        quantity: z.number().int().min(1).max(100).optional()
     })).min(1, 'Se requiere al menos un item'),
     coupon_code: z.string().max(50).optional(),
     success_url: z.string().url().optional().or(z.literal('')),
@@ -34,12 +36,25 @@ if (!process.env.STRIPE_SECRET_KEY) {
 const stripeKey = process.env.STRIPE_SECRET_KEY || '';
 const stripe = stripeKey ? require('stripe')(stripeKey) : null;
 
+// v12.44.848 (auditoría 2026-11-25, N14): las URLs de retorno tras el pago solo pueden estar en el origen de la propia app o en
+// los origenes de PAYMENT_RETURN_ORIGINS (separados por coma). Cualquier otra se sustituye por la
+// URL por defecto, para que el pago no redirija a un sitio ajeno.
+function safeReturnUrl(url, baseUrl, fallback) {
+    if (!url) return fallback;
+    try {
+        const allowed = [new URL(baseUrl).origin].concat(String(process.env.APP_URL || '').trim() ? [new URL(process.env.APP_URL).origin] : [], String(process.env.PAYMENT_RETURN_ORIGINS || '').split(',').map(function(s) { return s.trim(); }).filter(Boolean).map(function(o) { try { return new URL(o).origin; } catch (e) { return null; } }).filter(Boolean));
+        return allowed.includes(new URL(url).origin) ? url : fallback;
+    } catch (e) { return fallback; }
+}
+
 // ── Checkout Session (Stripe Checkout redirect) ──
 
 router.post('/events/:eventId/checkout-session', async (req, res) => {
     try {
         const event = db.prepare("SELECT * FROM events WHERE id = ?").get(req.params.eventId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+        // v12.44.848 (auditoría 2026-11-25, N14): sin STRIPE_SECRET_KEY se creaba una transacción «pending» y luego fallaba
+        if (!stripe) return res.status(503).json({ error: 'Pagos con tarjeta no configurados: falta STRIPE_SECRET_KEY' });
         if (!event.payment_required) return res.status(400).json({ error: 'Este evento no requiere pago' });
 
         const parsed = checkoutSessionSchema.safeParse(req.body);
@@ -56,10 +71,20 @@ router.post('/events/:eventId/checkout-session', async (req, res) => {
 
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
-            const cat = db.prepare("SELECT * FROM guest_categories WHERE id = ? AND event_id = ?").get(item.category_id, req.params.eventId);
+            // v12.44.848 (auditoría 2026-11-25, D3): las categorías se crean en la BD del evento, pero se buscaban solo en la maestra → 400.
+            const cat = getEventDb(req.params.eventId).prepare("SELECT * FROM guest_categories WHERE id = ? AND event_id = ?").get(item.category_id, req.params.eventId);
             if (!cat) return res.status(400).json({ error: 'Categoría ' + item.category_id + ' no encontrada' });
             if (!cat.price || cat.price <= 0) return res.status(400).json({ error: cat.name + ' no tiene precio' });
             const qty = parseInt(item.quantity) || 1;
+            // v12.44.848 (auditoría 2026-11-25, N14): no se controlaba el aforo de la categoría (sobreventa ilimitada)
+            if (cat.capacity && Number(cat.capacity) > 0) {
+                const taken = new Set();
+                for (const conn of [db, getEventDb(req.params.eventId)]) {
+                    try { conn.prepare("SELECT id FROM guests WHERE event_id = ? AND category_id = ?").all(req.params.eventId, cat.id).forEach(function(r) { taken.add(r.id); }); } catch (e) {}
+                }
+                const inCart = categoriesUsed.filter(function(id) { return id === cat.id; }).length;
+                if (taken.size + inCart + qty > Number(cat.capacity)) return res.status(400).json({ error: 'No hay disponibilidad suficiente para ' + cat.name });
+            }
             lineItems.push({
                 price_data: { currency: (event.currency || 'USD').toLowerCase(), product_data: { name: cat.name }, unit_amount: Math.round(cat.price * 100) },
                 quantity: qty
@@ -91,8 +116,9 @@ router.post('/events/:eventId/checkout-session', async (req, res) => {
         );
 
         const baseUrl = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.get('host');
-        const sUrl = success_url || baseUrl + '/registro.html?event=' + req.params.eventId + '&txn=' + transactionId + '&success=1&cart=1';
-        const cUrl = cancel_url || baseUrl + '/registro.html?event=' + req.params.eventId + '&cancel=1';
+        // v12.44.848 (auditoría 2026-11-25, N14): success_url y cancel_url aceptaban cualquier origen (redirección abierta tras pagar)
+        const sUrl = safeReturnUrl(success_url, baseUrl, baseUrl + '/registro.html?event=' + req.params.eventId + '&txn=' + transactionId + '&success=1&cart=1');
+        const cUrl = safeReturnUrl(cancel_url, baseUrl, baseUrl + '/registro.html?event=' + req.params.eventId + '&cancel=1');
 
         // v12.44.844 (auditoría Pagos #1): el descuento AHORA viaja al cargo de Stripe —
         // antes el cupón solo vivía en la BD local y Stripe cobraba el TOTAL completo.
@@ -134,6 +160,8 @@ router.post('/events/:eventId/checkout', (req, res) => {
     try {
         const event = db.prepare("SELECT * FROM events WHERE id = ?").get(req.params.eventId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+        // v12.44.848 (auditoría 2026-11-25, N14): sin STRIPE_SECRET_KEY se creaba una transacción «pending» y luego fallaba
+        if (!stripe) return res.status(503).json({ error: 'Pagos con tarjeta no configurados: falta STRIPE_SECRET_KEY' });
         if (!event.payment_required) return res.status(400).json({ error: 'Este evento no requiere pago' });
 
         const parsed = checkoutSchema.safeParse(req.body);
@@ -142,7 +170,8 @@ router.post('/events/:eventId/checkout', (req, res) => {
         }
         const { name, email, category_id } = parsed.data;
 
-        const category = db.prepare("SELECT * FROM guest_categories WHERE id = ? AND event_id = ?").get(category_id, req.params.eventId);
+        // v12.44.848 (auditoría 2026-11-25, D3): la categoría se busca en la BD del evento (donde se crea)
+        const category = getEventDb(req.params.eventId).prepare("SELECT * FROM guest_categories WHERE id = ? AND event_id = ?").get(category_id, req.params.eventId);
         if (!category) return res.status(400).json({ error: 'Categoría no encontrada' });
         if (!category.price || category.price <= 0) return res.status(400).json({ error: 'Esta categoría no tiene precio configurado' });
 
@@ -233,7 +262,7 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
                     }
 
                     if (meta2.applied_coupon_id) {
-                        db.prepare("UPDATE coupons SET current_uses = current_uses + 1 WHERE id = ?").run(meta2.applied_coupon_id);
+                        db.prepare("UPDATE coupons SET current_uses = current_uses + 1 WHERE id = ? AND (max_uses = 0 OR current_uses < max_uses)").run(meta2.applied_coupon_id); // v12.44.848 (auditoría 2026-11-25, D11)
                     }
                     const metaMerge = Object.assign({}, meta2, { stripe_event: event2.type, stripe_event_id: event2.id });
                     db.prepare("UPDATE transactions SET status = 'completed', completed_at = ?, metadata_json = ?, guest_id = ? WHERE id = ?").run(now, JSON.stringify(metaMerge), firstGuestId, txnId);
@@ -241,7 +270,7 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
                 // v12.44.844 (auditoría Pagos #5): orden REAL de la firma
                 // triggerWebhooks(eventType, data, eventId) — antes el UUID entraba como tipo
                 // de evento y PAYMENT_COMPLETED nunca se disparaba.
-                try { triggerWebhooks('PAYMENT_COMPLETED', { transactionId: txnId, guestId: firstGuestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }, txn.event_id); } catch(e) { logger.error('[PAYMENTS] Error trigger webhook: ' + e.message); }
+                try { triggerWebhooks(WEBHOOK_EVENTS.PAYMENT_COMPLETED, { transactionId: txnId, guestId: firstGuestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }, txn.event_id); } catch(e) { logger.error('[PAYMENTS] Error trigger webhook: ' + e.message); }
                 try { logAction(req, 'PAYMENT_COMPLETED', { eventId: txn.event_id, transactionId: txnId, guestId: firstGuestId, amount: txn.amount }); } catch(e) { logger.error('[PAYMENTS] Error log action: ' + e.message); }
                 logger.info('[PAYMENTS] Checkout completado: ' + txnId);
             }
@@ -268,13 +297,13 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
                         guestId, txn.event_id, txn.guest_name, txn.guest_email, txn.category_id, qrToken, now
                     );
                     if (metaLocal.applied_coupon_id) {
-                        db.prepare("UPDATE coupons SET current_uses = current_uses + 1 WHERE id = ?").run(metaLocal.applied_coupon_id);
+                        db.prepare("UPDATE coupons SET current_uses = current_uses + 1 WHERE id = ? AND (max_uses = 0 OR current_uses < max_uses)").run(metaLocal.applied_coupon_id); // v12.44.848 (auditoría 2026-11-25, D11)
                     }
                     db.prepare("UPDATE transactions SET status = 'completed', completed_at = ?, metadata_json = ?, guest_id = ? WHERE id = ?").run(now, JSON.stringify(metaMerge2), guestId, txnId);
                 })();
 
                 // v12.44.844 (auditoría Pagos #5): argumentos en orden real
-                try { triggerWebhooks('PAYMENT_COMPLETED', { transactionId: txnId, guestId: guestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }, txn.event_id); } catch(e) {}
+                try { triggerWebhooks(WEBHOOK_EVENTS.PAYMENT_COMPLETED, { transactionId: txnId, guestId: guestId, amount: txn.amount, currency: txn.currency, name: txn.guest_name, email: txn.guest_email }, txn.event_id); } catch(e) {}
                 try { logAction(req, 'PAYMENT_COMPLETED', { eventId: txn.event_id, transactionId: txnId, guestId: guestId, amount: txn.amount }); } catch(e) {}
 
                 logger.info('[PAYMENTS] Pago completado: ' + txnId + ' - Guest creado: ' + guestId);
@@ -287,7 +316,7 @@ router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
 
 // ── Listar transacciones ──
 
-router.get('/events/:eventId/transactions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/events/:eventId/transactions', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const txs = db.prepare("SELECT * FROM transactions WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         res.json(txs);
@@ -363,11 +392,11 @@ router.get('/transactions/:id/receipt', authMiddleware(['ADMIN', 'PRODUCTOR']), 
 
 // ─── Coupons (C4-06) ───
 
-router.get('/events/:eventId/coupons', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/events/:eventId/coupons', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try { res.json(db.prepare("SELECT * FROM coupons WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId)); } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/events/:eventId/coupons', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/events/:eventId/coupons', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { code, discount_type, discount_value, max_uses, expires_at } = req.body;
         if (!code || !discount_value) return res.status(400).json({ error: 'Código y valor requeridos' });
@@ -383,7 +412,7 @@ router.post('/events/:eventId/coupons', authMiddleware(['ADMIN', 'PRODUCTOR']), 
     }
 });
 
-router.put('/events/:eventId/coupons/:couponId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/events/:eventId/coupons/:couponId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const d = req.body;
         db.prepare("UPDATE coupons SET code = COALESCE(UPPER(?), code), discount_type = COALESCE(?, discount_type), discount_value = COALESCE(?, discount_value), max_uses = COALESCE(?, max_uses), expires_at = COALESCE(?, expires_at), is_active = COALESCE(?, is_active) WHERE id = ? AND event_id = ?").run(
@@ -393,7 +422,7 @@ router.put('/events/:eventId/coupons/:couponId', authMiddleware(['ADMIN', 'PRODU
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.delete('/events/:eventId/coupons/:couponId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/events/:eventId/coupons/:couponId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try { db.prepare("DELETE FROM coupons WHERE id = ? AND event_id = ?").run(req.params.couponId, req.params.eventId); res.json({ success: true }); } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -410,7 +439,7 @@ router.post('/events/:eventId/coupons/validate', (req, res) => {
         let total = 0;
         if (items && Array.isArray(items)) {
             items.forEach(function(item) {
-                const cat = db.prepare("SELECT price FROM guest_categories WHERE id = ? AND event_id = ?").get(item.category_id, req.params.eventId);
+                const cat = getEventDb(req.params.eventId).prepare("SELECT price FROM guest_categories WHERE id = ? AND event_id = ?").get(item.category_id, req.params.eventId);
                 if (cat) total += (cat.price || 0) * (parseInt(item.quantity) || 1);
             });
         }

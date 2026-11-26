@@ -234,6 +234,10 @@ app.use('/api/compliance', complianceRoutes);
     app.use('/api/ecommerce', ecommerceRoutes);
     // CRM integrations (C8-06)
     app.use('/api', crmRoutes);
+    // v12.44.848 (auditoría 2026-11-25, N6): GET /api/plugins lo tapaba ecosystemRoutes (montado antes en /api) y devolvía un
+    // listado reducido. El router de plugins se monta primero.
+    app.use('/api/plugins', pluginsRoutes);
+
     // Plugin system + Marketplace + Pricing (C8-09/10/11)
     app.use('/api', ecosystemRoutes);
     // Intelligence: tagging, prediction, recommendations (C9-03/04/05)
@@ -268,7 +272,6 @@ app.use('/api/compliance', complianceRoutes);
     app.use('/api/networking', networkingRoutes);
     app.use('/api/album', albumRoutes);
     app.use('/api/landing', landingRoutes);
-    app.use('/api/plugins', pluginsRoutes);
 
     googleRoutes.startSyncWorker();
 

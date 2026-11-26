@@ -125,7 +125,7 @@ function seedDefaultPlugins() {
     ];
     const insert = db.prepare("INSERT OR IGNORE INTO plugins (id, name, description, version, author, icon, hooks, script, is_system, enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 1)");
     plugins.forEach(function(p) {
-        try { insert.run(p.id, p.name, p.description, p.version, p.author, p.icon, p.hooks, p.script, p.is_system); } catch(e) {}
+        try { insert.run(p.id, p.name, p.description, p.version, p.author, p.icon, p.hooks, p.script); } catch(e) { logger.error('[PLUGIN] No se pudo registrar el plugin ' + p.id + ': ' + e.message); } /* // v12.44.848 (auditoría 2026-11-25, N15): sobraba p.is_system */
     });
     logger.info('[PLUGIN] Seeded ' + plugins.length + ' default plugins');
 }

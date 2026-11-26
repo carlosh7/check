@@ -122,6 +122,11 @@ const { logAction } = require('../security/audit');
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
+
+// v12.44.848 (auditoría 2026-11-25, N7): los controles del anfitrión no exigían sesión: bastaba el sessionId, que reciben todos los
+// jugadores con el PIN, para mostrar preguntas, revelar o borrar la sala. Ahora piden token.
 
 // ── helpers ──
 
@@ -233,7 +238,7 @@ function sanitizeQuestionInput(type, title, answers, timeLimit, pointsMode) {
 
 // ── CRUD del quiz (anfitrión) ──
 
-router.get('/events/:eventId/quizzes', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/events/:eventId/quizzes', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const quizzes = db.prepare("SELECT * FROM quizzes WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         quizzes.forEach(function(q) {
@@ -247,7 +252,7 @@ router.get('/events/:eventId/quizzes', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/events/:eventId/quizzes', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/events/:eventId/quizzes', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { name, description, config } = req.body || {};
         if (!name || !String(name).trim()) return res.status(400).json({ error: 'Nombre requerido' });
@@ -362,7 +367,7 @@ router.get('/:id/public', (req, res) => {
             return {
                 id: q.id, type: q.type, title: q.title, mediaUrl: q.media_url,
                 timeLimit: q.time_limit, pointsMode: q.points_mode,
-                answers: parseJsonSafe(q.answers_json, []), orderIndex: idx
+                answers: parseJsonSafe(q.answers_json, []).map(function(a) { var safe = Object.assign({}, a); delete safe.correct; return safe; }), orderIndex: idx // v12.44.848 (auditoría 2026-11-25, N7): el estado público entregaba la respuesta correcta
             };
         });
         res.json({
@@ -593,7 +598,7 @@ router.get('/sessions/:sid/host-state', (req, res) => {
 });
 
 // Mostrar pregunta N (abre el window de respuestas)
-router.post('/sessions/:sid/show-question', (req, res) => {
+router.post('/sessions/:sid/show-question', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
         const s = getSession(req.params.sid);
         if (!s) return res.status(404).json({ error: 'Sesión no encontrada' });
@@ -611,7 +616,7 @@ router.post('/sessions/:sid/show-question', (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/sessions/:sid/reveal', (req, res) => {
+router.post('/sessions/:sid/reveal', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
         const s = getSession(req.params.sid);
         if (!s) return res.status(404).json({ error: 'Sesión no encontrada' });
@@ -622,7 +627,7 @@ router.post('/sessions/:sid/reveal', (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/sessions/:sid/scoreboard', (req, res) => {
+router.post('/sessions/:sid/scoreboard', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
         const s = getSession(req.params.sid);
         if (!s) return res.status(404).json({ error: 'Sesión no encontrada' });
@@ -632,7 +637,7 @@ router.post('/sessions/:sid/scoreboard', (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/sessions/:sid/lobby', (req, res) => {
+router.post('/sessions/:sid/lobby', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
         const s = getSession(req.params.sid);
         if (!s) return res.status(404).json({ error: 'Sesión no encontrada' });
@@ -642,7 +647,7 @@ router.post('/sessions/:sid/lobby', (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/sessions/:sid/podio', (req, res) => {
+router.post('/sessions/:sid/podio', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
         const s = getSession(req.params.sid);
         if (!s) return res.status(404).json({ error: 'Sesión no encontrada' });
@@ -653,7 +658,7 @@ router.post('/sessions/:sid/podio', (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.delete('/sessions/:sid', (req, res) => {
+router.delete('/sessions/:sid', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
         const s = getSession(req.params.sid);
         if (!s) return res.status(404).json({ error: 'Sesión no encontrada' });
@@ -666,7 +671,7 @@ router.delete('/sessions/:sid', (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.delete('/sessions/:sid/players/:pid', (req, res) => {
+router.delete('/sessions/:sid/players/:pid', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
         const s = getSession(req.params.sid);
         if (!s) return res.status(404).json({ error: 'Sesión no encontrada' });

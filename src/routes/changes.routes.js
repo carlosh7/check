@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 const { getChanges, undoChange, redoChange } = require('../utils/change-log');
 const { hasEventAccess } = require('../utils/helpers');
 
-router.get('/events/:eventId/changes', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/events/:eventId/changes', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         // v12.44.844 (seguridad): el historial de cambios exige acceso al evento
         if (req.userRole !== 'ADMIN' && !hasEventAccess(req.userId, req.params.eventId, req.userRole)) {
@@ -19,7 +21,7 @@ router.get('/events/:eventId/changes', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
     }
 });
 
-router.post('/events/:eventId/changes/:changeId/undo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/events/:eventId/changes/:changeId/undo', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         // v12.44.844 (auditoría Pagos #6): antes CUALQUIER rol aprobado deshacía cambios
         // de invitados de CUALQUIER evento — ahora exige acceso al evento del cambio.
@@ -36,7 +38,7 @@ router.post('/events/:eventId/changes/:changeId/undo', authMiddleware(['ADMIN', 
     }
 });
 
-router.post('/events/:eventId/changes/:changeId/redo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/events/:eventId/changes/:changeId/redo', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         // v12.44.844 (auditoría Pagos #6): roles y acceso al evento del cambio
         const _cambio = db.prepare("SELECT event_id FROM change_log WHERE id = ?").get(req.params.changeId);

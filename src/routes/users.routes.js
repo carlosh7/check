@@ -23,6 +23,8 @@ const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // v12.44.842 (seguridad — auditoría Sistema #1, escalada PRODUCTOR): un PRODUCTOR solo
 // puede gestionar usuarios de SUS grupos (misma regla que el listado GET /) y nunca a
@@ -282,7 +284,7 @@ router.put('/:id/password', authMiddleware(), (req, res) => {
     const hashedPassword = bcrypt.hashSync(v.data.newPassword, 10);
     db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, targetId);
 
-    // // v12.44.846 (auditoría 2026-11-25, H4): un cambio de clave cierra las sesiones abiertas de la cuenta
+    // v12.44.846 (auditoría 2026-11-25, H4): un cambio de clave cierra las sesiones abiertas de la cuenta
     try { require('../security/jwt').revokeUserTokens(targetId); } catch (e) {
         return res.status(500).json({ error: 'No se pudieron cerrar las sesiones del usuario' });
     }
@@ -396,7 +398,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         params.push(targetId);
         db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...params);
         logAction(req, AUDIT_ACTIONS.USER_UPDATED, { targetId, fields: updates });
-        // // v12.44.846 (auditoría 2026-11-25, H4): si cambió la clave, se cierran las sesiones abiertas de la cuenta
+        // v12.44.846 (auditoría 2026-11-25, H4): si cambió la clave, se cierran las sesiones abiertas de la cuenta
         if (password) {
             try { require('../security/jwt').revokeUserTokens(targetId); } catch (e) {
                 return res.status(500).json({ error: 'No se pudieron cerrar las sesiones del usuario' });
@@ -548,7 +550,7 @@ router.put('/:id/events', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => 
 });
 
 // Quitar un evento de un usuario (ADMIN/PRODUCTOR)
-router.delete('/:id/events/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/:id/events/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     const targetId = castId('users', req.params.id);
     const eventId = castId('events', req.params.eventId);
     

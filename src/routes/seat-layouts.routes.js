@@ -7,6 +7,8 @@ const { getEventDb } = require('../utils/event-db');
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // GET /api/seat-layouts/:eventId
 router.get('/:eventId', authMiddleware(), (req, res) => {
@@ -26,7 +28,7 @@ router.get('/:eventId', authMiddleware(), (req, res) => {
 });
 
 // POST /api/seat-layouts/:eventId
-router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
@@ -43,7 +45,7 @@ router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 });
 
 // PUT /api/seat-layouts/:eventId/:layoutId
-router.put('/:eventId/:layoutId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/:eventId/:layoutId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         const lId = req.params.layoutId;
@@ -59,7 +61,7 @@ router.put('/:eventId/:layoutId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, 
 });
 
 // DELETE /api/seat-layouts/:eventId/:layoutId
-router.delete('/:eventId/:layoutId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/:eventId/:layoutId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         const lId = req.params.layoutId;

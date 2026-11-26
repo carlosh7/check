@@ -12,6 +12,8 @@ const logger = require('../utils/logger');
 const { portalTokenFor, verifyPortalToken } = require('../security/portal-token');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // v12.44.846 (auditoría 2026-11-25, S12): las rutas del portal ya no usan qr_token (la credencial
 // del check-in) como identidad. Exigen el token de portal del propio asistente.
@@ -193,7 +195,7 @@ router.get('/profile/:guestId', (req, res) => {
 });
 
 // ─── Leaderboard de networking ───
-router.get('/:eventId/leaderboard', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/:eventId/leaderboard', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const leaders = db.prepare(`
             SELECT g.id, g.name, g.organization, g.position,

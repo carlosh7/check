@@ -99,6 +99,8 @@ function getEventDbForAttendance(eventId) {
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess: eventAccessMiddleware } = require('../middleware/event-access');
 
 // v12.44.846 (auditoría 2026-11-25, S4/S11): acceso por evento. Antes solo 3 rutas de este archivo
 // comprobaban hasEventAccess; un PRODUCTOR leía o modificaba eventos ajenos por id.
@@ -119,7 +121,7 @@ function castEventIdParam(req, res, next, id) {
     next();
 }
 
-// // v12.44.847 (auditoría 2026-11-25, I4): los logos se guardaban en <repo>/uploads/logos, fuera del volumen persistente en Docker
+// v12.44.847 (auditoría 2026-11-25, I4): los logos se guardaban en <repo>/uploads/logos, fuera del volumen persistente en Docker
 // (se perdían al recrear el contenedor y un contenedor sin root no puede escribir ahí). Ahora van a
 // DATA_PATH/uploads/logos; sin DATA_PATH se conserva la carpeta del repositorio.
 function uploadsBase() {
@@ -441,6 +443,9 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
 
         // Eliminar el evento
         db.prepare("DELETE FROM events WHERE id = ?").run(targetId);
+        // v12.44.848 (auditoría 2026-11-25, D5): la BD del evento (con los datos personales de sus invitados) quedaba
+        // huérfana en disco para siempre. Se elimina junto con el evento (los respaldos la conservan 7 días).
+        try { deleteEventDatabase(targetId); } catch (e) { logger.error('[DELETE EVENT] No se pudo eliminar la BD del evento ' + targetId + ': ' + e.message); }
         
         // INVALIDAR CACHÉ cuando se elimina un evento
         await del(CACHE_KEYS.EVENT_LIST);
@@ -498,7 +503,7 @@ router.put('/pre-registrations/:id/status', authMiddleware(['ADMIN', 'PRODUCTOR'
 });
 
 // Obtener usuarios asignados a un evento
-router.get('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), eventAccessMiddleware(), (req, res) => {
     const eventId = castId('events', req.params.eventId);
     
     if (req.userRole === 'PRODUCTOR') {
@@ -519,7 +524,7 @@ router.get('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res)
 });
 
 // Asignar usuario a evento
-router.post('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), eventAccessMiddleware(), (req, res) => {
     const { user_id } = req.body;
     const eventId = castId('events', req.params.eventId);
     
@@ -547,7 +552,7 @@ router.post('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
 });
 
 // Eliminar usuario de evento
-router.delete('/:eventId/users/:userId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/:eventId/users/:userId', authMiddleware(['ADMIN', 'PRODUCTOR']), eventAccessMiddleware(), (req, res) => {
     const eventId = castId('events', req.params.eventId);
     const userId = castId('users', req.params.userId);
     
@@ -902,16 +907,14 @@ router.post('/:id/clone', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
                         for (const g of guests) {
                             const newGuestId = getValidId('guests');
                             const newQrToken = uuidv4();
-                            targetDb.prepare(`
-                                INSERT INTO guests (id, event_id, name, email, phone, organization, position, cargo,
-                                    dietary_notes, restricciones, vegano, status, group_id, checked_in, validated,
-                                    checkin_time, qr_token, created_at, client_id)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?, ?, ?)
-                            `).run(
-                                newGuestId, newId, g.name, g.email, g.phone, g.organization, g.position, g.cargo,
-                                g.dietary_notes, g.restricciones, g.vegano, g.status || 'lead', g.group_id,
-                                g.checkin_time || null, newQrToken, g.created_at || now, g.client_id || null
-                            );
+                            // v12.44.848 (auditoría 2026-11-25, N16): la lista fija usaba columnas que no existen en la BD de evento
+                            // (group_id, client_id) y siempre fallaba: los invitados no se copiaban. Se arma con
+                            // las columnas reales de la tabla de destino.
+                            const guestCols = targetDb.prepare("PRAGMA table_info(guests)").all().map(function(c) { return c.name; });
+                            const guestRow = Object.assign({}, g, { id: newGuestId, event_id: newId, qr_token: newQrToken, checked_in: 0, checkin_time: null, validated: 0 });
+                            const useCols = guestCols.filter(function(c) { return c in guestRow; });
+                            targetDb.prepare('INSERT INTO guests (' + useCols.join(', ') + ') VALUES (' + useCols.map(function() { return '?'; }).join(', ') + ')')
+                                .run(...useCols.map(function(c) { return guestRow[c] === undefined ? null : guestRow[c]; }));
                             copied++;
                         }
                         logger.info(`[CLONE] ${copied} invitados copiados al evento ${newId}`);

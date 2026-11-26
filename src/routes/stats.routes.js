@@ -29,6 +29,8 @@ function requestCounterMiddleware(req, res, next) {
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 const statsCache = new Map();
 const CACHE_TTL = 30000; // 30 segundos
 
@@ -58,11 +60,28 @@ function getDbsForEvent(eventId) {
     return dbs;
 }
 
+// v12.44.848 (auditoría 2026-11-25, D7): cada registro público se guarda en la BD maestra Y en la del evento, y las estadísticas
+// sumaban las dos (el total salía casi duplicado). En la BD maestra se ignoran los invitados que
+// también existen en la BD del evento, que es la que tiene su estado al día.
+function dedupeForMaster(sql, dbs, index) {
+    // Devuelve { sql, ids }: la consulta para la BD maestra con los invitados duplicados excluidos
+    if (index !== 0 || dbs.length < 2 || !/\bFROM\s+guests\b/i.test(sql)) return { sql: sql, ids: [] };
+    let dupIds;
+    try { dupIds = dbs[1].prepare('SELECT id FROM guests').all().map(function(r) { return r.id; }); } catch (e) { return { sql: sql, ids: [] }; }
+    if (dupIds.length === 0 || dupIds.length > 30000) return { sql: sql, ids: [] };
+    const m = /^(SELECT\s[\s\S]*?\sFROM\s+guests\s+WHERE\s+)([\s\S]*?)(\s+(?:GROUP\s+BY|ORDER\s+BY|LIMIT)\s[\s\S]*)?$/i.exec(sql);
+    if (!m) return { sql: sql, ids: [] };
+    return { ids: dupIds, sql: m[1] + 'id NOT IN (' + dupIds.map(function() { return '?'; }).join(',') + ') AND (' + m[2] + ')' + (m[3] || '') };
+}
+
 function queryAll(dbs, sql, params) {
     const all = [];
-    for (const targetDb of dbs) {
+    for (let i = 0; i < dbs.length; i++) {
+        const targetDb = dbs[i];
         try {
-            const rows = targetDb.prepare(sql).all(...params);
+            let useSql = sql, useParams = params;
+            if (i === 0 && dbs.length > 1) { const deduped = dedupeForMaster(sql, dbs, i); useSql = deduped.sql; useParams = deduped.ids.concat(params || []); }
+            const rows = targetDb.prepare(useSql).all(...useParams);
             all.push(...rows);
         } catch (e) {}
     }
@@ -71,9 +90,12 @@ function queryAll(dbs, sql, params) {
 
 function querySum(dbs, sql, params) {
     let total = 0;
-    for (const targetDb of dbs) {
+    for (let i = 0; i < dbs.length; i++) {
+        const targetDb = dbs[i];
         try {
-            const row = targetDb.prepare(sql).get(...params);
+            let useSql = sql, useParams = params;
+            if (i === 0 && dbs.length > 1) { const deduped = dedupeForMaster(sql, dbs, i); useSql = deduped.sql; useParams = deduped.ids.concat(params || []); }
+            const row = targetDb.prepare(useSql).get(...useParams);
             if (row) total += Number(Object.values(row)[0]) || 0;
         } catch (e) {}
     }
@@ -229,7 +251,7 @@ router.post('/db/maintenance', authMiddleware(['ADMIN']), (req, res) => {
 
 // ─── AI Reports / Insights (C4-09) ───
 
-router.get('/reports/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/reports/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const eId = require('../utils/helpers').castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID inválido' });
@@ -363,7 +385,7 @@ router.get('/bi/export/:format', authMiddleware(['ADMIN']), (req, res) => {
             },
             trends: db.prepare("SELECT date(created_at) as date, COUNT(*) as count FROM guests WHERE created_at >= ? GROUP BY date ORDER BY date").all(since),
             topEvents: db.prepare("SELECT e.name, COUNT(g.id) as guests FROM events e LEFT JOIN guests g ON g.event_id = e.id GROUP BY e.id ORDER BY guests DESC LIMIT 10").all(),
-            monthly: db.prepare("SELECT strftime('%Y-%m') as month, COUNT(*) as count FROM guests GROUP BY month ORDER BY month LIMIT 12").all()
+            monthly: db.prepare("SELECT strftime('%Y-%m', created_at) as month, COUNT(*) as count FROM guests GROUP BY month ORDER BY month LIMIT 12").all()
         };
 
         if (format === 'csv') {

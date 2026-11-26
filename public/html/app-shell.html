@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.min.css"><!-- v12.44.815: CSS externo — la CSP ya no permite el <style> que Swal inyecta -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5"></script>
-<link rel="stylesheet" href="/css/modules/base.css?v=12.44.847">
-<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.847">
-<link rel="stylesheet" href="/css/modules/components.css?v=12.44.847">
-<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.847">
-<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.847">
-<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.847">
+<link rel="stylesheet" href="/css/modules/base.css?v=12.44.848">
+<link rel="stylesheet" href="/css/modules/layout.css?v=12.44.848">
+<link rel="stylesheet" href="/css/modules/components.css?v=12.44.848">
+<link rel="stylesheet" href="/css/modules/tables.css?v=12.44.848">
+<link rel="stylesheet" href="/css/modules/forms.css?v=12.44.848">
+<link rel="stylesheet" href="/css/modules/utilities.css?v=12.44.848">
 <div id="app-container" class="app-container hidden" role="application" aria-label="Check Pro - Panel de administración">
     <a href="#app-main-content" class="skip-to-content">Saltar al contenido principal</a>
     <button id="hamburger-btn" class="hamburger-btn" data-act="sidebarToggle" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="global-sidebar">☰</button>
@@ -79,7 +79,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.847</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.848</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -231,21 +231,21 @@
                     </div>
 
                     <div class="filters-row">
-                        <select id="filter-attendance-org" data-act="clearCall" data-call="filterAttendance,loadAnalytics" class="filter-select filter-select-empresa">
+                        <select id="filter-attendance-org" data-act="clearCall" data-call="filterAttendance|loadAnalytics" class="filter-select filter-select-empresa">
                             <option value="">Organizaci&oacute;n</option>
                         </select>
-                        <select id="filter-attendance-cargo" data-act="clearCall" data-call="filterAttendance,loadAnalytics" class="filter-select filter-select-staff">
+                        <select id="filter-attendance-cargo" data-act="clearCall" data-call="filterAttendance|loadAnalytics" class="filter-select filter-select-staff">
                             <option value="">Cargo</option>
                         </select>
-                        <select id="filter-attendance-vegano" data-act="clearCall" data-call="filterAttendance,loadAnalytics" class="filter-select filter-select-cliente">
+                        <select id="filter-attendance-vegano" data-act="clearCall" data-call="filterAttendance|loadAnalytics" class="filter-select filter-select-cliente">
                             <option value="">Vegano</option>
                             <option value="SI">S&iacute;</option>
                             <option value="NO">No</option>
                         </select>
-                <select id="filter-attendance-category" data-act="clearCall" data-call="filterAttendance,loadAnalytics" class="filter-select">
+                <select id="filter-attendance-category" data-act="clearCall" data-call="filterAttendance|loadAnalytics" class="filter-select">
                     <option value="">Categor&iacute;a</option>
                 </select>
-                <select id="filter-attendance-status" data-act="clearCall" data-call="filterAttendance,loadAnalytics" class="filter-select filter-select-evento">
+                <select id="filter-attendance-status" data-act="clearCall" data-call="filterAttendance|loadAnalytics" class="filter-select filter-select-evento">
                     <option value="">Estado</option>
                     <option value="lead">Lead</option>
                     <option value="contacted">Contactado</option>
@@ -661,7 +661,7 @@
                     </div>
 
                     <div id="config-content-wheel" class="config-tab-content hidden">
-                        <link rel="stylesheet" href="/css/pages/shell-page.css?v=12.44.847">
+                        <link rel="stylesheet" href="/css/pages/shell-page.css?v=12.44.848">
 
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-xl font-bold text-white">Ruleta</h2>

@@ -11,6 +11,8 @@ const { getEventDb } = require('../utils/event-db');
 const logger = require('../utils/logger');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // GET /api/sessions/:eventId — Listar sesiones
 router.get('/:eventId', authMiddleware(), (req, res) => {
@@ -31,7 +33,7 @@ router.get('/:eventId', authMiddleware(), (req, res) => {
 });
 
 // POST /api/sessions/:eventId/conflicts — Check time conflicts
-router.post('/:eventId/conflicts', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId/conflicts', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
@@ -75,7 +77,7 @@ router.post('/:eventId/conflicts', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
 });
 
 // POST /api/sessions/:eventId — Crear sesion (with conflict check)
-router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
@@ -118,7 +120,7 @@ router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 });
 
 // PUT /api/sessions/:eventId/:sessionId — Editar sesion (with conflict check)
-router.put('/:eventId/:sessionId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/:eventId/:sessionId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         const sId = req.params.sessionId;
@@ -167,7 +169,7 @@ router.put('/:eventId/:sessionId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
 });
 
 // DELETE /api/sessions/:eventId/:sessionId — Eliminar sesion
-router.delete('/:eventId/:sessionId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/:eventId/:sessionId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         const sId = req.params.sessionId;
@@ -183,7 +185,7 @@ router.delete('/:eventId/:sessionId', authMiddleware(['ADMIN', 'PRODUCTOR']), (r
 });
 
 // POST /api/sessions/:eventId/:sessionId/register — Registrar invitado a sesion
-router.post('/:eventId/:sessionId/register', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.post('/:eventId/:sessionId/register', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         const sId = req.params.sessionId;
@@ -222,7 +224,7 @@ router.post('/:eventId/:sessionId/register', authMiddleware(['ADMIN', 'PRODUCTOR
 });
 
 // DELETE /api/sessions/:eventId/:sessionId/register/:guestId — Desregistrar invitado
-router.delete('/:eventId/:sessionId/register/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.delete('/:eventId/:sessionId/register/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         const sId = req.params.sessionId;

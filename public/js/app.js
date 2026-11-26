@@ -7,43 +7,43 @@ window.escapeHtml = function(str) {
 };
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.847';
-import { Config } from './modules/core/Config.js?v=12.44.847';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.847';
-import { AppStateManager } from './modules/core/State.js?v=12.44.847';
-import { Constants } from './modules/utils/Constants.js?v=12.44.847';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.847';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.847';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.847';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.847';
-import { TableManager } from './modules/components/Table.js?v=12.44.847';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.847';
-import { FormManager } from './modules/components/Form.js?v=12.44.847';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.847';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.847';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.847';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.847';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.847';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.847';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.847';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.847';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.847';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.847';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.848';
+import { Config } from './modules/core/Config.js?v=12.44.848';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.848';
+import { AppStateManager } from './modules/core/State.js?v=12.44.848';
+import { Constants } from './modules/utils/Constants.js?v=12.44.848';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.848';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.848';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.848';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.848';
+import { TableManager } from './modules/components/Table.js?v=12.44.848';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.848';
+import { FormManager } from './modules/components/Form.js?v=12.44.848';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.848';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.848';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.848';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.848';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.848';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.848';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.848';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.848';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.848';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.848';
 
 // Módulos cableados en v12.44.804 (respaldo de v12.44.802, antes sin usar)
-import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.847';
-import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.847';
-import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.847';
+import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.848';
+import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.848';
+import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.848';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.847';
-import PushModule from './modules/app-push.js?v=12.44.847';
-import ThemeModule from './modules/app-theme.js?v=12.44.847';
-import { AiSecurity } from './modules/features/ai-security.js?v=12.44.847';
-import './modules/core/DelegatedEvents.js?v=12.44.847';
+import ImportExportModule from './modules/app-import.js?v=12.44.848';
+import PushModule from './modules/app-push.js?v=12.44.848';
+import ThemeModule from './modules/app-theme.js?v=12.44.848';
+import { AiSecurity } from './modules/features/ai-security.js?v=12.44.848';
+import './modules/core/DelegatedEvents.js?v=12.44.848';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.847';
+const VERSION = '12.44.848';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -9679,8 +9679,10 @@ navigate(viewName, params = {}, push = true) {
         if (!editors || editors.length === 0) { container.style.display = 'none'; return; }
         container.style.display = 'flex';
         container.innerHTML = editors.map(function(e) {
-            const name = e.userName || 'Alguien';
-            const editing = e.guestName ? ' editando ' + e.guestName : '';
+            // v12.44.848 (auditoría 2026-11-25, F2): el nombre llega por un socket sin autenticar y se insertaba sin escapar
+            const pEsc = function(v) { return window.escapeHtml ? window.escapeHtml(String(v)) : String(v); };
+            const name = pEsc(e.userName || 'Alguien');
+            const editing = e.guestName ? ' editando ' + pEsc(e.guestName) : '';
             return '<span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-green-500/10 text-green-400 border border-green-500/20"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>' + name + editing + '</span>';
         }).join('');
     },
@@ -11187,7 +11189,7 @@ navigate(viewName, params = {}, push = true) {
     _gm: null,
     async _g() {
         if (!this._gm) {
-            const m = await import('./modules/app-gamification.js?v=12.44.847');
+            const m = await import('./modules/app-gamification.js?v=12.44.848');
             this._gm = m.default || window.GamificationModule || {};
             // Bind App reference for module functions that use window.App
             if (this._gm._init) this._gm._init();
@@ -11786,7 +11788,7 @@ navigate(viewName, params = {}, push = true) {
             const isBack = (el.zIndex || 10) < 5;
             const opacity = el.opacity ?? 1;
             html += '<div class="space-y-1"><button class="btn-secondary text-xs" data-act="clickTarget" data-target="badge-logo-input-' + elId + '">Subir imagen</button><input id="badge-logo-input-' + elId + '" type="file" accept="image/*" class="hidden" data-act="call" data-call="uploadBadgeElementLogo" data-a1="' + elId + '" data-a2="@this"></div>';
-            html += '<div class="space-y-1 mt-1"><label class="text-[10px] text-slate-400">Opacidad: <span id="opacity-val-' + elId + '">' + Math.round(opacity * 100) + '%</span></label><input type="range" min="0.1" max="1" step="0.05" value="' + opacity + '" data-act="call" data-call="badgeOpacityInput" data-target="opacity-val-' + elId + '" data-a1="' + elId + '" data-a2="@this.value" class="w-full"></div>';
+            html += '<div class="space-y-1 mt-1"><label class="text-[10px] text-slate-400">Opacidad: <span id="opacity-val-' + elId + '">' + Math.round(opacity * 100) + '%</span></label><input type="range" min="0.1" max="1" step="0.05" value="' + opacity + '" data-act="badgeOpacityInput" data-target="opacity-val-' + elId + '" data-a1="' + elId + '" data-a2="@this.value" class="w-full"></div>';
             html += '<label class="flex items-center gap-2 text-xs mt-1"><input type="checkbox" ' + (isBack ? 'checked' : '') + ' data-act="call" data-call="updateBadgeElementProperty" data-a1="' + elId + '" data-a2="zIndex" data-a3="@check:1:10" class="checkbox-sm"> Al fondo</label>';
         }
         html += '<hr class="border-[var(--border)] my-2">';
@@ -11963,13 +11965,18 @@ navigate(viewName, params = {}, push = true) {
         const w = (widthMm || 90) * scale;
         const h = (heightMm || 55) * scale;
         const gd = guestData || {};
+        // v12.44.848 (auditoría 2026-11-25, F2): los datos del invitado se interpolan en innerHTML y en
+        // document.write de la ventana de impresión sin escapar (un nombre con <script> o <img onerror>
+        // se ejecutaba). bEsc escapa cada valor del gafete.
+        const bEsc = function(v, fallback) { const s = String(v == null || v === '' ? fallback : v); return window.escapeHtml ? window.escapeHtml(s) : String(s).replace(/[&<>"']/g, function(c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
+
         const typeLabels = {
-            name: gd.name || 'Maria Gonzalez',
-            org: gd.organization || 'Empresa Ejemplo',
-            cargo: gd.cargo || 'Director',
-            email: gd.email || 'email@ejemplo.com',
-            phone: gd.phone || '+52 123 456 7890',
-            text: function(el) { return el.text || 'Texto'; },
+            name: bEsc(gd.name, 'Maria Gonzalez'),
+            org: bEsc(gd.organization, 'Empresa Ejemplo'),
+            cargo: bEsc(gd.cargo, 'Director'),
+            email: bEsc(gd.email, 'email@ejemplo.com'),
+            phone: bEsc(gd.phone, '+52 123 456 7890'),
+            text: function(el) { return bEsc(el.text, 'Texto'); },
             qr: function(el) { const url = qrUrls && qrUrls[el.id]; return url ? '<img src="' + url + '" data-style="width:100%;height:100%;object-fit:contain">' : '<div data-style="width:80%;height:80%;margin:10%;background:#e5e5e5;border-radius:2px"></div>'; },
             logo: function(el) { return el.url ? '<img src="' + el.url + '" data-style="width:100%;height:100%;object-fit:contain">' : ''; }
         };
@@ -12019,7 +12026,7 @@ navigate(viewName, params = {}, push = true) {
         if (!container || !container.innerHTML.trim()) return;
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.847"></head><body>' + container.innerHTML + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.848"></head><body>' + container.innerHTML + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -12054,7 +12061,7 @@ navigate(viewName, params = {}, push = true) {
         const html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.847"></head><body>' + html + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.848"></head><body>' + html + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -12168,7 +12175,7 @@ navigate(viewName, params = {}, push = true) {
             const win = window.open('', '_blank', 'width=400,height=600');
             if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
             win.document.write('<!DOCTYPE html><html><head><title>Gafetes</title>'
-                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.847">'
+                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.848">'
                 + '</head><body class="batch">' + allHtml + '</body></html>');
             win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}

@@ -5,6 +5,8 @@ const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 const createAutomationRuleSchema = z.object({
     name: z.string().min(1, 'Nombre requerido').max(200),
@@ -22,7 +24,7 @@ const updateAutomationRuleSchema = z.object({
 });
 
 // List rules
-router.get('/events/:eventId/automation', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/events/:eventId/automation', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const rules = db.prepare("SELECT * FROM automation_rules WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         res.json(rules);
@@ -30,7 +32,7 @@ router.get('/events/:eventId/automation', authMiddleware(['ADMIN', 'PRODUCTOR'])
 });
 
 // Create rule
-router.post('/events/:eventId/automation', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/events/:eventId/automation', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const parsed = createAutomationRuleSchema.safeParse(req.body);
         if (!parsed.success) {
@@ -46,7 +48,7 @@ router.post('/events/:eventId/automation', authMiddleware(['ADMIN', 'PRODUCTOR']
 });
 
 // Update rule
-router.put('/events/:eventId/automation/:ruleId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/events/:eventId/automation/:ruleId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const parsed = updateAutomationRuleSchema.safeParse(req.body);
         if (!parsed.success) {
@@ -61,7 +63,7 @@ router.put('/events/:eventId/automation/:ruleId', authMiddleware(['ADMIN', 'PROD
 });
 
 // Delete rule
-router.delete('/events/:eventId/automation/:ruleId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/events/:eventId/automation/:ruleId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         db.prepare("DELETE FROM automation_rules WHERE id = ? AND event_id = ?").run(req.params.ruleId, req.params.eventId);
         res.json({ success: true });

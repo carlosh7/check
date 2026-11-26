@@ -5,6 +5,8 @@ const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 const createProposalSchema = z.object({
     guest_name: z.string().min(1, 'Nombre requerido').max(200),
@@ -47,7 +49,7 @@ router.post('/events/:eventId/proposals/:id/vote', (req, res) => {
 });
 
 // GET /api/events/:eventId/proposals/admin — admin list all
-router.get('/events/:eventId/proposals/admin', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/events/:eventId/proposals/admin', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const proposals = db.prepare("SELECT * FROM proposals WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         res.json(proposals);
@@ -55,7 +57,7 @@ router.get('/events/:eventId/proposals/admin', authMiddleware(['ADMIN', 'PRODUCT
 });
 
 // PUT /api/events/:eventId/proposals/:id — admin update status
-router.put('/events/:eventId/proposals/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/events/:eventId/proposals/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { status } = req.body;
         if (!['pending', 'approved', 'rejected'].includes(status)) return res.status(400).json({ error: 'Estado inválido' });
@@ -65,7 +67,7 @@ router.put('/events/:eventId/proposals/:id', authMiddleware(['ADMIN', 'PRODUCTOR
 });
 
 // DELETE /api/events/:eventId/proposals/:id
-router.delete('/events/:eventId/proposals/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/events/:eventId/proposals/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         db.prepare("DELETE FROM proposals WHERE id = ? AND event_id = ?").run(req.params.id, req.params.eventId);
         res.json({ success: true });
@@ -75,7 +77,7 @@ router.delete('/events/:eventId/proposals/:id', authMiddleware(['ADMIN', 'PRODUC
 // ─── AI Moderation (C4-10) ───
 
 // Auto-moderate a proposal: suggest status based on content analysis
-router.post('/events/:eventId/proposals/:id/moderate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/events/:eventId/proposals/:id/moderate', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const proposal = db.prepare("SELECT * FROM proposals WHERE id = ? AND event_id = ?").get(req.params.id, req.params.eventId);
         if (!proposal) return res.status(404).json({ error: 'Propuesta no encontrada' });

@@ -1,3 +1,6 @@
+// v12.44.848 (auditoría 2026-11-25, G7): solo enlaces http(s)/mailto/tel. Un premio con enlace "javascript:" ejecutaba
+// código en la página al hacer clic (esc() escapa HTML, no el esquema de la URL).
+function safeHref(u) { try { var p = String(u == null ? '' : u).trim(); if (/^(https?:|mailto:|tel:)/i.test(p)) return p; } catch (e) {} return '#'; }
 // ===== Tragamonedas — PÁGINA DE JUEGO pública (P4 — v12.44.834) =====
 // Formulario de registro → POST /play (el servidor elige el premio por probabilidades
 // y devuelve SUS símbolos) → la máquina jala la palanca, los 3 rodillos giran con
@@ -154,7 +157,7 @@ function renderResult(r){
   const syms=Array.isArray(r.symbols)?r.symbols:[];
   $('res-symbols').textContent=syms.join(' ');
   const link=(r.prize.type==='enlace'&&r.prize.value)?r.prize.value:null;
-  if(link){box.innerHTML='<span class="slp-symbols">'+esc(syms.join(' '))+'</span><a href="'+esc(link)+'" target="_blank" rel="noopener" data-style="color:#fff;font-weight:800;font-size:18px">Abrir enlace →</a>'}
+  if(link){box.innerHTML='<span class="slp-symbols">'+esc(syms.join(' '))+'</span><a href="'+safeHref(link)+'" target="_blank" rel="noopener" data-style="color:#fff;font-weight:800;font-size:18px">Abrir enlace →</a>'}
   else{box.innerHTML='<span class="slp-symbols">'+esc(syms.join(' '))+'</span><span class="slp-prize-label">🎁 Tu premio</span><span class="slp-prize">'+esc(r.prize.label)+'</span>'+(r.prize.type==='cupon'&&r.prize.value?'<span class="slp-value">Código: '+esc(r.prize.value)+'</span>':'')}
   if(data.certificate){$('btn-cert').style.display='block'}
   // jugar de nuevo según modo (paridad AppSorteos)

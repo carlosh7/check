@@ -701,3 +701,9 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 - Commit `10983ee`, tag `v12.44.847`. Producción corre SIN ROOT (uid 10001) desde `docker compose up -d`; datos con dueño 10001 y sin escritura para otros. Validación EN VIVO 8/8: respaldo del evento restorable (978 invitados, cifrado), `POST /api/system/backup` con el sistema nuevo, logs activos, salud 12.44.847, captura de la pantalla de acceso.
 - `DEPLOY_WEBHOOK_SECRET` ya no se autogenera: definirlo en el entorno si se usa el auto-despliegue por webhook.
 - Incidencia evitada: el compose del repo se copió sobre el de producción; se restauró desde el respaldo antes de recrear el contenedor. El compose de producción nunca se despliega desde el repo.
+
+## 2026-11-26 — v12.44.848 — Fase 3 de la auditoría externa 2026-11-25 (funcionalidades rotas)
+- Kiosco clicable; check-in de invitados importados/Stripe; certificados PDF; sesiones y ponentes; estadísticas sin doble conteo; al borrar un evento se borra su BD; el teclado ya no dispara acciones; gafetes sin XSS; webhook de pago; pagos (categorías, aforo, redirecciones, cupones); push; Google Sync; correo; juegos.
+- Control de acceso por evento en 113 rutas más (32 routers) y `state` de Google firmado.
+- Error real encontrado de paso: un premio con chance 0 salía ~1 de cada 100 jugadas en tragamonedas, rueda y raspa (era también la causa de un test intermitente).
+- Suite 507✓ (+18). Pendiente detallado en `docs/AUDITORIA-2026-11-25-REMEDIACION.md` §6. Deploy y validación en vivo: se anotan al cerrar.

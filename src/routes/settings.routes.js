@@ -17,7 +17,7 @@ const updateLegalSchema = z.object({
 
 const purgeSchema = z.object({
     confirm: z.literal('PURGE', { errorMap: () => ({ message: 'confirm debe ser "PURGE" para eliminar todos los datos' }) }),
-    // // v12.44.846 (auditoría 2026-11-25, H11): purgar es irreversible; además de la palabra hay que confirmar con la contraseña
+    // v12.44.846 (auditoría 2026-11-25, H11): purgar es irreversible; además de la palabra hay que confirmar con la contraseña
     password: z.string().min(1, 'Contraseña del administrador requerida')
 });
 
@@ -99,7 +99,7 @@ router.post('/purge', authMiddleware(['ADMIN']), (req, res) => {
 
     logger.warn(`[ADMIN] PURGE requested by user: ${req.userId}`);
 
-    // // v12.44.846 (auditoría 2026-11-25, H11): antes bastaba con escribir la palabra PURGE. Si las tablas quedan vacías,
+    // v12.44.846 (auditoría 2026-11-25, H11): antes bastaba con escribir la palabra PURGE. Si las tablas quedan vacías,
     // /api/setup/admin vuelve a permitir crear un ADMIN sin autenticación.
     const bcryptPurge = require('bcryptjs');
     const adminRow = db.prepare("SELECT password FROM users WHERE id = ?").get(req.userId);

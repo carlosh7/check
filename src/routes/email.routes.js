@@ -222,9 +222,9 @@ router.get('/accounts/:id', (req, res) => {
 router.post('/accounts', async (req, res) => {
     try {
         const parseResult = createAccountSchema.safeParse(req.body);
-        // // v12.44.846 (auditoría 2026-11-25, S11): la cuenta solo se puede ligar a un evento del solicitante
+        // v12.44.846 (auditoría 2026-11-25, S11): la cuenta solo se puede ligar a un evento del solicitante
         if (!canUseEventRow(req, (req.body || {}).event_id)) return res.status(403).json({ error: 'No tienes acceso a este evento' });
-        // // v12.44.846 (auditoría 2026-11-25, S7): quien no es ADMIN no guarda cuentas hacia redes internas
+        // v12.44.846 (auditoría 2026-11-25, S7): quien no es ADMIN no guarda cuentas hacia redes internas
         if (req.userRole !== 'ADMIN') {
             try {
                 if (parseResult.data.smtp_host) await assertSafeMailHost(parseResult.data.smtp_host, parseInt(parseResult.data.smtp_port, 10) || 587, 'smtp');
@@ -394,7 +394,7 @@ router.post('/test-smtp', async (req, res) => {
         if (!b.smtp_host || !b.smtp_user || !b.smtp_password) {
             return res.json({ success: false, error: 'Configuración SMTP incompleta' });
         }
-        // // v12.44.846 (auditoría 2026-11-25, S7): hosts públicos (o allowlist) y puertos estándar de correo
+        // v12.44.846 (auditoría 2026-11-25, S7): hosts públicos (o allowlist) y puertos estándar de correo
         try { await assertSafeMailHost(b.smtp_host, parseInt(b.smtp_port, 10) || 587, 'smtp'); } catch (e) { return res.json({ success: false, error: e.message }); }
         const transporter = nodemailer.createTransport({
             host: b.smtp_host,
@@ -420,7 +420,7 @@ router.post('/test-imap', async (req, res) => {
         if (!b.imap_host || !b.imap_user || !b.imap_password) {
             return res.json({ success: false, error: 'Configuración IMAP incompleta' });
         }
-        // // v12.44.846 (auditoría 2026-11-25, S7): hosts públicos (o allowlist) y puertos estándar de correo
+        // v12.44.846 (auditoría 2026-11-25, S7): hosts públicos (o allowlist) y puertos estándar de correo
         try { await assertSafeMailHost(b.imap_host, parseInt(b.imap_port, 10) || 993, 'imap'); } catch (e) { return res.json({ success: false, error: e.message }); }
         const client = new ImapFlow({
             host: b.imap_host,
@@ -548,7 +548,7 @@ router.get('/templates/:id', (req, res) => {
 // POST /api/email/templates - Crear plantilla
 router.post('/templates', (req, res) => {
     try {
-        // // v12.44.846 (auditoría 2026-11-25, S11): la plantilla solo se puede ligar a un evento del solicitante
+        // v12.44.846 (auditoría 2026-11-25, S11): la plantilla solo se puede ligar a un evento del solicitante
         if (!canUseEventRow(req, (req.body || {}).event_id)) return res.status(403).json({ error: 'No tienes acceso a este evento' });
         const {
             event_id = null,
@@ -870,7 +870,7 @@ router.get('/campaigns/:id', (req, res) => {
 router.post('/campaigns', (req, res) => {
     try {
         const parseResult = createCampaignSchema.safeParse(req.body);
-        // // v12.44.846 (auditoría 2026-11-25, S11): la campaña solo se puede ligar a un evento del solicitante
+        // v12.44.846 (auditoría 2026-11-25, S11): la campaña solo se puede ligar a un evento del solicitante
         if (!canUseEventRow(req, (req.body || {}).event_id)) return res.status(403).json({ error: 'No tienes acceso a este evento' });
         if (!parseResult.success) {
             return res.status(400).json({ errors: parseResult.error.issues.map(e => `${e.path.join('.')}: ${e.message}`) });
@@ -986,7 +986,7 @@ router.post('/campaigns/:id/send', (req, res) => {
         let recipients = [];
         
         if (campaign.event_id) {
-            let query = `SELECT id, name, email, group_name, checked_in, unsubscribe_token FROM guests WHERE event_id = ? AND unsubscribed = 0 AND email IS NOT NULL AND email != ''`;
+            let query = `SELECT id, name, email, organization AS group_name, checked_in, unsubscribe_token, qr_token FROM guests WHERE event_id = ? AND unsubscribed = 0 AND email IS NOT NULL AND email != ''`;
             const params = [campaign.event_id];
 
             if (campaign.recipient_type === 'confirmed') {
@@ -994,7 +994,7 @@ router.post('/campaigns/:id/send', (req, res) => {
             } else if (campaign.recipient_type === 'pending') {
                 query += ' AND checked_in = 0';
             } else if (campaign.recipient_type === 'group' && campaign.recipient_group_id) {
-                query += ' AND group_name = ?';
+                query += ' AND organization = ?';
                 params.push(campaign.recipient_group_id);
             }
 
@@ -1028,7 +1028,7 @@ router.post('/campaigns/:id/send', (req, res) => {
                 + '<p>¿Por qué recibes este mensaje? Tus datos fueron registrados para la gestión del evento'
                 + (legalEventName ? ' <b>' + String(legalEventName).replace(/</g, '&lt;') + '</b>' : '')
                 + '. Conforme a la Ley 1581 de 2012 puedes solicitar acceso, actualización, rectificación o supresión de tus datos.</p>'
-                + '<p><a href="' + legalFooterBase + '/api/public/unsubscribe/' + token + '" style="color:#64748b">No quiero recibir más mensajes</a></p></div>';
+                + '<p><a href="' + legalFooterBase + '/api/unsubscribe/' + token + '" style="color:#64748b">No quiero recibir más mensajes</a></p></div>';
         };
         
         if (recipients.length === 0) {
@@ -1041,8 +1041,17 @@ router.post('/campaigns/:id/send', (req, res) => {
             VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)
         `);
         
+        // v12.44.848 (auditoría 2026-11-25, N10): las plantillas usan {{guest_first_name}}, {{event_name}} y {{qr_code}}, que nunca
+        // llegaban al destinatario y salían literales en el correo.
+        const campaignEvent = campaign.event_id ? getEmailDb().prepare('SELECT name FROM events WHERE id = ?').get(campaign.event_id) : null;
         for (const r of recipients) {
-            const recipientData = JSON.stringify({ name: r.name, email: r.email });
+            const recipientData = JSON.stringify({
+                name: r.name, email: r.email,
+                guest_first_name: String(r.name || '').trim().split(/\s+/)[0] || '',
+                guest_name: r.name, guest_email: r.email,
+                event_name: (campaignEvent && campaignEvent.name) || '',
+                qr_code: r.qr_token || ''
+            });
             // L-1B.2: cada correo sale con fuente de datos + opt-out (Ley 1335)
             const htmlWithFooter = campaign.body_html + buildLegalFooter(r);
             queueInsert.run(uuidv4(), campaign.id, account.id, r.email, recipientData, campaign.subject, htmlWithFooter, new Date().toISOString());
@@ -1244,7 +1253,7 @@ if (process.env.NODE_ENV !== 'test') {
 // POST /api/email/send - Enviar email individual
 router.post('/send', limiters.emailLimiter, async (req, res) => {
     try {
-        // // v12.44.846 (auditoría 2026-11-25, S11): solo cuentas de eventos del solicitante
+        // v12.44.846 (auditoría 2026-11-25, S11): solo cuentas de eventos del solicitante
         if (!assertMailAccount(req, res, (req.body || {}).account_id)) return;
         const { account_id, to, subject, body_html, body_text, variables = {} } = req.body;
         
@@ -1318,7 +1327,7 @@ router.post('/send', limiters.emailLimiter, async (req, res) => {
 // GET /api/email/mailbox/folders - Obtener carpetas IMAP
 router.get('/mailbox/folders', async (req, res) => {
     try {
-        // // v12.44.846 (auditoría 2026-11-25, S11): solo cuentas de eventos del solicitante
+        // v12.44.846 (auditoría 2026-11-25, S11): solo cuentas de eventos del solicitante
         if (!assertMailAccount(req, res, req.query.account_id)) return;
         const { account_id } = req.query;
         
@@ -1363,7 +1372,7 @@ router.get('/mailbox/folders', async (req, res) => {
 // GET /api/email/mailbox/messages - Obtener mensajes de una carpeta
 router.get('/mailbox/messages', async (req, res) => {
     try {
-        // // v12.44.846 (auditoría 2026-11-25, S11): solo cuentas de eventos del solicitante
+        // v12.44.846 (auditoría 2026-11-25, S11): solo cuentas de eventos del solicitante
         if (!assertMailAccount(req, res, req.query.account_id)) return;
         const { account_id, folder = 'INBOX', limit = 50, offset = 0 } = req.query;
         
@@ -1435,7 +1444,7 @@ router.get('/mailbox/messages', async (req, res) => {
 // GET /api/email/mailbox/message/:uid - Obtener mensaje completo
 router.get('/mailbox/message/:uid', async (req, res) => {
     try {
-        // // v12.44.846 (auditoría 2026-11-25, S11): solo cuentas de eventos del solicitante
+        // v12.44.846 (auditoría 2026-11-25, S11): solo cuentas de eventos del solicitante
         if (!assertMailAccount(req, res, req.query.account_id)) return;
         const { account_id, folder = 'INBOX' } = req.query;
         const { uid } = req.params;
@@ -1624,7 +1633,7 @@ function processEmailQueue(campaignId, account) {
 // GET /email/mailbox/attachment/:uid - Descargar adjunto de mensaje
 router.get('/mailbox/attachment/:uid', async (req, res) => {
     try {
-        // // v12.44.846 (auditoría 2026-11-25, S11): solo cuentas de eventos del solicitante
+        // v12.44.846 (auditoría 2026-11-25, S11): solo cuentas de eventos del solicitante
         if (!assertMailAccount(req, res, req.query.account_id)) return;
         const { account_id, folder = 'INBOX', attachmentIndex } = req.query;
         const { uid } = req.params;

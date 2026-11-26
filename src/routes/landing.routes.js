@@ -7,9 +7,11 @@ const { castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // Guardar configuración de landing page
-router.put('/:eventId/config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/:eventId/config', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID inválido' });
@@ -21,7 +23,7 @@ router.put('/:eventId/config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
 });
 
 // Obtener configuración de landing page
-router.get('/:eventId/config', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/:eventId/config', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID inválido' });

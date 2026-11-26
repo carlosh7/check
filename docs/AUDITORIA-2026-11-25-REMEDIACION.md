@@ -55,7 +55,7 @@ Conteos propios que coinciden con el informe: tests 455 pasan / 1 omitido; ESLin
 | 0 — verdad de producción | — | ✅ cerrada (arriba) |
 | 1 — parche de seguridad | v12.44.846 | ✅ cerrada — `967645d`, desplegada y validada en vivo |
 | 2 — respaldos y persistencia | v12.44.847 | ✅ cerrada — `10983ee`, desplegada y validada en vivo |
-| 3 — funcionalidades rotas | v12.44.848 | ⏳ pendiente |
+| 3 — funcionalidades rotas | v12.44.848 | 🔄 despliegue en curso |
 | 4 — CI verde y tests | v12.44.849 | ⏳ pendiente |
 
 Cada fase cierra con: bump de versión (4 archivos), commit, tag, push, deploy por rsync + restart,
@@ -166,3 +166,46 @@ Guía de usuario: `docs/user/07-administracion/09-cifrado-datos.md`.
 repositorio (plantilla de desarrollo) encima del de producción. Se detectó al revisar el compose antes de
 recrear el contenedor; se restauró desde el respaldo (misma huella que el original) y solo se aplicaron los
 dos cambios previstos. Regla desde aquí: el compose de producción nunca se despliega desde el repo.
+
+## 6. Fase 3 — funcionalidades rotas (v12.44.848)
+
+| ID | Estado | Evidencia |
+|----|--------|-----------|
+| F10 | ✅ | `kiosk.js`: una comilla mal cerrada tragaba `data-act`; los resultados de búsqueda del kiosco no eran clicables |
+| D4 | ✅ | `guests.routes.js` check-in: el estado se lee de la BD donde se escribe. Los invitados importados o de Stripe (solo en la BD del evento) daban 404 y no se podía deshacer su check-in |
+| S11 | ✅ | `src/middleware/event-access.js` (nuevo) aplicado a 113 rutas con `:eventId` en 32 routers (+ las de eventos e invitados de la Fase 1) |
+| S8 | ✅ | `google.routes.js`: el `state` de OAuth va firmado y caduca; un PRODUCTOR solo enlaza Google a su grupo (se me había escapado en la Fase 1) |
+| D7 | ✅ | `stats.routes.js`: en la BD maestra se ignoran los invitados que también están en la BD del evento (el total salía casi duplicado) |
+| D5 | ✅ | `events.routes.js`: al borrar un evento se elimina su BD (quedaba huérfana con los datos de los invitados) |
+| D9 | ✅ | `session_speakers` creada en el esquema maestro y en las BDs de evento (borrar sesión o ponente daba 500) |
+| N2 | ✅ | `certificates.routes.js`: alias `tm` inexistente (el PDF de certificados daba 500) |
+| N17 | ✅ | `tenants.routes.js`: columna `users.email` inexistente |
+| N19 | ✅ | `stats.routes.js`: `strftime` sin fecha agrupaba todo en el mes actual |
+| N15 | ✅ | `plugin-engine.js`: 9 argumentos para 8 marcadores (los plugins de ejemplo nunca se creaban) |
+| N16 | ✅ | `events.routes.js` clonar: la lista de columnas usaba columnas inexistentes (los invitados no se copiaban) |
+| F6 | ✅ | `DelegatedEvents.js`: el teclado ya no dispara acciones `data-act` (Tab o Escape sobre un botón ejecutaba su acción); solo `onEnter` |
+| F8, F9, F7 | ✅ | `thenCall` pasa sus argumentos; el control de opacidad del gafete llega a su caso; `clearCall` con el separador correcto |
+| F2 | ✅ | `app.js`: datos del invitado escapados al imprimir gafetes y en la presencia por socket |
+| N13 | ✅ | `payments.routes.js` usa `payment.completed` (el webhook de pago nunca se disparaba); el kiosco importa `triggerWebhooks` del módulo correcto |
+| N4, N5, N6 | ✅ | Rutas tapadas: resultados públicos de sondeos (401), reordenar preguntas de encuesta, listado de plugins |
+| D3 | ✅ | `payments.routes.js`: las categorías se buscan en la BD del evento (todo checkout daba 400) |
+| N14 | ✅ | `payments.routes.js`: aforo por categoría, cantidad máxima, aviso claro sin `STRIPE_SECRET_KEY`, URLs de retorno solo a orígenes permitidos (`PAYMENT_RETURN_ORIGINS`) |
+| D11 | ✅ | Un cupón no se consume si ya llegó a su máximo |
+| N11 | ✅ | `push.routes.js`: suscripción con sesión; estado `APPROVED` (antes 0 destinatarios) |
+| N12 | ✅ | `google.routes.js`: la sincronización automática llama al propio proceso con token (401 perpetuo) |
+| N10 | ✅ parcial | `email.routes.js`: columna inexistente, enlace de baja y variables de plantilla. Pendiente: campañas programadas y el servicio de correo (caché del límite diario, un transport por correo) |
+| N7 | ✅ | Quiz: el enlace público no entrega la respuesta correcta y los controles del anfitrión exigen sesión. Un test anterior exigía la fuga; se invirtió |
+| N8 | ✅ | Trivia: una respuesta inválida ya no devuelve la correcta. **Error real encontrado al ir:** un premio con chance 0 pesaba 1 en vez de 0 (salía ~1 de cada 100 jugadas) en tragamonedas, rueda y raspa |
+| N9 | ✅ | Sorteos: la página pública ya no entrega email y teléfono de los ganadores |
+| G7 | ✅ | Los enlaces de premio y del landing solo admiten `http(s)`, `mailto` y `tel` |
+
+Pruebas: `tests/functionality-audit-2026-11-25.test.js` (18). Suite total: 27 suites, 507 pasan, 1 omitido.
+ESLint: 0 errores, 631 avisos (límite del CI: 520 → Fase 4).
+
+### Pendiente tras la Fase 3 (no hecho, con su sitio)
+
+- Frontend: boleto digital (`ticket.html`/`ticket.js`, F11), registro con pago (`registro.js`, F12), portal del asistente (`portal.html`/`portal.js`, F13), calendario (`calendar.js`, F14), 6 atributos `@fn:` en `app.js` (F15), `ai-security.js:55` (F16), editor 3D (F17), resto de interpolaciones sin escapar (F4).
+- Frontend: service worker y PWA (G2), `socket.io` no se carga en la aplicación (G3), cierre de sesión que duplica modales (G4), id de encuesta en gamificación (G6), accesibilidad (G9), imports internos de módulos con `?v=` distintos (G1).
+- Backend: módulos que leen solo la BD maestra (D6: listado de invitados, certificados, networking, leaderboard, SMS, API v1, chatbot); cola de campañas programadas y servicio de correo (N10).
+- Backend: motor de plugins `vm` (S5, inalcanzable hoy), `socket.io` sin autenticación (S6), inyección de fórmulas en 10 exports CSV (H12), rendimiento P1-P11, `deploy.routes.js` sin candado (I6).
+- Infra y tests: 24 routers sin tests, scripts que abren `check_app.db`, Swagger/SDK desactualizados (I8-I12) → Fase 4.

@@ -61,7 +61,7 @@ afterAll(function() {
 describe('Quiz CRUD', () => {
     test('crea un quiz', async () => {
         if (!adminToken) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/events/' + eventId + '/quizzes')
             .set('Authorization', 'Bearer ' + adminToken)
             .send({ name: 'Trivia K1' });
@@ -73,7 +73,7 @@ describe('Quiz CRUD', () => {
 
     test('rechaza crear sin nombre', async () => {
         if (!adminToken) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/events/' + eventId + '/quizzes')
             .set('Authorization', 'Bearer ' + adminToken)
             .send({});
@@ -89,7 +89,7 @@ describe('Quiz CRUD', () => {
 
     test('guarda preguntas completas (PUT reemplaza atómicamente)', async () => {
         if (!adminToken || !quizId) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .put('/api/quizzes/' + quizId)
             .set('Authorization', 'Bearer ' + adminToken)
             .send({
@@ -106,7 +106,7 @@ describe('Quiz CRUD', () => {
                 ]
             });
         expect(res.status).toBe(200);
-        const get = await request(createTestApp())
+        const get = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .get('/api/quizzes/' + quizId)
             .set('Authorization', 'Bearer ' + adminToken);
         expect(get.status).toBe(200);
@@ -117,7 +117,7 @@ describe('Quiz CRUD', () => {
 
     test('rechaza pregunta sin respuesta correcta', async () => {
         if (!adminToken || !quizId) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .put('/api/quizzes/' + quizId)
             .set('Authorization', 'Bearer ' + adminToken)
             .send({
@@ -130,7 +130,7 @@ describe('Quiz CRUD', () => {
 
     test('rechaza V/F con más de 2 respuestas', async () => {
         if (!adminToken || !quizId) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .put('/api/quizzes/' + quizId)
             .set('Authorization', 'Bearer ' + adminToken)
             .send({
@@ -142,7 +142,7 @@ describe('Quiz CRUD', () => {
 
     test('lista quizzes del evento con conteo de preguntas', async () => {
         if (!adminToken || !quizId) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .get('/api/quizzes/events/' + eventId + '/quizzes')
             .set('Authorization', 'Bearer ' + adminToken);
         expect(res.status).toBe(200);
@@ -155,15 +155,16 @@ describe('Quiz CRUD', () => {
 describe('Enlace compartido (política ruleta)', () => {
     test('GET público devuelve el quiz publicado con preguntas', async () => {
         if (!quizId) return;
-        const res = await request(createTestApp()).get('/api/quizzes/' + quizId + '/public');
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/' + quizId + '/public');
         expect(res.status).toBe(200);
         expect(res.body.questions.length).toBe(3);
-        expect(res.body.questions[0].answers.some(a => a.correct)).toBe(true);
+        // v12.44.848 (auditoría 2026-11-25, N7): el enlace público NO entrega la respuesta correcta (el test anterior lo exigía)
+        expect(res.body.questions[0].answers.every(a => a.correct === undefined)).toBe(true);
     });
 
     test('PUT public-config permite guardar sin login en publicado', async () => {
         if (!quizId) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .put('/api/quizzes/' + quizId + '/public-config')
             .send({ config: { title: 'Desde el enlace' } });
         expect(res.status).toBe(200);
@@ -172,7 +173,7 @@ describe('Enlace compartido (política ruleta)', () => {
 
     test('rechaza public-config con questions inválidas', async () => {
         if (!quizId) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .put('/api/quizzes/' + quizId + '/public-config')
             .send({ questions: [{ type: 'quiz', title: 'Mala', answers: [{ text: 'A', correct: false }, { text: 'B', correct: false }] }] });
         expect(res.status).toBe(400);
@@ -182,7 +183,7 @@ describe('Enlace compartido (política ruleta)', () => {
 describe('Ciclo de partida completo', () => {
     test('abre sesión con PIN de 7 dígitos', async () => {
         if (!quizId) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/' + quizId + '/sessions')
             .set('Authorization', 'Bearer ' + adminToken)
             .send({});
@@ -194,7 +195,7 @@ describe('Ciclo de partida completo', () => {
 
     test('host-state inicial: lobby, sin pregunta', async () => {
         if (!sessionId) return;
-        const res = await request(createTestApp()).get('/api/quizzes/sessions/' + sessionId + '/host-state');
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/sessions/' + sessionId + '/host-state');
         expect(res.status).toBe(200);
         expect(res.body.status).toBe('lobby');
         expect(res.body.totalQuestions).toBe(3);
@@ -203,7 +204,7 @@ describe('Ciclo de partida completo', () => {
 
     test('jugador A se une con apodo', async () => {
         if (!pin) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/public/session/' + pin + '/join')
             .send({ nickname: 'Carlos' });
         expect(res.status).toBe(200);
@@ -213,13 +214,13 @@ describe('Ciclo de partida completo', () => {
 
     test('apodo duplicado recibe sufijo', async () => {
         if (!pin) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/public/session/' + pin + '/join')
             .send({ nickname: 'Carlos' });
         expect(res.status).toBe(200);
         expect(res.body.nickname).toBe('Carlos2');
         playerB = res.body;
-        const r3 = await request(createTestApp())
+        const r3 = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/public/session/' + pin + '/join')
             .send({ nickname: 'Ana' });
         playerC = r3.body;
@@ -231,14 +232,14 @@ describe('Ciclo de partida completo', () => {
 
     test('apodo prohibido rechazado', async () => {
         if (!pin) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/public/session/' + pin + '/join')
             .send({ nickname: 'admin' });
         expect(res.status).toBe(400);
     });
 
     test('PIN inexistente rechazado', async () => {
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/public/session/9999999/join')
             .send({ nickname: 'X' });
         expect(res.status).toBe(404);
@@ -246,11 +247,11 @@ describe('Ciclo de partida completo', () => {
 
     test('mostrar pregunta 1 abre el estado question', async () => {
         if (!sessionId) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/sessions/' + sessionId + '/show-question')
             .send({ index: 0 });
         expect(res.status).toBe(200);
-        const st = await request(createTestApp()).get('/api/quizzes/sessions/' + sessionId + '/host-state');
+        const st = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/sessions/' + sessionId + '/host-state');
         expect(st.body.status).toBe('question');
         expect(st.body.question.title).toMatch(/capital de Colombia/);
         expect(st.body.question.answers.length).toBe(4);
@@ -258,7 +259,7 @@ describe('Ciclo de partida completo', () => {
 
     test('estado público OCULTA las respuestas correctas durante la pregunta', async () => {
         if (!pin) return;
-        const res = await request(createTestApp()).get('/api/quizzes/public/session/' + pin + '/state');
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/public/session/' + pin + '/state');
         expect(res.status).toBe(200);
         expect(res.body.status).toBe('question');
         expect(res.body.question.answers.every(a => a.correct === undefined)).toBe(true);
@@ -267,9 +268,9 @@ describe('Ciclo de partida completo', () => {
 
     test('responder correcto y rápido puntúa alto (A)', async () => {
         if (!pin || !playerA) return;
-        const st = await request(createTestApp()).get('/api/quizzes/sessions/' + sessionId + '/host-state');
+        const st = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/sessions/' + sessionId + '/host-state');
         const qid = st.body.question.id;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/public/answer')
             .send({ pin: pin, playerId: playerA.playerId, questionId: qid, answerIndex: 0 });
         expect(res.status).toBe(200);
@@ -280,9 +281,9 @@ describe('Ciclo de partida completo', () => {
 
     test('responder incorrecto da 0 puntos (B)', async () => {
         if (!pin || !playerB) return;
-        const st = await request(createTestApp()).get('/api/quizzes/sessions/' + sessionId + '/host-state');
+        const st = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/sessions/' + sessionId + '/host-state');
         const qid = st.body.question.id;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/public/answer')
             .send({ pin: pin, playerId: playerB.playerId, questionId: qid, answerIndex: 1 });
         expect(res.status).toBe(200);
@@ -292,9 +293,9 @@ describe('Ciclo de partida completo', () => {
 
     test('respuesta duplicada rechazada', async () => {
         if (!pin || !playerA) return;
-        const st = await request(createTestApp()).get('/api/quizzes/sessions/' + sessionId + '/host-state');
+        const st = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/sessions/' + sessionId + '/host-state');
         const qid = st.body.question.id;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/public/answer')
             .send({ pin: pin, playerId: playerA.playerId, questionId: qid, answerIndex: 2 });
         expect(res.status).toBe(400);
@@ -303,10 +304,10 @@ describe('Ciclo de partida completo', () => {
 
     test('respuestas cerradas tras reveal se rechazan', async () => {
         if (!pin || !playerC) return;
-        await request(createTestApp()).post('/api/quizzes/sessions/' + sessionId + '/reveal').send({});
-        const st = await request(createTestApp()).get('/api/quizzes/sessions/' + sessionId + '/host-state');
+        await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).post('/api/quizzes/sessions/' + sessionId + '/reveal').send({});
+        const st = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/sessions/' + sessionId + '/host-state');
         const qid = st.body.question.id;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/public/answer')
             .send({ pin: pin, playerId: playerC.playerId, questionId: qid, answerIndex: 0 });
         expect(res.status).toBe(400);
@@ -315,25 +316,25 @@ describe('Ciclo de partida completo', () => {
 
     test('reveal muestra correctas en el estado público y conteos en host', async () => {
         if (!pin) return;
-        const st = await request(createTestApp()).get('/api/quizzes/sessions/' + sessionId + '/host-state');
+        const st = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/sessions/' + sessionId + '/host-state');
         expect(st.body.status).toBe('reveal');
         expect(st.body.answerCounts.filter(n => n > 0).length).toBe(2);
         expect(st.body.correctCount).toBe(1);
-        const pub = await request(createTestApp()).get('/api/quizzes/public/session/' + pin + '/state');
+        const pub = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/public/session/' + pin + '/state');
         expect(pub.body.question.answers.some(a => a.correct === true)).toBe(true);
     });
 
     test('flujo pregunta 2 V/F con puntos dobles y racha', async () => {
         if (!pin || !playerA || !playerC) return;
-        await request(createTestApp()).post('/api/quizzes/sessions/' + sessionId + '/scoreboard').send({});
-        await request(createTestApp()).post('/api/quizzes/sessions/' + sessionId + '/show-question').send({ index: 1 });
-        const st = await request(createTestApp()).get('/api/quizzes/sessions/' + sessionId + '/host-state');
+        await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).post('/api/quizzes/sessions/' + sessionId + '/scoreboard').send({});
+        await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).post('/api/quizzes/sessions/' + sessionId + '/show-question').send({ index: 1 });
+        const st = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/sessions/' + sessionId + '/host-state');
         expect(st.body.question.type).toBe('true_false');
         const qid = st.body.question.id;
         // A acierta de nuevo (racha 2 → bonus 100); C acierta (racha 1 → sin bonus)
-        const ra = await request(createTestApp()).post('/api/quizzes/public/answer')
+        const ra = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).post('/api/quizzes/public/answer')
             .send({ pin: pin, playerId: playerA.playerId, questionId: qid, answerIndex: 0 });
-        const rc = await request(createTestApp()).post('/api/quizzes/public/answer')
+        const rc = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).post('/api/quizzes/public/answer')
             .send({ pin: pin, playerId: playerC.playerId, questionId: qid, answerIndex: 0 });
         expect(ra.body.isCorrect).toBe(true);
         expect(rc.body.isCorrect).toBe(true);
@@ -345,47 +346,47 @@ describe('Ciclo de partida completo', () => {
 
     test('scoreboard ordena por puntos', async () => {
         if (!sessionId) return;
-        const sb = await request(createTestApp()).post('/api/quizzes/sessions/' + sessionId + '/scoreboard').send({});
+        const sb = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).post('/api/quizzes/sessions/' + sessionId + '/scoreboard').send({});
         expect(sb.status).toBe(200);
         expect(sb.body.top[0].nickname).toBe('Carlos');
-        const st = await request(createTestApp()).get('/api/quizzes/sessions/' + sessionId + '/host-state');
+        const st = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/sessions/' + sessionId + '/host-state');
         expect(st.body.status).toBe('scoreboard');
         expect(st.body.top).toBeTruthy();
     });
 
     test('podio cierra la partida y el estado público refleja ended', async () => {
         if (!sessionId || !pin) return;
-        const res = await request(createTestApp()).post('/api/quizzes/sessions/' + sessionId + '/podio').send({});
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).post('/api/quizzes/sessions/' + sessionId + '/podio').send({});
         expect(res.status).toBe(200);
         expect(res.body.top.length).toBe(3);
         expect(res.body.top[0].nickname).toBe('Carlos');
-        const pub = await request(createTestApp()).get('/api/quizzes/public/session/' + pin + '/state');
+        const pub = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/public/session/' + pin + '/state');
         expect(pub.body.status).toBe('ended');
         expect(pub.body.top.length).toBe(3);
     });
 
     test('expulsar jugador elimina sus respuestas', async () => {
         if (!sessionId || !playerB) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .delete('/api/quizzes/sessions/' + sessionId + '/players/' + playerB.playerId);
         expect(res.status).toBe(200);
-        const st = await request(createTestApp()).get('/api/quizzes/sessions/' + sessionId + '/host-state');
+        const st = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/sessions/' + sessionId + '/host-state');
         expect(st.body.players.find(p => p.id === playerB.playerId)).toBeUndefined();
     });
 
     test('reacciones: emoji válido aceptado, inválido rechazado, spam 429', async () => {
         if (!pin || !playerA) return;
         // la partida terminó; react exige sesión viva → reabrimos lobby
-        await request(createTestApp()).post('/api/quizzes/sessions/' + sessionId + '/lobby').send({});
-        const ok = await request(createTestApp())
+        await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).post('/api/quizzes/sessions/' + sessionId + '/lobby').send({});
+        const ok = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/public/session/' + pin + '/react')
             .send({ playerId: playerA.playerId, emoji: '👍' });
         expect(ok.status).toBe(200);
-        const bad = await request(createTestApp())
+        const bad = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/public/session/' + pin + '/react')
             .send({ playerId: playerA.playerId, emoji: '🔥' });
         expect(bad.status).toBe(400);
-        const spam = await request(createTestApp())
+        const spam = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .post('/api/quizzes/public/session/' + pin + '/react')
             .send({ playerId: playerA.playerId, emoji: '👏' });
         expect(spam.status).toBe(429);
@@ -393,9 +394,10 @@ describe('Ciclo de partida completo', () => {
 
     test('export CSV requiere token y trae BOM UTF-8', async () => {
         if (!quizId) return;
+        // v12.44.848: los controles del anfitrión exigen token; esta llamada va SIN token a propósito
         const res = await request(createTestApp()).get('/api/quizzes/' + quizId + '/export-csv');
         expect(res.status).toBe(401);
-        const ok = await request(createTestApp())
+        const ok = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .get('/api/quizzes/' + quizId + '/export-csv')
             .set('Authorization', 'Bearer ' + adminToken);
         expect(ok.status).toBe(200);
@@ -405,7 +407,7 @@ describe('Ciclo de partida completo', () => {
 
     test('resultados listan sesiones con top', async () => {
         if (!quizId) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .get('/api/quizzes/' + quizId + '/results')
             .set('Authorization', 'Bearer ' + adminToken);
         expect(res.status).toBe(200);
@@ -415,7 +417,7 @@ describe('Ciclo de partida completo', () => {
 
     test('QR responde imagen PNG', async () => {
         if (!quizId) return;
-        const res = await request(createTestApp()).get('/api/quizzes/' + quizId + '/qr?pin=' + (pin || '1234567'));
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken).get('/api/quizzes/' + quizId + '/qr?pin=' + (pin || '1234567'));
         expect(res.status).toBe(200);
         expect(res.headers['content-type']).toMatch(/image\/png/);
     });
@@ -424,7 +426,7 @@ describe('Ciclo de partida completo', () => {
 describe('Quiz DELETE', () => {
     test('borra quiz y deja huérfanos en cero', async () => {
         if (!adminToken || !quizId) return;
-        const res = await request(createTestApp())
+        const res = await request.agent(createTestApp()).set('Authorization', 'Bearer ' + adminToken)
             .delete('/api/quizzes/' + quizId)
             .set('Authorization', 'Bearer ' + adminToken);
         expect(res.status).toBe(200);

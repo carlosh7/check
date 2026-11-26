@@ -6,6 +6,8 @@ const { authMiddleware } = require('../middleware/auth');
 const { checkUrlAllowed } = require('../security/network-policy');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // ─── SMART TAGGING (C9-04) ───
 router.get('/guests/:eventId/tags', authMiddleware(), (req, res) => {
@@ -15,7 +17,7 @@ router.get('/guests/:eventId/tags', authMiddleware(), (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/guests/:eventId/tags', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/guests/:eventId/tags', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { name, color, filter_criteria } = req.body;
         if (!name) return res.status(400).json({ error: 'Nombre requerido' });
@@ -44,7 +46,7 @@ router.post('/guests/:eventId/tags', authMiddleware(['ADMIN', 'PRODUCTOR']), (re
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.delete('/guests/:eventId/tags/:tagId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/guests/:eventId/tags/:tagId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         db.prepare("DELETE FROM guest_tags WHERE id=?").run(req.params.tagId);
         db.prepare("DELETE FROM guest_tag_assignments WHERE tag_id=?").run(req.params.tagId);
@@ -52,7 +54,7 @@ router.delete('/guests/:eventId/tags/:tagId', authMiddleware(['ADMIN', 'PRODUCTO
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/guests/:eventId/guests/:guestId/tags', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/guests/:eventId/guests/:guestId/tags', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { tag_id } = req.body;
         if (!tag_id) return res.status(400).json({ error: 'tag_id requerido' });
@@ -61,7 +63,7 @@ router.post('/guests/:eventId/guests/:guestId/tags', authMiddleware(['ADMIN', 'P
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-router.delete('/guests/:eventId/guests/:guestId/tags/:tagId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/guests/:eventId/guests/:guestId/tags/:tagId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         db.prepare("DELETE FROM guest_tag_assignments WHERE guest_id=? AND tag_id=?").run(req.params.guestId, req.params.tagId);
         res.json({ success: true });

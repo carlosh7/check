@@ -53,6 +53,8 @@ const { logAction } = require('../security/audit');
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // ── helpers ──
 
@@ -203,7 +205,7 @@ function replaceQuestions(triviaId, questions) {
 
 // ── CRUD (anfitrión, JWT) ──
 
-router.get('/events/:eventId/trivias', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/events/:eventId/trivias', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const list = db.prepare("SELECT * FROM trivias WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         list.forEach(function(t) {
@@ -216,7 +218,7 @@ router.get('/events/:eventId/trivias', authMiddleware(['ADMIN', 'PRODUCTOR', 'OR
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/events/:eventId/trivias', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/events/:eventId/trivias', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { name } = req.body || {};
         if (!name || !String(name).trim()) return res.status(400).json({ error: 'Nombre requerido' });
@@ -493,7 +495,7 @@ router.post('/:id/verify', (req, res) => {
         const answer = parseInt((req.body && req.body.answer));
         if (isNaN(qi) || qi < 0 || qi >= rows.length) return res.status(400).json({ error: 'Pregunta inválida' });
         const answers = parseJsonSafe(rows[qi].answers_json, []);
-        if (isNaN(answer) || answer < 0 || answer >= answers.length) return res.json({ correct: false, answered: false, correct_index: rows[qi].correct_index });
+        if (isNaN(answer) || answer < 0 || answer >= answers.length) return res.json({ correct: false, answered: false }); // v12.44.848 (auditoría 2026-11-25, N8): con { answer: -1 } devolvía la respuesta correcta
         res.json({ correct: answer === rows[qi].correct_index, answered: true, correct_index: rows[qi].correct_index });
     } catch (err) {
         logger.error('[TRIVIA] Verify error:', err.message);

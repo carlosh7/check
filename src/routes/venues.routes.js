@@ -9,6 +9,8 @@ const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // Listar todos los espacios
 router.get('/', authMiddleware(), (req, res) => {
@@ -90,7 +92,7 @@ router.delete('/:id', authMiddleware(['ADMIN']), (req, res) => {
 });
 
 // Asignar venue a evento
-router.put('/:id/assign/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/:id/assign/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const venueId = castId('venues', req.params.id);
         const eventId = castId('events', req.params.eventId);

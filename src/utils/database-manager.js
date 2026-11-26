@@ -811,6 +811,15 @@ function createEventTables(db, eventId) {
             metadata_json TEXT,
             created_at TEXT, completed_at TEXT
         )`); // v12.44.846 (auditoría 2026-11-25, D8): sin la clave foránea a guests(event_id) (no es clave única → "foreign key mismatch")
+    // v12.44.848 (auditoría 2026-11-25, D9): session_speakers se usa en sesiones y ponentes pero no tenía CREATE TABLE.
+    try {
+        db.exec(`CREATE TABLE IF NOT EXISTS session_speakers (
+            session_id TEXT NOT NULL,
+            speaker_id TEXT NOT NULL,
+            created_at TEXT,
+            PRIMARY KEY (session_id, speaker_id)
+        )`);
+    } catch (_) {}
     } catch (_) {}
     // Crear índices para mejor rendimiento
     const indices = [
@@ -915,7 +924,8 @@ function repairEventDatabase(db, eventId) {
             WHERE type='table' AND sql LIKE '%REFERENCES guests(event_id)%'
         `).all();
         const txMissing = !db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='transactions'").get();
-        if (badFkTables.length > 0 || txMissing) {
+        const ssMissing = !db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='session_speakers'").get();
+        if (badFkTables.length > 0 || txMissing || ssMissing) {
             db.pragma('foreign_keys = OFF');
             db.transaction(() => {
                 for (const row of badFkTables) {
@@ -941,7 +951,7 @@ function repairEventDatabase(db, eventId) {
                     db.exec('DROP TABLE ' + table + '_fk_old');
                     console.warn('⚠️ [REPAIR] Tabla ' + table + ' reconstruida sin la clave foránea inválida en el evento ' + eventId);
                 }
-                if (txMissing) createEventTables(db, eventId);
+                if (txMissing || ssMissing) createEventTables(db, eventId);
             })();
             db.pragma('foreign_keys = ON');
         }

@@ -10,6 +10,8 @@ const { authMiddleware } = require('../middleware/auth');
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // GET /api/compliance/classification — Listar clasificaciones de datos
 router.get('/classification', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
@@ -79,7 +81,7 @@ router.delete('/classification/:id', authMiddleware(['ADMIN']), (req, res) => {
 });
 
 // GET /api/events/:eventId/guests/:guestId/export — Portabilidad de datos (exportar datos del invitado en JSON)
-router.get('/events/:eventId/guests/:guestId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/events/:eventId/guests/:guestId/export', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         // v12.44.842 (seguridad): el evento debe ser del usuario (antes cualquier
         // PRODUCTOR/ORGANIZER podía pedir datos de invitados de eventos ajenos)
@@ -294,7 +296,7 @@ function anonymizeGuestPersonalData(eventId, guestId, eventDb) {
 }
 
 // DELETE /api/events/:eventId/guests/:guestId/personal-data — Derecho al olvido (anonimizar datos personales)
-router.delete('/events/:eventId/guests/:guestId/personal-data', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/events/:eventId/guests/:guestId/personal-data', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         // v12.44.842 (seguridad): el evento debe ser del usuario (antes cualquier
         // PRODUCTOR/ORGANIZER podía pedir datos de invitados de eventos ajenos)
@@ -438,7 +440,7 @@ router.post('/consent', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 });
 
 // GET /api/compliance/consent/:eventId — Get consent status for event
-router.get('/consent/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/consent/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const logs = db.prepare(`
             SELECT cl.*, g.name as guest_name, g.email as guest_email
@@ -452,7 +454,7 @@ router.get('/consent/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
 });
 
 // GET /api/compliance/consent/:eventId/stats — Consent stats
-router.get('/consent/:eventId/stats', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/consent/:eventId/stats', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const stats = db.prepare(`
             SELECT consent_type, 
@@ -470,7 +472,7 @@ router.get('/consent/:eventId/stats', authMiddleware(['ADMIN', 'PRODUCTOR']), (r
 // GET /api/compliance/consent/:eventId/export — Export de consentimientos (CSV)
 // L-1A.4 (v12.44.818): evidencia de autorización para el expediente del organizador
 // (Responsable) y del operador (Encargado) ante la SIC.
-router.get('/consent/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/consent/:eventId/export', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const csvEscape = (v) => {
             const s = v == null ? '' : String(v);

@@ -10,6 +10,8 @@ const { authMiddleware } = require('../middleware/auth');
 const { getEventDb } = require('../utils/event-db');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 function getQuestionsWithType(templateId) {
     const eDb = db;
@@ -23,7 +25,7 @@ function getQuestionsWithType(templateId) {
 
 // ── CRUD Survey Templates ──
 
-router.get('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const templates = db.prepare("SELECT * FROM survey_templates WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         res.json(templates);
@@ -40,7 +42,7 @@ const createSuggestionSchema = z.object({
     suggestion: z.string().min(1, 'Sugerencia requerida').max(2000)
 });
 
-router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const result = createSurveyTemplateSchema.safeParse(req.body);
         if (!result.success) {
@@ -120,7 +122,9 @@ router.post('/templates/:templateId/questions', authMiddleware(['ADMIN', 'PRODUC
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.put('/questions/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/questions/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res, next) => {
+    // v12.44.848 (auditoría 2026-11-25, N5): /questions/reorder caía aquí como id='reorder' y nunca reordenaba. Se cede el paso.
+    if (req.params.id === 'reorder') return next();
     try {
         const { type, title, description, options, required, order_index, section, image_url, has_other, conditional } = req.body;
         db.prepare("UPDATE survey_questions SET type = COALESCE(?, type), title = COALESCE(?, title), description = COALESCE(?, description), options_json = COALESCE(?, options_json), required = COALESCE(?, required), order_index = COALESCE(?, order_index), section = COALESCE(?, section), image_url = COALESCE(?, image_url), has_other = COALESCE(?, has_other), conditional_json = COALESCE(?, conditional_json) WHERE id = ?").run(
@@ -314,7 +318,7 @@ router.get('/templates/:templateId/export/csv', authMiddleware(['ADMIN', 'PRODUC
 
 // ── Sugerencias + Agenda (legacy, mantener compatibilidad) ──
 
-router.get('/:eventId/suggestions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/:eventId/suggestions', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     const eventId = castId('events', req.params.eventId);
     const targetDb = getEventDb(eventId);
     const suggestions = targetDb.prepare("SELECT gs.*, g.name as guest_name FROM guest_suggestions gs LEFT JOIN guests g ON gs.guest_id = g.id WHERE gs.event_id = ? ORDER BY gs.submitted_at DESC").all(eventId);
@@ -334,14 +338,14 @@ router.post('/:eventId/suggestions', (req, res) => {
     res.json({ success: true });
 });
 
-router.get('/:eventId/agenda', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.get('/:eventId/agenda', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     const eventId = castId('events', req.params.eventId);
     const targetDb = getEventDb(eventId);
     const agenda = targetDb.prepare("SELECT * FROM event_agenda WHERE event_id = ? ORDER BY start_time").all(eventId);
     res.json(agenda);
 });
 
-router.put('/:eventId/agenda', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/:eventId/agenda', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     const eventId = castId('events', req.params.eventId);
     const { items } = req.body;
     const targetDb = getEventDb(eventId);

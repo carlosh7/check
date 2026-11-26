@@ -10,6 +10,8 @@ const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 const UPLOAD_DIR = process.env.DATA_PATH ? path.join(process.env.DATA_PATH, 'photos') : path.join(__dirname, '../../uploads/photos');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
@@ -72,7 +74,7 @@ router.get('/:eventId', (req, res) => {
 });
 
 // Listar todas las fotos (admin — incluye no aprobadas)
-router.get('/:eventId/admin', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/:eventId/admin', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const photos = db.prepare("SELECT ep.*, g.name as guest_name FROM event_photos ep LEFT JOIN guests g ON g.id = ep.guest_id WHERE ep.event_id = ? ORDER BY ep.approved ASC, ep.created_at DESC").all(req.params.eventId);
         photos.forEach(function(p) { p.url = '/uploads/photos/' + p.filename; });
@@ -89,7 +91,7 @@ router.patch('/:eventId/:photoId/approve', authMiddleware(['ADMIN', 'PRODUCTOR']
 });
 
 // Rechazar/Eliminar foto
-router.delete('/:eventId/:photoId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/:eventId/:photoId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const photo = db.prepare("SELECT * FROM event_photos WHERE id = ? AND event_id = ?").get(req.params.photoId, req.params.eventId);
         if (photo && photo.filename) {

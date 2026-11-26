@@ -87,9 +87,10 @@ function act(node, event) {
         }
         case 'badgeOpacityInput': {
             const lbl = target(d.target);
-            if (lbl) lbl.textContent = Math.round(parseFloat(d.a2) * 100) + '%';
+            const opacityVal = parseFloat(expandArg(d.a2, node)); // v12.44.848 (auditoría 2026-11-25, F9): @this.value llegaba como texto literal
+            if (lbl) lbl.textContent = Math.round(opacityVal * 100) + '%';
             const fn = resolve('updateBadgeElementProperty');
-            if (fn) fn(d.a1, 'opacity', parseFloat(d.a2));
+            if (fn) fn(d.a1, 'opacity', opacityVal);
             break;
         }
         case 'parentRemoveShow':
@@ -172,7 +173,8 @@ function act(node, event) {
         }
         case 'thenCall': {
             const fn = resolve(d.call);
-            if (fn) fn();
+            // v12.44.848 (auditoría 2026-11-25, F8): no se pasaban data-a1…a4 → «openEvent(undefined)» desde el autocompletado
+            if (fn) fn(...[d.a1, d.a2, d.a3, d.a4].filter(a => a !== undefined).map(a => expandArg(a, node)));
             if (d.then) {
                 const [m, arg] = d.then.split(':');
                 const fn2 = resolve(m);
@@ -185,12 +187,24 @@ function act(node, event) {
     }
 }
 
+// v12.44.848 (auditoría 2026-11-25, F6): solo eventos de usuario disparan acciones. Antes cualquier tecla (Tab, Escape, Enter…)
+// sobre un elemento enfocado con data-act ejecutaba su acción: Tab sobre «Eliminar asistencia»
+// abría la confirmación de borrado. El teclado solo cuenta para data-act="onEnter".
+const ACT_KEY_EVENTS = { onEnter: ['keydown'] };
+const USER_EVENT_TYPES = ['click', 'submit', 'input', 'change', 'focus', 'blur'];
+function eventTriggersAct(kind, type) {
+    if (kind === 'block') return true; // debe poder cancelar el evento que sea
+    if (ACT_KEY_EVENTS[kind]) return ACT_KEY_EVENTS[kind].includes(type);
+    return USER_EVENT_TYPES.includes(type);
+}
+
 function handle(event) {
     let node = event.target;
     while (node && node !== document) {
         if (node.dataset && node.dataset.act) {
             // en submit el interés es el form; en el resto, el elemento con data-act
             if (event.type === 'submit' && node.tagName !== 'FORM') { node = node.parentElement; continue; }
+            if (!eventTriggersAct(node.dataset.act, event.type)) return;
             act(node, event);
             return;
         }

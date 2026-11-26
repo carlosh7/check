@@ -10,6 +10,8 @@ const { authMiddleware } = require('../middleware/auth');
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // ============================================================================
 // RUTAS ESPECÍFICAS (sin parámetros dinámicos) - deben ir PRIMERO
@@ -284,7 +286,7 @@ router.post('/:id/events', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), 
 });
 
 // Quitar un evento del cliente
-router.delete('/:id/events/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), (req, res) => {
+router.delete('/:id/events/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), requireEventAccess(), (req, res) => {
     const clientId = castId('clients', req.params.id);
     const eventId = castId('events', req.params.eventId);
     

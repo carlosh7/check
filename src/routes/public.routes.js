@@ -202,7 +202,9 @@ router.post('/kiosk/checkin', (req, res) => {
         targetDb.prepare("UPDATE guests SET checked_in = 1, checkin_time = ?, status = 'attended' WHERE id = ?").run(new Date().toISOString(), guest.id);
         // Trigger webhook
         try {
-            const wh = require('./webhooks.routes');
+            // v12.44.848 (auditoría 2026-11-25, N13): se importaba desde ./webhooks.routes, que solo exporta el router → el webhook de
+            // check-in del kiosco nunca se disparaba.
+            const wh = require('../utils/webhooks');
             if (wh && wh.triggerWebhooks) wh.triggerWebhooks('guest.checked_in', { guest_id: guest.id, event_id: guest.event_id, name: guest.name, email: guest.email, source: 'kiosk' }, guest.event_id).catch(function() {});
         } catch(e) {}
         // Emit socket event

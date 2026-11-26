@@ -13,6 +13,8 @@ const { authMiddleware } = require('../middleware/auth');
 const logger = require('../utils/logger');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // ────────────────────────────────────────────────
 // CAMPOS PERSONALIZADOS DE REGISTRO
@@ -34,7 +36,7 @@ function safeParse(json, fallback) {
     try { const v = JSON.parse(json); return v || fallback; } catch (_) { return fallback; }
 }
 
-router.get('/:eventId/reg-fields', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/:eventId/reg-fields', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const rows = db.prepare("SELECT * FROM registration_fields WHERE event_id = ? ORDER BY sort_order ASC").all(req.params.eventId);
         rows.forEach(r => { r.options = safeParse(r.options_json, []); delete r.options_json; });
@@ -42,7 +44,7 @@ router.get('/:eventId/reg-fields', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANI
     } catch (e) { logger.error('[REGFIELDS] list:', e.message); res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.post('/:eventId/reg-fields', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId/reg-fields', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     const parsed = fieldSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.issues.map(i => i.message).join(', ') });
     try {
@@ -61,7 +63,7 @@ router.post('/:eventId/reg-fields', authMiddleware(['ADMIN', 'PRODUCTOR']), (req
     } catch (e) { logger.error('[REGFIELDS] create:', e.message); res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.put('/:eventId/reg-fields/:fieldId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/:eventId/reg-fields/:fieldId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const b = req.body;
         db.prepare(`UPDATE registration_fields SET label = COALESCE(?, label), field_type = COALESCE(?, field_type),
@@ -78,7 +80,7 @@ router.put('/:eventId/reg-fields/:fieldId', authMiddleware(['ADMIN', 'PRODUCTOR'
     } catch (e) { logger.error('[REGFIELDS] update:', e.message); res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.delete('/:eventId/reg-fields/:fieldId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/:eventId/reg-fields/:fieldId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         db.prepare("DELETE FROM registration_field_values WHERE field_id = ?").run(req.params.fieldId);
         db.prepare("DELETE FROM registration_fields WHERE id = ? AND event_id = ?").run(req.params.fieldId, req.params.eventId);
@@ -108,7 +110,7 @@ router.get('/:eventId/public/registration-form', (req, res) => {
 // SPONSORS / EXPOSITORES + LEAD RETRIEVAL
 // ────────────────────────────────────────────────
 
-router.get('/:eventId/sponsors', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/:eventId/sponsors', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const sponsors = db.prepare(`SELECT s.*, COUNT(l.id) as lead_count
                                      FROM sponsors s LEFT JOIN sponsor_leads l ON l.sponsor_id = s.id
@@ -117,7 +119,7 @@ router.get('/:eventId/sponsors', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZE
     } catch (e) { res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.post('/:eventId/sponsors', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId/sponsors', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     const b = req.body || {};
     if (!b.name) return res.status(400).json({ error: 'Nombre requerido' });
     try {
@@ -128,7 +130,7 @@ router.post('/:eventId/sponsors', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, 
     } catch (e) { logger.error('[SPONSORS] create:', e.message); res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.delete('/:eventId/sponsors/:sponsorId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/:eventId/sponsors/:sponsorId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         db.prepare("DELETE FROM sponsor_leads WHERE sponsor_id = ?").run(req.params.sponsorId);
         db.prepare("DELETE FROM sponsors WHERE id = ? AND event_id = ?").run(req.params.sponsorId, req.params.eventId);
@@ -137,7 +139,7 @@ router.delete('/:eventId/sponsors/:sponsorId', authMiddleware(['ADMIN', 'PRODUCT
 });
 
 // Lead retrieval: escanear credencial de invitado en booth del patrocinador
-router.post('/:eventId/sponsors/:sponsorId/scan', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'ORGANIZER']), (req, res) => {
+router.post('/:eventId/sponsors/:sponsorId/scan', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const { guest_id, notes } = req.body || {};
         if (!guest_id) return res.status(400).json({ error: 'guest_id requerido' });
@@ -169,7 +171,7 @@ router.post('/:eventId/sponsors/:sponsorId/scan', authMiddleware(['ADMIN', 'PROD
     } catch (e) { logger.error('[SPONSORS] scan:', e.message); res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.get('/:eventId/sponsors/:sponsorId/leads', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/:eventId/sponsors/:sponsorId/leads', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const leads = db.prepare(`SELECT l.*, g.name as guest_name, g.email as guest_email, g.organization
                                   FROM sponsor_leads l LEFT JOIN guests g ON g.id = l.guest_id
@@ -179,7 +181,7 @@ router.get('/:eventId/sponsors/:sponsorId/leads', authMiddleware(['ADMIN', 'PROD
 });
 
 // ROI básico: leads por tier para el dashboard del patrocinador
-router.get('/:eventId/sponsors-roi/summary', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/:eventId/sponsors-roi/summary', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const rows = db.prepare(`SELECT s.tier, COUNT(l.id) as total_leads
                                  FROM sponsors s LEFT JOIN sponsor_leads l ON l.sponsor_id = s.id

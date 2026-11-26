@@ -1,3 +1,6 @@
+// v12.44.848 (auditoría 2026-11-25, G7): solo enlaces http(s)/mailto/tel. Un premio con enlace "javascript:" ejecutaba
+// código en la página al hacer clic (esc() escapa HTML, no el esquema de la URL).
+function safeHref(u) { try { var p = String(u == null ? '' : u).trim(); if (/^(https?:|mailto:|tel:)/i.test(p)) return p; } catch (e) {} return '#'; }
 // ===== Raspa y Gana — PÁGINA DE JUEGO pública (P2 — v12.44.834) =====
 // Formulario de registro → el servidor elige el premio (POST /play) → aparece la
 // TARJETA con capa dorada que se raspa con el mouse/dedo (canvas +
@@ -191,7 +194,7 @@ function renderResult(r){
   $('res-desc').textContent=r.prize.win?(t.winDesc||''):(t.loseDesc||'');
   const link=(r.prize.type==='enlace'&&r.prize.value)?r.prize.value:null;
   if(link){
-    $('res-prize-box').innerHTML='<span class="rzp-prize-label">🎁 Tu premio</span><span class="rzp-prize">'+esc(r.prize.label)+'</span><a href="'+esc(link)+'" target="_blank" rel="noopener" data-style="color:#fff;font-weight:800">Abrir enlace →</a>';
+    $('res-prize-box').innerHTML='<span class="rzp-prize-label">🎁 Tu premio</span><span class="rzp-prize">'+esc(r.prize.label)+'</span><a href="'+safeHref(link)+'" target="_blank" rel="noopener" data-style="color:#fff;font-weight:800">Abrir enlace →</a>';
   }else{
     $('res-prize-box').innerHTML='<span class="rzp-prize-label">'+(r.prize.win?'🎁 Tu premio':'🎫 Resultado')+'</span><span class="rzp-prize">'+esc(r.prize.label)+'</span>'+(r.prize.type==='cupon'&&r.prize.value?'<span class="rzp-value">Código: '+esc(r.prize.value)+'</span>':'');
   }

@@ -7,6 +7,8 @@ const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // ─── Leaderboard público ───
 
@@ -56,7 +58,7 @@ router.get('/:eventId/badges', (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.post('/:eventId/badges', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId/badges', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { name, description, icon, criteria, points_reward } = req.body;
         if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre requerido' });
@@ -69,7 +71,7 @@ router.post('/:eventId/badges', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.delete('/:eventId/badges/:badgeId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/:eventId/badges/:badgeId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         db.prepare("DELETE FROM guest_badges WHERE badge_id = ?").run(req.params.badgeId);
         db.prepare("DELETE FROM badges WHERE id = ? AND event_id = ?").run(req.params.badgeId, req.params.eventId);

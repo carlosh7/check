@@ -41,6 +41,8 @@ const { logAction } = require('../security/audit');
 
 const logger = require("../utils/logger");
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // ── helpers ──
 
@@ -132,9 +134,13 @@ function pickPrize(prizes, config) {
     });
     if (!pool.length) return null;
     const weights = pool.map(function(p) {
-        if (config.limit_chances && p.chance != null && parseFloat(p.chance) > 0) return parseFloat(p.chance);
+        // v12.44.848 (auditoría 2026-11-25, N8): un premio con chance 0 (pensado para no salir nunca) caía en el caso por defecto
+        // y recibía peso 1: con «100 %» frente a «0 %», el 0 % salía ~1 de cada 100 jugadas.
+        if (config.limit_chances && p.chance != null) return Math.max(0, parseFloat(p.chance) || 0);
         return 1;
     });
+    // Si todos los pesos son 0 (todo en 0 %), se reparte a partes iguales para no bloquear el juego
+    if (weights.every(function(w) { return w === 0; })) return { prize: pool[Math.floor(Math.random() * pool.length)], indexInPool: 0 };
     const total = weights.reduce(function(a, b) { return a + b; }, 0);
     let r = Math.random() * total;
     for (let i = 0; i < pool.length; i++) {
@@ -146,7 +152,7 @@ function pickPrize(prizes, config) {
 
 // ── CRUD (anfitrión, JWT) ──
 
-router.get('/events/:eventId/raspas', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/events/:eventId/raspas', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const list = db.prepare("SELECT * FROM raspas WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         list.forEach(function(f) {
@@ -159,7 +165,7 @@ router.get('/events/:eventId/raspas', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORG
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/events/:eventId/raspas', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/events/:eventId/raspas', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { name } = req.body || {};
         if (!name || !String(name).trim()) return res.status(400).json({ error: 'Nombre requerido' });

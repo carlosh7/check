@@ -8,10 +8,12 @@ const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+// v12.44.848 (auditoría 2026-11-25, S11): control de acceso al evento en las rutas con :eventId
+const { requireEventAccess } = require('../middleware/event-access');
 
 // ─── CRUD Polls (Admin) ───
 
-router.get('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const polls = db.prepare("SELECT * FROM polls WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
         polls.forEach(function(p) {
@@ -35,7 +37,7 @@ const createPollSchema = z.object({
     })).optional()
 });
 
-router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const result = createPollSchema.safeParse(req.body);
         if (!result.success) {
@@ -59,7 +61,7 @@ router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.get('/:eventId/:pollId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/:eventId/:pollId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
         const poll = db.prepare("SELECT * FROM polls WHERE id = ? AND event_id = ?").get(req.params.pollId, req.params.eventId);
         if (!poll) return res.status(404).json({ error: 'Encuesta no encontrada' });
@@ -70,7 +72,7 @@ router.get('/:eventId/:pollId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.put('/:eventId/:pollId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/:eventId/:pollId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         const { title, description, type, session_id, points, time_limit_seconds, correct_answer, status } = req.body;
         db.prepare("UPDATE polls SET title = COALESCE(?, title), description = COALESCE(?, description), type = COALESCE(?, type), session_id = COALESCE(?, session_id), points = COALESCE(?, points), time_limit_seconds = COALESCE(?, time_limit_seconds), correct_answer = COALESCE(?, correct_answer), status = COALESCE(?, status), updated_at = ? WHERE id = ? AND event_id = ?").run(
@@ -92,7 +94,7 @@ router.put('/:eventId/:pollId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.delete('/:eventId/:pollId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.delete('/:eventId/:pollId', authMiddleware(['ADMIN', 'PRODUCTOR']), requireEventAccess(), (req, res) => {
     try {
         db.prepare("DELETE FROM poll_votes WHERE poll_id = ?").run(req.params.pollId);
         db.prepare("DELETE FROM poll_options WHERE poll_id = ?").run(req.params.pollId);
@@ -114,7 +116,11 @@ router.patch('/:eventId/:pollId/status', authMiddleware(['ADMIN', 'PRODUCTOR']),
 
 // ─── Resultados (Admin) ───
 
-router.get('/:eventId/:pollId/results', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+router.get('/:eventId/:pollId/results', function(req, res, next) {
+    // v12.44.848 (auditoría 2026-11-25, N4): /public/:pollId/results caía en esta ruta como eventId='public' y respondía 401 siempre.
+    // Se cede el paso a la ruta pública registrada más abajo.
+    return req.params.eventId === 'public' ? next('route') : next();
+}, authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
         const poll = db.prepare("SELECT * FROM polls WHERE id = ? AND event_id = ?").get(req.params.pollId, req.params.eventId);
         if (!poll) return res.status(404).json({ error: 'Encuesta no encontrada' });
