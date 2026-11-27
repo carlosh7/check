@@ -18,7 +18,7 @@
  * Enlace compartido (política del dueño, igual que ruleta/raspa): las trivias
  * publicadas se EDITAN y controlan sin clave desde el enlace; auditado.
  *
- * @openapi
+ * (documento informativo; el spec OpenAPI real se genera en scripts/generate-openapi.js)
  * tags:
  *   - name: Trivias
  *     description: Trivia promocional (leads + puntuaciones + premio por aprobación)
