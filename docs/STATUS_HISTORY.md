@@ -721,3 +721,8 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 - Socket.io: JWT por conexión; salas de evento con sesión, quiz abierto a jugadores; identidad del editor inmune a suplantación.
 - Lint 631→247 (0 errores) sin borrar nada vivo; prueba de humo de 299 escrituras que encontró y cerró 4 errores reales (entre ellos PUT de eventos, que fallaba con CUALQUIER actualización parcial).
 - Suite 513✓ (+2 suites: escritura y routers con prefijos reales). Deploy y validación en vivo: se anotan al cerrar.
+
+## 2026-11-27 — v12.44.851 — cierre de la segunda remediación (correcciones de la validación en vivo)
+- by-id y búsqueda por qr_token también en BDs de evento; categorías públicas sin la columna inexistente; voto múltiple completo (frontend + backend + migración FK de poll_votes/leaderboard/point_history).
+- Producción: 33 archivos md5 idéntico, migración "✓ 3 tabla(s) reconstruidas", validación en vivo 21/21.
+- Suite 516✓ (+3: by-id, categorías, voto múltiple con una fila por opción y puntos una sola vez).

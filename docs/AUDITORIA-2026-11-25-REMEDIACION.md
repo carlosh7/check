@@ -303,3 +303,29 @@ Suite al cerrar: 29 suites, 513 pasan (al empezar el plan: 25 suites, 455).
 - Migración CSP completa de los onclick de las páginas (la limpieza real de las funciones "sin usar" de esas páginas).
 - Pooling del transport de correo (rendimiento). D6 parcial: quedan lecturas solo-maestra en chatbot (contadores) y stats/analytics.
 - Rendimiento P1-P11 y Swagger/SDK desactualizados (I12).
+
+## 10. Validación en vivo de la segunda remediación (v12.44.850/851)
+
+La primera validación en vivo (contra v12.44.850) destapó 3 fallos míos y 1 hueco hermano: `/guests/by-id`
+también leía solo la maestra (boleto 404), mi ruta de categorías usaba una columna que no existe en la BD
+de evento (500), el voto múltiple tenía frontend pero le faltaba el backend (el voto saldría sin opción),
+y al buscar al invitado por qr_token pasaba lo mismo. Corregidos en v12.44.851 `a49652b`.
+
+Además, la corrección del voto destapó el último eslabón de la cadena: `poll_votes`, `leaderboard` y
+`point_history` en la BD maestra tenían clave foránea a `guests(id)` — votar o sumar puntos de un
+invitado de evento con BD propia fallaba siempre. Migración en el arranque con reconstrucción de las 3
+tablas conservando filas y revirtiendo si el conteo no cuadra. En producción: "✓ 3 tabla(s) reconstruidas".
+(La migración falló en su primer intento por un paréntesis duplicado en el DDL reconstruido; lo detectó
+el test y lo corregí antes de desplegar.)
+
+Deploy 851: 33 archivos con md5 idéntico; salud 200 a los 6 s.
+
+**Validación final en producción: 21/21 OK** — boleto (evento + invitado por by-id, defer + canvas por
+jsdelivr), registro (categorías públicas, botones), portal (VAPID real, HTML balanceado 51/51,
+sugerencias, qrcode, voto múltiple), calendario con Bearer, invitados de la BD del evento visibles en
+listado (978) y leaderboard/networking/certificados, planificador y contador de correo, motor de socket
+con autenticación y salas quiz abiertas, smoke tests desplegados.
+
+Nota de alcance: la prueba del socket en vivo no pudo ejecutarse dentro del contenedor (socket.io-client
+no es dependencia del servidor); la puerta de autenticación quedó verificada por código desplegado y
+verifyToken. Añadir una prueba de integración de socket queda en la lista del §6.
