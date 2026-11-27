@@ -357,3 +357,19 @@ ESLint: 0 errores, 247 avisos (umbral CI 520).
 - **Validación final: 15/16 OK** — el único "FALLA" era un artefacto del script de comprobación (ventana de texto corta entre `uncaughtException` y `process.exit(1)`); verificado directo en el archivo desplegado: handler de salida presente (L616, exit(1) confirmado) y `.unref()` en los 5 intervalos.
 - En producción: analytics y bi/dashboard ven los **978 invitados** de la BD del evento (antes 0); spec OpenAPI **435 paths, versión dinámica** cargado por el servidor (Swagger vuelve a existir en producción tras estar silenciado desde siempre por dependencias de desarrollo); socket.io cargado en index y app-shell; P8 pooling; chatbot y compresión confirmados.
 - Commits: `7e178f1` (cierre), `517e7ff`+`5471468` (deps a producción, etiqueta movida — precedente v842), `04cd6dc` (anotación trivias). Etiqueta final `v12.44.852` → `04cd6dc`.
+
+## 12. Residual honesto resuelto (v12.44.853) — 2026-11-27
+
+| Bloque | Qué cerró |
+|--------|-----------|
+| Logging síncrono (P8) | `logger.js` reescrito: warn/info/debug van a un búfer por archivo y se vuelcan en lotes asíncronos (un `appendFile` por archivo cada 500 ms en vez de un syscall bloqueante por línea). **Sin perder evidencia**: error se escribe SINCRÓNICO siempre; `flushSync()` en el apagado, en el `uncaughtException` y en `process.on('exit')` como último plano; si un volcado async falla, reintenta sync. Tests: `tests/logger.test.js` |
+| Backup síncrono (P8) | `backup.js` + `encryption.js`: gzip ASÍNCRONO (`encryptBufferAsync`) y E/S con `fs.promises` en `createBackup`/`finalizeBackupFile`/`backupUploads`. El restaurar (acción puntual de admin) queda sincrónico a propósito. Descubierto y corregido en el camino: faltaba el `await` de `finalizeBackupFile` en uploads (el archivo llegaba tarde sin tracking) |
+| Funciones de páginas | `scripts/audit-page-functions.js` (nuevo): cuenta menciones reales de cada función declarada en todo el frontend, excluyendo solo el token `function NAME(` (en líneas comprimidas una línea declara una función Y llama a otras — borrar la línea entera perdía llamadas y marcaba vivas como muertas). Resultado: **480 de 480 vivas** — el HTML las invoca por `data-call` → `window[fn]`; solo 2 funciones de wheel.js muertas demostradas con grep (`openEditEntry`, `getSegIdx`) fueron eliminadas, reubicando su comentario histórico sobre `segIdxAt`. Test de bloqueo: `tests/page-functions.test.js` (deadCount === 0) |
+
+Suite al cerrar: **32 suites, 527 pasan** (×2 verificaciones del cierre). ESLint: 0 errores, 247 avisos.
+
+### Residual final
+
+- **P4** (carreras de stock en juegos): no aplicable con un solo proceso síncrono; si algún día hay varios procesos, envolver pickPrize+UPDATE en la transacción.
+- **Logging/backup**: el volumen de escritura ya no bloquea el event loop; los volcados son asíncronos con reintento sync. Costo aceptado restante: ninguno conocido.
+- **Funciones de páginas**: el auditor + test de bloqueo mantienen el inventario vivo/muerto con evidencia continua; cualquier función que quede sin invocar en el futuro la detectará el test.

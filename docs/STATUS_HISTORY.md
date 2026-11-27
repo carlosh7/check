@@ -735,3 +735,8 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 ## 2026-11-27 — v12.44.852 (etiqueta movida a `04cd6dc`) — cierre total, validación 15/16→OK
 - Validación en producción: analytics/bi ven 978 invitados; spec OpenAPI 435 paths cargado por el servidor (swagger-jsdoc/ui-express pasan a dependencies: estaban en dev y Swagger SIEMPRE estuvo silenciado en producción); handler de salida y unrefs verificados en el archivo desplegado.
 - Etiqueta v12.44.852 movida dos veces durante el cierre de swagger (deps + anotación trivias).
+
+## 2026-11-27 — v12.44.853 — residual honesto resuelto
+- Logger async por lotes con flushSync en apagado/crash/exit (errores siempre sync); backup no bloqueante (gzip async + fs.promises, await faltante de uploads corregido por test).
+- Auditor de funciones de páginas: 480/480 vivas con evidencia; 2 muertas demostradas en wheel.js eliminadas; test de bloqueo deadCount===0.
+- Suite 32 suites, 527✓. Deploy y validación en vivo: se anotan al cerrar.
