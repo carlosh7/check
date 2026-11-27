@@ -67,8 +67,10 @@ db.pragma('cache_size = -32000');
 db.pragma('foreign_keys = ON');
 
 // ═══ SCHEMA (extraído a src/utils/schema.js para mantenibilidad) ═══
-const { initSchema, seedAdminIfConfigured } = require('./src/utils/schema');
+const { initSchema, seedAdminIfConfigured, rebuildGuestFkTables } = require('./src/utils/schema');
 initSchema(db);
+// v12.44.851 (auditoría 2026-11-25, D6): migración de las tablas de gamificación (ver src/utils/schema.js)
+rebuildGuestFkTables(db);
 try { db.exec("ALTER TABLE events ADD COLUMN created_at TEXT"); } catch (_) {}
 
 // Cache para settings (evita queries repetidas)

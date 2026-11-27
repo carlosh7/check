@@ -24,6 +24,7 @@ const tenantsRoutes = require('../src/routes/tenants.routes');
 const pollsRoutes = require('../src/routes/polls.routes');
 const sessionsRoutes = require('../src/routes/sessions.routes');
 const quizzesRoutes = require('../src/routes/quizzes.routes');
+const publicRoutes = require('../src/routes/public.routes');
 
 function createTestApp() {
     const app = express();
@@ -36,6 +37,7 @@ function createTestApp() {
     app.use('/api/polls', pollsRoutes);
     app.use('/api/sessions', sessionsRoutes);
     app.use('/api/quizzes', quizzesRoutes);
+    app.use('/api', publicRoutes);
     return app;
 }
 const app = createTestApp();
@@ -215,5 +217,50 @@ describe('Excel de invitados (v12.44.849)', () => {
         const body = Buffer.isBuffer(res.body) ? res.body : Buffer.from(res.body);
         expect(body.length).toBeGreaterThan(1000);
         expect(body.slice(0, 2).toString('latin1')).toBe('PK'); // un .xlsx es un zip
+    });
+});
+
+// ─── v12.44.851: boleto público, categorías públicas y voto múltiple ───
+describe('Páginas públicas (v12.44.850/851)', () => {
+    test('F11 — /guests/by-id encuentra invitados que solo están en la BD del evento', async () => {
+        const res = await request(app).get(`/api/guests/by-id/${gOnlyEvent.id}`);
+        expect(res.status).toBe(200);
+        expect(res.body.event_id).toBe(ownEvent.id);
+    });
+    test('F12 — las categorías públicas responden sin sesión (columnas de ambas BDs)', async () => {
+        const res = await request(app).get(`/api/event/${ownEvent.id}/categories`);
+        expect(res.status).toBe(200);
+        expect(Array.isArray(res.body)).toBe(true);
+    });
+    test('F13 — el voto múltiple guarda una fila por opción y los puntos solo una vez', async () => {
+        // encuesta con 3 opciones + invitado con qr_token en la BD del evento
+        const pollId = uuidv4();
+        const optA = uuidv4(), optB = uuidv4();
+        db.prepare("INSERT INTO polls (id, event_id, title, type, status, points, created_at) VALUES (?, ?, 'QA múltiple', 'multiple', 'active', 5, ?)").run(pollId, ownEvent.id, new Date().toISOString());
+        for (const [oid, label] of [[optA, 'A'], [optB, 'B'], [uuidv4(), 'C']]) {
+            db.prepare("INSERT INTO poll_options (id, poll_id, label, order_index) VALUES (?, ?, ?, ?)").run(oid, pollId, label, 0);
+        }
+        const edb = dm.getEventConnection(ownEvent.id);
+        // usa el invitado ya insertado por beforeAll (gOnlyEvent), con su token real
+        try {
+            const res = await request(app).post(`/api/polls/public/${pollId}/vote`).send({ guest_token: 'qr-' + gOnlyEvent.id, option_ids: [optA, optB] });
+            expect(res.status).toBe(200);
+            expect(res.body.success).toBe(true);
+            const rows = db.prepare('SELECT option_id FROM poll_votes WHERE poll_id = ?').all(pollId).map(r => r.option_id).sort();
+            expect(rows).toEqual([optA, optB].sort());
+            // puntos: una sola entrada de historial (5), no 10
+            const hist = db.prepare("SELECT points FROM point_history WHERE event_id = ? AND guest_id = ? AND reason = 'poll'").all(ownEvent.id, gOnlyEvent.id);
+            expect(hist.reduce((a, h) => a + h.points, 0)).toBe(5);
+            // y una opción ajena a la encuesta se descarta
+            const res2 = await request(app).post(`/api/polls/public/${pollId}/vote`).send({ guest_token: 'qr-' + gOnlyEvent.id, option_ids: [optA, uuidv4()] });
+            expect(res2.status).toBe(400); // ya votó
+        } finally {
+            db.prepare('DELETE FROM point_history WHERE event_id = ? AND guest_id = ?').run(ownEvent.id, gOnlyEvent.id);
+            db.prepare('DELETE FROM leaderboard WHERE event_id = ? AND guest_id = ?').run(ownEvent.id, gOnlyEvent.id);
+            db.prepare('DELETE FROM poll_votes WHERE poll_id = ?').run(pollId);
+            db.prepare('DELETE FROM poll_options WHERE poll_id = ?').run(pollId);
+            db.prepare('DELETE FROM polls WHERE id = ?').run(pollId);
+            // el invitado gOnlyEvent queda como lo dejó beforeAll (no se borró)
+        }
     });
 });

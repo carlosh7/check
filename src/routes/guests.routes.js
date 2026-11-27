@@ -141,7 +141,13 @@ function eraseGuestFromEventDb(eventId, guestId) {
 router.get('/by-id/:guestId', (req, res) => {
     const gId = castId('guests', req.params.guestId);
     if (!gId) return res.status(400).json({ error: 'ID de invitado inválido' });
-    const guest = db.prepare("SELECT id, event_id, name, category_id, checked_in, guest_type, parent_guest_id FROM guests WHERE id = ?").get(gId);
+    // v12.44.851 (auditoría 2026-11-25, D6): los invitados de eventos con BD propia no estaban en la
+    // maestra y el boleto público respondía 404
+    let guest = db.prepare("SELECT id, event_id, name, category_id, checked_in, guest_type, parent_guest_id FROM guests WHERE id = ?").get(gId);
+    if (!guest) {
+        const found = require('../utils/event-db').findGuestAnywhere(gId);
+        if (found) guest = { id: found.guest.id, event_id: found.guest.event_id, name: found.guest.name, category_id: found.guest.category_id, checked_in: found.guest.checked_in, guest_type: found.guest.guest_type, parent_guest_id: found.guest.parent_guest_id };
+    }
     if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
     res.json(guest);
 });

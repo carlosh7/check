@@ -118,7 +118,7 @@ router.get('/event/:eventId/categories', (req, res) => {
         if (!exists) return res.status(404).json({ error: 'Evento no encontrado' });
         let conn = db;
         try { const { getEventDb } = require('../utils/event-db'); conn = getEventDb(eId) || db; } catch (_) {}
-        const rows = conn.prepare('SELECT id, name, price, color, description FROM guest_categories WHERE event_id = ? ORDER BY sort_order ASC, name ASC').all(eId);
+        const rows = conn.prepare('SELECT id, name, price, color FROM guest_categories WHERE event_id = ? ORDER BY sort_order ASC, name ASC').all(eId); // v12.44.851: description no existe en la BD de evento (daba 500)
         res.json(rows);
     } catch (err) { res.status(500).json({ error: 'Error al obtener categorías' }); }
 });

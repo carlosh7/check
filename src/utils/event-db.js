@@ -24,6 +24,20 @@ function guestMap(eventId, cols) {
     return map;
 }
 
+// Busca un invitado por qr_token (maestra primero, luego BDs de evento). El portal vota encuestas y
+// se conecta por networking con este token.
+function findGuestByQrToken(qrToken) {
+    let row = db.prepare('SELECT * FROM guests WHERE qr_token = ?').get(qrToken);
+    if (row) return { guest: row, conn: db, eventId: row.event_id };
+    const events = db.prepare('SELECT id FROM events WHERE has_own_db = 1').all();
+    for (const ev of events) {
+        const conn = getEventDb(ev.id);
+        row = conn.prepare('SELECT * FROM guests WHERE qr_token = ?').get(qrToken);
+        if (row) return { guest: row, conn: conn, eventId: ev.id };
+    }
+    return null;
+}
+
 // Busca un invitado por id en la BD de su evento (recorre las BDs de evento) y devuelve también la conexión
 function findGuestAnywhere(guestId) {
     const events = db.prepare('SELECT id FROM events WHERE has_own_db = 1').all();
@@ -36,4 +50,4 @@ function findGuestAnywhere(guestId) {
     return row ? { guest: row, conn: db, eventId: row.event_id } : null;
 }
 
-module.exports = { getEventDb, guestMap, findGuestAnywhere };
+module.exports = { getEventDb, guestMap, findGuestAnywhere, findGuestByQrToken };

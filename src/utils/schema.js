@@ -2194,23 +2194,21 @@ function initSchema(db) {
         CREATE TABLE IF NOT EXISTS poll_votes (
             id TEXT PRIMARY KEY, poll_id TEXT NOT NULL, guest_id TEXT,
             option_id TEXT, answer_text TEXT, voted_at TEXT DEFAULT (datetime('now')),
-            FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE,
-            FOREIGN KEY (guest_id) REFERENCES guests(id)
+            FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE
         )
     `); } catch(_) {}
     try { db.exec(`
         CREATE TABLE IF NOT EXISTS leaderboard (
             id TEXT PRIMARY KEY, event_id TEXT NOT NULL, guest_id TEXT NOT NULL,
             points INTEGER DEFAULT 0, updated_at TEXT DEFAULT (datetime('now')),
-            FOREIGN KEY (guest_id) REFERENCES guests(id), UNIQUE(event_id, guest_id)
+            UNIQUE(event_id, guest_id)
         )
     `); } catch(_) {}
     try { db.exec(`
         CREATE TABLE IF NOT EXISTS point_history (
             id TEXT PRIMARY KEY, event_id TEXT NOT NULL, guest_id TEXT NOT NULL,
             points INTEGER NOT NULL, reason TEXT, reference_id TEXT,
-            created_at TEXT DEFAULT (datetime('now')),
-            FOREIGN KEY (guest_id) REFERENCES guests(id)
+            created_at TEXT DEFAULT (datetime('now'))
         )
     `); } catch(_) {}
     try { db.exec(`
@@ -2329,4 +2327,42 @@ function seedAdminIfConfigured(db) {
     }
 }
 
-module.exports = { initSchema, seedAdminIfConfigured };
+
+// v12.44.851 (auditoría 2026-11-25, D6): las BDs maestras existentes traen claves foráneas de poll_votes/leaderboard/point_history
+// hacia guests(id); los invitados de eventos con BD propia no están en la maestra y votar o sumar
+// puntos fallaba con "FOREIGN KEY constraint failed". Reconstrucción con conservación de filas.
+function rebuildGuestFkTables(db) {
+    const clean = {
+        poll_votes: "CREATE TABLE poll_votes (id TEXT PRIMARY KEY, poll_id TEXT NOT NULL, guest_id TEXT, option_id TEXT, answer_text TEXT, voted_at TEXT DEFAULT (datetime('now')), FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE",
+        leaderboard: "CREATE TABLE leaderboard (id TEXT PRIMARY KEY, event_id TEXT NOT NULL, guest_id TEXT NOT NULL, points INTEGER DEFAULT 0, updated_at TEXT DEFAULT (datetime('now')), UNIQUE(event_id, guest_id)",
+        point_history: "CREATE TABLE point_history (id TEXT PRIMARY KEY, event_id TEXT NOT NULL, guest_id TEXT NOT NULL, points INTEGER NOT NULL, reason TEXT, reference_id TEXT, created_at TEXT DEFAULT (datetime('now'))"
+    };
+    let rebuilt = 0;
+    for (const t of Object.keys(clean)) {
+        const row = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name = ?").get(t);
+        if (!row || !/REFERENCES\s+guests/i.test(row.sql)) continue;
+        db.pragma('foreign_keys = OFF');
+        try {
+            db.exec('ALTER TABLE ' + t + ' RENAME TO ' + t + '_fk_old');
+            db.exec(clean[t] + ')');
+            const oldCols = db.prepare('PRAGMA table_info(' + t + '_fk_old)').all().map(function(c) { return c.name; });
+            const newCols = db.prepare('PRAGMA table_info(' + t + ')').all().map(function(c) { return c.name; });
+            const common = oldCols.filter(function(name) { return newCols.includes(name); });
+            db.exec('INSERT INTO ' + t + ' (' + common.join(', ') + ') SELECT ' + common.join(', ') + ' FROM ' + t + '_fk_old');
+            const oldCount = db.prepare('SELECT COUNT(*) AS c FROM ' + t + '_fk_old').get().c;
+            const newCount = db.prepare('SELECT COUNT(*) AS c FROM ' + t).get().c;
+            if (newCount !== oldCount) throw new Error('conteo no cuadra: ' + oldCount + ' -> ' + newCount);
+            db.exec('DROP TABLE ' + t + '_fk_old');
+            rebuilt++;
+        } catch (e) {
+            console.error('✗ [' + t + '] reconstrucción fallida: ' + e.message + ' — se conserva la tabla original');
+            try { db.exec('DROP TABLE IF EXISTS ' + t); db.exec('ALTER TABLE ' + t + '_fk_old RENAME TO ' + t); } catch (_) {}
+        } finally {
+            db.pragma('foreign_keys = ON');
+        }
+    }
+    if (rebuilt > 0) console.log('✓ ' + rebuilt + ' tabla(s) de gamificación reconstruidas sin la clave foránea a guests');
+    return rebuilt;
+}
+
+module.exports = { initSchema, seedAdminIfConfigured, rebuildGuestFkTables };

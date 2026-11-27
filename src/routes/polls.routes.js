@@ -179,6 +179,9 @@ router.get('/public/:eventId/active', (req, res) => {
 const votePollSchema = z.object({
     guest_token: z.string().min(1, 'Token de invitado requerido'),
     option_id: z.string().optional(),
+    // v12.44.850 (auditoría 2026-11-25, F13): encuestas de respuesta múltiple — el portal envía todas
+    // las opciones marcadas (antes solo llegaba la primera)
+    option_ids: z.array(z.string()).max(20).optional(),
     answer_text: z.string().max(5000).optional()
 });
 
@@ -189,15 +192,27 @@ router.post('/public/:pollId/vote', (req, res) => {
             return res.status(400).json({ errors: parsed.error.issues.map(function(e) { return e.path.join('.') + ': ' + e.message; }) });
         }
         const { guest_token, option_id, answer_text } = parsed.data;
-        const guest = db.prepare("SELECT id, event_id FROM guests WHERE qr_token = ?").get(guest_token);
+        // // v12.44.850 (auditoría 2026-11-25, F13): respuesta múltiple — el portal envía todas las opciones marcadas; antes solo
+        // llegaba la primera y las demás se perdían.
+        const optionIds = Array.isArray(parsed.data.option_ids) ? parsed.data.option_ids : (option_id ? [option_id] : []);
+        // v12.44.850 (auditoría 2026-11-25, D6): el invitado puede vivir en la BD de su evento
+        const found = require('../utils/event-db').findGuestByQrToken(guest_token);
+        const guest = found && found.guest;
         if (!guest) return res.status(401).json({ error: 'Invitado no encontrado' });
         const poll = db.prepare("SELECT * FROM polls WHERE id = ? AND status = 'active'").get(req.params.pollId);
         if (!poll) return res.status(404).json({ error: 'Encuesta no activa o no encontrada' });
         // Verificar si ya votó
         const existingVote = db.prepare("SELECT id FROM poll_votes WHERE poll_id = ? AND guest_id = ?").get(req.params.pollId, guest.id);
         if (existingVote) return res.status(400).json({ error: 'Ya has votado en esta encuesta' });
-        const id = uuidv4();
-        db.prepare("INSERT INTO poll_votes (id, poll_id, guest_id, option_id, answer_text) VALUES (?, ?, ?, ?, ?)").run(id, req.params.pollId, guest.id, option_id || null, answer_text || null);
+        // Solo opciones que pertenecen a esta encuesta; sin opciones válidas se guarda como respuesta libre
+        const validOptionIds = optionIds.length > 0 ? db.prepare('SELECT id FROM poll_options WHERE poll_id = ?').all(req.params.pollId).map(function(o) { return o.id; }) : [];
+        const toSave = optionIds.filter(function(oid) { return validOptionIds.includes(oid); });
+        const insertVote = db.prepare("INSERT INTO poll_votes (id, poll_id, guest_id, option_id, answer_text) VALUES (?, ?, ?, ?, ?)");
+        const insertAll = db.transaction(function() {
+            if (toSave.length === 0) insertVote.run(uuidv4(), req.params.pollId, guest.id, null, answer_text || null);
+            else for (const oid of toSave) insertVote.run(uuidv4(), req.params.pollId, guest.id, oid, answer_text || null);
+        });
+        insertAll();
         // Emitir evento en tiempo real
         try { const io = require('../../src/socket').getIO(); if (io) { io.to(poll.event_id).emit('poll_updated', { pollId: poll.id, pollTitle: poll.title }); } } catch(e) {}
         // Sumar puntos al leaderboard
