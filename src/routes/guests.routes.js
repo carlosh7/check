@@ -687,8 +687,12 @@ router.patch('/:eventId/guest-category/:guestId', authMiddleware(['ADMIN', 'PROD
         const eId = castId('events', req.params.eventId);
         const gId = castId('guests', req.params.guestId);
         const { category_id } = req.body;
+        // // v12.44.850 (auditoría 2026-11-25, I8): sin evento o invitado se respondía 500 con el error SQL crudo
+        if (!eId) return res.status(400).json({ error: 'ID invalido' });
+        if (!db.prepare('SELECT id FROM events WHERE id = ?').get(eId)) return res.status(404).json({ error: 'Evento no encontrado' });
         const targetDb = getEventDb(eId);
         const oldGuest = targetDb.prepare("SELECT category_id FROM guests WHERE id = ? AND event_id = ?").get(gId, eId);
+        if (!oldGuest) return res.status(404).json({ error: 'Invitado no encontrado' });
         targetDb.prepare("UPDATE guests SET category_id = ? WHERE id = ? AND event_id = ?").run(category_id || null, gId, eId);
         logChange(eId, 'guest', gId, 'category_changed', 'category_id', oldGuest ? oldGuest.category_id : '', category_id, req.userId);
         res.json({ success: true });

@@ -7,43 +7,43 @@ window.escapeHtml = function(str) {
 };
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.849';
-import { Config } from './modules/core/Config.js?v=12.44.849';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.849';
-import { AppStateManager } from './modules/core/State.js?v=12.44.849';
-import { Constants } from './modules/utils/Constants.js?v=12.44.849';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.849';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.849';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.849';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.849';
-import { TableManager } from './modules/components/Table.js?v=12.44.849';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.849';
-import { FormManager } from './modules/components/Form.js?v=12.44.849';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.849';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.849';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.849';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.849';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.849';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.849';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.849';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.849';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.849';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.849';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.850';
+import { Config } from './modules/core/Config.js?v=12.44.850';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.850';
+import { AppStateManager } from './modules/core/State.js?v=12.44.850';
+import { Constants } from './modules/utils/Constants.js?v=12.44.850';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.850';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.850';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.850';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.850';
+import { TableManager } from './modules/components/Table.js?v=12.44.850';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.850';
+import { FormManager } from './modules/components/Form.js?v=12.44.850';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.850';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.850';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.850';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.850';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.850';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.850';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.850';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.850';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.850';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.850';
 
 // Módulos cableados en v12.44.804 (respaldo de v12.44.802, antes sin usar)
-import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.849';
-import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.849';
-import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.849';
+import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.850';
+import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.850';
+import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.850';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.849';
-import PushModule from './modules/app-push.js?v=12.44.849';
-import ThemeModule from './modules/app-theme.js?v=12.44.849';
-import { AiSecurity } from './modules/features/ai-security.js?v=12.44.849';
-import './modules/core/DelegatedEvents.js?v=12.44.849';
+import ImportExportModule from './modules/app-import.js?v=12.44.850';
+import PushModule from './modules/app-push.js?v=12.44.850';
+import ThemeModule from './modules/app-theme.js?v=12.44.850';
+import { AiSecurity } from './modules/features/ai-security.js?v=12.44.850';
+import './modules/core/DelegatedEvents.js?v=12.44.850';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.849';
+const VERSION = '12.44.850';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -127,13 +127,13 @@ const App = window.App = {
 
 
 
-    getDefaultViewByRole(role) {
+    getDefaultViewByRole(_role) {
         // Todos los usuarios van a "Mis Eventos" después de login
         return { view: 'my-events', tab: null };
     },
 
 
-    hasPermissionForView(role, view, tab) {
+    hasPermissionForView(role, view, _tab) {
 
         if (role === 'ADMIN') return true;
         
@@ -305,7 +305,7 @@ const App = window.App = {
     // UX Helpers (C2-02)
 
 
-    navigateToCreateEvent: function(type = 'short') {
+    navigateToCreateEvent: function(_type = 'short') {
         const currentView = LS.get('current_view');
         if (currentView !== 'my-events' && currentView !== 'dashboard') {
             this.navigate('my-events');
@@ -3457,10 +3457,8 @@ const App = window.App = {
             const clientCount = getGroupClientCount(group.id);
             subtitleText = `${group.name} - ${clientCount} Clientes`;
         } else {
-            subtitleText = `${selectedGroups.length} empresas seleccionadas`;
         }
         
-        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         
         const html = `
             <div class="space-y-5" data-style="padding-right: 8px;">
@@ -3579,7 +3577,6 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
-        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         const html = `
             <div class="space-y-5" data-style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -3739,7 +3736,6 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
         const bgCard = isDark ? '#1e293b' : '#ffffff';
         const textMain = isDark ? '#f8fafc' : '#1e293b';
         const textSecondary = isDark ? '#94a3b8' : '#475569';
-        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         const html = `
             <div class="space-y-5" data-style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
@@ -3845,7 +3841,6 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
         const primaryColor = '#ec4899';
         const primaryLight = isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)';
         const subtitleText = selectedGroups.length === 1 ? `${selectedGroups[0].name}` : `${selectedGroups.length} empresas seleccionadas`;
-        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         const html = `
             <div class="space-y-5" data-style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -3930,7 +3925,6 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
         const primaryColor = '#3b82f6';
         const primaryLight = isDark ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)';
         const subtitleText = selectedGroups.length === 1 ? `${selectedGroups[0].name}` : `${selectedGroups.length} empresas seleccionadas`;
-        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         const html = `
             <div class="space-y-5" data-style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" data-style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -8851,7 +8845,7 @@ navigate(viewName, params = {}, push = true) {
         }).join('');
     },
 
-    _populateEventFilters(events) {
+    _populateEventFilters(_events) {
         // Filtro Cliente
         const clientFilter = document.getElementById('filter-event-client');
         if (clientFilter) {
@@ -11189,7 +11183,7 @@ navigate(viewName, params = {}, push = true) {
     _gm: null,
     async _g() {
         if (!this._gm) {
-            const m = await import('./modules/app-gamification.js?v=12.44.849');
+            const m = await import('./modules/app-gamification.js?v=12.44.850');
             this._gm = m.default || window.GamificationModule || {};
             // Bind App reference for module functions that use window.App
             if (this._gm._init) this._gm._init();
@@ -11287,7 +11281,7 @@ navigate(viewName, params = {}, push = true) {
             container.innerHTML = '<div class="text-center py-8 text-slate-500 border-2 border-dashed border-slate-700 rounded-xl"><p class="text-sm">Haz clic en un tipo de pregunta para agregarla</p></div>';
             return;
         }
-        container.innerHTML = this.surveyBuilderQuestions.map(function(q, i) {
+        container.innerHTML = this.surveyBuilderQuestions.map(function(q, _i) {
             const typeLabels = { short_text: '📝 Texto corto', paragraph: '📄 Párrafo', multiple_choice: '🔘 Opción múltiple', checkboxes: '✅ Casillas', dropdown: '🔽 Lista', linear_scale: '⭐ Escala', date: '📅 Fecha', time: '⏱ Hora' };
             let preview = '';
             if (q.type === 'short_text') preview = '<input type="text" class="input-field w-full mt-2" placeholder="Respuesta corta" disabled>';
@@ -12026,7 +12020,7 @@ navigate(viewName, params = {}, push = true) {
         if (!container || !container.innerHTML.trim()) return;
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.849"></head><body>' + container.innerHTML + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.850"></head><body>' + container.innerHTML + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -12061,7 +12055,7 @@ navigate(viewName, params = {}, push = true) {
         const html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.849"></head><body>' + html + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.850"></head><body>' + html + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -12175,7 +12169,7 @@ navigate(viewName, params = {}, push = true) {
             const win = window.open('', '_blank', 'width=400,height=600');
             if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
             win.document.write('<!DOCTYPE html><html><head><title>Gafetes</title>'
-                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.849">'
+                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.850">'
                 + '</head><body class="batch">' + allHtml + '</body></html>');
             win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
@@ -14584,7 +14578,6 @@ navigate(viewName, params = {}, push = true) {
     },
 
     newPromo: function() {
-        const self = this;
         const type = this.promosType;
         const meta = this.PROMO_TYPES[type];
         Swal.fire({
@@ -14736,7 +14729,7 @@ navigate(viewName, params = {}, push = true) {
         this.fetchAPI('/raffles/events/'+eId+'/raffles').then(function(raffles){
             if(!raffles||!raffles.length){list.innerHTML='<div class="text-center py-8 text-slate-500"><p>No hay ruletas. Crea una nueva.</p></div>';return}
             list.innerHTML=raffles.map(function(r){
-                const cfg=r.config||{},stats=r.stats||{};
+                const stats=r.stats||{};
                 return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors cursor-pointer" data-act="call" data-call="openWheelEditor" data-a1="' + r.id + '">' +
                     '<div class="flex items-center gap-3"><span class="text-lg">🎡</span>'+
                     '<div><p class="text-sm font-bold text-white">'+(r.name||'Sin nombre')+'</p>'+
@@ -14873,7 +14866,6 @@ navigate(viewName, params = {}, push = true) {
 
     importWheelParticipants: function(){
         const id=this._wheelState.currentId;if(!id)return;
-        const src=document.getElementById('wheel-source')?.value||'guests';
         Swal.fire({title:'Importando...',text:'Cargando participantes',allowOutsideClick:false,background:'#0f172a',color:'#fff',didOpen:function(){Swal.showLoading()}});
         this.fetchAPI('/raffles/'+id+'/populate',{method:'POST'}).then(function(r){
             Swal.close();
@@ -16254,7 +16246,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     // Editar staff desde el panel de configuración del evento
-    editStaff: function(userId, username, displayName, role) {
+    editStaff: function(userId, _username, _displayName, _role) {
         // Usar la función editUser existente
         this.editUser(userId);
     },
@@ -17754,7 +17746,7 @@ navigate(viewName, params = {}, push = true) {
             
             const attachmentsContainer = document.getElementById('mail-view-attachments');
             if (msg.attachments && msg.attachments.length > 0) {
-                attachmentsContainer.innerHTML = `<span class="text-xs font-semibold text-[var(--text-secondary)] mr-1">Adjuntos:</span>` + msg.attachments.map((a, i) => `
+                attachmentsContainer.innerHTML = `<span class="text-xs font-semibold text-[var(--text-secondary)] mr-1">Adjuntos:</span>` + msg.attachments.map((a, _i) => `
                     <button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-[var(--border)] hover:bg-[var(--bg-hover)] text-[var(--text-main)]" 
                             data-act="call" data-call="downloadAttachment" data-a1="@fn:i" data-a2="${accountId}" data-a3="${folder}" data-a4="${uid}"
                             title="${this._escapeHtml(a.filename)} (${this._formatFileSize ? this._formatFileSize(a.size || 0) : a.size || 0})">
@@ -18216,7 +18208,7 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
-    replyToEmail: function(uid, folder) {
+    replyToEmail: function(_uid, _folder) {
         const accountId = document.getElementById('mailbox-account-select')?.value;
         if (!accountId) return Swal.fire('Error', 'Selecciona una cuenta primero', 'error');
         this.openEmailComposer();
@@ -19399,11 +19391,13 @@ async function initApp() {
 
     // 3. Sockets
     if (typeof io !== 'undefined') {
-        window.App.state.socket = io();
+        // // v12.44.850 (auditoría 2026-11-25, S6): el socket presenta su JWT; sin él el servidor rechaza salas de evento reales
+        const _sockToken = (window.LS && window.LS.get('token')) || '';
+        window.App.state.socket = io(_sockToken ? { auth: { token: _sockToken } } : {});
         window.App.state.socket.on('update_stats', (id) => { if (App.state.event?.id === id) App.updateStats(); });
         window.App.state.socket.on('checkin_update', () => App.loadGuests());
         window.App.state.socket.on('live_checkin', function(data) { App.addLiveEvent(data); });
-        window.App.state.socket.on('live_checkin', function(data) { App.filterAttendance(); });
+        window.App.state.socket.on('live_checkin', function(_data) { App.filterAttendance(); });
         // F1 2026-08: eventos que el servidor emitía sin listener en el cliente
         window.App.state.socket.on('poll_updated', function(data) {
             try {
@@ -19688,7 +19682,8 @@ async function initApp() {
 
 
 
-    function loadScript(src) {
+    // eslint-disable-next-line no-unused-vars -- utilidad conservada (regla no-borrar)
+function loadScript(src) {
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = src;
@@ -20109,7 +20104,6 @@ App.renderAttendanceTable = function(attendance) {
     tbody.innerHTML = attendance.map(a => {
         const isSelected = selectedIds.includes(a.client_id);
     const statusColors = { lead: '#64748b', contacted: '#3b82f6', confirmed: '#10b981', attended: '#8b5cf6', not_interested: '#ef4444', waitlisted: '#f59e0b' };
-    const statusLabels = { lead: 'Lead', contacted: 'Contactado', confirmed: 'Confirmado', attended: 'Asistió', not_interested: 'No interesado', waitlisted: 'En espera' };
     const currentStatus = a.status || 'lead';
     const statusColor = statusColors[currentStatus] || '#64748b';
         const veganoBadge = a.vegano === 'SI' 
@@ -20499,12 +20493,12 @@ App.openAttendanceCarousel = function() {
     });
 },
 
-App.editAttendance = function(clientIds) {
+App.editAttendance = function(_clientIds) {
     // Por implementar: editar asistente(s)
     Swal.fire({ title: '✏️ Editar', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
 },
 
-App.manageAttendance = function(clientIds) {
+App.manageAttendance = function(_clientIds) {
     // Por implementar: gestionar asistentes (cambiar estado, eliminar)
     Swal.fire({ title: '⚙️ Gestionar', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
 },
@@ -21391,7 +21385,7 @@ App.checkInGuest = async function(guestId) {
     }
 };
 
-App.saveSMTPConfig = function(config) {
+App.saveSMTPConfig = function(_config) {
     Swal.fire({ title: 'Info', text: 'Funci&oacute;n en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
 };
 

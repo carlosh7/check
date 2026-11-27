@@ -15,15 +15,21 @@ const { requireEventAccess } = require('../middleware/event-access');
 router.get('/:eventId', (req, res) => {
     try {
         const top = parseInt(req.query.top) || 50;
-        const leaderboard = db.prepare(`
-            SELECT lb.guest_id, g.name as guest_name, g.organization, lb.points,
+        // // v12.44.850 (auditoría 2026-11-25, D6): los nombres de los invitados vienen de la BD del evento (JOIN imposible entre archivos)
+        const rows = db.prepare(`
+            SELECT lb.guest_id, lb.points,
                    (SELECT COUNT(*) FROM guest_badges gb WHERE gb.guest_id = lb.guest_id) as badges_count
             FROM leaderboard lb
-            LEFT JOIN guests g ON g.id = lb.guest_id
             WHERE lb.event_id = ?
             ORDER BY lb.points DESC
             LIMIT ?
         `).all(req.params.eventId, top);
+        const { guestMap } = require('../utils/event-db');
+        const guests = guestMap(req.params.eventId, 'id, name, organization');
+        const leaderboard = rows.map(function(r) {
+            const g = guests.get(r.guest_id);
+            return { guest_id: r.guest_id, guest_name: g ? g.name : 'Invitado', organization: g ? g.organization : null, points: r.points, badges_count: r.badges_count };
+        });
         res.json(leaderboard);
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });

@@ -489,10 +489,9 @@ router.get('/:id/export-csv', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']
         questions.forEach(function(q, i) { qTitle[q.id] = (i + 1) + '. ' + q.title; });
         const esc = function(v) { const s = v == null ? '' : String(v); return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
         let csv = '\uFEFFsesion_pin,jugador,apodo,pregunta,respuesta_elegida,correcta,puntos,ms,fecha\n';
-        let totalPlayers = 0;
+        // v12.44.850: el acumulador totalPlayers no lo consumía nadie (lo comprobé antes de quitarlo)
         sessions.forEach(function(s) {
             const players = db.prepare("SELECT * FROM quiz_players WHERE session_id = ? ORDER BY points DESC").all(s.id);
-            totalPlayers += players.length;
             const responses = db.prepare("SELECT * FROM quiz_responses WHERE session_id = ? ORDER BY created_at ASC").all(s.id);
             responses.forEach(function(r) {
                 const p = players.find(function(x) { return x.id === r.player_id; });

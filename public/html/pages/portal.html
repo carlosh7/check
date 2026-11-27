@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.min.css"><!-- v12.44.815: CSS externo — la CSP ya no permite el <style> que Swal inyecta -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link rel="stylesheet" href="/css/pages/portal-page.css?v=12.44.849">
+<link rel="stylesheet" href="/css/pages/portal-page.css?v=12.44.850">
 </head>
 <body role="document" aria-label="Portal del asistente">
 <div id="loading"><div><div class="sp"></div><p>Abriendo tu portal...</p></div></div>
@@ -107,7 +107,6 @@
         </div>
       </div>
     </div>
-  </div>
     </div>
   <!-- Networking -->
   <div id="networking-section" data-style="display:none">
@@ -135,6 +134,13 @@
     </div>
 
     <div class="section">
+      <h3>✨ Sugerencias para conectar</h3>
+      <div id="net-suggestions-list" data-style="padding:0 16px">
+        <p data-style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">Cargando...</p>
+      </div>
+    </div>
+
+    <div class="section">
       <h3>🤝 Tus conexiones</h3>
       <div id="net-connections-list" data-style="padding:0 16px">
         <p data-style="font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">Cargando...</p>
@@ -152,5 +158,8 @@
   <a href="#" data-act="call" data-call="switchTab" data-a1="event" data-a2="@this"><span class="icon">ℹ️</span>Evento</a>
 </div>
 
-<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.849"></script>
-  <script src="/js/pages/portal.js?v=12.44.849"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script type="module" src="/js/modules/core/DelegatedEvents.js?v=12.44.850"></script>
+  <script src="/js/pages/portal.js?v=12.44.850"></script>
+</body>
+</html>

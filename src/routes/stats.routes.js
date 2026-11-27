@@ -34,13 +34,17 @@ const { requireEventAccess } = require('../middleware/event-access');
 const statsCache = new Map();
 const CACHE_TTL = 30000; // 30 segundos
 
+
+// eslint-disable-next-line no-unused-vars -- se conserva a propósito (regla no-borrar): caché en memoria preparada; sin uso aún (los conteos van directo a BD)
 function getCached(key, ttl) {
     const entry = statsCache.get(key);
     if (entry && Date.now() - entry.ts < (ttl || CACHE_TTL)) return entry.data;
     return null;
 }
 
-function setCache(key, data, ttl) {
+
+// eslint-disable-next-line no-unused-vars -- se conserva a propósito (regla no-borrar): ídem
+function setCache(key, data, _ttl) {
     statsCache.set(key, { data, ts: Date.now() });
     if (statsCache.size > 100) {
         const oldest = [...statsCache.entries()].sort((a, b) => a[1].ts - b[1].ts)[0];

@@ -284,3 +284,22 @@ Suite al cerrar: 28 suites, 511 tests pasan, 1 omitido (al empezar: 25 suites, 4
 6. **El workflow de CI sigue desactivado**, por la congelación de GitHub. Cuando se reactive debe pasar: los dos comandos están verificados en local.
 
 **Lo que queda pendiente** está listado con su sitio en §6 (frontend, módulos que leen solo la BD maestra, resto de correo, `socket.io`, CSV) y en §7 (POST/PUT/DELETE sin prueba, ~270 avisos de variables sin usar, scripts y documentación obsoletos).
+
+## 9. Segunda remediación (v12.44.850) — los pendientes de §6 y §7
+
+| Bloque | Qué cerró |
+|--------|-----------|
+| Páginas públicas (F11-F14) | Boleto digital: script con `defer`, ruta pública del evento, html2canvas desde jsdelivr (permitido por el CSP), logo dentro del `<img>`. Registro con pago: categorías por ruta pública nueva (`GET /api/event/:id/categories`), botones del carrito sin submit, limpiar el campo condicional correcto. Portal: clave VAPID real por API, cuerpo compatible con `/push/subscribe` (que ahora acepta invitado sin sesión, con dueño obligatorio), modo offline alcanzable, `html5-qrcode` cargado, HTML balanceado (el `</div>` que cerraba `#main` antes de Networking), caja de sugerencias, voto múltiple completo (el backend acepta `option_ids`). Calendario: token Bearer en vez del header eliminado |
+| Módulos que no veían la BD del evento (D6) | Listado de invitados, API v1, predicción de inteligencia, SMS, leaderboard público, las 9 consultas de networking y los 4 puntos de certificados (listado, PDF, verificación): leen de la BD del evento con caída a la maestra, vía `guestMap`/`findGuestAnywhere` en `src/utils/event-db.js` |
+| Correo (N10) | El planificador llena la cola al activar una campaña programada (antes la activaba vacía y la marcaba SENT con 0 envíos); el contador diario del servicio se actualiza también en memoria (el caché de 60 s permitía pasarse del límite). El pooling por correo queda pendiente (rendimiento, no corrección) |
+| Socket.io (S6) | Autenticación por conexión: token válido identifica el socket, token inválido rechaza la conexión. Salas de evento real (check-in en vivo, presencia, ediciones) exigen sesión; las salas de quiz quedan abiertas a jugadores anónimos. La identidad del editor viene del JWT, no del cuerpo del mensaje (no se puede suplantar). Clientes (app y quiz) presentan su token |
+| Lint (I5) | 631 → **247 avisos, 0 errores**, sin borrar nada vivo: 25 importaciones sin uso quitadas del backend, 36 avisos reales corregidos en app.js y módulos (parámetros con `_`, cadenas muertas eliminadas), overrides documentados para páginas (funciones invocadas desde el HTML: falso positivo estructural) y para scripts/tests (dev-only). El linter cazó dos errores míos en el intento (un acumulador "sin usar" que sí lo era y un `userId` que faltaba): se corrigieron antes de commit |
+| Escrituras (I8) | `tests/routers-write-smoke.test.js`: 299 escrituras con cuerpo vacío, con ADMIN y sin token → 0 fallos. Encontró 4 errores reales corregidos: `PUT /api/events/:id` reventaba con cualquier actualización parcial (`undefined` en placeholders) y además respondía 200 para eventos inexistentes (ahora 404); cambio de categoría sin evento/invitado daba 500 (ahora 404); participante de sorteo inexistente daba 500 con la clave foránea cruda (ahora 404/400); webhook de Stripe sin secreto respondía 500 y hacía reintentar a Stripe sin fin (ahora 400) |
+
+Suite al cerrar: 29 suites, 513 pasan (al empezar el plan: 25 suites, 455).
+
+### Sigue pendiente (con su sitio)
+
+- Migración CSP completa de los onclick de las páginas (la limpieza real de las funciones "sin usar" de esas páginas).
+- Pooling del transport de correo (rendimiento). D6 parcial: quedan lecturas solo-maestra en chatbot (contadores) y stats/analytics.
+- Rendimiento P1-P11 y Swagger/SDK desactualizados (I12).

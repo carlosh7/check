@@ -715,7 +715,7 @@ function exportCsv() {
 function connectSocket(sessionId) {
   try {
     if (typeof io !== 'function') return;
-    socket = io({ transports: ['websocket', 'polling'] });
+    socket = io(Object.assign({ transports: ['websocket', 'polling'] }, getToken() ? { auth: { token: getToken() } } : {})); // // v12.44.850 (auditoría 2026-11-25, S6: el anfitrión presenta su JWT; el jugador anónimo entra solo a salas quiz:
     // el servidor ya expone 'join_event' para unirse a salas (src/socket/index.js):
     // la sala es 'quiz:{sessionId}' y también sirve para presencia sin romper nada
     socket.on('connect', function() { socket.emit('join_event', 'quiz:' + sessionId); });
@@ -934,7 +934,7 @@ function connectPlayerSocket(sessionId) {
   try {
     if (typeof io !== 'function') return;
     if (socket) { try { socket.disconnect(); } catch (e) {} }
-    socket = io({ transports: ['websocket', 'polling'] });
+    socket = io(Object.assign({ transports: ['websocket', 'polling'] }, getToken() ? { auth: { token: getToken() } } : {})); // // v12.44.850 (auditoría 2026-11-25, S6: el anfitrión presenta su JWT; el jugador anónimo entra solo a salas quiz:
     socket.on('connect', function() { if (sessionId) socket.emit('join_event', 'quiz:' + sessionId); });
     socket.on('quiz_state', function(msg) { if (msg && msg.sessionId === sessionId) fetchPlayerStateOnce(); });
     socket.on('quiz_kicked', function() { plClear(); stopTimers(); showPlView('join'); toast('Fuiste expulsado de la partida'); });

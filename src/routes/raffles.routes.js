@@ -351,8 +351,11 @@ router.get('/:id/participants', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER
 router.post('/:id/participants', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const { name, email, phone, guest_id } = req.body;
+        // // v12.44.850 (auditoría 2026-11-25, I8): sin sorteo o sin nombre se respondía 500 con el error de clave foránea crudo
+        if (!name || !String(name).trim()) return res.status(400).json({ error: 'El nombre del participante es requerido' });
+        if (!db.prepare('SELECT id FROM raffles WHERE id = ?').get(req.params.id)) return res.status(404).json({ error: 'Sorteo no encontrado' });
         const id = uuidv4();
-        db.prepare("INSERT INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, 'manual')").run(id, req.params.id, guest_id || null, name, email || '', phone || '');
+        db.prepare("INSERT INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, 'manual')").run(id, req.params.id, guest_id || null || null, name, email || '', phone || '');
         const count = db.prepare("SELECT COUNT(*) as c FROM raffle_participants WHERE raffle_id = ?").get(req.params.id).c;
         db.prepare("UPDATE raffles SET total_participants = ? WHERE id = ?").run(count, req.params.id);
         res.json({ success: true, id: id });

@@ -80,12 +80,12 @@ class Router {
     }
     
     // Obtener vista por defecto según rol
-    getDefaultViewByRole(role) {
+    getDefaultViewByRole(_role) {
         return { view: 'my-events', tab: null };
     }
     
     // Validar permisos para una vista
-    hasPermissionForView(role, view, tab) {
+    hasPermissionForView(role, view, _tab) {
         // ADMIN tiene acceso a todo
         if (role === 'ADMIN') return true;
         
@@ -136,7 +136,7 @@ class Router {
         this.navigateTo(view, { id: eventId }, true);
     }
     
-    navigateToCreateEvent(type = 'short') {
+    navigateToCreateEvent(_type = 'short') {
         // Lógica para crear evento
         
     }

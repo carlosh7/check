@@ -792,6 +792,8 @@ function initSchema(db) {
     const _settingsCache = new Map();
     const SETTINGS_CACHE_TTL = 60000; // 1 minuto
     
+
+// eslint-disable-next-line no-unused-vars -- se conserva a propósito (regla no-borrar): helper de settings dentro de initSchema; disponible para los bloques de seeds
     function getSetting(key) {
         const cached = _settingsCache.get(key);
         if (cached && Date.now() - cached.ts < SETTINGS_CACHE_TTL) {
@@ -803,11 +805,15 @@ function initSchema(db) {
         return value;
     }
     
+
+// eslint-disable-next-line no-unused-vars -- se conserva a propósito (regla no-borrar): ídem
     function setSetting(key, value) {
         db.prepare("INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)").run(key, value);
         _settingsCache.delete(key);
     }
     
+
+// eslint-disable-next-line no-unused-vars -- se conserva a propósito (regla no-borrar): ídem
     function clearSettingsCache() {
         _settingsCache.clear();
     }

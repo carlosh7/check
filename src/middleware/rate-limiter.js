@@ -5,6 +5,8 @@ const { db } = require('../../database');
 // LEGACY — sustituida en v12.44.846 por skipExempt(). Se conserva sin cambios y SIN conectar
 // (regla de no borrado). Eximía a rangos privados según req.ip, que se falsifica con
 // X-Forwarded-For cuando se llega directo al puerto (trust proxy = 1 salto).
+
+// eslint-disable-next-line no-unused-vars -- se conserva a propósito (regla no-borrar): LEGACY: sustituida por skipExempt en v12.44.846; se conserva sin conectar
 function skipLocal(req) {
     const ip = req.ip || '';
     return ip === '::1' || ip === '127.0.0.1' || ip === '::ffff:127.0.0.1' ||
@@ -14,6 +16,8 @@ function skipLocal(req) {
 // LEGACY — sustituida en v12.44.846 por getClientBucketKey(). Se conserva sin cambios y SIN
 // conectar (regla de no borrado). Mezclaba el User-Agent en la clave anónima: bastaba rotarlo
 // para reiniciar el contador.
+
+// eslint-disable-next-line no-unused-vars -- se conserva a propósito (regla no-borrar): LEGACY: sustituida por getClientBucketKey en v12.44.846; se conserva sin conectar
 function getClientKey(req) {
     // Use user ID if authenticated, fallback to IP + user-agent
     const userId = req.userId || (req.user && req.user.id) || (req.auth && req.auth.userId);

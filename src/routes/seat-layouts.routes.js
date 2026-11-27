@@ -139,10 +139,9 @@ function generateHerringbone(cfg) {
     const rows = cfg.rows || 5, cols = cfg.cols || 6;
     const seatSize = cfg.seatSize || 0.5;
     const gap = cfg.seatGap || 0.15;
-    const marginX = 0.8, marginY = 0.8;
+    const marginY = 0.8;
     const rowLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const angle = cfg.angle || 45;
-    const rad = angle * Math.PI / 180;
     const result = [];
     const blockW = (seatSize + gap) * cols;
     const centerX = roomW / 2;

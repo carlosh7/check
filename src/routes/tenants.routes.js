@@ -47,6 +47,8 @@ router.use(function(req, res, next) {
 });
 
 // Tenant data isolation middleware
+
+// eslint-disable-next-line no-unused-vars -- se conserva a propósito (regla no-borrar): el aislamiento real se aplica con hasEventAccess en cada ruta (auditoría S11); se conserva como referencia
 function tenantIsolation(req, res, next) {
     if (req.tenant) {
         // Attach tenant_id to queries that need isolation
@@ -62,7 +64,7 @@ router.get('/api/tenants', authMiddleware(['ADMIN']), (req, res) => {
 
 router.post('/api/tenants', authMiddleware(['ADMIN']), (req, res) => {
     try {
-        const { name, slug, domain, logo_url, primary_color, welcome_text, max_events, max_guests } = req.body;
+        const { name, slug, domain, logo_url, primary_color, welcome_text } = req.body;
         if (!name || !slug) return res.status(400).json({ error: 'Nombre y slug requeridos' });
         const existing = db.prepare("SELECT id FROM tenants WHERE slug = ?").get(slug);
         if (existing) return res.status(400).json({ error: 'Slug ya existe' });

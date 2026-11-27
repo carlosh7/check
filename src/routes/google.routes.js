@@ -35,6 +35,8 @@ function getOAuth2Client() {
     return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
 }
 
+
+// eslint-disable-next-line no-unused-vars -- se conserva a propósito (regla no-borrar): utilidad para futuras integraciones; sin llamadores hoy
 function getUserRefreshToken(userId) {
     const row = db.prepare("SELECT refresh_token FROM user_google_accounts WHERE user_id = ?").get(userId);
     return row ? row.refresh_token : null;
@@ -65,7 +67,7 @@ function findBestAccount(event, userId) {
     return null;
 }
 
-async function ensureEventFolder(drive, event, accountLabel) {
+async function ensureEventFolder(drive, event, _accountLabel) {
     if (event.google_folder_id) {
         try {
             await drive.files.get({ fileId: event.google_folder_id, fields: 'id' });

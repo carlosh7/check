@@ -180,7 +180,9 @@ router.get('/api/v1/events/:id', requireScope('events:read'), apiKeyAuth, (req, 
 
 router.get('/api/v1/events/:id/guests', requireScope('guests:read'), apiKeyAuth, (req, res) => {
     try {
-        const guests = db.prepare("SELECT id, name, email, organization, checked_in, checkin_time, created_at FROM guests WHERE event_id = ? ORDER BY name ASC").all(req.params.id);
+        // // v12.44.850 (auditoría 2026-11-25, D6): leer los invitados de la BD del evento
+        const { getEventDb } = require('../utils/event-db');
+        const guests = getEventDb(req.params.id).prepare("SELECT id, name, email, organization, checked_in, checkin_time, created_at FROM guests WHERE event_id = ? ORDER BY name ASC").all(req.params.id);
         res.json({ data: guests, total: guests.length });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });

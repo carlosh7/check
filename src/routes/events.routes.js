@@ -304,6 +304,9 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     if (!v.valid) return res.status(400).json({ errors: v.errors });
 
     const eventId = castId('events', req.params.id);
+    // // v12.44.850 (auditoría 2026-11-25, I8): actualizar un evento inexistente respondía 200 (0 filas) y luego reventaba sin control
+    // en el registro de cambios. Ahora responde 404 como debe.
+    if (!eventId || !db.prepare('SELECT id FROM events WHERE id = ?').get(eventId)) return res.status(404).json({ error: 'Evento no encontrado' });
     const d = v.data;
 
     // Handle group_id separately since COALESCE doesn't work with null
@@ -347,21 +350,23 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
             paypal_email = COALESCE(?, paypal_email)
         WHERE id = ?
     `).run(
-        d.name, d.date, d.location, d.logo_url, d.description, d.end_date, d.status, 
-        ...(groupIdVal !== undefined ? [groupIdVal] : []),
-        d.reg_title, d.reg_welcome_text, d.reg_policy, d.reg_success_message, d.reg_logo_url, 
-        'reg_show_phone' in d ? (d.reg_show_phone ? 1 : 0) : undefined, 
-        'reg_show_org' in d ? (d.reg_show_org ? 1 : 0) : undefined, 
-        'reg_show_position' in d ? (d.reg_show_position ? 1 : 0) : undefined, 
-        'reg_show_vegan' in d ? (d.reg_show_vegan ? 1 : 0) : undefined, 
-        'reg_show_dietary' in d ? (d.reg_show_dietary ? 1 : 0) : undefined, 
-        'reg_show_gender' in d ? (d.reg_show_gender ? 1 : 0) : undefined,
-        'reg_require_agreement' in d ? (d.reg_require_agreement ? 1 : 0) : undefined,
-        d.reg_min_age != null ? d.reg_min_age : undefined,
-        d.qr_color_dark, d.qr_color_light, d.qr_logo_url, d.ticket_bg_url, d.ticket_accent_color,
-        d.reg_email_whitelist, d.reg_email_blacklist, d.venue_id || null,
-        'payment_required' in d ? (d.payment_required ? 1 : 0) : undefined,
-        d.currency || null, d.stripe_account || null, d.paypal_email || null, eventId
+        ...[
+            d.name, d.date, d.location, d.logo_url, d.description, d.end_date, d.status,
+            ...(groupIdVal !== undefined ? [groupIdVal] : []),
+            d.reg_title, d.reg_welcome_text, d.reg_policy, d.reg_success_message, d.reg_logo_url,
+            'reg_show_phone' in d ? (d.reg_show_phone ? 1 : 0) : null,
+            'reg_show_org' in d ? (d.reg_show_org ? 1 : 0) : null,
+            'reg_show_position' in d ? (d.reg_show_position ? 1 : 0) : null,
+            'reg_show_vegan' in d ? (d.reg_show_vegan ? 1 : 0) : null,
+            'reg_show_dietary' in d ? (d.reg_show_dietary ? 1 : 0) : null,
+            'reg_show_gender' in d ? (d.reg_show_gender ? 1 : 0) : null,
+            'reg_require_agreement' in d ? (d.reg_require_agreement ? 1 : 0) : null,
+            d.reg_min_age != null ? d.reg_min_age : null,
+            d.qr_color_dark || null, d.qr_color_light || null, d.qr_logo_url || null, d.ticket_bg_url || null, d.ticket_accent_color || null,
+            d.reg_email_whitelist || null, d.reg_email_blacklist || null, d.venue_id || null,
+            'payment_required' in d ? (d.payment_required ? 1 : 0) : null,
+            d.currency || null, d.stripe_account || null, d.paypal_email || null,
+        ].map(function(v) { return v === undefined ? null : v; }), eventId
     );
 
     // F4: cupo de acompañantes (plus-ones) por evento
@@ -469,8 +474,10 @@ router.get('/:id/guests', authMiddleware(), (req, res) => {
         if (!eId) return res.status(400).json({ error: 'ID inválido' });
         const limit = Math.min(parseInt(req.query.limit) || 100, 500);
         const offset = parseInt(req.query.offset) || 0;
-        const { total } = db.prepare("SELECT COUNT(*) as total FROM guests WHERE event_id = ?").get(eId);
-        const rows = db.prepare("SELECT id, name, email, phone, organization, position, gender, checked_in, checkin_time, qr_token, dietary_notes, created_at FROM guests WHERE event_id = ? ORDER BY name ASC LIMIT ? OFFSET ?").all(eId, limit, offset);
+        // // v12.44.850 (auditoría 2026-11-25, D6): los invitados del evento viven en su BD propia
+        const guestConn = getEventConnection(eId) || db;
+        const { total } = guestConn.prepare("SELECT COUNT(*) as total FROM guests WHERE event_id = ?").get(eId);
+        const rows = guestConn.prepare("SELECT id, name, email, phone, organization, position, gender, checked_in, checkin_time, qr_token, dietary_notes, created_at FROM guests WHERE event_id = ? ORDER BY name ASC LIMIT ? OFFSET ?").all(eId, limit, offset);
         res.json({ guests: rows, total, limit, offset });
     } catch(err) { logger.error('[EVENTS] Error listing guests:', err.message); res.status(500).json({ error: 'Error al listar invitados' }); }
 });

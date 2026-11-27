@@ -12,17 +12,20 @@
             }
 
             try {
+                // // v12.44.850 (auditoría 2026-11-25, F11): /api/events/:id exige sesión (401 para el invitado); la ruta pública es /api/event/:id
                 const [eventRes, guestRes] = await Promise.all([
-                    fetch(`${API_URL}/events/${eventId}`).then(r => r.json()),
-                    fetch(`${API_URL}/guests/by-id/${guestId}`).then(r => r.json())
+                    fetch(`${API_URL}/event/${eventId}`),
+                    fetch(`${API_URL}/guests/by-id/${guestId}`)
                 ]);
 
-                if (!eventRes || !guestRes) {
+                if (!eventRes.ok || !guestRes.ok) {
                     showError('No se encontró el boleto solicitado.');
                     return;
                 }
+                const eventData = await eventRes.json();
+                const guestData = await guestRes.json();
 
-                ticketData = { event: eventRes, guest: guestRes };
+                ticketData = { event: eventData, guest: guestData };
                 renderTicket();
                 
                 document.getElementById('loading').classList.add('hidden');
@@ -50,12 +53,14 @@
             document.getElementById('ticket-location').textContent = event.location;
             document.getElementById('ticket-guest-id').textContent = guest.id.substring(0, 8) + '...';
             
-            const logoEl = document.getElementById('ticket-logo');
-            if (event.logo_url) {
-                logoEl.src = event.logo_url;
-                logoEl.alt = `Logo ${event.name}`;
-            } else {
-                logoEl.innerHTML = '<span class="material-symbols-outlined">event</span>';
+            // // v12.44.850 (auditoría 2026-11-25, F11): #ticket-logo es un <div> con un <img> dentro; se le asignaba .src al div
+            const logoBox = document.getElementById('ticket-logo');
+            const logoImg = logoBox ? logoBox.querySelector('img') : null;
+            if (event.logo_url && logoImg) {
+                logoImg.src = event.logo_url;
+                logoImg.alt = `Logo ${event.name}`;
+            } else if (logoBox) {
+                logoBox.innerHTML = '<span class="material-symbols-outlined">event</span>';
             }
             
             const accent = event.ticket_accent_color || '#7c3aed';

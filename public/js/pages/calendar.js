@@ -4,7 +4,10 @@ let currentYear, currentMonth;
 async function loadCalendar(year, month) {
   currentYear = year; currentMonth = month;
   document.getElementById('cal-month-label').textContent = MONTHS[month-1] + ' ' + year;
-  const res = await fetch('/api/events/calendar/data?year=' + year + '&month=' + month, { headers: { 'x-user-id': localStorage.getItem('user_id') || '' } });
+  // // v12.44.850 (auditoría 2026-11-25, F14): el header x-user-id fue eliminado del backend (401 siempre); la sesión va en Bearer
+  const token = localStorage.getItem('token') || '';
+  const res = await fetch('/api/events/calendar/data?year=' + year + '&month=' + month, { headers: token ? { Authorization: 'Bearer ' + token } : {} });
+  if (!res.ok) { document.getElementById('cal-month-label').textContent = 'Inicia sesión para ver tu calendario'; return; }
   const data = await res.json();
   renderCalendar(year, month, data.events || []);
   updateStats(data.events || []);

@@ -182,5 +182,20 @@ module.exports = [
                 beforeEach: 'readonly', afterEach: 'readonly', jest: 'readonly'
             }
         }
-    }
+    },
+    {
+        // v12.44.850 (auditoría 2026-11-25, I5): los archivos de página exponen funciones globales que su
+        // HTML invoca directamente con onclick="fn()" y con data-call/@fn: (DelegatedEvents resuelve por
+        // window[método]). ESLint no ve ese enlace entre archivos y las reporta "sin usar": son falsos
+        // positivos y borrarlas rompería las páginas. Su limpieza real — convertir los onclick a
+        // data-act — es la tarea de migración CSP pendiente (REMEDIACION.md §6, F6/CSP).
+        files: ['public/js/pages/*.js'],
+        rules: { 'no-unused-vars': 'off' }
+    },
+    {
+        // v12.44.850: scripts y tests son herramientas de desarrollo que no llegan a producción;
+        // sus variables sin usar no se limpian a ciegas.
+        files: ['scripts/**/*.js', 'tests/**/*.js'],
+        rules: { 'no-unused-vars': 'off' }
+    },
 ];

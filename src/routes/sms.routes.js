@@ -65,7 +65,9 @@ router.post('/api/sms/send', authMiddleware(['ADMIN']), async (req, res) => {
 // Send SMS to guest
 router.post('/api/sms/send-to-guest/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
-        const guest = db.prepare("SELECT id, name, phone, event_id FROM guests WHERE id = ?").get(req.params.guestId);
+        // // v12.44.850 (auditoría 2026-11-25, D6): el invitado puede vivir en la BD de su evento
+        const found = require('../utils/event-db').findGuestAnywhere(req.params.guestId);
+        const guest = found && found.guest;
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
         if (!guest.phone) return res.status(400).json({ error: 'Este invitado no tiene teléfono registrado' });
 

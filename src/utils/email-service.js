@@ -131,9 +131,12 @@ class EmailService {
             
             const result = await transporter.sendMail(mailOptions);
             
-            // Actualizar contador
+            // Actualizar contador (también en el objeto en memoria: durante el minuto de caché,
+            // la comparación contra daily_limit seguía viendo el valor viejo y permitía pasarse)
+            // // v12.44.850 (auditoría 2026-11-25, N10)
             db.prepare('UPDATE email_accounts SET emails_sent_today = emails_sent_today + 1 WHERE id = ?')
                 .run(account.id);
+            account.emails_sent_today = (account.emails_sent_today || 0) + 1;
             
             // Registrar log
             db.prepare(`

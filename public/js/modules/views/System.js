@@ -4,7 +4,6 @@
  */
 
 import { AppStateManager } from '../core/State.js';
-import { ToastManager } from '../components/Toast.js';
 
 class SystemView {
     constructor() {

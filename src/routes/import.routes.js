@@ -13,8 +13,6 @@ const ExcelJS = require('exceljs');
 let jsPDF = null;
 let autoTable = null;
 try {
-    jsPDF = require('jspdf');
-    autoTable = require('jspdf-autotable').default;
 } catch (e) {
     logger.warn('⚠️ jspdf/jspdf-autotable no disponible. Export PDF deshabilitado.');
 }

@@ -29,7 +29,7 @@ function loadPlugin(plugin) {
             setTimeout: setTimeout,
             fetch: function(url, opts) { return fetch(url, opts); },
             db: { get: function(sql, params) { try { return db.prepare(sql).get.apply(db.prepare(sql), params || []); } catch(e) { return null; } } },
-            utils: { log: function(msg) { /* plugin logging */ } }
+            utils: { log: function(_msg) { /* registro de plugins (el nombre del parámetro es contrato del sandbox) */ } }
         };
         loadedPlugins.set(plugin.id, { id: plugin.id, name: plugin.name, hooks: hooks, script: script, sandbox: sandbox, vmContext: null });
     } catch(e) {

@@ -1219,6 +1219,74 @@ router.get('/campaigns/:id/stats', (req, res) => {
 
 let schedulerInterval = null;
 
+// // v12.44.850 (auditoría 2026-11-25, N10): llena la cola de una campaña. La ruta de envío inmediato lo hacía inline, pero el
+// planificador activaba campañas SCHEDULED con la cola VACÍA: processEmailQueue no encontraba
+// pendientes y las marcaba SENT con 0 envíos. Se replica la misma selección de destinatarios,
+// pie legal (Ley 1335/1581) y variables de plantilla.
+function populateQueueForCampaign(campaign, baseUrl) {
+    const now = new Date().toISOString();
+    const already = getEmailDb().prepare('SELECT COUNT(*) AS c FROM email_queue WHERE campaign_id = ?').get(campaign.id).c;
+    if (already > 0) return { skipped: true, existing: already }; // no duplicar (reintentos)
+
+    let recipients = [];
+    if (campaign.recipient_type === 'custom' && campaign.recipient_list) {
+        try { recipients = JSON.parse(campaign.recipient_list); } catch (e) { recipients = []; }
+    } else {
+        let query = 'SELECT id, name, email, organization AS group_name, checked_in, unsubscribe_token, qr_token FROM guests WHERE event_id = ? AND unsubscribed = 0 AND email IS NOT NULL AND email != \'\' ';
+        const params = [campaign.event_id];
+        if (campaign.recipient_type === 'confirmed') query += ' AND checked_in = 1';
+        else if (campaign.recipient_type === 'pending') query += ' AND checked_in = 0';
+        else if (campaign.recipient_type === 'group' && campaign.recipient_group_id) { query += ' AND organization = ?'; params.push(campaign.recipient_group_id); }
+        recipients = getEmailDb().prepare(query).all(...params);
+    }
+
+    // Pie legal (L-1B.2): fuente de los datos + opt-out, salvo que la plantilla ya traiga baja
+    const needsLegalFooter = !/unsubscribe|darse de baja|no quiero recibir|dar de baja/i.test(String(campaign.body_html || ''));
+    let legalEventName = '';
+    try {
+        if (campaign.event_id) {
+            const evRow = db.prepare('SELECT name FROM events WHERE id = ?').get(campaign.event_id);
+            legalEventName = evRow ? evRow.name : '';
+        }
+    } catch (_) {}
+    const buildLegalFooter = function(guestRow) {
+        if (!needsLegalFooter || !guestRow) return '';
+        let token = guestRow.unsubscribe_token;
+        if (!token) {
+            token = uuidv4();
+            try { getEmailDb().prepare('UPDATE guests SET unsubscribe_token = ? WHERE id = ?').run(token, guestRow.id); } catch (_) { return ''; }
+        }
+        return '<div style="margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#64748b;line-height:1.5">'
+            + '<p>¿Por qué recibes este mensaje? Tus datos fueron registrados para la gestión del evento'
+            + (legalEventName ? ' <b>' + String(legalEventName).replace(/</g, '&lt;') + '</b>' : '')
+            + '. Conforme a la Ley 1581 de 2012 puedes solicitar acceso, actualización, rectificación o supresión de tus datos.</p>'
+            + '<p><a href="' + baseUrl + '/api/unsubscribe/' + token + '" style="color:#64748b">No quiero recibir más mensajes</a></p></div>';
+    };
+
+    if (recipients.length === 0) return { queued: 0 };
+    const campaignEvent = campaign.event_id ? getEmailDb().prepare('SELECT name FROM events WHERE id = ?').get(campaign.event_id) : null;
+    const queueInsert = getEmailDb().prepare(`
+        INSERT INTO email_queue (id, campaign_id, account_id, recipient_email, recipient_data, subject, body_html, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)
+    `);
+    let queued = 0;
+    for (const r of recipients) {
+        if (!r.email) continue;
+        const recipientData = {
+            name: r.name, email: r.email,
+            guest_first_name: String(r.name || '').trim().split(/\s+/)[0] || '',
+            guest_name: r.name, guest_email: r.email,
+            event_name: (campaignEvent && campaignEvent.name) || '',
+            qr_code: r.qr_token || ''
+        };
+        const htmlWithFooter = campaign.body_html + buildLegalFooter(r);
+        queueInsert.run(uuidv4(), campaign.id, campaign.account_id, r.email, JSON.stringify(recipientData), campaign.subject, htmlWithFooter, now);
+        queued++;
+    }
+    logger.info('[SCHEDULER] Cola poblada para campaña ' + campaign.id + ': ' + queued + ' destinatarios');
+    return { queued: queued };
+}
+
 function startCampaignScheduler() {
     if (schedulerInterval) return; // Ya está corriendo
     
@@ -1236,6 +1304,10 @@ function startCampaignScheduler() {
             
             for (const campaign of scheduledCampaigns) {
                 logger.info(`[SCHEDULER] Auto-starting campaign: ${campaign.name} (${campaign.campaign_id})`);
+                // // v12.44.850 (auditoría 2026-11-25, N10): poblar la cola ANTES de procesar (antes quedaba vacía y la campaña
+                // se marcaba SENT con 0 envíos)
+                const baseUrl = process.env.APP_URL || 'http://localhost:' + (process.env.PORT || 3000);
+                populateQueueForCampaign(Object.assign({}, campaign, { id: campaign.campaign_id }), baseUrl);
                 getEmailDb().prepare("UPDATE email_campaigns SET status = 'SENDING', updated_at = ? WHERE id = ?").run(now, campaign.campaign_id);
                 processEmailQueue(campaign.campaign_id, campaign);
             }

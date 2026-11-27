@@ -6,6 +6,18 @@
 
 const { Server } = require('socket.io');
 const logger = require('../utils/logger');
+// v12.44.850 (auditoría 2026-11-25, S6): autenticación opcional por conexión. Un token válido identifica el socket; uno
+// inválido RECHAZA la conexión (no se acepta identificación falsa). Los sockets anónimos solo pueden
+// entrar a salas de quiz (quiz:<id>): las salas de evento real (PII de check-in, presencia) exigen sesión.
+const { verifyToken } = require('../security/jwt');
+function socketIsAuthenticated(socket) {
+    const token = (socket.handshake && socket.handshake.auth && socket.handshake.auth.token)
+        || (socket.handshake && socket.handshake.headers && String(socket.handshake.headers.authorization || '').replace(/^Bearer /i, ''))
+        || (socket.handshake && socket.handshake.query && socket.handshake.query.token);
+    if (!token) return null;
+    const decoded = verifyToken(token);
+    return decoded ? decoded.userId : false; // false = token presentado pero inválido
+}
 
 let io = null;
 const activeEditors = new Map(); // eventId -> [{ userId, userName, guestId, guestName, joinedAt }]
@@ -14,11 +26,25 @@ function init(server, opts = {}) {
     const cors = opts.cors || { origin: '*', methods: ['GET', 'POST'] };
     io = new Server(server, { cors });
 
-    io.on('connection', (socket) => {
-        logger.info('[Socket.io] Cliente conectado: ' + socket.id);
+    io.use((socket, next) => {
+        const userId = socketIsAuthenticated(socket);
+        if (userId === false) return next(new Error('Token inválido'));
+        socket.userId = userId; // null para anónimos (jugadores de quiz)
+        next();
+    });
 
-        socket.on('join_event', (eventId) => {
-            socket.join(eventId);
+    io.on('connection', (socket) => {
+        logger.info('[Socket.io] Cliente conectado: ' + socket.id + (socket.userId ? ' (autenticado)' : ' (anónimo)'));
+
+        socket.on('join_event', (eventId, ack) => {
+            // // v12.44.850 (auditoría 2026-11-25, S6): salas de evento real exigen sesión; las salas de quiz quedan abiertas a jugadores
+            const isQuizRoom = typeof eventId === 'string' && eventId.indexOf('quiz:') === 0;
+            if (!socket.userId && !isQuizRoom) {
+                logger.warn('[Socket.io] join_event sin sesión rechazado: ' + socket.id + ' sala=' + String(eventId).slice(0, 12));
+                if (typeof ack === 'function') ack({ error: 'Se requiere iniciar sesión' });
+                return;
+            }
+            socket.join(String(eventId));
             if (!activeEditors.has(eventId)) activeEditors.set(eventId, []);
             logger.debug('[Socket.io] ' + socket.id + ' joined event ' + eventId);
             io.to(eventId).emit('presence_update', { editors: activeEditors.get(eventId) || [] });
@@ -30,19 +56,22 @@ function init(server, opts = {}) {
         });
 
         socket.on('editing_guest', (data) => {
-            const { eventId, guestId, guestName, userName, userId } = data;
+            if (!socket.userId) return; // // v12.44.850 (auditoría 2026-11-25, S6: presencia solo para sockets autenticados
+            const { eventId, guestId, guestName, userName } = data;
             if (!eventId || !guestId) return;
+            // La identidad viene del JWT del socket, no del cuerpo: un cliente no puede
+            // hacerse pasar por otro editor.
             if (!activeEditors.has(eventId)) activeEditors.set(eventId, []);
             const editors = activeEditors.get(eventId);
-            const existing = editors.find(e => e.userId === userId);
+            const existing = editors.find(e => e.userId === socket.userId);
             if (existing) {
                 existing.guestId = guestId;
                 existing.guestName = guestName;
                 existing.joinedAt = Date.now();
             } else {
-                editors.push({ userId, userName: userName || 'Alguien', guestId, guestName, joinedAt: Date.now() });
+                editors.push({ userId: socket.userId, userName: userName || 'Alguien', guestId, guestName, joinedAt: Date.now() });
             }
-            socket.editingData = { eventId, userId };
+            socket.editingData = { eventId, userId: socket.userId };
             io.to(eventId).emit('presence_update', { editors });
         });
 
@@ -52,11 +81,12 @@ function init(server, opts = {}) {
         });
 
         socket.on('collab_update', (data) => {
-            const { eventId, guestId, guestName, field, userId, userName } = data;
+            if (!socket.userId) return; // v12.44.850 (S6): sin sesión no se pueden suplantar ediciones ajenas
+            const { eventId, guestId, guestName, field, userName } = data;
             if (!eventId) return;
             socket.to(eventId).emit('guest_updated', {
                 guestId, guestName, field,
-                updatedBy: userName || userId || 'Alguien',
+                updatedBy: userName || 'Alguien',
                 timestamp: new Date().toISOString()
             });
         });
@@ -69,17 +99,18 @@ function init(server, opts = {}) {
         });
 
         socket.on('presence_heartbeat', (data) => {
-            const { eventId, userId, userName } = data;
-            if (!eventId || !userId) return;
+            if (!socket.userId) return; // // v12.44.850 (auditoría 2026-11-25, S6
+            const { eventId, userName } = data;
+            if (!eventId) return;
             if (!activeEditors.has(eventId)) activeEditors.set(eventId, []);
             const editors = activeEditors.get(eventId);
-            const existing = editors.find(e => e.userId === userId);
+            const existing = editors.find(e => e.userId === socket.userId);
             if (existing) {
                 existing.joinedAt = Date.now();
             } else {
-                editors.push({ userId, userName: userName || 'Alguien', guestId: null, guestName: null, joinedAt: Date.now() });
+                editors.push({ userId: socket.userId, userName: userName || 'Alguien', guestId: null, guestName: null, joinedAt: Date.now() });
             }
-            socket.editingData = { eventId, userId };
+            socket.editingData = { eventId, userId: socket.userId };
             io.to(eventId).emit('presence_update', { editors });
         });
 

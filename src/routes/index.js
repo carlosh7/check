@@ -92,6 +92,8 @@ const upload = multer({
 });
 
 // Middleware para optimizar imágenes automáticamente
+
+// eslint-disable-next-line no-unused-vars -- se conserva a propósito (regla no-borrar): middleware preparado para optimizar imágenes; sin montar aún
 function optimizeUploadedImage(req, res, next) {
     if (!req.file) return next();
     

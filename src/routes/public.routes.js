@@ -108,6 +108,21 @@ function findEventBySlugOrId(slug) {
     return null;
 }
 
+// // v12.44.850 (auditoría 2026-11-25, F12): categorías de pago del evento para el formulario público de registro (antes
+// el visitante recibía 401 al pedir /api/guests/:id/categories).
+router.get('/event/:eventId/categories', (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        if (!eId) return res.status(400).json({ error: 'Evento inválido' });
+        const exists = db.prepare('SELECT id FROM events WHERE id = ?').get(eId);
+        if (!exists) return res.status(404).json({ error: 'Evento no encontrado' });
+        let conn = db;
+        try { const { getEventDb } = require('../utils/event-db'); conn = getEventDb(eId) || db; } catch (_) {}
+        const rows = conn.prepare('SELECT id, name, price, color, description FROM guest_categories WHERE event_id = ? ORDER BY sort_order ASC, name ASC').all(eId);
+        res.json(rows);
+    } catch (err) { res.status(500).json({ error: 'Error al obtener categorías' }); }
+});
+
 // Portal del asistente (BL-28)
 router.get('/portal/:guestId', (req, res) => {
     try {

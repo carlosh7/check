@@ -1,5 +1,4 @@
-import { LS, lazyLoad } from '../src/frontend/utils.js';
-import { API } from '../src/frontend/api.js';
+import { LS } from '../src/frontend/utils.js'; // v12.44.850: lazyLoad sin uso
 
 const ImportExportModule = window.ImportExportModule = {
     VERSION: '12.44.516',

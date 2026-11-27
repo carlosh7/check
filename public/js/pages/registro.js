@@ -125,7 +125,9 @@
                 // Load categories and check payment
                 if (eventData.payment_required) {
                     try {
-                        const catRes = await fetch(API_URL + '/guests/' + eventData.id + '/categories');
+                        // // v12.44.850 (auditoría 2026-11-25, F12): /api/guests/:id/categories exige sesión (401 para el visitante); se usa la
+                        // ruta pública del evento
+                        const catRes = await fetch(API_URL + '/event/' + eventData.id + '/categories');
                         if (catRes.ok) {
                             categories = await catRes.json();
                             const catContainer = document.getElementById('field-category');
@@ -137,9 +139,9 @@
                                     .map(function(c) {
                                         return '<div class="flex items-center justify-between p-2 rounded-lg bg-white/5">' +
                                             '<span class="text-sm">' + c.name + ' — <span class="text-[var(--primary)] font-bold">$' + parseFloat(c.price).toFixed(2) + '</span></span>' +
-                                            '<div class="flex items-center gap-2"><button class="w-7 h-7 rounded-full bg-white/10 text-white font-bold text-sm" data-act="call" data-call="updateCart" data-a1="' + c.id + '" data-a2="-1">−</button>' +
+                                            '<div class="flex items-center gap-2"><button class="w-7 h-7 rounded-full bg-white/10 text-white font-bold text-sm" data-act="call" type="button" data-call="updateCart" data-a1="' + c.id + '" data-a2="-1">−</button>' +
                                             '<span id="qty-' + c.id + '" class="w-6 text-center text-sm font-bold">0</span>' +
-                                            '<button class="w-7 h-7 rounded-full bg-white/10 text-white font-bold text-sm" data-act="call" data-call="updateCart" data-a1="' + c.id + '" data-a2="1">+</button></div></div>';
+                                            '<button class="w-7 h-7 rounded-full bg-white/10 text-white font-bold text-sm" data-act="call" type="button" data-call="updateCart" data-a1="' + c.id + '" data-a2="1">+</button></div></div>';
                                     }).join('');
                             }
                         }
@@ -257,7 +259,14 @@
                 const val = depEl.type === 'checkbox' ? (depEl.checked ? 'true' : '') : (depEl.value || '');
                 const show = f.show_if_value === '*' ? !!val : val === f.show_if_value;
                 wrapEl.classList.toggle('hidden', !show);
-                if (!show) { depEl.value = ''; if (depEl.type === 'checkbox') depEl.checked = false; }
+                // // v12.44.850 (auditoría 2026-11-25, F12): al ocultar el campo condicional se limpiaba el campo PADRE (depEl), borrando
+                // lo que el visitante acaba de elegir. Se limpian los campos del propio bloque oculto.
+                if (!show) {
+                    wrapEl.querySelectorAll('input, select, textarea').forEach(function(inner) {
+                        if (inner.type === 'checkbox' || inner.type === 'radio') inner.checked = false;
+                        else inner.value = '';
+                    });
+                }
             });
         }
 

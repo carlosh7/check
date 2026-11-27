@@ -74,8 +74,7 @@ router.post('/:eventId/templates/:templateId/generate', authMiddleware(['ADMIN',
     try {
         const template = db.prepare("SELECT * FROM certificate_templates WHERE id = ? AND event_id = ?").get(req.params.templateId, req.params.eventId);
         if (!template) return res.status(404).json({ error: 'Plantilla no encontrada' });
-        let cfg = {};
-        try { cfg = JSON.parse(template.config); } catch(e) {}
+        // v12.44.850: cfg no se usaba en esta ruta (la config se lee al descargar el PDF)
         const targetDb = getEventDb(req.params.eventId);
         const guests = targetDb.prepare("SELECT id, name, email, organization, checked_in FROM guests WHERE event_id = ? AND checked_in = 1 ORDER BY name ASC").all(req.params.eventId);
         if (guests.length === 0) return res.status(400).json({ error: 'No hay invitados con check-in' });
@@ -97,13 +96,16 @@ router.post('/:eventId/templates/:templateId/generate', authMiddleware(['ADMIN',
 
 router.get('/:eventId/templates/:templateId/certificates', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), requireEventAccess(), (req, res) => {
     try {
-        const certs = db.prepare(`
-            SELECT gc.*, g.name as guest_name, g.email as guest_email
-            FROM guest_certificates gc
-            LEFT JOIN guests g ON g.id = gc.guest_id
+        // // v12.44.850 (auditoría 2026-11-25, D6): los nombres vienen de la BD del evento (los certificados viven en la maestra)
+        const certRows = db.prepare(`
+            SELECT gc.* FROM guest_certificates gc
             WHERE gc.template_id = ? AND gc.event_id = ?
-            ORDER BY g.name ASC
         `).all(req.params.templateId, req.params.eventId);
+        const cMap = require('../utils/event-db').guestMap(req.params.eventId, 'id, name, email');
+        const certs = certRows.map(function(gc) {
+            const g = cMap.get(gc.guest_id) || {};
+            return Object.assign({}, gc, { guest_name: g.name || 'Invitado', guest_email: g.email || null });
+        }).sort(function(a, b) { return String(a.guest_name).localeCompare(String(b.guest_name)); });
         res.json(certs);
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
@@ -112,17 +114,19 @@ router.get('/:eventId/templates/:templateId/certificates', authMiddleware(['ADMI
 
 router.get('/download/:certId', (req, res) => {
     try {
-        const cert = db.prepare(`
-            SELECT gc.*, g.name as guest_name, g.email as guest_email, g.qr_token,
-                   t.name as template_name, t.config, t.event_id,
+        // // v12.44.850 (auditoría 2026-11-25, D6): certificado y evento en maestra; los datos del invitado desde la BD de su evento
+        const certBase = db.prepare(`
+            SELECT gc.*, t.name as template_name, t.config, gc.event_id,
                    e.name as event_name, e.date as event_date
             FROM guest_certificates gc
-            JOIN guests g ON g.id = gc.guest_id
             JOIN certificate_templates t ON t.id = gc.template_id
             JOIN events e ON e.id = gc.event_id
             WHERE gc.id = ?
         `).get(req.params.certId);
-        if (!cert) return res.status(404).json({ error: 'Certificado no encontrado' });
+        if (!certBase) return res.status(404).json({ error: 'Certificado no encontrado' });
+        const gConn = require('../utils/event-db').getEventDb(certBase.event_id);
+        const gRow = gConn.prepare('SELECT name, email, qr_token FROM guests WHERE id = ?').get(certBase.guest_id);
+        const cert = Object.assign({}, certBase, { guest_name: gRow ? gRow.name : 'Invitado', guest_email: gRow ? gRow.email : null, qr_token: gRow ? gRow.qr_token : null });
 
         // Actualizar contador de descargas
         db.prepare("UPDATE guest_certificates SET download_count = download_count + 1 WHERE id = ?").run(req.params.certId);
@@ -210,14 +214,16 @@ function sendPdf(doc, res, cert) {
 
 router.get('/verify/:certId', (req, res) => {
     try {
-        const cert = db.prepare(`
-            SELECT gc.id, gc.generated_at, g.name as guest_name, e.name as event_name
+        // // v12.44.850 (auditoría 2026-11-25, D6): nombre del invitado desde la BD de su evento
+        const certBase = db.prepare(`
+            SELECT gc.id, gc.generated_at, gc.guest_id, gc.event_id, e.name as event_name
             FROM guest_certificates gc
-            JOIN guests g ON g.id = gc.guest_id
             JOIN events e ON e.id = gc.event_id
             WHERE gc.id = ?
         `).get(req.params.certId);
-        if (!cert) return res.status(404).json({ valid: false, error: 'Certificado no encontrado' });
+        if (!certBase) return res.status(404).json({ valid: false, error: 'Certificado no encontrado' });
+        const gRow = require('../utils/event-db').getEventDb(certBase.event_id).prepare('SELECT name FROM guests WHERE id = ?').get(certBase.guest_id);
+        const cert = Object.assign({}, certBase, { guest_name: gRow ? gRow.name : 'Invitado' });
         res.json({ valid: true, guest: cert.guest_name, event: cert.event_name, generatedAt: cert.generated_at });
     } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });

@@ -209,7 +209,8 @@ router.post('/events/:eventId/checkout', (req, res) => {
 router.post('/webhooks/stripe', limiters.webhookLimiter, (req, res) => {
     const sig = req.headers['stripe-signature'];
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    if (!endpointSecret) return res.status(500).json({ error: 'Stripe webhook secret no configurado' });
+    // // v12.44.850 (auditoría 2026-11-25, I8): sin secreto es configuración pendiente (400, no 500: un 500 hace que Stripe reintente sin fin)
+    if (!endpointSecret) return res.status(400).json({ error: 'Stripe webhook secret no configurado' });
 
     try {
         var event2 = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
@@ -339,7 +340,6 @@ router.get('/transactions/:id/receipt', authMiddleware(['ADMIN', 'PRODUCTOR']), 
         if (!txn) return res.status(404).json({ error: 'Transacción no encontrada' });
 
         const { jsPDF } = require('jspdf');
-        const autoTable = require('jspdf-autotable').default;
         const doc = new jsPDF();
 
         // Colors

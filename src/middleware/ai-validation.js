@@ -1,4 +1,3 @@
-const { db } = require('../../database');
 
 const INJECTION_PATTERNS = [
     { pattern: /ignore\s+(all\s+)?(previous|prior|above)\s+(instructions|directives|commands|prompts)/i, risk: 0.9, label: 'ignore_previous_instructions' },
@@ -47,7 +46,7 @@ function maskSensitiveData(text) {
     let masked = text;
     const foundTypes = [];
     SENSITIVE_DATA_PATTERNS.forEach(function(p) {
-        masked = masked.replace(p.regex, function(match) {
+        masked = masked.replace(p.regex, function(_match) {
             if (!foundTypes.includes(p.type)) foundTypes.push(p.type);
             return p.label;
         });

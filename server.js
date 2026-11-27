@@ -122,7 +122,7 @@ initCache(cache);
 
 // --- MÓDULOS (Fase 10 - Modularización) ---
 const { registerRoutes } = require('./src/routes');
-const { init: initSocket, getIO: socketGetIO } = require('./src/socket');
+const { init: initSocket } = require('./src/socket'); // el getIO lo usan las rutas vía src/socket
 
 // --- VERSIÓN DINÁMICA V10.3 ---
 const APP_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')).version;
@@ -151,6 +151,8 @@ try {
     logger.warn('Email Service no disponible: ' + e.message);
 }
 
+
+// eslint-disable-next-line no-unused-vars -- se conserva a propósito (regla no-borrar): reemplazada por la de email.routes; se mantiene como referencia
 function replaceTemplateVariables(template, data) {
     let result = template;
     for (const [key, value] of Object.entries(data)) {
@@ -163,6 +165,8 @@ function replaceTemplateVariables(template, data) {
 // v12.44.804: la migración real ya ocurrió — las rutas usan email-service.js
 // directamente (p.ej. auth.routes.js); este wrapper solo se mantiene por
 // compatibilidad y delega al mismo servicio. No elimina la simulación previa.
+
+// eslint-disable-next-line no-unused-vars -- se conserva a propósito (regla no-borrar): sustituida por src/utils/email-service.sendEmail; se mantiene como referencia
 async function sendEmail(to, subject, html, options = {}) {
     // Si hay un servicio de email configurado, lo usamos
     if (global.emailService) {

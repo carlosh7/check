@@ -99,7 +99,7 @@ class EventConfigView {
     }
     
     // Cargar contenido de pestaña
-    loadTabContent(tabName) {
+    loadTabContent(_tabName) {
         
         
         // Los contenidos se cargan desde app.js legacy

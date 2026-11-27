@@ -128,7 +128,20 @@ router.get('/vapid-status', authMiddleware(['ADMIN']), (req, res) => {
  * Suscribirse a notificaciones push
  * Puede ser pública (sin auth) o con usuario autenticado
  */
-router.post('/subscribe', authMiddleware(), (req, res) => { // v12.44.848 (auditoría 2026-11-25, N11): sin auth, req.userId era undefined y la suscripción se guardaba sin dueño
+router.post('/subscribe', function(req, res, next) {
+    // // v12.44.850 (auditoría 2026-11-25, N11/F13): autenticación OPCIONAL. La ruta la usan el panel (con JWT) y el portal del
+    // asistente (público, se liga por guest_id). Un token inválido se rechaza; sin token, la
+    // suscripción exige guest_id para no guardar dueños indefinidos.
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const decoded = require('../security/jwt').verifyToken(authHeader.substring(7));
+        if (!decoded) return res.status(401).json({ error: 'Token inválido' });
+        const user = db.prepare('SELECT id, role, status FROM users WHERE id = ?').get(decoded.userId);
+        if (!user || user.status !== 'APPROVED') return res.status(401).json({ error: 'Usuario no válido' });
+        req.userId = user.id;
+    }
+    next();
+}, (req, res) => {
     try {
         const subscription = req.body;
         
@@ -144,7 +157,9 @@ router.post('/subscribe', authMiddleware(), (req, res) => { // v12.44.848 (audit
             userId = req.userId;
         }
         // B4 (v12.44.793): suscripción ligada al asistente del portal
+        // // v12.44.850 (auditoría 2026-11-25, N11: sin usuario NI invitado no hay dueño: se rechaza (antes quedaba user_id NULL)
         const guestId = subscription.guestId || req.body.guestId || null;
+        if (!userId && !guestId) return res.status(400).json({ error: 'Suscripción sin destinatario: falta usuario o invitado' });
         
         const id = uuidv4();
         const now = new Date().toISOString();

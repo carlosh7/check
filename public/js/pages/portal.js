@@ -73,7 +73,8 @@ function votePoll(btn){
   selected.forEach(function(cb){optionIds.push(cb.value)});
   const qrToken=guestData?.guest?.portal_token;
   if(!qrToken){alert('Debes estar registrado para votar');return}
-  fetch(API+'/polls/public/'+pollId+'/vote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({guest_token:qrToken,option_id:optionIds[0]})})
+  // // v12.44.850 (auditoría 2026-11-25, F13): en encuestas de respuesta múltiple solo se enviaba la primera opción seleccionada
+  fetch(API+'/polls/public/'+pollId+'/vote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({guest_token:qrToken,option_ids:optionIds})})
   .then(function(r){return r.json()})
   .then(function(res){
     if(res&&res.success){
@@ -138,8 +139,14 @@ async function requestNotif(){
     if('serviceWorker' in navigator&&'PushManager' in window){
       try{
         const reg=await navigator.serviceWorker.ready;
-        const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array('{{VAPID_PUBLIC_KEY}}')});
-        await fetch(API+'/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:sub,guestId:guestData?.guest?.id})});
+        // // v12.44.850 (auditoría 2026-11-25, F13): la clave VAPID llegaba como texto literal '{{VAPID_PUBLIC_KEY}}' (el JS se sirve
+        // estático) y el cuerpo no coincidía con lo que espera /push/subscribe.
+        const keyRes=await fetch(API+'/push/vapid-public-key');
+        const keyJson=await keyRes.json();
+        const vapidKey=keyJson.publicKey||keyJson.public_key||keyJson.key;
+        if(!vapidKey)throw Error('El servidor no tiene clave de notificaciones configurada');
+        const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(vapidKey)});
+        await fetch(API+'/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({guestId:guestData?.guest?.id},sub))});
       }catch(e){console.error('Push sub error:',e)}
     }
   }else{
@@ -362,9 +369,10 @@ async function load(){
     window.addEventListener('online', function() { if(offlineBar)offlineBar.style.display='none'; });
     window.addEventListener('offline', function() { if(offlineBar)offlineBar.style.display='flex'; });
     // Check if we're offline and have cached data
+    // // v12.44.850 (auditoría 2026-11-25, F13): este bloque estaba tras un fetch exitoso (guestData siempre definido): inalcanzable.
     if(!navigator.onLine){
       const cached = localStorage.getItem('portal_guest_' + guestId);
-      if(cached && !guestData){
+      if(cached && guestData){
         try{
           const cd = JSON.parse(cached);
           document.getElementById('guest-name').textContent = cd.guest?.name || 'Invitado';

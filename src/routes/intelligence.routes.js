@@ -77,10 +77,13 @@ router.get('/predict/:eventId', authMiddleware(), (req, res) => {
         const event = db.prepare("SELECT date, end_date FROM events WHERE id = ?").get(eventId);
         if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
         
-        const totalGuests = db.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ?").get(eventId);
-        const checkedIn = db.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1").get(eventId);
-        const confirmed = db.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND status = 'confirmed'").get(eventId);
-        const pastCheckins = db.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1 AND checkin_time IS NOT NULL").get(eventId);
+        // // v12.44.850 (auditoría 2026-11-25, D6): los invitados viven en la BD del evento
+        const { getEventDb } = require('../utils/event-db');
+        const gConn = getEventDb(eventId);
+        const totalGuests = gConn.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ?").get(eventId);
+        const checkedIn = gConn.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1").get(eventId);
+        const confirmed = gConn.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND status = 'confirmed'").get(eventId);
+        const pastCheckins = gConn.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1 AND checkin_time IS NOT NULL").get(eventId);
         
         const historicalRate = totalGuests.c > 0 ? checkedIn.c / totalGuests.c : 0.65;
         const confirmationRate = totalGuests.c > 0 ? (confirmed.c + checkedIn.c) / totalGuests.c : 0.7;

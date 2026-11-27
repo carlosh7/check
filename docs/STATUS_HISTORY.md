@@ -713,3 +713,11 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 - Prueba de humo de routers: 52 cargan y 246 rutas GET sin ningún 500. Encontró 3 errores reales (Excel de invitados, evento por slug, estadísticas de encuesta), corregidos.
 - Commit `21860c3`, tag `v12.44.849`. Deploy: 63 archivos con md5 idéntico. Validación EN VIVO: 488 llamadas a 245 rutas GET sin ningún 5xx; evento por enlace 200 (antes 500); Excel de invitados 200 con 53 KB reales (antes 500 siempre); estadísticas de encuesta 404; captura de la pantalla de acceso. Suite 511✓ (+4).
 - **Plan de 4 fases de la auditoría externa CERRADO.** Avisos operativos y pendientes en `docs/AUDITORIA-2026-11-25-REMEDIACION.md` §8.
+
+## 2026-11-27 — v12.44.850 — segunda remediación de la auditoría 2026-11-25 (pendientes de §6/§7)
+- Páginas públicas reparadas: boleto digital, registro con pago, portal del asistente (incluye HTML balanceado y voto múltiple), calendario.
+- BDs de evento: invitados visibles para listado, API v1, inteligencia, SMS, leaderboard, networking y certificados.
+- Correo: campañas programadas ya llenan la cola; límite diario real con caché.
+- Socket.io: JWT por conexión; salas de evento con sesión, quiz abierto a jugadores; identidad del editor inmune a suplantación.
+- Lint 631→247 (0 errores) sin borrar nada vivo; prueba de humo de 299 escrituras que encontró y cerró 4 errores reales (entre ellos PUT de eventos, que fallaba con CUALQUIER actualización parcial).
+- Suite 513✓ (+2 suites: escritura y routers con prefijos reales). Deploy y validación en vivo: se anotan al cerrar.
