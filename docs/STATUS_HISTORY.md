@@ -740,3 +740,9 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 - Logger async por lotes con flushSync en apagado/crash/exit (errores siempre sync); backup no bloqueante (gzip async + fs.promises, await faltante de uploads corregido por test).
 - Auditor de funciones de páginas: 480/480 vivas con evidencia; 2 muertas demostradas en wheel.js eliminadas; test de bloqueo deadCount===0.
 - Suite 32 suites, 527✓. Deploy y validación en vivo: se anotan al cerrar.
+
+## 2026-11-27 (cierre) — v12.44.853 validada en producción 7/7
+- Logger por lotes volcando cada ~500 ms (verificado con mtime del archivo); flushSync en apagado/crash/exit verificado en el código desplegado.
+- Backup async por API: cifrado, restorable (integridad ok), BD del evento incluida.
+- Auditor de funciones en producción: 480/480 vivas, 0 muertas; wheel.js sin las 2 eliminadas.
+- Commits: `3630bcc` (fix residual) + `76ae026` (docs). Etiqueta v12.44.853.
