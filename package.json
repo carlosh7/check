@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.851",
+  "version": "12.44.852",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "server.js",
   "scripts": {
@@ -72,6 +72,7 @@
     "lint-staged": "^15.5.2",
     "playwright": "^1.59.1",
     "prettier": "^3.8.3",
+    "socket.io-client": "^4.8.4",
     "supertest": "^7.2.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0"

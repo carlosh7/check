@@ -504,7 +504,7 @@ router.post('/send-segmented', authMiddleware(['ADMIN']), async (req, res) => {
 
 // ─── SCHEDULER (C8-01) ───
 function startPushScheduler() {
-    setInterval(() => {
+    setInterval(() => { // v12.44.852 (P11): con .unref() al cierre del bloque
         try {
             const now = new Date().toISOString();
             const pending = db.prepare("SELECT * FROM scheduled_notifications WHERE status = 'scheduled' AND scheduled_at <= ?").all(now);
@@ -530,7 +530,7 @@ function startPushScheduler() {
                 });
             }
         } catch (e) { logger.error('[PushScheduler] Error:', e.message); }
-    }, 30000);
+    }, 30000).unref(); // v12.44.852 (P11)
 }
 
 // No iniciar scheduler en tests (evita open handles)

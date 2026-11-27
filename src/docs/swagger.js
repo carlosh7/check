@@ -1,11 +1,13 @@
 const swaggerJsdoc = require('swagger-jsdoc');
+const fs = require('fs');
+const path = require('path');
 
 const options = {
     definition: {
         openapi: '3.0.0',
         info: {
             title: 'Check Pro API',
-            version: '12.44.851',
+            version: require('../../package.json').version, // // v12.44.852 (auditoría 2026-11-25, I12): siempre la versión real de package.json
             description: 'API REST para el sistema de gestión de invitados y eventos Check Pro',
             contact: { name: 'Check Pro Support' }
         },
@@ -106,5 +108,18 @@ const options = {
 };
 
 const swaggerSpec = swaggerJsdoc(options);
+
+// // v12.44.852 (auditoría 2026-11-25, I12): el spec manual se mezcla con el mapa COMPLETO generado por scripts/generate-openapi.js
+// (557 endpoints en 367 paths). Los endpoints documentados a mano conservan prioridad: tienen
+// esquemas, ejemplos y seguridad; los generados garantizan que NINGUNA ruta quede fuera del spec.
+try {
+    const generated = JSON.parse(fs.readFileSync(path.join(__dirname, 'openapi-generated.json'), 'utf8'));
+    for (const [p, methods] of Object.entries(generated.paths || {})) {
+        swaggerSpec.paths[p] = Object.assign({}, methods, swaggerSpec.paths[p]);
+    }
+} catch (e) {
+    // si el archivo aún no se generó, el spec manual sigue funcionando solo
+    console.warn('[swagger] openapi-generated.json no disponible:', e.message);
+}
 
 module.exports = { swaggerSpec };

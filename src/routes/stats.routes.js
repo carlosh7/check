@@ -92,6 +92,18 @@ function queryAll(dbs, sql, params) {
     return all;
 }
 
+// v12.44.852 (auditoría 2026-11-25, D6): todas las conexiones con invitados (maestra + BDs de evento)
+function guestConns() {
+    const out = [db];
+    try {
+        for (const ev of db.prepare("SELECT id FROM events WHERE has_own_db = 1").all()) {
+            const c = getEventConnection(ev.id);
+            if (c && c !== db) out.push(c);
+        }
+    } catch (e) {}
+    return out;
+}
+
 function querySum(dbs, sql, params) {
     let total = 0;
     for (let i = 0; i < dbs.length; i++) {
@@ -114,13 +126,24 @@ router.get('/analytics', authMiddleware(['ADMIN']), (req, res) => {
         const since = new Date(Date.now() - period * 24 * 60 * 60 * 1000).toISOString();
 
         const totalEvents = db.prepare("SELECT COUNT(*) as c FROM events").get().c;
-        const totalGuests = db.prepare("SELECT COUNT(*) as c FROM guests").get().c;
-        const totalChecked = db.prepare("SELECT COUNT(*) as c FROM guests WHERE checked_in = 1").get().c;
         const totalUsers = db.prepare("SELECT COUNT(*) as c FROM users WHERE status = 'APPROVED'").get().c;
-
-        const trend = db.prepare("SELECT date(created_at) as day, COUNT(*) as c FROM guests WHERE created_at >= ? GROUP BY day ORDER BY day ASC").all(since);
-        const topEvents = db.prepare("SELECT e.id, e.name, COUNT(g.id) as c FROM events e LEFT JOIN guests g ON g.event_id = e.id GROUP BY e.id ORDER BY c DESC LIMIT 10").all();
-        const monthly = db.prepare("SELECT strftime('%Y-%m', created_at) as month, COUNT(*) as c FROM guests GROUP BY month ORDER BY month ASC LIMIT 12").all();
+        // v12.44.852 (D6): los agregados de invitados se calculan sobre maestra + BDs de evento
+        const conns = guestConns();
+        let totalGuests = 0, totalChecked = 0;
+        const trendMap = new Map(), topMap = new Map(), monthlyMap = new Map();
+        for (const conn of conns) {
+            try {
+                totalGuests += conn.prepare("SELECT COUNT(*) as c FROM guests").get().c;
+                totalChecked += conn.prepare("SELECT COUNT(*) as c FROM guests WHERE checked_in = 1").get().c;
+                for (const r of conn.prepare("SELECT date(created_at) as day, COUNT(*) as c FROM guests WHERE created_at >= ? GROUP BY day").all(since)) trendMap.set(r.day, (trendMap.get(r.day) || 0) + r.c);
+                for (const r of conn.prepare("SELECT strftime('%Y-%m', created_at) as month, COUNT(*) as c FROM guests GROUP BY month").all()) monthlyMap.set(r.month, (monthlyMap.get(r.month) || 0) + r.c);
+                for (const r of conn.prepare("SELECT event_id, COUNT(*) as c FROM guests GROUP BY event_id").all()) topMap.set(r.event_id, (topMap.get(r.event_id) || 0) + r.c);
+            } catch (e) {}
+        }
+        const trend = Array.from(trendMap).sort(function(a, b) { return a[0] < b[0] ? -1 : 1; }).map(function(p) { return { day: p[0], c: p[1] }; });
+        const monthly = Array.from(monthlyMap).sort(function(a, b) { return a[0] < b[0] ? -1 : 1; }).slice(0, 12).map(function(p) { return { month: p[0], c: p[1] }; });
+        const evNames = new Map(db.prepare("SELECT id, name FROM events").all().map(function(e) { return [e.id, e]; }));
+        const topEvents = Array.from(topMap).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 10).map(function(p) { const e = evNames.get(p[0]) || {}; return { id: p[0], name: e.name || 'Evento', c: p[1] }; });
 
         res.json({
             totalEvents, totalGuests, totalChecked, totalUsers,
@@ -322,30 +345,42 @@ router.get('/bi/dashboard', authMiddleware(['ADMIN']), (req, res) => {
 
         // System-wide KPIs
         const totalEvents = db.prepare("SELECT COUNT(*) as c FROM events").get().c;
-        const totalGuests = db.prepare("SELECT COUNT(*) as c FROM guests").get().c;
-        const totalChecked = db.prepare("SELECT COUNT(*) as c FROM guests WHERE checked_in = 1").get().c;
         const totalUsers = db.prepare("SELECT COUNT(*) as c FROM users WHERE status = 'APPROVED'").get().c;
+        // // v12.44.852 (D6): los agregados de invitados se calculan sobre maestra + BDs de evento
+        let totalGuests = 0, totalChecked = 0;
+        const dR = new Map(), dC = new Map(), tE = new Map(), mM = new Map(), cD = new Map(), hD = new Map();
+        for (const conn of guestConns()) {
+            try {
+                totalGuests += conn.prepare("SELECT COUNT(*) as c FROM guests").get().c;
+                totalChecked += conn.prepare("SELECT COUNT(*) as c FROM guests WHERE checked_in = 1").get().c;
+                for (const r of conn.prepare("SELECT date(created_at) as d, COUNT(*) as c FROM guests WHERE created_at >= ? GROUP BY d").all(since)) dR.set(r.d, (dR.get(r.d) || 0) + r.c);
+                for (const r of conn.prepare("SELECT date(checkin_time) as d, COUNT(*) as c FROM guests WHERE checked_in = 1 AND checkin_time >= ? GROUP BY d").all(since)) dC.set(r.d, (dC.get(r.d) || 0) + r.c);
+                for (const r of conn.prepare("SELECT event_id, COUNT(*) as guests, SUM(CASE WHEN checked_in = 1 THEN 1 ELSE 0 END) as checked FROM guests GROUP BY event_id").all()) {
+                    const prev = tE.get(r.event_id) || { guests: 0, checked: 0 };
+                    tE.set(r.event_id, { guests: prev.guests + r.guests, checked: prev.checked + (r.checked || 0) });
+                }
+                for (const r of conn.prepare("SELECT strftime('%Y-%m', created_at) as m, COUNT(*) as c FROM guests GROUP BY m").all()) mM.set(r.m, (mM.get(r.m) || 0) + r.c);
+                for (const r of conn.prepare("SELECT category_id, COUNT(*) as c FROM guests WHERE category_id IS NOT NULL GROUP BY category_id").all()) cD.set(r.category_id, (cD.get(r.category_id) || 0) + r.c);
+                for (const r of conn.prepare("SELECT strftime('%H', checkin_time) as h, COUNT(*) as c FROM guests WHERE checked_in = 1 AND checkin_time IS NOT NULL GROUP BY h").all()) hD.set(r.h, (hD.get(r.h) || 0) + r.c);
+            } catch (e) {}
+        }
         const conversionRate = totalGuests > 0 ? Math.round((totalChecked / totalGuests) * 100) : 0;
-
-        // Trends (daily registrations)
-        const dailyRegs = db.prepare("SELECT date(created_at) as d, COUNT(*) as c FROM guests WHERE created_at >= ? GROUP BY d ORDER BY d ASC").all(since);
-        const dailyCheckins = db.prepare("SELECT date(checkin_time) as d, COUNT(*) as c FROM guests WHERE checked_in = 1 AND checkin_time >= ? GROUP BY d ORDER BY d ASC").all(since);
-
-        // Top events
-        const topEvents = db.prepare("SELECT e.id, e.name, e.date, COUNT(g.id) as guests, SUM(CASE WHEN g.checked_in = 1 THEN 1 ELSE 0 END) as checked FROM events e LEFT JOIN guests g ON g.event_id = e.id GROUP BY e.id ORDER BY guests DESC LIMIT 10").all();
-
-        // Monthly comparison
-        const monthly = db.prepare("SELECT strftime('%Y-%m', created_at) as m, COUNT(*) as c FROM guests GROUP BY m ORDER BY m ASC LIMIT 12").all();
+        const dailyRegs = Array.from(dR).sort(function(x, y) { return x[0] < y[0] ? -1 : 1; }).map(function(pr) { return { d: pr[0], c: pr[1] }; });
+        const dailyCheckins = Array.from(dC).sort(function(x, y) { return x[0] < y[0] ? -1 : 1; }).map(function(pr) { return { d: pr[0], c: pr[1] }; });
+        const evInfo = new Map(db.prepare("SELECT id, name, date FROM events").all().map(function(e) { return [e.id, e]; }));
+        const topEvents = Array.from(tE).sort(function(x, y) { return y[1].guests - x[1].guests; }).slice(0, 10).map(function(pr) { const e = evInfo.get(pr[0]) || {}; return { id: pr[0], name: e.name || 'Evento', date: e.date || null, guests: pr[1].guests, checked: pr[1].checked }; });
+        const monthly = Array.from(mM).sort(function(x, y) { return x[0] < y[0] ? -1 : 1; }).slice(0, 12).map(function(pr) { return { m: pr[0], c: pr[1] }; });
+        const catNames = new Map(db.prepare("SELECT id, name FROM guest_categories").all().map(function(c) { return [c.id, c]; }));
+        const catDist = Array.from(cD).sort(function(x, y) { return y[1] - x[1]; }).slice(0, 10).map(function(pr) { const c = catNames.get(pr[0]); return { name: c ? c.name : 'Sin categoría', count: pr[1] }; });
+        const hourlyDist = Array.from(hD).sort(function(x, y) { return x[0] < y[0] ? -1 : 1; }).map(function(pr) { return { h: pr[0], c: pr[1] }; });
 
         // Category distribution
-        const catDist = db.prepare("SELECT c.name, COUNT(g.id) as count FROM guest_categories c LEFT JOIN guests g ON g.category_id = c.id GROUP BY c.id ORDER BY count DESC LIMIT 10").all();
 
         // Revenue stats (completed transactions)
         const revenue = db.prepare("SELECT SUM(amount) as total, COUNT(*) as txns, AVG(amount) as avg FROM transactions WHERE status = 'completed'").get();
         const revenueByMonth = db.prepare("SELECT strftime('%Y-%m', completed_at) as m, SUM(amount) as total, COUNT(*) as txns FROM transactions WHERE status = 'completed' AND completed_at >= ? GROUP BY m ORDER BY m ASC").all(since);
 
         // Hourly check-in distribution
-        const hourlyDist = db.prepare("SELECT strftime('%H', checkin_time) as h, COUNT(*) as c FROM guests WHERE checked_in = 1 AND checkin_time IS NOT NULL GROUP BY h ORDER BY h ASC").all();
 
         // Polls stats (C11-01)
         const totalPolls = db.prepare("SELECT COUNT(*) as c FROM polls").get().c;

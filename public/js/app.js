@@ -7,43 +7,43 @@ window.escapeHtml = function(str) {
 };
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.851';
-import { Config } from './modules/core/Config.js?v=12.44.851';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.851';
-import { AppStateManager } from './modules/core/State.js?v=12.44.851';
-import { Constants } from './modules/utils/Constants.js?v=12.44.851';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.851';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.851';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.851';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.851';
-import { TableManager } from './modules/components/Table.js?v=12.44.851';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.851';
-import { FormManager } from './modules/components/Form.js?v=12.44.851';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.851';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.851';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.851';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.851';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.851';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.851';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.851';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.851';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.851';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.851';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.852';
+import { Config } from './modules/core/Config.js?v=12.44.852';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.852';
+import { AppStateManager } from './modules/core/State.js?v=12.44.852';
+import { Constants } from './modules/utils/Constants.js?v=12.44.852';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.852';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.852';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.852';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.852';
+import { TableManager } from './modules/components/Table.js?v=12.44.852';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.852';
+import { FormManager } from './modules/components/Form.js?v=12.44.852';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.852';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.852';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.852';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.852';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.852';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.852';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.852';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.852';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.852';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.852';
 
 // Módulos cableados en v12.44.804 (respaldo de v12.44.802, antes sin usar)
-import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.851';
-import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.851';
-import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.851';
+import { SessionManagerInstance } from './modules/auth/SessionManager.js?v=12.44.852';
+import { EventManagerInstance } from './modules/views/EventManager.js?v=12.44.852';
+import { GuestManagerInstance } from './modules/views/GuestManager.js?v=12.44.852';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.851';
-import PushModule from './modules/app-push.js?v=12.44.851';
-import ThemeModule from './modules/app-theme.js?v=12.44.851';
-import { AiSecurity } from './modules/features/ai-security.js?v=12.44.851';
-import './modules/core/DelegatedEvents.js?v=12.44.851';
+import ImportExportModule from './modules/app-import.js?v=12.44.852';
+import PushModule from './modules/app-push.js?v=12.44.852';
+import ThemeModule from './modules/app-theme.js?v=12.44.852';
+import { AiSecurity } from './modules/features/ai-security.js?v=12.44.852';
+import './modules/core/DelegatedEvents.js?v=12.44.852';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.851';
+const VERSION = '12.44.852';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -3502,7 +3502,7 @@ const App = window.App = {
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div data-act="call" data-call="assignClientToGroupsFromModal" data-a1="${groupIds.join(',')}" data-a2="${c.id}" data-a3="@fn:isAssigned" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        return `<div data-act="call" data-call="assignClientToGroupsFromModal" data-a1="${groupIds.join(',')}" data-a2="${c.id}" data-a3="${isAssigned}" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">person</span></div>
                             <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${c.name}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${c.email || 'Sin email'}</div></div>
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
@@ -3527,6 +3527,7 @@ const App = window.App = {
     },
 
     assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
+        isAssigned = isAssigned === true || isAssigned === 'true'; // v12.44.852: data-a3 llega como texto
         const groupIds = groupIdsStr.split(',').filter(id => id && id.trim() !== '');
         if (groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         try {
@@ -3861,7 +3862,7 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div data-act="call" data-call="assignEventToGroupsFromModal" data-a1="${groupIds.join(',')}" data-a2="${e.id}" data-a3="@fn:isAssigned" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        return `<div data-act="call" data-call="assignEventToGroupsFromModal" data-a1="${groupIds.join(',')}" data-a2="${e.id}" data-a3="${isAssigned}" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
                             <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${e.name}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div></div>
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
@@ -3886,6 +3887,7 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
     },
 
     assignEventToGroupsFromModal: async function(groupIdsStr, eventId, isAssigned) {
+        isAssigned = isAssigned === true || isAssigned === 'true'; // v12.44.852
         const groupIds = groupIdsStr.split(',').filter(id => id && id.trim() !== '');
         if (groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         try {
@@ -3945,7 +3947,7 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div data-act="call" data-call="assignUserToGroupsFromModal" data-a1="${groupIds.join(',')}" data-a2="${u.id}" data-a3="@fn:isAssigned" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        return `<div data-act="call" data-call="assignUserToGroupsFromModal" data-a1="${groupIds.join(',')}" data-a2="${u.id}" data-a3="${isAssigned}" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
                             <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${u.display_name || u.username}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${u.role || 'STAFF'}</div></div>
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
@@ -3970,6 +3972,7 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
     },
 
     assignUserToGroupsFromModal: async function(groupIdsStr, userId, isAssigned) {
+        isAssigned = isAssigned === true || isAssigned === 'true'; // v12.44.852
         const groupIds = groupIdsStr.split(',').filter(id => id && id.trim() !== '');
         if (groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         try {
@@ -5135,7 +5138,7 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div data-act="call" data-call="assignClientToUsersFromModal" data-a1="${userIds.join(',')}" data-a2="${c.id}" data-a3="@fn:isAssigned" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        return `<div data-act="call" data-call="assignClientToUsersFromModal" data-a1="${userIds.join(',')}" data-a2="${c.id}" data-a3="${isAssigned}" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">person</span></div>
                             <div class="flex-1"><div class="text-sm font-bold" data-style="color: ${textMain};">${c.name}</div><div class="text-[11px]" data-style="color: ${textSecondary};">${c.email || 'Sin email'}</div></div>
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center" data-style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" data-style="color: ${primaryColor};">${icon}</span></div>
@@ -5159,6 +5162,7 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
     },
 
     assignClientToUsersFromModal: async function(userIdsStr, clientId, isAssigned) {
+        isAssigned = isAssigned === true || isAssigned === 'true'; // v12.44.852
         const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
         if (userIds.length === 0) return;
         try {
@@ -5608,7 +5612,7 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
                         return `
-                        <div data-act="call" data-call="toggleClientForUsersFromModal" data-a1="${userIds.join(',')}" data-a2="${c.id}" data-a3="@fn:isAssigned" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${borderColor};">
+                        <div data-act="call" data-call="toggleClientForUsersFromModal" data-a1="${userIds.join(',')}" data-a2="${c.id}" data-a3="${isAssigned}" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" data-style="background: ${itemBg}; border: 1px solid ${borderColor};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" data-style="background: ${primaryLight}; color: ${primaryColor};">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
@@ -5640,6 +5644,7 @@ const selectedGroups = groups.filter(g => ids.map(String).includes(String(g.id))
     
     // Toggle cliente para usuarios (asignar/desasignar)
     toggleClientForUsersFromModal: async function(userIdsStr, clientId, currentlyAssigned) {
+        currentlyAssigned = currentlyAssigned === true || currentlyAssigned === 'true'; // v12.44.852
         const userIds = userIdsStr.split(',');
         try {
             if (currentlyAssigned) {
@@ -11183,7 +11188,7 @@ navigate(viewName, params = {}, push = true) {
     _gm: null,
     async _g() {
         if (!this._gm) {
-            const m = await import('./modules/app-gamification.js?v=12.44.851');
+            const m = await import('./modules/app-gamification.js?v=12.44.852');
             this._gm = m.default || window.GamificationModule || {};
             // Bind App reference for module functions that use window.App
             if (this._gm._init) this._gm._init();
@@ -12020,7 +12025,7 @@ navigate(viewName, params = {}, push = true) {
         if (!container || !container.innerHTML.trim()) return;
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.851"></head><body>' + container.innerHTML + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.852"></head><body>' + container.innerHTML + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -12055,7 +12060,7 @@ navigate(viewName, params = {}, push = true) {
         const html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         const win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.851"></head><body>' + html + '</body></html>');
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.852"></head><body>' + html + '</body></html>');
         win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
         win.focus();
@@ -12169,7 +12174,7 @@ navigate(viewName, params = {}, push = true) {
             const win = window.open('', '_blank', 'width=400,height=600');
             if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
             win.document.write('<!DOCTYPE html><html><head><title>Gafetes</title>'
-                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.851">'
+                + '<link rel="stylesheet" href="/css/pages/print-badge.css?v=12.44.852">'
                 + '</head><body class="batch">' + allHtml + '</body></html>');
             win.document.close();
         try { win.document.querySelectorAll('[data-style]').forEach(el => { el.style.cssText = el.dataset.style; }); } catch(e) {}
@@ -12560,7 +12565,10 @@ navigate(viewName, params = {}, push = true) {
             // Usar la misma IP del host con puerto 3001
             editorHost = loc.protocol + '//' + loc.hostname + ':3001';
         }
-        let url = editorHost + '/editor?eventId=' + eId + '&jwt=' + (this.state.token || '');
+        // v12.44.852 (F17): el JWT va en el token de sesión real (antes salía vacío) y el origen se
+        // valida en el mensaje y en el postMessage de respuesta
+        const editorJwt = (App.state.user && App.state.user.token) || '';
+        let url = editorHost + '/editor?eventId=' + eId + '&jwt=' + editorJwt;
         if (layoutId) url += '&layoutId=' + encodeURIComponent(layoutId);
         iframe.src = url;
         overlay.classList.remove('hidden');
@@ -12568,6 +12576,8 @@ navigate(viewName, params = {}, push = true) {
         status.textContent = 'Conectando con el editor 3D...';
 
         window.addEventListener('message', this._editorMessageHandler = function(event) {
+            // v12.44.852 (F17): solo mensajes del propio editor (antes se aceptaba cualquier origen)
+            if (event.origin !== editorHost) return;
             const msg = event.data;
             if (!msg || !msg.type) return;
             switch (msg.type) {
@@ -12576,7 +12586,7 @@ navigate(viewName, params = {}, push = true) {
                     if (s) { s.textContent = '✓ Conectado'; setTimeout(function() { s.classList.add('hidden'); }, 3000); }
                     const state = App.editor3DState;
                     if (iframe && iframe.contentWindow) {
-                        iframe.contentWindow.postMessage({ type: 'init', eventId: state.eventId, jwt: App.state.token, layoutId: state.layoutId, layoutName: state.layoutName }, '*');
+                        iframe.contentWindow.postMessage({ type: 'init', eventId: state.eventId, jwt: editorJwt, layoutId: state.layoutId, layoutName: state.layoutName }, editorHost) /* v12.44.852 (F17): origen acotado al editor */;
                     }
                     break;
                 case 'saved':
@@ -17748,7 +17758,7 @@ navigate(viewName, params = {}, push = true) {
             if (msg.attachments && msg.attachments.length > 0) {
                 attachmentsContainer.innerHTML = `<span class="text-xs font-semibold text-[var(--text-secondary)] mr-1">Adjuntos:</span>` + msg.attachments.map((a, _i) => `
                     <button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-[var(--border)] hover:bg-[var(--bg-hover)] text-[var(--text-main)]" 
-                            data-act="call" data-call="downloadAttachment" data-a1="@fn:i" data-a2="${accountId}" data-a3="${folder}" data-a4="${uid}"
+                            data-act="call" data-call="downloadAttachment" data-a1="${_i}" data-a2="${accountId}" data-a3="${folder}" data-a4="${uid}"
                             title="${this._escapeHtml(a.filename)} (${this._formatFileSize ? this._formatFileSize(a.size || 0) : a.size || 0})">
                         <span class="material-symbols-outlined text-sm">attach_file</span>
                         ${this._escapeHtml(a.filename)}

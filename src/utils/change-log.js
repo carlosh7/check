@@ -44,10 +44,13 @@ function undoChange(changeId) {
             } else if (change.action === 'category_changed') {
                 tdb.prepare("UPDATE guests SET category_id = ? WHERE id = ? AND event_id = ?").run(change.old_value || null, change.entity_id, change.event_id);
             } else if (change.action === 'profile_updated' && change.field_name) {
+                // v12.44.852 (P9): el nombre de columna se interpola — solo nombres seguros
+                if (!/^[a-z][a-z0-9_]{0,39}$/i.test(change.field_name)) { return { error: 'Nombre de campo inválido: ' + change.field_name }; }
                 tdb.prepare(`UPDATE guests SET ${change.field_name} = ? WHERE id = ?`).run(change.old_value, change.entity_id);
             }
         } else if (change.entity_type === 'event' && change.action === 'updated') {
-            const event = tdb.prepare("SELECT * FROM events WHERE id = ?").get(change.entity_id);
+            // v12.44.852 (P9): events vive en la MAESTRA (en la BD de evento no existe: error seguro)
+            const event = db.prepare("SELECT * FROM events WHERE id = ?").get(change.entity_id);
             if (event) {
                 const oldData = JSON.parse(change.old_value);
                 tdb.prepare("UPDATE events SET name = ?, date = ?, location = ? WHERE id = ?").run(
@@ -80,9 +83,12 @@ function redoChange(changeId) {
             } else if (change.action === 'category_changed') {
                 tdb.prepare("UPDATE guests SET category_id = ? WHERE id = ? AND event_id = ?").run(change.new_value || null, change.entity_id, change.event_id);
             } else if (change.action === 'profile_updated' && change.field_name) {
+                // v12.44.852 (P9): whitelist también en redo
+                if (!/^[a-z][a-z0-9_]{0,39}$/i.test(change.field_name)) { return { error: 'Nombre de campo inválido: ' + change.field_name }; }
                 tdb.prepare(`UPDATE guests SET ${change.field_name} = ? WHERE id = ?`).run(change.new_value, change.entity_id);
             }
         } else if (change.entity_type === 'event' && change.action === 'updated') {
+            // v12.44.852 (P9): maestra, mismo motivo que en undo
             const newData = JSON.parse(change.new_value);
             tdb.prepare("UPDATE events SET name = ?, date = ?, location = ? WHERE id = ?").run(
                 newData.name, newData.date, newData.location, change.entity_id

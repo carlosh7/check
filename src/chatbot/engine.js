@@ -60,9 +60,11 @@ function getEventContext(eventId) {
     if (!eventId) return null;
     const event = db.prepare("SELECT id, name, date, end_date, location, description, status, payment_required, currency FROM events WHERE id = ?").get(eventId);
     if (!event) return null;
-    const guestCount = db.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ?").get(eventId);
-    const checkedCount = db.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1").get(eventId);
-    const categoryCount = db.prepare("SELECT COUNT(*) as c FROM guest_categories WHERE event_id = ?").get(eventId);
+    // v12.44.852 (auditoría 2026-11-25, D6): los invitados viven en la BD del evento
+    const gConn = require('../utils/event-db').getEventDb(eventId) || db;
+    const guestCount = gConn.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ?").get(eventId);
+    const checkedCount = gConn.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1").get(eventId);
+    const categoryCount = gConn.prepare("SELECT COUNT(*) as c FROM guest_categories WHERE event_id = ?").get(eventId);
     let sessions = [];
     try {
         const conn = require('../../database').getEventConnection(eventId);

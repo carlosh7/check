@@ -883,7 +883,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         if (!canUseGroup(resolvedGroupId)) { rejected.groups_users.push(u.username); continue; }
                         logger.info('[IMPORT] Creating new user (APPROVED):', u.username);
                         try {
-                            const hashedPassword = u.password ? bcrypt.hashSync(u.password, 10) : bcrypt.hashSync(require('crypto').randomBytes(12).toString('base64url'), 10);
+                            const hashedPassword = passwordHashes[u.username]; // v12.44.852 (P8): pre-hasheado
                             userId = getValidId('users');
                             db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
                                 .run(userId, u.username, hashedPassword, u.role, u.display_name, u.phone, resolvedGroupId || null, new Date().toISOString());
@@ -944,6 +944,15 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     continue;
                 }
                 safeUsers.push(Object.assign({}, u, { role }));
+            }
+            // v12.44.852 (P8): bcrypt ANTES de la transacción (hashSync de ~100 ms por usuario dentro
+            // de la transacción bloqueaba el event loop y mantenía el lock de escritura de la BD)
+            const passwordHashes = {};
+            const bcryptPre = require('bcryptjs');
+            for (const u of safeUsers) {
+                passwordHashes[u.username] = u.password
+                    ? bcryptPre.hashSync(u.password, 10)
+                    : bcryptPre.hashSync(require('crypto').randomBytes(12).toString('base64url'), 10);
             }
             usersTx(safeUsers);
         }

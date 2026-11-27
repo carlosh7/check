@@ -39,6 +39,9 @@ function localRefs(html) {
         if (url.startsWith('/api/')) continue;
         // v12.44.818: /legal/* son rutas de servidor (SPA fallback), no archivos en public/
         if (url.startsWith('/legal/')) continue;
+        // v12.44.852 (G3): /socket.io/socket.io.js lo sirve socket.io en runtime (serveClient),
+        // no existe como archivo en public/
+        if (url.startsWith('/socket.io/')) continue;
         refs.push(url.split('?')[0]);
     }
     return refs;

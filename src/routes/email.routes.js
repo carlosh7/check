@@ -1295,6 +1295,7 @@ function startCampaignScheduler() {
     schedulerInterval = setInterval(() => {
         try {
             const now = new Date().toISOString();
+            // v12.44.852 (P11): el intervalo se marca .unref() al final del bloque
             // v12.44.838 (auditoría): el JOIN con c.*, a.* colisionaba el id (devolvía el de
             // la cuenta) → el UPDATE filtraba por id de cuenta (no-op) y la cola nunca
             // arrancaba: las campañas SCHEDULED quedaban así para siempre
@@ -1314,7 +1315,7 @@ function startCampaignScheduler() {
         } catch (err) {
             logger.error('[SCHEDULER] Error:', err.message);
         }
-    }, 30000); // Cada 30 segundos
+    }, 30000).unref(); // v12.44.852 (P11) // Cada 30 segundos
 }
 
 // Iniciar scheduler al cargar el módulo (no en tests)
@@ -1354,7 +1355,7 @@ router.post('/send', limiters.emailLimiter, async (req, res) => {
         const processedHtml = replaceTemplateVariables(body_html, variables);
         const processedText = replaceTemplateVariables(body_text, variables);
         
-        // Enviar email
+        // Enviar email (envío único: transport simple) — v12.44.852
         const transporter = nodemailer.createTransport(getSmtpConfig(account));
         
         const mailOptions = {
@@ -1590,11 +1591,23 @@ router.get('/mailbox/message/:uid', async (req, res) => {
 // ============================================================
 
 function processEmailQueue(campaignId, account) {
+    // v12.44.852 (P8): UN transport con pool por campaña (antes uno nuevo por correo y sin close:
+    // fuga de sockets). Se crea perezosamente y se cierra al terminar.
+    let transporter = null;
+    const getTransporter = function() {
+        if (!transporter) transporter = nodemailer.createTransport(Object.assign(
+            { pool: true, maxConnections: 3, maxMessages: 200 },
+            getSmtpConfig(account)
+        ));
+        return transporter;
+    };
+    const closeTransporter = function() { try { if (transporter) transporter.close(); } catch (_) {} transporter = null; };
     const processNext = async () => {
         // Verificar si la campaña sigue en envío
         const campaign = getEmailDb().prepare('SELECT * FROM email_campaigns WHERE id = ?').get(campaignId);
         if (!campaign || campaign.status !== 'SENDING') {
             logger.info(`[EMAIL] Campaign ${campaignId} stopped`);
+            closeTransporter();
             return;
         }
         
@@ -1607,6 +1620,7 @@ function processEmailQueue(campaignId, account) {
         
         if (!item) {
             // No hay más emails pendientes, marcar como completado
+            closeTransporter();
             const now = new Date().toISOString();
             getEmailDb().prepare(`
                 UPDATE email_campaigns SET status = 'SENT', completed_at = ?, updated_at = ? WHERE id = ?
@@ -1627,7 +1641,7 @@ function processEmailQueue(campaignId, account) {
             const processedHtml = replaceTemplateVariables(item.body_html, recipientData);
             
             // Enviar email
-            const transporter = nodemailer.createTransport(getSmtpConfig(account));
+            const transporter = getTransporter(); // v12.44.852 (P8): pool por campaña
             
             const mailOptions = {
                 from: `"${account.sender_name || account.name}" <${account.sender_email || account.smtp_user}>`,

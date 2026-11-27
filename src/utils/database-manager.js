@@ -81,7 +81,11 @@ function getEventConnection(eventId) {
     
     // Verificar si ya hay una conexión en cache
     if (connectionCache.has(eventId)) {
-        return connectionCache.get(eventId);
+        const cachedConn = connectionCache.get(eventId);
+        // v12.44.852 (P10): LRU — refrescar el orden para que la depuración no cierre conexiones activas
+        connectionCache.delete(eventId);
+        connectionCache.set(eventId, cachedConn);
+        return cachedConn;
     }
     
     // Verificar si existe la base de datos
@@ -280,6 +284,18 @@ function createEventTables(db, eventId) {
         }
         if (!columns.includes('guest_type')) {
             db.exec("ALTER TABLE guests ADD COLUMN guest_type TEXT DEFAULT 'principal'");
+            // v12.44.852 (P2): columnas que la maestra tiene y las BDs de evento no (otp_code se usa
+            // en check-in con OTP; unsubscribed en el mailing; seat_id en sesiones)
+            for (const colDef of ['otp_code TEXT', 'bio TEXT', 'interests TEXT', 'social_linkedin TEXT', 'photo_url TEXT', 'unsubscribed INTEGER DEFAULT 0', 'unsubscribe_token TEXT']) {
+                const colName = colDef.split(' ')[0];
+                const has = db.prepare('PRAGMA table_info(guests)').all().some(function(c) { return c.name === colName; });
+                if (!has) { try { db.exec('ALTER TABLE guests ADD COLUMN ' + colDef); } catch (_) {} }
+            }
+            // v12.44.852 (P5): un asiento no puede repetirse dentro de una sesión (índice único;
+            // si hay duplicados históricos, la creación falla y queda avisada)
+            try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_session_guests_seat ON session_guests(session_id, seat_id)'); } catch (e) {
+                logger.warn('[DB-MANAGER] Índice único de asientos no creado (¿duplicados históricos?): ' + e.message);
+            }
         }
         // F4 2026-08: campos personalizados + sponsors/leads también viven en el event DB
         db.exec(`CREATE TABLE IF NOT EXISTS registration_fields (

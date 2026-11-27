@@ -470,6 +470,25 @@ router.post('/public-register', (req, res) => {
         if (existing) {
             return res.status(400).json({ success: false, error: 'Ya estás registrado en este evento' });
         }
+
+        // v12.44.852 (P3): validar TODO antes de insertar. Antes el invitado se creaba primero y dos
+        // validaciones posteriores respondían 400: el reintento chocaba con 'Ya estás registrado'.
+        const cfEarly = req.body.custom_fields || {};
+        let missingEarly = [];
+        try {
+            const reqFieldsEarly = db.prepare('SELECT id, label FROM registration_fields WHERE event_id = ? AND required = 1').all(eId);
+            missingEarly = reqFieldsEarly.filter(f => !cfEarly[f.id] || String(cfEarly[f.id]).trim() === '');
+        } catch (_) {}
+        if (missingEarly.length > 0) {
+            return res.status(400).json({ success: false, error: `Campo obligatorio pendiente: ${missingEarly[0].label}` });
+        }
+        const plusOnesEarly = Array.isArray(req.body.plus_ones) ? req.body.plus_ones.filter(p => p && p.name && p.name.trim()) : [];
+        if (plusOnesEarly.length > 0) {
+            const declaredEarly = req.body.plusone_declaration === true || req.body.plusone_declaration === 'true';
+            if (!declaredEarly) {
+                return res.status(400).json({ success: false, error: 'Debes declarar que cuentas con la autorización de tus acompañantes para registrar sus datos' });
+            }
+        }
         
         const guestId = getValidId('guests');
         const qrToken = uuidv4();
@@ -541,7 +560,8 @@ router.post('/public-register', (req, res) => {
             const reqFields = db.prepare("SELECT id, label FROM registration_fields WHERE event_id = ? AND required = 1").all(eId);
             const missing = reqFields.filter(f => !cf[f.id] || String(cf[f.id]).trim() === '');
             if (missing.length > 0) {
-                return res.status(400).json({ success: false, error: `Campo obligatorio pendiente: ${missing[0].label}` });
+                // v12.44.852 (P3): ya respondido antes del INSERT; aquí solo se registra la anomalía
+                logger.warn('[public-register] required pendiente tras insert (no debería ocurrir):', missing[0].label);
             }
         } catch (cfErr) {
             logger.warn('[public-register] custom_fields:', cfErr.message);
@@ -556,7 +576,8 @@ router.post('/public-register', (req, res) => {
                 // autorización de sus acompañantes (los titulares no están presentes).
                 const plusOneDeclared = req.body.plusone_declaration === true || req.body.plusone_declaration === 'true';
                 if (!plusOneDeclared) {
-                    return res.status(400).json({ success: false, error: 'Debes declarar que cuentas con la autorización de tus acompañantes para registrar sus datos' });
+                    // v12.44.852 (P3): ya respondido antes del INSERT; no se crean acompañantes
+                    logger.warn('[public-register] declaración de acompañantes ausente tras insert (no debería ocurrir)');
                 }
                 let quota = null;
                 try { quota = db.prepare("SELECT plus_one_quota FROM events WHERE id = ?").get(eId)?.plus_one_quota; } catch (_) {}

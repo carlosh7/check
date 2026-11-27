@@ -245,7 +245,7 @@ function startBackupScheduler() {
     logger.info('[BACKUP] Scheduler iniciado: Backup cada 6 horas' +
         ((process.env.BACKUP_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY) ? ' (cifrados)' : ' ⚠️ SIN cifrado: define BACKUP_ENCRYPTION_KEY'));
     setTimeout(() => createBackup(), 5000);
-    setInterval(createBackup, 6 * 60 * 60 * 1000);
+    setInterval(createBackup, 6 * 60 * 60 * 1000).unref(); // v12.44.852 (P11)
 }
 
 module.exports = { createBackup, cleanupOldBackups, startBackupScheduler, listBackups, restoreBackupToBuffer, verifyBackupRestorable };

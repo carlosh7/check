@@ -111,15 +111,7 @@ class EmailService {
         const processedText = this.replaceVariables(text, variables);
         
         try {
-            const transporter = nodemailer.createTransport({
-                host: account.smtp_host,
-                port: account.smtp_port || 587,
-                secure: account.smtp_ssl === 1,
-                auth: {
-                    user: account.smtp_user,
-                    pass: decryptPassword(account.smtp_password)
-                }
-            });
+            const transporter = this._getTransport(account); // v12.44.852 (P8): pool por cuenta
             
             const mailOptions = {
                 from: `"${account.sender_name || account.name}" <${account.sender_email || account.smtp_user}>`,

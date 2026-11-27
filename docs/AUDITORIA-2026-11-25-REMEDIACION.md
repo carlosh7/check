@@ -329,3 +329,24 @@ con autenticación y salas quiz abiertas, smoke tests desplegados.
 Nota de alcance: la prueba del socket en vivo no pudo ejecutarse dentro del contenedor (socket.io-client
 no es dependencia del servidor); la puerta de autenticación quedó verificada por código desplegado y
 verifyToken. Añadir una prueba de integración de socket queda en la lista del §6.
+
+## 11. Cierre total de pendientes (v12.44.852) — 2026-11-27
+
+| Bloque | Qué cerró |
+|--------|-----------|
+| CSP restos | Inventario con dato duro: **0 `onclick` y 0 `<script>` inline** en las páginas (la migración ya estaba hecha; las funciones "sin usar" viven vía `data-call` → `window[método]`). Restos reales cerrados: los 6 `@fn:` de app.js (F15 — asignar/desasignar en los 5 modales ahora alterna de verdad; descarga de adjuntos Webmail con el índice real), el `data-a1` roto de ai-security.js (F16), editor 3D con JWT real, validación de `event.origin`, `targetOrigin` acotado y `frameSrc` configurable (`PLANNER_3D_ORIGIN`) (F17), y `/socket.io/socket.io.js` cargado en index.html y app-shell (G3) |
+| Pooling de correo (P8) | Un transport `pool` por campaña en la cola (se cierra al terminar; antes uno nuevo por correo y sin close: fuga de sockets) y por cuenta en email-service |
+| chatbot + analytics/bi (D6) | chatbot lee invitados/categorías de la BD del evento; `/analytics` y `/bi/dashboard` calculan sus agregados sobre maestra + BDs de evento (`guestConns()`) |
+| Socket en vivo (S6) | `tests/socket.integration.test.js` (nuevo, socket.io-client como devDependency): 5 pruebas con cliente real — anónimo rechazado en sala de evento, permitido en `quiz:`, token inválido rechaza la conexión, JWT válido entra, `editing_guest` anónimo ignorado (sin suplantación). El servidor confirma con ack |
+| Rendimiento (P) | P1 segunda pasada de columnas extendidas de guests tras el esquema; P2 columnas faltantes + índice único de asientos en BDs de evento; P3 registro público valida TODO antes de insertar (los 400 tardíos ya no bloquean al registrante); P6 caché borra ambas tiendas + destroy del cliente Redis viejo al reconectar; P7 compresión delega en `compression.filter` (deja de recomprimir PNG/JPEG/PDF); P8 bcrypt fuera de la transacción de importación; P9 change-log con whitelist de columna, rama de eventos en maestra y undo real (old=estado previo, new=nuevo); P10 caché de conexiones LRU (la depuración ya no cierra conexiones activas); P11 `.unref()` en los 5 intervalos de fondo y `uncaughtException` sale del proceso (docker lo levanta limpio). P4 (carreras de stock) no aplica: un solo proceso síncrono — documentado |
+| Swagger/SDK (I12) | `scripts/generate-openapi.js` genera el mapa completo desde los routers montados (**557 endpoints en 367 paths**); swagger.js lo mezcla con la doc a mano (prioritaria) y toma la versión de package.json. SDK: `getAnalytics()` añadido |
+
+Suite al cerrar: **30 suites, 521 pasan, 1 omitido, 0 fallos** en tres pasadas consecutivas (las dos primeras
+destaparon un test intermitente raspa ya estable y un temporizador tardío de mi propio test de socket).
+ESLint: 0 errores, 247 avisos (umbral CI 520).
+
+### Pendiente residual honesto
+
+- P4 (carreras de stock en juegos): no aplicable con un solo proceso síncrono; si algún día hay varios procesos, envolver pickPrize+UPDATE en la transacción.
+- Logging síncrono por línea (appendFileSync) y backup síncrono: costo de rendimiento aceptado a cambio de no perder logs en crash — cambiarlo es un proyecto propio.
+- Lecturas solo-maestra residuales: stats/analytics ya barre; chatbot contadores ya barre; queda auditar de forma continua cualquier módulo nuevo.

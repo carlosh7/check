@@ -53,13 +53,14 @@ async function set(key, value, ttl = 300) {
 }
 
 async function del(key) {
+    // v12.44.852 (P6): borrar SIEMPRE ambas tiendas (antes si Redis borraba, NodeCache se quedaba
+    // con el valor viejo: lecturas stale al caer a fallback)
+    let success = false;
     if (useRedis) {
-        const success = await redisDel(key);
-        if (success) return true;
+        success = (await redisDel(key)) || success;
     }
-    
     if (nodeCacheInstance) {
-        return nodeCacheInstance.del(key);
+        success = (nodeCacheInstance.del(key) > 0) || success;
     }
     
     return false;

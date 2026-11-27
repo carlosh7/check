@@ -36,6 +36,14 @@ class CheckClient {
     async getEventGuests(eventId) {
         return this.request(`/api/v1/events/${encodeURIComponent(eventId)}/guests`);
     }
+
+    /**
+     * Métricas globales de la plataforma (requiere scope analytics:read).
+     * v12.44.852 (I12): la API v1 expone /api/v1/analytics.
+     */
+    async getAnalytics() {
+        return this.request('/api/v1/analytics');
+    }
 }
 
 module.exports = { CheckClient };

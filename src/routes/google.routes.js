@@ -736,7 +736,7 @@ let syncInterval = null;
 
 function startSyncWorker() {
     if (syncInterval) clearInterval(syncInterval);
-    syncInterval = setInterval(runSyncWorker, 60000);
+    syncInterval = setInterval(runSyncWorker, 60000).unref(); // v12.44.852 (P11)
     logger.info('[GOOGLE] Sync worker started (interval: 60s)');
 }
 

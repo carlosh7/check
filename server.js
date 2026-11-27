@@ -180,10 +180,9 @@ async function sendEmail(to, subject, html, options = {}) {
 app.use(compression({
     filter: (req, res) => {
         if (req.headers['x-no-compression']) return false;
-        const accept = req.headers['accept-encoding'] || '';
-        if (accept.match(/\bdeflate\b/)) return 'deflate';
-        if (accept.match(/\bgzip\b/)) return 'gzip';
-        return false;
+        // v12.44.852 (P7): delegar en compression.filter (el filtro propio devolvía strings y
+        // recomprimía PNG/JPEG/PDF que ya vienen comprimidos)
+        return require('compression').filter(req, res);
     },
     level: 6,
     threshold: 1024
@@ -215,7 +214,9 @@ app.use(helmet({
             connectSrc: ["'self'", "wss:", "https:"],
             mediaSrc: ["'self'", "https:"],
             objectSrc: ["'none'"],
-            frameSrc: ["'self'"],
+            // v12.44.852 (F17): el iframe del editor 3D vive en otro puerto/origen (check-3d-planner).
+            // PLANNER_3D_ORIGIN=https://…:3001 lo autoriza sin abrir el marco a cualquier origen.
+            frameSrc: ["'self'"].concat(String(process.env.PLANNER_3D_ORIGIN || '').trim() ? [process.env.PLANNER_3D_ORIGIN.trim()] : []),
             baseUri: ["'self'"],
             formAction: ["'self'"],
             upgradeInsecureRequests: null
@@ -526,7 +527,7 @@ try {
     setInterval(() => {
         const removed = cleanBlacklist();
         if (removed > 0) logger.info(`${removed} tokens expirados eliminados de blacklist`);
-    }, 6 * 60 * 60 * 1000);
+    }, 6 * 60 * 60 * 1000).unref(); // v12.44.852 (P11)
     logger.info('Token Blacklist cleanup scheduler iniciado');
 } catch (e) {
     logger.warn('Blacklist cleanup no disponible: ' + e.message);
@@ -613,7 +614,10 @@ try {
     
     // Capturar errores no manejados
     process.on('uncaughtException', (err) => {
+        // v12.44.852 (P11): tras una excepción no capturada el estado del proceso es indefinido;
+        // salir (restart: unless-stopped lo levanta limpio) en vez de seguir sirviendo a medio morir.
         logger.error('Uncaught Exception:', { message: err.message, stack: err.stack });
+        process.exit(1);
     });
     process.on('unhandledRejection', (reason) => {
         logger.error('Unhandled Rejection:', { reason: String(reason) });

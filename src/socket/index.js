@@ -48,6 +48,7 @@ function init(server, opts = {}) {
             if (!activeEditors.has(eventId)) activeEditors.set(eventId, []);
             logger.debug('[Socket.io] ' + socket.id + ' joined event ' + eventId);
             io.to(eventId).emit('presence_update', { editors: activeEditors.get(eventId) || [] });
+            if (typeof ack === 'function') ack({ ok: true }); // v12.44.852: confirmación al cliente
         });
 
         socket.on('leave_event', (eventId) => {

@@ -82,6 +82,8 @@ function scheduleReconnect() {
         if (isConnected) return; // Ya reconectó
         logger.info('[Redis] Attempting reconnect...');
         try {
+            // v12.44.852 (P6): destruir el cliente viejo antes de descartarlo (fuga de sockets)
+            try { if (redisClient) redisClient.destroy(); } catch (_) {}
             redisClient = null;
             await initRedis();
         } catch(e) {

@@ -726,3 +726,8 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 - by-id y búsqueda por qr_token también en BDs de evento; categorías públicas sin la columna inexistente; voto múltiple completo (frontend + backend + migración FK de poll_votes/leaderboard/point_history).
 - Producción: 33 archivos md5 idéntico, migración "✓ 3 tabla(s) reconstruidas", validación en vivo 21/21.
 - Suite 516✓ (+3: by-id, categorías, voto múltiple con una fila por opción y puntos una sola vez).
+
+## 2026-11-27 — v12.44.852 — cierre total de los pendientes de la auditoría 2026-11-25
+- CSP: 0 onclick/0 script inline verificado; F15/F16/F17 cerrados; socket.io cargado en la app (G3).
+- Pooling de correo; chatbot/analytics/bi leen BDs de evento; smoke de socket con cliente real 5/5; P1-P11 accionables (incluye undo de cambios de evento real y LRU de conexiones); Swagger 15→435 paths (mapa generado de 557 endpoints) y SDK ampliado.
+- Suite 30 suites, 521✓ en tres pasadas. Lint 0 errores / 247 avisos. Deploy y validación en vivo: se anotan al cerrar.

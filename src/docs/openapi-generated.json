@@ -1,0 +1,5782 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Check Pro API — mapa generado",
+    "version": "12.44.852",
+    "description": "Mapa COMPLETO de rutas generado desde los routers montados (557 endpoints). Los endpoints con documentación detallada viven en el spec manual (swagger.js), que tiene prioridad."
+  },
+  "paths": {
+    "/ai/inventory": {
+      "get": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "GET /ai/inventory — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "POST /ai/inventory — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/ai/inventory/{id}": {
+      "delete": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "DELETE /ai/inventory/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "PUT /ai/inventory/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/ai/policies": {
+      "get": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "GET /ai/policies — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "POST /ai/policies — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/ai/policies/{id}": {
+      "put": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "PUT /ai/policies/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "DELETE /ai/policies/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/ai/chat": {
+      "post": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "POST /ai/chat — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/ai/logs": {
+      "get": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "GET /ai/logs — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/ai/logs/{id}": {
+      "get": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "GET /ai/logs/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/ai/alerts": {
+      "get": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "GET /ai/alerts — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/ai/alerts/{id}/acknowledge": {
+      "post": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "POST /ai/alerts/{id}/acknowledge — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/ai/stats": {
+      "get": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "GET /ai/stats — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/ai/settings": {
+      "get": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "GET /ai/settings — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ai-security"
+        ],
+        "summary": "PUT /ai/settings — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/upload": {
+      "post": {
+        "tags": [
+          "album"
+        ],
+        "summary": "POST /upload — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "GET /{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "POST /{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/admin": {
+      "get": {
+        "tags": [
+          "album"
+        ],
+        "summary": "GET /{eventId}/admin — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/{photoId}/approve": {
+      "patch": {
+        "tags": [
+          "album"
+        ],
+        "summary": "PATCH /{eventId}/{photoId}/approve — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/{photoId}": {
+      "delete": {
+        "tags": [
+          "album"
+        ],
+        "summary": "DELETE /{eventId}/{photoId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/api-keys": {
+      "get": {
+        "tags": [
+          "apikeys"
+        ],
+        "summary": "GET /api/api-keys — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "apikeys"
+        ],
+        "summary": "POST /api/api-keys — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/api-keys/scopes": {
+      "get": {
+        "tags": [
+          "apikeys"
+        ],
+        "summary": "GET /api/api-keys/scopes — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/api-keys/{id}/toggle": {
+      "patch": {
+        "tags": [
+          "apikeys"
+        ],
+        "summary": "PATCH /api/api-keys/{id}/toggle — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/api-keys/{id}/stats": {
+      "get": {
+        "tags": [
+          "apikeys"
+        ],
+        "summary": "GET /api/api-keys/{id}/stats — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/api-keys/{id}": {
+      "delete": {
+        "tags": [
+          "apikeys"
+        ],
+        "summary": "DELETE /api/api-keys/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/v1/events": {
+      "get": {
+        "tags": [
+          "apikeys"
+        ],
+        "summary": "GET /api/v1/events — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/v1/events/{id}": {
+      "get": {
+        "tags": [
+          "apikeys"
+        ],
+        "summary": "GET /api/v1/events/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/v1/events/{id}/guests": {
+      "get": {
+        "tags": [
+          "apikeys"
+        ],
+        "summary": "GET /api/v1/events/{id}/guests — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/v1/analytics": {
+      "get": {
+        "tags": [
+          "apikeys"
+        ],
+        "summary": "GET /api/v1/analytics — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "POST /login — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/signup": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "POST /signup — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/password-reset-request": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "POST /password-reset-request — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/verify-reset-code": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "POST /verify-reset-code — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/reset-password": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "POST /reset-password — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "GET /me — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/me/export": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "GET /me/export — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/me/email": {
+      "put": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "PUT /me/email — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/me/email/confirm": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "GET /me/email/confirm — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/me/password": {
+      "put": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "PUT /me/password — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/me/delete-account": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "POST /me/delete-account — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/me/2fa/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "POST /me/2fa/verify — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/me/2fa/disable": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "POST /me/2fa/disable — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/me/2fa/status": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "GET /me/2fa/status — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/rules": {
+      "get": {
+        "tags": [
+          "automation-v2"
+        ],
+        "summary": "GET /rules — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "automation-v2"
+        ],
+        "summary": "POST /rules — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/rules/{id}": {
+      "put": {
+        "tags": [
+          "automation-v2"
+        ],
+        "summary": "PUT /rules/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "automation-v2"
+        ],
+        "summary": "DELETE /rules/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/workflows": {
+      "get": {
+        "tags": [
+          "automation-v2"
+        ],
+        "summary": "GET /workflows — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "automation-v2"
+        ],
+        "summary": "POST /workflows — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/workflows/{id}": {
+      "put": {
+        "tags": [
+          "automation-v2"
+        ],
+        "summary": "PUT /workflows/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "automation-v2"
+        ],
+        "summary": "DELETE /workflows/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/automation": {
+      "get": {
+        "tags": [
+          "automation"
+        ],
+        "summary": "GET /events/{eventId}/automation — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "automation"
+        ],
+        "summary": "POST /events/{eventId}/automation — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/automation/{ruleId}": {
+      "put": {
+        "tags": [
+          "automation"
+        ],
+        "summary": "PUT /events/{eventId}/automation/{ruleId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "automation"
+        ],
+        "summary": "DELETE /events/{eventId}/automation/{ruleId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/automation/options": {
+      "get": {
+        "tags": [
+          "automation"
+        ],
+        "summary": "GET /automation/options — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/budget": {
+      "get": {
+        "tags": [
+          "budget"
+        ],
+        "summary": "GET /events/{eventId}/budget — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "budget"
+        ],
+        "summary": "POST /events/{eventId}/budget — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/budget/summary": {
+      "get": {
+        "tags": [
+          "budget"
+        ],
+        "summary": "GET /events/{eventId}/budget/summary — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/budget/stats": {
+      "get": {
+        "tags": [
+          "budget"
+        ],
+        "summary": "GET /events/{eventId}/budget/stats — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/budget/export": {
+      "get": {
+        "tags": [
+          "budget"
+        ],
+        "summary": "GET /events/{eventId}/budget/export — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/budget/{itemId}": {
+      "put": {
+        "tags": [
+          "budget"
+        ],
+        "summary": "PUT /events/{eventId}/budget/{itemId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "budget"
+        ],
+        "summary": "DELETE /events/{eventId}/budget/{itemId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/templates": {
+      "get": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "GET /{eventId}/templates — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "POST /{eventId}/templates — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/templates/{templateId}": {
+      "put": {
+        "tags": [
+          "certificates"
+        ],
+        "summary": "PUT /{eventId}/templates/{templateId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "certificates"
+        ],
+        "summary": "DELETE /{eventId}/templates/{templateId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/templates/{templateId}/generate": {
+      "post": {
+        "tags": [
+          "certificates"
+        ],
+        "summary": "POST /{eventId}/templates/{templateId}/generate — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/templates/{templateId}/certificates": {
+      "get": {
+        "tags": [
+          "certificates"
+        ],
+        "summary": "GET /{eventId}/templates/{templateId}/certificates — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/download/{certId}": {
+      "get": {
+        "tags": [
+          "certificates"
+        ],
+        "summary": "GET /download/{certId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/verify/{certId}": {
+      "get": {
+        "tags": [
+          "certificates"
+        ],
+        "summary": "GET /verify/{certId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/guest/{guestId}": {
+      "get": {
+        "tags": [
+          "certificates"
+        ],
+        "summary": "GET /guest/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/changes": {
+      "get": {
+        "tags": [
+          "changes"
+        ],
+        "summary": "GET /events/{eventId}/changes — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/changes/{changeId}/undo": {
+      "post": {
+        "tags": [
+          "changes"
+        ],
+        "summary": "POST /events/{eventId}/changes/{changeId}/undo — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/changes/{changeId}/redo": {
+      "post": {
+        "tags": [
+          "changes"
+        ],
+        "summary": "POST /events/{eventId}/changes/{changeId}/redo — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/chatbot/message": {
+      "post": {
+        "tags": [
+          "chatbot"
+        ],
+        "summary": "POST /api/chatbot/message — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "GET / — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "POST / — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "PUT / — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/assign-to-company": {
+      "put": {
+        "tags": [
+          "clients"
+        ],
+        "summary": "PUT /assign-to-company — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/unassign-from-company": {
+      "put": {
+        "tags": [
+          "clients"
+        ],
+        "summary": "PUT /unassign-from-company — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}": {
+      "get": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "GET /{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "PUT /{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "DELETE /{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/events": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "PUT /{id}/events — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "clients"
+        ],
+        "summary": "POST /{id}/events — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/staff": {
+      "put": {
+        "tags": [
+          "clients"
+        ],
+        "summary": "PUT /{id}/staff — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "clients"
+        ],
+        "summary": "POST /{id}/staff — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/staff/{userId}": {
+      "delete": {
+        "tags": [
+          "clients"
+        ],
+        "summary": "DELETE /{id}/staff/{userId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/events/{eventId}": {
+      "delete": {
+        "tags": [
+          "users"
+        ],
+        "summary": "DELETE /{id}/events/{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/classification": {
+      "get": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "GET /classification — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "POST /classification — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/classification/{id}": {
+      "put": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "PUT /classification/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "DELETE /classification/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/guests/{guestId}/export": {
+      "get": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "GET /events/{eventId}/guests/{guestId}/export — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/guests/{guestId}/personal-data": {
+      "delete": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "DELETE /events/{eventId}/guests/{guestId}/personal-data — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/access-logs": {
+      "get": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "GET /access-logs — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/consent": {
+      "post": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "POST /consent — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/consent/{eventId}": {
+      "get": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "GET /consent/{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/consent/{eventId}/stats": {
+      "get": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "GET /consent/{eventId}/stats — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/consent/{eventId}/export": {
+      "get": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "GET /consent/{eventId}/export — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/retention": {
+      "get": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "GET /retention — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/retention/clean": {
+      "delete": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "DELETE /retention/clean — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/crm/connections": {
+      "get": {
+        "tags": [
+          "crm"
+        ],
+        "summary": "GET /crm/connections — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "crm"
+        ],
+        "summary": "POST /crm/connections — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/crm/connections/{id}/to-event": {
+      "post": {
+        "tags": [
+          "crm"
+        ],
+        "summary": "POST /crm/connections/{id}/to-event — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/crm/connections/{id}": {
+      "delete": {
+        "tags": [
+          "crm"
+        ],
+        "summary": "DELETE /crm/connections/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/crm/connections/{id}/sync": {
+      "post": {
+        "tags": [
+          "crm"
+        ],
+        "summary": "POST /crm/connections/{id}/sync — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/connections": {
+      "get": {
+        "tags": [
+          "ecommerce"
+        ],
+        "summary": "GET /connections — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ecommerce"
+        ],
+        "summary": "POST /connections — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/connections/{id}": {
+      "put": {
+        "tags": [
+          "ecommerce"
+        ],
+        "summary": "PUT /connections/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ecommerce"
+        ],
+        "summary": "DELETE /connections/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/connections/{id}/sync-products": {
+      "post": {
+        "tags": [
+          "ecommerce"
+        ],
+        "summary": "POST /connections/{id}/sync-products — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/connections/{id}/products": {
+      "get": {
+        "tags": [
+          "ecommerce"
+        ],
+        "summary": "GET /connections/{id}/products — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/connections/{id}/map-product": {
+      "post": {
+        "tags": [
+          "ecommerce"
+        ],
+        "summary": "POST /connections/{id}/map-product — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/webhook/{connectionId}": {
+      "post": {
+        "tags": [
+          "ecommerce"
+        ],
+        "summary": "POST /webhook/{connectionId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/plugins": {
+      "get": {
+        "tags": [
+          "ecosystem"
+        ],
+        "summary": "GET /plugins — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/plugins/install": {
+      "post": {
+        "tags": [
+          "ecosystem"
+        ],
+        "summary": "POST /plugins/install — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/plugins/{id}/toggle": {
+      "post": {
+        "tags": [
+          "ecosystem"
+        ],
+        "summary": "POST /plugins/{id}/toggle — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/plugins/{id}": {
+      "delete": {
+        "tags": [
+          "ecosystem"
+        ],
+        "summary": "DELETE /plugins/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/marketplace/available": {
+      "get": {
+        "tags": [
+          "ecosystem"
+        ],
+        "summary": "GET /marketplace/available — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/marketplace/list": {
+      "post": {
+        "tags": [
+          "ecosystem"
+        ],
+        "summary": "POST /marketplace/list — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/pricing/tiers": {
+      "get": {
+        "tags": [
+          "ecosystem"
+        ],
+        "summary": "GET /pricing/tiers — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ecosystem"
+        ],
+        "summary": "POST /pricing/tiers — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/pricing/tiers/{id}": {
+      "put": {
+        "tags": [
+          "ecosystem"
+        ],
+        "summary": "PUT /pricing/tiers/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ecosystem"
+        ],
+        "summary": "DELETE /pricing/tiers/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/accounts": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "GET /accounts — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /accounts — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/accounts/{id}": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "GET /accounts/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "email"
+        ],
+        "summary": "PUT /accounts/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "email"
+        ],
+        "summary": "DELETE /accounts/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/test-smtp": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /test-smtp — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/test-imap": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /test-imap — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/accounts/{id}/test-smtp": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /accounts/{id}/test-smtp — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/accounts/{id}/test-imap": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /accounts/{id}/test-imap — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/templates": {
+      "get": {
+        "tags": [
+          "push"
+        ],
+        "summary": "GET /templates — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "push"
+        ],
+        "summary": "POST /templates — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/templates/{id}": {
+      "get": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "GET /templates/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "PUT /templates/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "DELETE /templates/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/templates/seed": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /templates/seed — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/campaigns": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "GET /campaigns — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /campaigns — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/campaigns/{id}": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "GET /campaigns/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "email"
+        ],
+        "summary": "PUT /campaigns/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "email"
+        ],
+        "summary": "DELETE /campaigns/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/campaigns/{id}/send": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /campaigns/{id}/send — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/campaigns/{id}/pause": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /campaigns/{id}/pause — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/campaigns/{id}/resume": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /campaigns/{id}/resume — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/campaigns/{id}/cancel": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /campaigns/{id}/cancel — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/campaigns/{id}/logs": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "GET /campaigns/{id}/logs — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/campaigns/{id}/stats": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "GET /campaigns/{id}/stats — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/send": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /send — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/mailbox/folders": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "GET /mailbox/folders — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/mailbox/messages": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "GET /mailbox/messages — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/mailbox/message/{uid}": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "GET /mailbox/message/{uid} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/mailbox/attachment/{uid}": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "GET /mailbox/attachment/{uid} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/campaigns/{id}/duplicate": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /campaigns/{id}/duplicate — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/campaigns/{id}/retry-failed": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /campaigns/{id}/retry-failed — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/campaigns/{id}/export-logs": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "GET /campaigns/{id}/export-logs — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/templates/seed-all": {
+      "post": {
+        "tags": [
+          "email"
+        ],
+        "summary": "POST /templates/seed-all — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/kiosk-token": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "POST /{id}/kiosk-token — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "DELETE /{id}/kiosk-token — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/guests": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "GET /{id}/guests — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/pre-registrations": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "GET /{id}/pre-registrations — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/pre-registrations/{id}/status": {
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "PUT /pre-registrations/{id}/status — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/users": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "GET /{eventId}/users — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "POST /{eventId}/users — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/users/{userId}": {
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "DELETE /{eventId}/users/{userId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/database": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "POST /{id}/database — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "DELETE /{id}/database — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "GET /{id}/database — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/attendance": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "GET /{id}/attendance — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "POST /{id}/attendance — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/attendance/{attendanceId}": {
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "PUT /{id}/attendance/{attendanceId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "DELETE /{id}/attendance/{attendanceId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/clone": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "POST /{id}/clone — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/badge-config": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "GET /{id}/badge-config — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "PUT /{id}/badge-config — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/badge-logo": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "POST /{id}/badge-logo — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "DELETE /{id}/badge-logo — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/branding": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "GET /{id}/branding — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "PUT /{id}/branding — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/calendar/data": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "GET /calendar/data — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/reg-fields": {
+      "get": {
+        "tags": [
+          "f4"
+        ],
+        "summary": "GET /{eventId}/reg-fields — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "f4"
+        ],
+        "summary": "POST /{eventId}/reg-fields — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/reg-fields/{fieldId}": {
+      "put": {
+        "tags": [
+          "f4"
+        ],
+        "summary": "PUT /{eventId}/reg-fields/{fieldId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "f4"
+        ],
+        "summary": "DELETE /{eventId}/reg-fields/{fieldId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/public/registration-form": {
+      "get": {
+        "tags": [
+          "f4"
+        ],
+        "summary": "GET /{eventId}/public/registration-form — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/sponsors": {
+      "get": {
+        "tags": [
+          "f4"
+        ],
+        "summary": "GET /{eventId}/sponsors — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "f4"
+        ],
+        "summary": "POST /{eventId}/sponsors — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/sponsors/{sponsorId}": {
+      "delete": {
+        "tags": [
+          "f4"
+        ],
+        "summary": "DELETE /{eventId}/sponsors/{sponsorId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/sponsors/{sponsorId}/scan": {
+      "post": {
+        "tags": [
+          "f4"
+        ],
+        "summary": "POST /{eventId}/sponsors/{sponsorId}/scan — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/sponsors/{sponsorId}/leads": {
+      "get": {
+        "tags": [
+          "f4"
+        ],
+        "summary": "GET /{eventId}/sponsors/{sponsorId}/leads — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/sponsors-roi/summary": {
+      "get": {
+        "tags": [
+          "f4"
+        ],
+        "summary": "GET /{eventId}/sponsors-roi/summary — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/fortunas": {
+      "get": {
+        "tags": [
+          "fortunas"
+        ],
+        "summary": "GET /events/{eventId}/fortunas — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "fortunas"
+        ],
+        "summary": "POST /events/{eventId}/fortunas — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/leads": {
+      "get": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "GET /{id}/leads — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/export-csv": {
+      "get": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "GET /{id}/export-csv — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/qr": {
+      "get": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "GET /{id}/qr — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/public-editor": {
+      "get": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "GET /{id}/public-editor — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/public-config": {
+      "put": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "PUT /{id}/public-config — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/public": {
+      "get": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "GET /{id}/public — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/play": {
+      "post": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "POST /{id}/play — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/certificate": {
+      "get": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "GET /{id}/certificate — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/auth": {
+      "get": {
+        "tags": [
+          "google"
+        ],
+        "summary": "GET /auth — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/user/auth": {
+      "get": {
+        "tags": [
+          "google"
+        ],
+        "summary": "GET /user/auth — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/user/status": {
+      "get": {
+        "tags": [
+          "google"
+        ],
+        "summary": "GET /user/status — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/user/disconnect": {
+      "delete": {
+        "tags": [
+          "google"
+        ],
+        "summary": "DELETE /user/disconnect — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/groups/{groupId}/accounts": {
+      "get": {
+        "tags": [
+          "google"
+        ],
+        "summary": "GET /groups/{groupId}/accounts — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/groups/{groupId}/accounts/{id}": {
+      "put": {
+        "tags": [
+          "google"
+        ],
+        "summary": "PUT /groups/{groupId}/accounts/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "google"
+        ],
+        "summary": "DELETE /groups/{groupId}/accounts/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/export": {
+      "post": {
+        "tags": [
+          "google"
+        ],
+        "summary": "POST /events/{eventId}/export — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/import": {
+      "post": {
+        "tags": [
+          "google"
+        ],
+        "summary": "POST /events/{eventId}/import — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/sync-config": {
+      "put": {
+        "tags": [
+          "google"
+        ],
+        "summary": "PUT /events/{eventId}/sync-config — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/sync-calendar": {
+      "post": {
+        "tags": [
+          "google"
+        ],
+        "summary": "POST /events/{eventId}/sync-calendar — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "google"
+        ],
+        "summary": "DELETE /events/{eventId}/sync-calendar — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{groupId}/users": {
+      "get": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "GET /{groupId}/users — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "POST /{groupId}/users — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{groupId}/users/{userId}": {
+      "delete": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "DELETE /{groupId}/users/{userId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{groupId}/events": {
+      "put": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "PUT /{groupId}/events — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/by-id/{guestId}": {
+      "get": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "GET /by-id/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/otp/generate/{guestId}": {
+      "post": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "POST /otp/generate/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/otp/verify": {
+      "post": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "POST /otp/verify — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/import-confirm": {
+      "post": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "POST /import-confirm — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/export-excel/{eventId}": {
+      "get": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "GET /export-excel/{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/checkin/{guestId}": {
+      "post": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "POST /checkin/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/clear/{eventId}": {
+      "post": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "POST /clear/{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/guest-status/{guestId}": {
+      "patch": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "PATCH /{eventId}/guest-status/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/pipeline": {
+      "get": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "GET /{eventId}/pipeline — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/categories": {
+      "get": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "GET /{eventId}/categories — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "POST /{eventId}/categories — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/categories/{catId}": {
+      "put": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "PUT /{eventId}/categories/{catId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "DELETE /{eventId}/categories/{catId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/guest-category/{guestId}": {
+      "patch": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "PATCH /{eventId}/guest-category/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/availability": {
+      "get": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "GET /{eventId}/availability — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/badges": {
+      "get": {
+        "tags": [
+          "leaderboard"
+        ],
+        "summary": "GET /{eventId}/badges — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "leaderboard"
+        ],
+        "summary": "POST /{eventId}/badges — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/badges/zpl": {
+      "get": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "GET /{eventId}/badges/zpl — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/badges/escpos": {
+      "get": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "GET /{eventId}/badges/escpos — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/report": {
+      "get": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "GET /{eventId}/report — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/network": {
+      "get": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "GET /{eventId}/network — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/guests/{guestId}/profile": {
+      "put": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "PUT /{eventId}/guests/{guestId}/profile — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/achievements/{guestId}": {
+      "get": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "GET /{eventId}/achievements/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "POST /{eventId}/achievements/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/social-publish": {
+      "post": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "POST /{eventId}/social-publish — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/guests/{guestId}/erase": {
+      "delete": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "DELETE /{eventId}/guests/{guestId}/erase — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/presence": {
+      "post": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "POST /{eventId}/presence — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/editors": {
+      "get": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "GET /{eventId}/editors — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/portal-link/{guestId}": {
+      "get": {
+        "tags": [
+          "guests"
+        ],
+        "summary": "GET /{eventId}/portal-link/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/template": {
+      "get": {
+        "tags": [
+          "import"
+        ],
+        "summary": "GET /template — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/template/attendance": {
+      "get": {
+        "tags": [
+          "import"
+        ],
+        "summary": "GET /template/attendance — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/validate": {
+      "post": {
+        "tags": [
+          "import"
+        ],
+        "summary": "POST /validate — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/execute": {
+      "post": {
+        "tags": [
+          "import"
+        ],
+        "summary": "POST /execute — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{type}": {
+      "get": {
+        "tags": [
+          "import"
+        ],
+        "summary": "GET /{type} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/guests/{eventId}/tags": {
+      "get": {
+        "tags": [
+          "intelligence"
+        ],
+        "summary": "GET /guests/{eventId}/tags — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "intelligence"
+        ],
+        "summary": "POST /guests/{eventId}/tags — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/guests/{eventId}/tags/{tagId}": {
+      "delete": {
+        "tags": [
+          "intelligence"
+        ],
+        "summary": "DELETE /guests/{eventId}/tags/{tagId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/guests/{eventId}/guests/{guestId}/tags": {
+      "post": {
+        "tags": [
+          "intelligence"
+        ],
+        "summary": "POST /guests/{eventId}/guests/{guestId}/tags — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/guests/{eventId}/guests/{guestId}/tags/{tagId}": {
+      "delete": {
+        "tags": [
+          "intelligence"
+        ],
+        "summary": "DELETE /guests/{eventId}/guests/{guestId}/tags/{tagId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/predict/{eventId}": {
+      "get": {
+        "tags": [
+          "intelligence"
+        ],
+        "summary": "GET /predict/{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/recommendations/{eventId}": {
+      "get": {
+        "tags": [
+          "intelligence"
+        ],
+        "summary": "GET /recommendations/{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/webhooks/{id}/execute": {
+      "post": {
+        "tags": [
+          "intelligence"
+        ],
+        "summary": "POST /webhooks/{id}/execute — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/config": {
+      "put": {
+        "tags": [
+          "landing"
+        ],
+        "summary": "PUT /{eventId}/config — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "landing"
+        ],
+        "summary": "GET /{eventId}/config — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/public": {
+      "get": {
+        "tags": [
+          "landing"
+        ],
+        "summary": "GET /{eventId}/public — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/guest/{guestId}": {
+      "get": {
+        "tags": [
+          "networking"
+        ],
+        "summary": "GET /{eventId}/guest/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/guest/{guestId}/history": {
+      "get": {
+        "tags": [
+          "leaderboard"
+        ],
+        "summary": "GET /{eventId}/guest/{guestId}/history — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/badges/{badgeId}": {
+      "delete": {
+        "tags": [
+          "leaderboard"
+        ],
+        "summary": "DELETE /{eventId}/badges/{badgeId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/guest/{guestId}/badges": {
+      "get": {
+        "tags": [
+          "leaderboard"
+        ],
+        "summary": "GET /{eventId}/guest/{guestId}/badges — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/connect": {
+      "post": {
+        "tags": [
+          "networking"
+        ],
+        "summary": "POST /connect — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/guest/{guestId}/mutual": {
+      "get": {
+        "tags": [
+          "networking"
+        ],
+        "summary": "GET /{eventId}/guest/{guestId}/mutual — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/guest/{guestId}/suggestions": {
+      "get": {
+        "tags": [
+          "networking"
+        ],
+        "summary": "GET /{eventId}/guest/{guestId}/suggestions — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/guest/{guestId}/score": {
+      "get": {
+        "tags": [
+          "networking"
+        ],
+        "summary": "GET /{eventId}/guest/{guestId}/score — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/profile/{guestId}": {
+      "get": {
+        "tags": [
+          "networking"
+        ],
+        "summary": "GET /profile/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/leaderboard": {
+      "get": {
+        "tags": [
+          "networking"
+        ],
+        "summary": "GET /{eventId}/leaderboard — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/checkout-session": {
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "POST /events/{eventId}/checkout-session — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/checkout": {
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "POST /events/{eventId}/checkout — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/transactions": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "GET /events/{eventId}/transactions — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/transactions/{id}": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "GET /transactions/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/transactions/{id}/receipt": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "GET /transactions/{id}/receipt — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/coupons": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "GET /events/{eventId}/coupons — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "POST /events/{eventId}/coupons — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/coupons/{couponId}": {
+      "put": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "PUT /events/{eventId}/coupons/{couponId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "DELETE /events/{eventId}/coupons/{couponId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/coupons/validate": {
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "POST /events/{eventId}/coupons/validate — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{pluginId}/install": {
+      "post": {
+        "tags": [
+          "plugins"
+        ],
+        "summary": "POST /{pluginId}/install — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{pluginId}/uninstall": {
+      "post": {
+        "tags": [
+          "plugins"
+        ],
+        "summary": "POST /{pluginId}/uninstall — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/event/{eventId}": {
+      "get": {
+        "tags": [
+          "plugins"
+        ],
+        "summary": "GET /event/{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/instance/{instanceId}": {
+      "put": {
+        "tags": [
+          "plugins"
+        ],
+        "summary": "PUT /instance/{instanceId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/logs/{eventId}": {
+      "get": {
+        "tags": [
+          "plugins"
+        ],
+        "summary": "GET /logs/{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/{pollId}": {
+      "get": {
+        "tags": [
+          "polls"
+        ],
+        "summary": "GET /{eventId}/{pollId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "polls"
+        ],
+        "summary": "PUT /{eventId}/{pollId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "polls"
+        ],
+        "summary": "DELETE /{eventId}/{pollId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/{pollId}/status": {
+      "patch": {
+        "tags": [
+          "polls"
+        ],
+        "summary": "PATCH /{eventId}/{pollId}/status — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/{pollId}/results": {
+      "get": {
+        "tags": [
+          "polls"
+        ],
+        "summary": "GET /{eventId}/{pollId}/results — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/public/{eventId}/active": {
+      "get": {
+        "tags": [
+          "polls"
+        ],
+        "summary": "GET /public/{eventId}/active — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/public/{pollId}/vote": {
+      "post": {
+        "tags": [
+          "polls"
+        ],
+        "summary": "POST /public/{pollId}/vote — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/public/{pollId}/results": {
+      "get": {
+        "tags": [
+          "polls"
+        ],
+        "summary": "GET /public/{pollId}/results — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/proposals": {
+      "get": {
+        "tags": [
+          "proposals"
+        ],
+        "summary": "GET /events/{eventId}/proposals — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "proposals"
+        ],
+        "summary": "POST /events/{eventId}/proposals — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/proposals/{id}/vote": {
+      "post": {
+        "tags": [
+          "proposals"
+        ],
+        "summary": "POST /events/{eventId}/proposals/{id}/vote — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/proposals/admin": {
+      "get": {
+        "tags": [
+          "proposals"
+        ],
+        "summary": "GET /events/{eventId}/proposals/admin — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/proposals/{id}": {
+      "put": {
+        "tags": [
+          "proposals"
+        ],
+        "summary": "PUT /events/{eventId}/proposals/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "proposals"
+        ],
+        "summary": "DELETE /events/{eventId}/proposals/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/proposals/{id}/moderate": {
+      "post": {
+        "tags": [
+          "proposals"
+        ],
+        "summary": "POST /events/{eventId}/proposals/{id}/moderate — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/event/{id}": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /event/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/captcha": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /captcha — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/event/{eventId}/categories": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /event/{eventId}/categories — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/portal/{guestId}": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /portal/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/kiosk/{eventId}/search": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /kiosk/{eventId}/search — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/kiosk/checkin": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "POST /kiosk/checkin — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/kiosk/{eventId}/event": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /kiosk/{eventId}/event — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/event/{id}/ics": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /event/{id}/ics — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/event/{id}/qr": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /event/{id}/qr — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/guests/qr/{guestId}": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /guests/qr/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/guests/qr/{guestId}/token": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /guests/qr/{guestId}/token — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/event-by-slug/{slug}": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /event-by-slug/{slug} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/captcha/verify": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "POST /captcha/verify — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/unsubscribe/{token}": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /unsubscribe/{token} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/public-register": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "POST /public-register — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/audit-logs": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "GET /audit-logs — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/vapid-public-key": {
+      "get": {
+        "tags": [
+          "push"
+        ],
+        "summary": "GET /vapid-public-key — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/vapid-keys": {
+      "post": {
+        "tags": [
+          "push"
+        ],
+        "summary": "POST /vapid-keys — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/vapid-status": {
+      "get": {
+        "tags": [
+          "push"
+        ],
+        "summary": "GET /vapid-status — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/subscribe": {
+      "post": {
+        "tags": [
+          "push"
+        ],
+        "summary": "POST /subscribe — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/unsubscribe": {
+      "post": {
+        "tags": [
+          "push"
+        ],
+        "summary": "POST /unsubscribe — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/send-test": {
+      "post": {
+        "tags": [
+          "push"
+        ],
+        "summary": "POST /send-test — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/scheduled": {
+      "get": {
+        "tags": [
+          "push"
+        ],
+        "summary": "GET /scheduled — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "push"
+        ],
+        "summary": "POST /scheduled — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/scheduled/{id}": {
+      "delete": {
+        "tags": [
+          "push"
+        ],
+        "summary": "DELETE /scheduled/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/send-segmented": {
+      "post": {
+        "tags": [
+          "push"
+        ],
+        "summary": "POST /send-segmented — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/quizzes": {
+      "get": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "GET /events/{eventId}/quizzes — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "POST /events/{eventId}/quizzes — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/public-session": {
+      "post": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "POST /{id}/public-session — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/results": {
+      "get": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "GET /{id}/results — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "DELETE /{id}/results — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/sessions": {
+      "post": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "POST /{id}/sessions — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/sessions/{sid}/host-state": {
+      "get": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "GET /sessions/{sid}/host-state — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/sessions/{sid}/show-question": {
+      "post": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "POST /sessions/{sid}/show-question — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/sessions/{sid}/reveal": {
+      "post": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "POST /sessions/{sid}/reveal — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/sessions/{sid}/scoreboard": {
+      "post": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "POST /sessions/{sid}/scoreboard — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/sessions/{sid}/lobby": {
+      "post": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "POST /sessions/{sid}/lobby — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/sessions/{sid}/podio": {
+      "post": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "POST /sessions/{sid}/podio — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/sessions/{sid}": {
+      "delete": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "DELETE /sessions/{sid} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/sessions/{sid}/players/{pid}": {
+      "delete": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "DELETE /sessions/{sid}/players/{pid} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/public/session/{pin}/join": {
+      "post": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "POST /public/session/{pin}/join — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/public/session/{pin}/state": {
+      "get": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "GET /public/session/{pin}/state — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/public/answer": {
+      "post": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "POST /public/answer — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/public/session/{pin}/react": {
+      "post": {
+        "tags": [
+          "quizzes"
+        ],
+        "summary": "POST /public/session/{pin}/react — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/raffles": {
+      "get": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "GET /events/{eventId}/raffles — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "POST /events/{eventId}/raffles — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/populate": {
+      "post": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "POST /{id}/populate — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/spin": {
+      "post": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "POST /{id}/spin — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/spin-with-lead": {
+      "post": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "POST /{id}/spin-with-lead — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/track-visit": {
+      "post": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "POST /{id}/track-visit — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/stats": {
+      "get": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "GET /{id}/stats — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/draw": {
+      "post": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "POST /{id}/draw — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/participants": {
+      "get": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "GET /{id}/participants — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "POST /{id}/participants — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/participants/batch": {
+      "post": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "POST /{id}/participants/batch — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/participants/{participantId}": {
+      "delete": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "DELETE /{id}/participants/{participantId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/results/{resultId}": {
+      "delete": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "DELETE /{id}/results/{resultId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/report": {
+      "get": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "GET /{id}/report — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/wheel-config": {
+      "get": {
+        "tags": [
+          "raffles"
+        ],
+        "summary": "GET /{id}/wheel-config — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/raspas": {
+      "get": {
+        "tags": [
+          "raspas"
+        ],
+        "summary": "GET /events/{eventId}/raspas — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "raspas"
+        ],
+        "summary": "POST /events/{eventId}/raspas — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/{layoutId}": {
+      "put": {
+        "tags": [
+          "seat-layouts"
+        ],
+        "summary": "PUT /{eventId}/{layoutId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "seat-layouts"
+        ],
+        "summary": "DELETE /{eventId}/{layoutId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/{layoutId}/render": {
+      "get": {
+        "tags": [
+          "seat-layouts"
+        ],
+        "summary": "GET /{eventId}/{layoutId}/render — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/conflicts": {
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "POST /{eventId}/conflicts — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/{sessionId}": {
+      "put": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "PUT /{eventId}/{sessionId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "DELETE /{eventId}/{sessionId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/{sessionId}/register": {
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "POST /{eventId}/{sessionId}/register — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/{sessionId}/register/{guestId}": {
+      "delete": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "DELETE /{eventId}/{sessionId}/register/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/{sessionId}/guests": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "GET /{eventId}/{sessionId}/guests — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/my-sessions/{guestId}": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "GET /{eventId}/my-sessions/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/legal": {
+      "put": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "PUT /legal — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "GET /legal — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/approve-user": {
+      "post": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "POST /approve-user — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "tags": [
+          "setup"
+        ],
+        "summary": "GET /status — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/admin": {
+      "post": {
+        "tags": [
+          "setup"
+        ],
+        "summary": "POST /admin — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/slots": {
+      "get": {
+        "tags": [
+          "slots"
+        ],
+        "summary": "GET /events/{eventId}/slots — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "slots"
+        ],
+        "summary": "POST /events/{eventId}/slots — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/sms/settings": {
+      "get": {
+        "tags": [
+          "sms"
+        ],
+        "summary": "GET /api/sms/settings — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "sms"
+        ],
+        "summary": "POST /api/sms/settings — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/sms/send": {
+      "post": {
+        "tags": [
+          "sms"
+        ],
+        "summary": "POST /api/sms/send — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/sms/send-to-guest/{guestId}": {
+      "post": {
+        "tags": [
+          "sms"
+        ],
+        "summary": "POST /api/sms/send-to-guest/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/whatsapp/settings": {
+      "get": {
+        "tags": [
+          "sms"
+        ],
+        "summary": "GET /api/whatsapp/settings — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "sms"
+        ],
+        "summary": "POST /api/whatsapp/settings — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/whatsapp/send": {
+      "post": {
+        "tags": [
+          "sms"
+        ],
+        "summary": "POST /api/whatsapp/send — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/whatsapp/send-to-guest/{guestId}": {
+      "post": {
+        "tags": [
+          "sms"
+        ],
+        "summary": "POST /api/whatsapp/send-to-guest/{guestId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/speakers": {
+      "get": {
+        "tags": [
+          "speakers"
+        ],
+        "summary": "GET /events/{eventId}/speakers — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "speakers"
+        ],
+        "summary": "POST /events/{eventId}/speakers — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/speakers/{speakerId}": {
+      "put": {
+        "tags": [
+          "speakers"
+        ],
+        "summary": "PUT /events/{eventId}/speakers/{speakerId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "speakers"
+        ],
+        "summary": "DELETE /events/{eventId}/speakers/{speakerId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/speakers/public": {
+      "get": {
+        "tags": [
+          "speakers"
+        ],
+        "summary": "GET /events/{eventId}/speakers/public — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/analytics": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "GET /analytics — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/stats/{eventId}": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "GET /stats/{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/db/maintenance": {
+      "post": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "POST /db/maintenance — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/reports/{eventId}": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "GET /reports/{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/bi/dashboard": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "GET /bi/dashboard — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/bi/export/{format}": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "GET /bi/export/{format} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/bi/trends": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "GET /bi/trends — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/health/system": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "GET /health/system — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "GET /metrics — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/performance/logs": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "GET /performance/logs — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/system/backup": {
+      "post": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "POST /system/backup — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/templates/{templateId}/questions": {
+      "get": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "GET /templates/{templateId}/questions — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "POST /templates/{templateId}/questions — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/questions/{id}": {
+      "put": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "PUT /questions/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "DELETE /questions/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/questions/reorder": {
+      "put": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "PUT /questions/reorder — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/public/{templateId}": {
+      "get": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "GET /public/{templateId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/surveys": {
+      "get": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "GET /{eventId}/surveys — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/surveys/responses": {
+      "post": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "POST /{eventId}/surveys/responses — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/public/{templateId}/response": {
+      "post": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "POST /public/{templateId}/response — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/templates/{templateId}/stats": {
+      "get": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "GET /templates/{templateId}/stats — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/templates/{templateId}/export/csv": {
+      "get": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "GET /templates/{templateId}/export/csv — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/suggestions": {
+      "get": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "GET /{eventId}/suggestions — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "POST /{eventId}/suggestions — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{eventId}/agenda": {
+      "get": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "GET /{eventId}/agenda — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "surveys"
+        ],
+        "summary": "PUT /{eventId}/agenda — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/tenants": {
+      "get": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "GET /api/tenants — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "POST /api/tenants — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/tenants/{id}": {
+      "put": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "PUT /api/tenants/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "DELETE /api/tenants/{id} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/tenants/{id}/members": {
+      "get": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "GET /api/tenants/{id}/members — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "POST /api/tenants/{id}/members — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/tenants/{id}/members/{userId}": {
+      "delete": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "DELETE /api/tenants/{id}/members/{userId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/tenants/{id}/usage": {
+      "get": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "GET /api/tenants/{id}/usage — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/tenant/{slug}": {
+      "get": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "GET /api/tenant/{slug} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/api/tenant/{slug}/event/{eventId}": {
+      "get": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "GET /api/tenant/{slug}/event/{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/trivias": {
+      "get": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "GET /events/{eventId}/trivias — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "POST /events/{eventId}/trivias — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/questions": {
+      "get": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "GET /{id}/questions — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "POST /{id}/questions — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/questions/{qid}": {
+      "delete": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "DELETE /{id}/questions/{qid} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/questions/import": {
+      "post": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "POST /{id}/questions/import — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/verify": {
+      "post": {
+        "tags": [
+          "trivias"
+        ],
+        "summary": "POST /{id}/verify — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/invite": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "POST /invite — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/status": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "PUT /{id}/status — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/password": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "PUT /{id}/password — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/role": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "PUT /{id}/role — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/group": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "PUT /{id}/group — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/profile": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "PUT /{id}/profile — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/assign/{eventId}": {
+      "put": {
+        "tags": [
+          "venues"
+        ],
+        "summary": "PUT /{id}/assign/{eventId} — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/app-version": {
+      "get": {
+        "tags": [
+          "version"
+        ],
+        "summary": "GET /app-version — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "version"
+        ],
+        "summary": "GET /health — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/health/redis": {
+      "get": {
+        "tags": [
+          "version"
+        ],
+        "summary": "GET /health/redis — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/health/full": {
+      "get": {
+        "tags": [
+          "version"
+        ],
+        "summary": "GET /health/full — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/test": {
+      "post": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "POST /{id}/test — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/{id}/logs": {
+      "get": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "GET /{id}/logs — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "DELETE /{id}/logs — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    },
+    "/events/available": {
+      "get": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "GET /events/available — ver código fuente para el contrato completo",
+        "responses": {
+          "200": {
+            "description": "Respuesta"
+          }
+        }
+      }
+    }
+  }
+}

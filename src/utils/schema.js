@@ -2365,4 +2365,16 @@ function rebuildGuestFkTables(db) {
     return rebuilt;
 }
 
-module.exports = { initSchema, seedAdminIfConfigured, rebuildGuestFkTables };
+// v12.44.852 (P1): en una instalación nueva los ALTER de guests corren ANTES del CREATE TABLE y
+// fallan en silencio (sin tabla no hay columna): quedan sin otp_code/bio/… y las rutas que las
+// usan responden 'no such column'. Esta pasada idempotente se ejecuta tras el esquema completo.
+function ensureGuestExtendedColumns(db) {
+    for (const colDef of ['otp_code TEXT', 'bio TEXT', 'interests TEXT', 'social_linkedin TEXT', 'photo_url TEXT']) {
+        const colName = colDef.split(' ')[0];
+        const has = db.prepare('PRAGMA table_info(guests)').all().some(function(c) { return c.name === colName; });
+        if (!has) { try { db.exec('ALTER TABLE guests ADD COLUMN ' + colDef); } catch (_) {} }
+    }
+    try { db.exec('CREATE INDEX IF NOT EXISTS idx_guests_otp ON guests(otp_code)'); } catch (_) {}
+}
+
+module.exports = { initSchema, seedAdminIfConfigured, rebuildGuestFkTables, ensureGuestExtendedColumns };

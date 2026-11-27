@@ -387,7 +387,10 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     logAction(req, AUDIT_ACTIONS.EVENT_UPDATED, { eventId });
     try { triggerWebhooks(WEBHOOK_EVENTS.EVENT_UPDATED, { eventId, changes: Object.keys(d) }, eventId).catch(() => {}); } catch(e) {}
 
-    logChange(eventId, 'event', eventId, 'updated', null, JSON.stringify(d), null, req.userId);
+    // v12.44.852 (P9): capturar el estado previo del evento — antes se guardaban los valores NUEVOS
+    // como old_value y el undo re-aplicaba lo mismo (undo roto). Ahora old=previo, new=nuevo.
+    const prevEvent = db.prepare('SELECT name, date, location FROM events WHERE id = ?').get(eventId);
+    logChange(eventId, 'event', eventId, 'updated', null, JSON.stringify(prevEvent || {}), JSON.stringify({ name: d.name || prevEvent?.name, date: d.date || prevEvent?.date, location: d.location || prevEvent?.location }), req.userId);
 
     res.json({ success: true });
 });
