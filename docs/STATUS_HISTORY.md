@@ -731,3 +731,7 @@ El script inline de `registro.html` tenía una **llave de cierre sobrante** (ent
 - CSP: 0 onclick/0 script inline verificado; F15/F16/F17 cerrados; socket.io cargado en la app (G3).
 - Pooling de correo; chatbot/analytics/bi leen BDs de evento; smoke de socket con cliente real 5/5; P1-P11 accionables (incluye undo de cambios de evento real y LRU de conexiones); Swagger 15→435 paths (mapa generado de 557 endpoints) y SDK ampliado.
 - Suite 30 suites, 521✓ en tres pasadas. Lint 0 errores / 247 avisos. Deploy y validación en vivo: se anotan al cerrar.
+
+## 2026-11-27 — v12.44.852 (etiqueta movida a `04cd6dc`) — cierre total, validación 15/16→OK
+- Validación en producción: analytics/bi ven 978 invitados; spec OpenAPI 435 paths cargado por el servidor (swagger-jsdoc/ui-express pasan a dependencies: estaban en dev y Swagger SIEMPRE estuvo silenciado en producción); handler de salida y unrefs verificados en el archivo desplegado.
+- Etiqueta v12.44.852 movida dos veces durante el cierre de swagger (deps + anotación trivias).

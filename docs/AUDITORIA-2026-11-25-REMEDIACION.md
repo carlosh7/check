@@ -350,3 +350,10 @@ ESLint: 0 errores, 247 avisos (umbral CI 520).
 - P4 (carreras de stock en juegos): no aplicable con un solo proceso síncrono; si algún día hay varios procesos, envolver pickPrize+UPDATE en la transacción.
 - Logging síncrono por línea (appendFileSync) y backup síncrono: costo de rendimiento aceptado a cambio de no perder logs en crash — cambiarlo es un proyecto propio.
 - Lecturas solo-maestra residuales: stats/analytics ya barre; chatbot contadores ya barre; queda auditar de forma continua cualquier módulo nuevo.
+
+### Validación en vivo de v12.44.852 (2026-11-27)
+
+- Deploy: 53 archivos con md5 idéntico + 3 correcciones de cierre (deps de swagger a producción con instalación en el contenedor, `@openapi` inválido de trivias retirado, `/send` con transport propio). Salud 200 a los 6 s, sin errores de arranque.
+- **Validación final: 15/16 OK** — el único "FALLA" era un artefacto del script de comprobación (ventana de texto corta entre `uncaughtException` y `process.exit(1)`); verificado directo en el archivo desplegado: handler de salida presente (L616, exit(1) confirmado) y `.unref()` en los 5 intervalos.
+- En producción: analytics y bi/dashboard ven los **978 invitados** de la BD del evento (antes 0); spec OpenAPI **435 paths, versión dinámica** cargado por el servidor (Swagger vuelve a existir en producción tras estar silenciado desde siempre por dependencias de desarrollo); socket.io cargado en index y app-shell; P8 pooling; chatbot y compresión confirmados.
+- Commits: `7e178f1` (cierre), `517e7ff`+`5471468` (deps a producción, etiqueta movida — precedente v842), `04cd6dc` (anotación trivias). Etiqueta final `v12.44.852` → `04cd6dc`.
