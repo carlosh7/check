@@ -136,6 +136,25 @@ function encryptBuffer(buffer) {
     ]);
 }
 
+// v12.44.853 (auditoría 2026-11-25, P8): idéntico a encryptBuffer pero con gzip ASÍNCRONO — el gzip
+// de una BD de varios MB bloqueaba el event loop completo durante el backup programado. La parte de
+// cifrado AES es nativa y rápida; el compresor es lo pesado.
+async function encryptBufferAsync(buffer) {
+    const key = getBackupKey();
+    if (!key) { warnPlaintextFallback('backup'); return null; }
+    const zlib = require('zlib');
+    const compressed = await new Promise(function(resolve, reject) { zlib.gzip(buffer, function(err, out) { err ? reject(err) : resolve(out); }); });
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+    const encrypted = Buffer.concat([cipher.update(compressed), cipher.final()]);
+    const tag = cipher.getAuthTag();
+    return Buffer.concat([
+        Buffer.from(BACKUP_PREFIX),
+        Buffer.from(iv.toString('base64') + '.' + tag.toString('hex') + '.'),
+        encrypted
+    ]);
+}
+
 function decryptBuffer(stored) {
     if (!stored || !stored.slice(0, BACKUP_PREFIX.length).equals(Buffer.from(BACKUP_PREFIX))) return null;
     const key = getBackupKey();
@@ -196,4 +215,4 @@ function migrateTwilioSettings() {
     return migrated;
 }
 
-module.exports = { encrypt, decrypt, encryptPassword, decryptPassword, isEncrypted, getStatus, migrateExistingPasswords, encryptBuffer, decryptBuffer, isBackupEncrypted, migrateTwilioSettings };
+module.exports = { encrypt, decrypt, encryptPassword, decryptPassword, isEncrypted, getStatus, migrateExistingPasswords, encryptBuffer, encryptBufferAsync, decryptBuffer, isBackupEncrypted, migrateTwilioSettings };

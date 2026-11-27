@@ -41,10 +41,11 @@ async function createBackup() {
 
         if (encryptionAvailable) {
             // Cifrar el volcado: gzip + AES-256-GCM (auth tag = cualquier alteración se detecta)
-            const raw = fs.readFileSync(tmpPath);
-            const enc = encryption.encryptBuffer(raw);
-            fs.writeFileSync(finalPath, enc);
-            fs.unlinkSync(tmpPath); // el volcado en claro nunca permanece en disco
+            // v12.44.853 (P8): todo ASÍNCRONO (gzip sync de varios MB bloqueaba el event loop)
+            const raw = await fs.promises.readFile(tmpPath);
+            const enc = await encryption.encryptBufferAsync(raw);
+            await fs.promises.writeFile(finalPath, enc);
+            await fs.promises.unlink(tmpPath); // el volcado en claro nunca permanece en disco
         } else {
             // Sin clave: se conserva el backup en claro (recuperación de desastres > cifrado)
             // pero queda avisado de forma ruidosa (el módulo encryption también lo audita).
@@ -181,17 +182,19 @@ function dataRoot() {
 }
 
 // Cifra un volcado temporal (o lo deja en claro avisando, si no hay clave) y devuelve { path, size }
-function finalizeBackupFile(tmpPath, outName) {
+async function finalizeBackupFile(tmpPath, outName) {
     if (!process.env.BACKUP_ENCRYPTION_KEY && !process.env.ENCRYPTION_KEY) {
         const plainPath = path.join(BACKUP_DIR, outName);
-        fs.renameSync(tmpPath, plainPath);
+        await fs.promises.rename(tmpPath, plainPath);
         logger.error('[BACKUP] ⚠️ Backup guardado SIN CIFRAR: define BACKUP_ENCRYPTION_KEY o ENCRYPTION_KEY. Ruta: ' + plainPath);
         return { path: plainPath, size: fs.statSync(plainPath).size };
     }
-    const raw = fs.readFileSync(tmpPath);
+    // v12.44.853 (P8): lectura, cifrado y escritura asíncronos (gzip sync bloqueaba el event loop)
+    const raw = await fs.promises.readFile(tmpPath);
+    const enc = await encryption.encryptBufferAsync(raw);
     const encPath = path.join(BACKUP_DIR, outName + '.enc');
-    fs.writeFileSync(encPath, encryption.encryptBuffer(raw));
-    fs.unlinkSync(tmpPath); // el volcado en claro nunca permanece en disco
+    await fs.promises.writeFile(encPath, enc);
+    await fs.promises.unlink(tmpPath); // el volcado en claro nunca permanece en disco
     return { path: encPath, size: fs.statSync(encPath).size };
 }
 
@@ -205,7 +208,7 @@ async function backupSqliteFile(dbFile, outName) {
     } finally {
         src.close();
     }
-    return finalizeBackupFile(tmpPath, outName);
+    return await finalizeBackupFile(tmpPath, outName);
 }
 
 async function backupEventDatabases(timestamp) {
@@ -237,7 +240,7 @@ async function backupUploads(timestamp) {
     const tmpPath = path.join(BACKUP_DIR, 'check_uploads_backup_' + timestamp + '.tar.gz.tmp');
     // rutas relativas al directorio de datos: al restaurar se descomprime con -C <DATA_PATH>
     execFileSync('tar', ['-czf', tmpPath, '-C', root].concat(names));
-    const out = finalizeBackupFile(tmpPath, 'check_uploads_backup_' + timestamp + '.tar.gz');
+    const out = await finalizeBackupFile(tmpPath, 'check_uploads_backup_' + timestamp + '.tar.gz'); // v12.44.853: async
     return { ok: true, size: out.size, dirs: names };
 }
 

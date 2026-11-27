@@ -578,6 +578,7 @@ try {
     // ═══ GRACEFUL SHUTDOWN ═══
     const gracefulShutdown = (signal) => {
         logger.info(`${signal} recibido. Cerrando servidor...`);
+        // v12.44.853 (P8): volcar el búfer de logs ANTES de salir (la escritura es asíncrona por lotes)
         
         // Detener la llegada de nuevas conexiones
         server.close(() => {
@@ -616,9 +617,11 @@ try {
     process.on('uncaughtException', (err) => {
         // v12.44.852 (P11): tras una excepción no capturada el estado del proceso es indefinido;
         // salir (restart: unless-stopped lo levanta limpio) en vez de seguir sirviendo a medio morir.
-        logger.error('Uncaught Exception:', { message: err.message, stack: err.stack });
+        logger.error('Uncaught Exception:', { message: err.message, stack: err.stack }); // escritura sincrónica (nivel error)
+        logger.flushSync(); // v12.44.853 (P8): volcar el búfer de logs antes de salir
         process.exit(1);
     });
+    process.on('exit', function() { try { require('./src/utils/logger').flushSync(); } catch (_) {} }); // v12.44.853 (P8): último plano
     process.on('unhandledRejection', (reason) => {
         logger.error('Unhandled Rejection:', { reason: String(reason) });
     });

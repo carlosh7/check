@@ -50,13 +50,75 @@ function maybeClean() {
     }
 }
 
-// Escribir a archivo (append, síncrono para no bloquear)
-function writeToFile(filePath, line) {
+// v12.44.853 (P8): escritura ASÍNCRONA por lotes. Antes cada línea hacía appendFileSync (un syscall
+// bloqueante por log; con ~12 logs por request el event loop se detenía una y otra vez).
+// Diseño sin perder evidencia:
+//   - warn/info/debug van a un búfer por archivo y se vuelcan en lotes (un appendFile por archivo).
+//   - ERROR se escribe SINCRÓNICO siempre: la evidencia de un fallo debe sobrevivir al fallo.
+//   - flushSync() vuelca lo pendiente de forma síncrona: se llama en el apagado y ante un crash.
+//   - Si un volcado asíncrono falla, se reintenta sincrónico para no perder el lote.
+const pending = new Map(); // filePath -> array de líneas
+const FLUSH_INTERVAL = 500;   // ms entre volcados
+const FLUSH_BATCH = 500;      // volcado anticipado si el búfer crece mucho
+let flushTimer = null;
+let flushing = false;
+
+function queueWrite(filePath, text) {
+    if (!pending.has(filePath)) pending.set(filePath, []);
+    const batch = pending.get(filePath);
+    batch.push(text);
+    if (batch.length >= FLUSH_BATCH) flushSyncFile(filePath);
+    else scheduleFlush();
+}
+
+function scheduleFlush() {
+    if (flushTimer) return;
+    flushTimer = setTimeout(function() { flushTimer = null; flushAll(); }, FLUSH_INTERVAL);
+}
+
+async function flushAll() {
+    if (flushing) { scheduleFlush(); return; } // reprogramar: llegaron líneas durante el volcado
+    flushTimer = null;
+    flushing = true;
     try {
-        fs.appendFileSync(filePath, line + '\n');
-    } catch(e) {
-        // Si falla la escritura, no hacemos nada (no bloquear el proceso)
+        for (const [filePath, lines] of pending) {
+            if (lines.length === 0) { pending.delete(filePath); continue; }
+            pending.set(filePath, []);
+            try {
+                await fs.promises.appendFile(filePath, lines.join(''));
+            } catch (e) {
+                try { fs.appendFileSync(filePath, lines.join('')); } catch (_) {}
+            }
+        }
+    } finally {
+        flushing = false;
     }
+    let quedan = false;
+    for (const lines of pending.values()) if (lines.length > 0) quedan = true;
+    if (quedan) scheduleFlush();
+}
+
+function flushSyncFile(filePath) {
+    const lines = pending.get(filePath);
+    if (!lines || lines.length === 0) { pending.delete(filePath); return; }
+    try { fs.appendFileSync(filePath, lines.join('')); } catch (_) {}
+    pending.set(filePath, []);
+}
+
+// Vuelca TODO lo pendiente de forma síncrona (apagado, crash, pruebas)
+function flushSync() {
+    if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
+    for (const filePath of Array.from(pending.keys())) flushSyncFile(filePath);
+}
+
+function writeToFile(filePath, line, opts) {
+    const text = line + '\n';
+    if (opts && opts.immediate) {
+        // error: síncrono siempre (evidencia de crash)
+        try { fs.appendFileSync(filePath, text); } catch (e) {}
+        return;
+    }
+    queueWrite(filePath, text);
 }
 
 function formatTimestamp() {
@@ -85,8 +147,8 @@ const logger = {
         if (currentLevel >= LOG_LEVELS.error) {
             console.error(...formatMessage('error', message, args));
             const files = getLogFiles();
-            writeToFile(files.error, formatFileLine('error', message, args));
-            writeToFile(files.combined, formatFileLine('error', message, args));
+            writeToFile(files.error, formatFileLine('error', message, args), { immediate: true });
+            writeToFile(files.combined, formatFileLine('error', message, args), { immediate: true });
             maybeClean();
         }
     },
@@ -117,5 +179,11 @@ const logger = {
         }
     }
 };
+
+logger.flushSync = flushSync; // apagado ordenado, crash y pruebas (v12.44.853 P8)
+logger.flushAll = flushAll;   // volcado asíncrono
+
+// Limpiar logs viejos una vez al día, sin bloquear el arranque
+setTimeout(function() { cleanOldLogs(); }, 2000);
 
 module.exports = logger;

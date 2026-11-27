@@ -85,6 +85,8 @@ function effProbs(){
   return parts.map(function(){return 1/n});
 }
 
+// v12.44.821: índice bajo el puntero para arcos variables (antes: división uniforme
+// con +Math.PI/2, que desplazaba el anuncio un segmento respecto al puntero)
 function segIdxAt(rotation,probs){
   if(!probs||!probs.length)return 0;
   let f=(POINTER_OFFSET-(rotation||0))%(2*Math.PI);if(f<0)f+=2*Math.PI;
@@ -169,10 +171,6 @@ function burstConfetti(){
   }catch(e){/* el confeti nunca debe romper el anuncio del ganador */}
 }
 
-function openEditEntry(idx){
-  editIdx=idx;document.getElementById('edit-name').value=parts[idx]||'';
-  openModal('edit-modal')
-}
 function applyEditEntry(){
   const nm=document.getElementById('edit-name').value.trim();
   if(!nm||editIdx<0)return;
@@ -309,11 +307,6 @@ function draw(){
   cx.restore()
 }
 
-// v12.44.821: índice bajo el puntero para arcos variables (antes: división uniforme
-// con +Math.PI/2, que desplazaba el anuncio un segmento respecto al puntero)
-function getSegIdx(){
-  return segIdxAt(rot,effProbs())
-}
 
 // ===== SPIN (Expo.easeOut) =====
 // v12.44.821: el giro obedece el ESTADO VIVO del panel (checkboxes visibles), no solo
